@@ -135,48 +135,10 @@ ul {
 }
 
 /* ============ CURSOR ============ */
-.cursor-glow {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 420px;
-    height: 420px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(251, 206, 7, .16), transparent 70%);
-    pointer-events: none;
-    z-index: 2;
-    transform: translate(-50%, -50%);
-    transition: opacity .3s ease;
-}
 
-.cursor-dot {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--accent);
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    transition: width .2s var(--ease), height .2s var(--ease), background .2s ease;
-    mix-blend-mode: difference;
-}
 
-.cursor-dot.grow {
-    width: 46px;
-    height: 46px;
-    background: var(--white);
-}
 
-@media (hover:none) {
 
-    .cursor-glow,
-    .cursor-dot {
-        display: none;
-    }
-}
 
 /* ============ SCROLL PROGRESS ============ */
 .scroll-progress {
