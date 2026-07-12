@@ -2226,35 +2226,71 @@ ul {
 }
 
 /* ============ REELS STYLES ============ */
-.reels-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 24px;
-    margin-top: 10px;
+.reels-slider-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: 50px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reels-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: transform;
+    padding: 0 50px;
 }
 
 .reel-card {
+    width: 290px;
+    flex-shrink: 0;
     background: transparent;
     border: none;
     padding: 0;
     margin: 0;
     display: flex;
     flex-direction: column;
-    transition: transform 0.4s var(--ease);
-    overflow: hidden;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, filter 0.6s ease;
+    transform-origin: center center;
+    opacity: 0.4;
+    filter: blur(2px) grayscale(20%);
+    cursor: pointer;
+    user-select: none;
 }
 
-.reel-card:hover {
-    transform: scale(1.03);
+.reel-card.active {
+    transform: scale(1.16);
+    opacity: 1;
+    filter: none;
+    z-index: 10;
+}
+
+.reel-card.prev,
+.reel-card.next {
+    opacity: 0.85;
+    filter: none;
+    transform: scale(0.96);
+    z-index: 5;
+}
+
+.reel-card.far-prev,
+.reel-card.far-next {
+    opacity: 0.55;
+    transform: scale(0.82);
 }
 
 .reel-video {
     position: relative;
     width: 100%;
     aspect-ratio: 9 / 16;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-xl);
     overflow: hidden;
     background: #000;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .reel-video-element {
@@ -2262,6 +2298,44 @@ ul {
     height: 100%;
     object-fit: cover;
     display: block;
+    pointer-events: none; /* Let clicks pass to the card */
+}
+
+.reels-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: var(--white);
+    color: var(--black);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+}
+
+.reels-nav-btn:hover {
+    transform: translateY(-50%) scale(1.08);
+    background: var(--black);
+    color: var(--white);
+}
+
+.reels-nav-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.reels-nav-btn.prev {
+    left: min(60px, 5%);
+}
+
+.reels-nav-btn.next {
+    right: min(60px, 5%);
 }
 
 .nav-link.active {
@@ -2277,9 +2351,32 @@ ul {
     color: var(--accent);
 }
 
-@media(max-width: 480px) {
-    .reels-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
+@media(max-width: 768px) {
+    .reels-slider-container {
+        padding: 30px 0;
+    }
+    .reels-wrapper {
+        gap: 20px;
+    }
+    .reel-card {
+        width: 220px;
+    }
+    .reel-card.active {
+        transform: scale(1.1);
+    }
+    .reel-card.prev,
+    .reel-card.next {
+        transform: scale(0.95);
+    }
+    .reels-nav-btn {
+        width: 44px;
+        height: 44px;
+    }
+    .reels-nav-btn.prev {
+        left: 10px;
+    }
+    .reels-nav-btn.next {
+        right: 10px;
     }
 }
+

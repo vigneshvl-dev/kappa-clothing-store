@@ -533,14 +533,82 @@
     /* ---------- FOOTER YEAR ---------- */
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    /* ---------- REELS AUTOPLAY & PAUSE ON SCROLL ---------- */
+    /* ---------- REELS AUTOPLAY, SLIDER & PAUSE ON SCROLL ---------- */
     const reelsContainer = document.getElementById("reels");
     if (reelsContainer) {
+        const wrapper = reelsContainer.querySelector(".reels-wrapper");
+        const cards = reelsContainer.querySelectorAll(".reel-card");
+        const prevBtn = reelsContainer.querySelector(".reels-nav-btn.prev");
+        const nextBtn = reelsContainer.querySelector(".reels-nav-btn.next");
         const videos = reelsContainer.querySelectorAll(".reel-video-element");
+        
+        let currentIndex = 1; // Start with the second video as active (centered)
+
+        function updateSlider() {
+            if (!wrapper || !cards.length) return;
+            
+            const containerWidth = reelsContainer.querySelector(".reels-slider-container").clientWidth;
+            const activeCard = cards[currentIndex];
+            const cardWidth = activeCard.clientWidth;
+            const cardOffsetLeft = activeCard.offsetLeft;
+            
+            // Calculate translation value to center the active card
+            const translateVal = (containerWidth / 2) - (cardOffsetLeft + cardWidth / 2);
+            wrapper.style.transform = `translateX(${translateVal}px)`;
+            
+            // Update classes
+            cards.forEach((card, idx) => {
+                card.classList.remove("active", "prev", "next", "far-prev", "far-next");
+                const diff = idx - currentIndex;
+                if (diff === 0) {
+                    card.classList.add("active");
+                } else if (diff === -1) {
+                    card.classList.add("prev");
+                } else if (diff === 1) {
+                    card.classList.add("next");
+                } else if (diff <= -2) {
+                    card.classList.add("far-prev");
+                } else if (diff >= 2) {
+                    card.classList.add("far-next");
+                }
+            });
+        }
+
+        // Click on navigation buttons
+        if (prevBtn) {
+            prevBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+                updateSlider();
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                currentIndex = (currentIndex + 1) % cards.length;
+                updateSlider();
+            });
+        }
+
+        // Click directly on side cards to center them
+        cards.forEach((card, idx) => {
+            card.addEventListener("click", () => {
+                currentIndex = idx;
+                updateSlider();
+            });
+        });
+
+        // Initialize slider positioning
+        // Use a short timeout to ensure the layout has rendered and clientWidth calculations are correct
+        setTimeout(updateSlider, 200);
+        window.addEventListener("resize", updateSlider);
+
+        // intersection observer for video playback (simultaneous, muted)
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     videos.forEach(video => {
+                        video.muted = true; // Ensure they are muted
                         video.play().catch(err => console.log("Autoplay prevented:", err));
                     });
                 } else {
