@@ -883,10 +883,10 @@ ul {
 }
 
 .section1 {
-    padding: 120px 0 40px; /* remove horizontal padding */
-    width: 100vw; /* full viewport width */
-    max-width: none; /* remove width restriction */
-    margin: 0; /* remove auto centering */
+    padding: 100px 0 80px;
+    width: 100%;
+    background: var(--white);
+    overflow: visible;
 }
 
 .section1-tight {
@@ -927,7 +927,7 @@ ul {
     align-items: center;
     text-align: center;
 }
-.
+..
 
 .eyebrow {
     font-family: var(--font-mono);
@@ -2358,11 +2358,13 @@ ul {
 }
 
 /* ============ REELS STYLES ============ */
+/* Section is already white via .section1 */
 .reels-slider-container {
     position: relative;
     width: 100%;
-    overflow: hidden;
-    padding: 50px 0;
+    /* MUST be visible so cards bleed past section edges */
+    overflow: visible;
+    padding: 40px 0 50px;
 }
 
 .reels-wrapper {
@@ -2370,12 +2372,12 @@ ul {
     display: flex;
     align-items: center;
     width: max-content;
-    gap: 32px;
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    gap: 24px;
+    transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
     will-change: transform;
-    padding: 0 50px;
 }
 
+/* BASE card — all side cards same size (matches reference) */
 .reel-card {
     width: 290px;
     flex-shrink: 0;
@@ -2385,130 +2387,146 @@ ul {
     margin: 0;
     display: flex;
     flex-direction: column;
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, filter 0.6s ease;
+    transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+                opacity   0.55s ease;
     transform-origin: center center;
-    opacity: 0.4;
-    filter: blur(2px) grayscale(20%);
+    opacity: 0.45;
+    transform: scale(0.88);
     cursor: pointer;
     user-select: none;
 }
 
+/* ACTIVE / centre card — bigger and full opacity */
 .reel-card.active {
-    transform: scale(1.16);
+    transform: scale(1.14);
     opacity: 1;
-    filter: none;
     z-index: 10;
 }
 
+/* Adjacent cards — same base size as default (slightly more visible) */
 .reel-card.prev,
 .reel-card.next {
-    opacity: 0.85;
-    filter: none;
-    transform: scale(0.96);
+    opacity: 0.7;
+    transform: scale(0.88);
     z-index: 5;
 }
 
+/* Far cards — same base size, more faded */
 .reel-card.far-prev,
 .reel-card.far-next {
-    opacity: 0.55;
-    transform: scale(0.82);
+    opacity: 0.4;
+    transform: scale(0.88);
 }
 
 .reel-video {
     position: relative;
     width: 100%;
     aspect-ratio: 9 / 16;
-    border-radius: var(--radius-xl);
+    border-radius: 22px;
     overflow: hidden;
-    background: #000;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    background: #111;
+    box-shadow: 0 16px 40px rgba(0,0,0,.22);
+}
+
+/* Active card gets a subtle highlight ring */
+.reel-card.active .reel-video {
+    box-shadow: 0 24px 60px rgba(0,0,0,.32),
+                0 0 0 2px rgba(251,206,7,.2);
+    border-radius: 24px;
 }
 
 .reel-video-element {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;   /* no cropping — full video always visible */
+    background: #000;
     display: block;
-    pointer-events: none; /* Let clicks pass to the card */
+    pointer-events: none;
 }
 
+/* Instagram embed reel cards */
+.reel-ig {
+    /* override object-fit — iframes fill the card */
+    background: #000;
+}
+.reel-ig-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    /* Scale down the Instagram embed (which renders at ~400px wide) */
+    transform-origin: top left;
+}
+/* Make .reel-ig position relative so the absolute iframe fits */
+.reel-video.reel-ig {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Nav buttons — sit at very edges of screen */
 .reels-nav-btn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 54px;
-    height: 54px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: var(--white);
     color: var(--black);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 6px 24px rgba(0,0,0,.2);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 20;
+    border: none;
     transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
 }
 
 .reels-nav-btn:hover {
-    transform: translateY(-50%) scale(1.08);
+    transform: translateY(-50%) scale(1.1);
     background: var(--black);
     color: var(--white);
 }
 
 .reels-nav-btn svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
 }
 
 .reels-nav-btn.prev {
-    left: min(60px, 5%);
+    left: clamp(8px, 2vw, 32px);
 }
 
 .reels-nav-btn.next {
-    right: min(60px, 5%);
+    right: clamp(8px, 2vw, 32px);
 }
 
-.nav-link.active {
-    color: var(--white);
+/* Clip the overflow on the outer wrapper to keep viewport clean */
+#reels {
+    overflow: hidden;
 }
 
-.nav-link.active::after {
-    transform: scaleX(1);
-}
+/* Re-add active nav-link styles */
+.nav-link.active       { color: var(--white); }
+.nav-link.active::after { transform: scaleX(1); }
+.mnav-link.active      { background: rgba(255,255,255,.12); color: var(--accent); }
 
-.mnav-link.active {
-    background: rgba(255, 255, 255, .12);
-    color: var(--accent);
+/* KAPPA ON SCREEN title — centred inside the full-width section */
+#reels .section-head {
+    padding: 0 6vw;
+    text-align: center;
+    margin-bottom: 40px;
 }
 
 @media(max-width: 768px) {
-    .reels-slider-container {
-        padding: 30px 0;
-    }
-    .reels-wrapper {
-        gap: 20px;
-    }
-    .reel-card {
-        width: 220px;
-    }
-    .reel-card.active {
-        transform: scale(1.1);
-    }
-    .reel-card.prev,
-    .reel-card.next {
-        transform: scale(0.95);
-    }
-    .reels-nav-btn {
-        width: 44px;
-        height: 44px;
-    }
-    .reels-nav-btn.prev {
-        left: 10px;
-    }
-    .reels-nav-btn.next {
-        right: 10px;
-    }
+    .reels-slider-container { padding: 24px 0 36px; }
+    .reel-card              { width: 200px; }
+    .reel-card.active       { transform: scale(1.1); }
+    .reels-nav-btn          { width: 38px; height: 38px; }
+    .reels-nav-btn svg      { width: 16px; height: 16px; }
 }
 
 

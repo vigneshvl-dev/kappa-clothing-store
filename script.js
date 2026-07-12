@@ -575,7 +575,7 @@
         const nextBtn = reelsContainer.querySelector(".reels-nav-btn.next");
         const videos = reelsContainer.querySelectorAll(".reel-video-element");
         
-        let currentIndex = 1; // Start with the second video as active (centered)
+        let currentIndex = 2; // cards 0 & 1 left, card 2 center, cards 3+ right
 
         function updateSlider() {
             if (!wrapper || !cards.length) return;
