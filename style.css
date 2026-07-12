@@ -476,10 +476,30 @@ ul {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: var(--black) url('assets/kappaclst1.png') center/cover no-repeat;
+    background: var(--black);
     color: var(--white);
     overflow: hidden;
     padding: 140px 20px 80px;
+}
+
+.hero-slides {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 1.8s ease-in-out;
+}
+
+.hero-slide.active {
+    opacity: 1;
 }
 
 #particleCanvas {
@@ -493,7 +513,7 @@ ul {
 .hero-blobs {
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: 1;
 }
 
 .blob {

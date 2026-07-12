@@ -77,6 +77,19 @@
     });
     document.body.style.overflow = "hidden";
 
+    /* ---------- HERO SLIDESHOW ---------- */
+    const heroSlides = document.querySelectorAll(".hero-slide");
+    let currentSlide = 0;
+    function nextSlide() {
+        if (heroSlides.length === 0) return;
+        heroSlides[currentSlide].classList.remove("active");
+        currentSlide = (currentSlide + 1) % heroSlides.length;
+        heroSlides[currentSlide].classList.add("active");
+    }
+    if (heroSlides.length > 1) {
+        setInterval(nextSlide, 5000);
+    }
+
     /* ---------- CUSTOM CURSOR ---------- */
     const glow = document.getElementById("cursorGlow");
     const dot = document.getElementById("cursorDot");
