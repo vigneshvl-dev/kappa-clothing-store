@@ -599,8 +599,11 @@
         });
 
         // Initialize slider positioning
-        // Use a short timeout to ensure the layout has rendered and clientWidth calculations are correct
-        setTimeout(updateSlider, 200);
+        // Use multiple triggers to ensure correct calculations as DOM renders and assets load
+        setTimeout(updateSlider, 100);
+        setTimeout(updateSlider, 500);
+        setTimeout(updateSlider, 1500);
+        window.addEventListener("load", updateSlider);
         window.addEventListener("resize", updateSlider);
 
         // intersection observer for video playback (simultaneous, muted)
