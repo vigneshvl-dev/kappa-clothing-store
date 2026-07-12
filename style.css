@@ -476,7 +476,7 @@ ul {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: var(--black);
+    background: var(--black) url('assets/kappaclst1.png') center/cover no-repeat;
     color: var(--white);
     overflow: hidden;
     padding: 140px 20px 80px;
@@ -773,8 +773,8 @@ ul {
 
 /* ============ SECTIONS ============ */
 .section {
-    padding: 120px 0vw 0px;
-    max-width: 14400px;
+    padding: 120px 6vw 40px;
+    max-width: 1440px;
     margin: 0 auto;
 }
 
