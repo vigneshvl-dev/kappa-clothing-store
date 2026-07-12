@@ -108,22 +108,42 @@
         el.addEventListener("mouseleave", () => dot.classList.remove("grow"));
     });
 
-    /* ---------- SCROLL PROGRESS + NAVBAR HIDE ---------- */
-    const progress = document.getElementById("scrollProgress");
-    const navbar = document.getElementById("navbar");
+    /* ---------- SCROLL PROGRESS + NAVBAR / MARQUEE REVEAL ---------- */
+    const progress  = document.getElementById("scrollProgress");
+    const navbar    = document.getElementById("navbar");
+    const heroNav   = document.getElementById("heroNav");
+    const marqueeEl = document.querySelector(".marquee");
+    const REVEAL_THRESHOLD = 1; // appears the instant user scrolls
     let lastY = 0;
+
     window.addEventListener("scroll", () => {
-        const h = document.documentElement;
+        const h        = document.documentElement;
         const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
         if (progress) progress.style.width = scrolled + "%";
 
-        const y = window.scrollY;
-        if (y > lastY && y > 140) { navbar.classList.add("hide-nav"); }
-        else { navbar.classList.remove("hide-nav"); }
+        const y          = window.scrollY;
+        const isRevealed = y > REVEAL_THRESHOLD;
+
+        // Hero nav: visible at top, hidden on scroll
+        if (heroNav) heroNav.classList.toggle("hn-hidden", isRevealed);
+
+        // Pill navbar + marquee: hidden at top, revealed on scroll
+        navbar.classList.toggle("nav-revealed", isRevealed);
+        if (marqueeEl) marqueeEl.classList.toggle("marquee-revealed", isRevealed);
+
+        // Always keep navbar visible — never hide on scroll-down
+        navbar.classList.remove("hide-nav");
+
         navbar.classList.toggle("scrolled", y > 40);
         lastY = y;
         revealCheck();
     }, { passive: true });
+
+    // Wire hero nav search/cart buttons to the same overlays
+    const heroSearchBtn = document.getElementById("heroSearchBtn");
+    const heroCartBtn   = document.getElementById("heroCartBtn");
+    if (heroSearchBtn) heroSearchBtn.addEventListener("click", () => document.getElementById("searchBtn").click());
+    if (heroCartBtn)   heroCartBtn.addEventListener("click",   () => document.getElementById("cartBtn").click());
 
     /* ---------- REVEAL ON SCROLL ---------- */
     function revealCheck() {

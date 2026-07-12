@@ -150,9 +150,10 @@ ul {
 /* ============ NAVBAR ============ */
 .navbar {
     position: fixed;
-    top: 50px;
+    top: 60px;           /* sits just below the marquee bar */
     left: 50%;
-    transform: translate(-50%, 0);
+    /* Initially hidden above viewport — snaps in on scroll (no transition) */
+    transform: translate(-50%, -220%);
     width: min(1180px, 92%);
     height: var(--nav-h);
     padding: 0 14px 0 28px;
@@ -167,11 +168,19 @@ ul {
     border-radius: 100px;
     z-index: 1000;
     box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .5);
-    transition: transform .5s var(--ease), box-shadow .4s ease, top .4s ease;
+    /* NO transition on transform → snaps in instantly on scroll */
+    transition: box-shadow .4s ease;
 }
 
+/* Snap in immediately when class is added */
+.navbar.nav-revealed {
+    transform: translate(-50%, 0);
+}
+
+/* Hide on rapid scroll-down — keep a quick hide slide */
 .navbar.hide-nav {
     transform: translate(-50%, -140%);
+    transition: transform .4s var(--ease), box-shadow .4s ease;
 }
 
 .navbar.scrolled {
@@ -717,13 +726,27 @@ ul {
 
 /* ============ MARQUEE ============ */
 .marquee {
+    /* Fixed at very top — hidden until user scrolls */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1001; /* above navbar (1000) */
     background: var(--black);
     color: var(--accent2);
     overflow: hidden;
-    padding: 14px 0;
-    border-top: 1px solid rgba(255, 255, 255, .08);
+    padding: 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, .08);
+    /* Initially off-screen above */
+    transform: translateY(-100%);
+    transition: transform 0.55s var(--ease);
 }
+
+/* Revealed on scroll */
+.marquee.marquee-revealed {
+    transform: translateY(0);
+}
+
 
 .marquee-track {
     display: flex;
@@ -2467,3 +2490,126 @@ ul {
     }
 }
 
+
+/* ============ HERO NAV (transparent — top of page only) ============ */
+.hero-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 22px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    z-index: 998; /* below pill navbar (1000) but above content */
+    background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%);
+    /* Visible by default */
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Hidden when user scrolls — JS adds this class */
+.hero-nav.hn-hidden {
+    opacity: 0;
+    transform: translateY(-12px);
+    pointer-events: none;
+}
+
+/* Logo */
+.hn-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.hn-logo img {
+    height: 48px;
+    width: 48px;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+}
+
+/* Centre nav links */
+.hn-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.hn-link {
+    color: rgba(255,255,255,.85);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 100px;
+    letter-spacing: .2px;
+    transition: color .25s ease, background .25s ease;
+}
+.hn-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,.1);
+}
+
+/* Right icons */
+.hn-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.hn-icon {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,.9);
+    background: rgba(255,255,255,0);
+    border: none;
+    cursor: pointer;
+    transition: background .25s ease, transform .25s var(--ease);
+}
+.hn-icon svg {
+    width: 20px;
+    height: 20px;
+}
+.hn-icon:hover {
+    background: rgba(255,255,255,.14);
+    transform: translateY(-2px);
+}
+.hn-badge {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: var(--accent);
+    color: var(--black);
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+}
+
+/* Mobile: hide centre links, keep logo + icons */
+@media (max-width: 768px) {
+    .hero-nav { padding: 18px 20px; }
+    .hn-links  { display: none; }
+    .hero-nav  { background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 100%); }
+}
+@media (max-width: 480px) {
+    .hn-logo img { height: 40px; width: 40px; }
+    .hn-icon     { width: 36px; height: 36px; }
+    .hn-icon svg { width: 17px; height: 17px; }
+}
