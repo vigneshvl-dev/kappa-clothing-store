@@ -192,7 +192,7 @@ ul {
 /* ============ NAVBAR ============ */
 .navbar {
     position: fixed;
-    top: 20px;
+    top: 50px;
     left: 50%;
     transform: translate(-50%, 0);
     width: min(1180px, 92%);
@@ -773,8 +773,8 @@ ul {
 
 /* ============ SECTIONS ============ */
 .section {
-    padding: 120px 6vw 40px;
-    max-width: 1440px;
+    padding: 120px 0vw 0px;
+    max-width: 14400px;
     margin: 0 auto;
 }
 
@@ -2378,4 +2378,4 @@ ul {
         right: 10px;
     }
 }
-
+
