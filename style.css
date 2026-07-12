@@ -882,6 +882,26 @@ ul {
     }
 }
 
+.section1 {
+    padding: 120px 0 40px; /* remove horizontal padding */
+    width: 100vw; /* full viewport width */
+    max-width: none; /* remove width restriction */
+    margin: 0; /* remove auto centering */
+}
+
+.section1-tight {
+    padding-bottom: 0;
+}
+
+.section1-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 56px;
+    flex-wrap: wrap;
+}
+
 
 .section {
     padding: 120px 6vw 40px;
@@ -907,6 +927,7 @@ ul {
     align-items: center;
     text-align: center;
 }
+.
 
 .eyebrow {
     font-family: var(--font-mono);
