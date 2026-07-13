@@ -2396,7 +2396,7 @@ ul {
     will-change: transform;
 }
 
-/* BASE card — all side cards same size (matches reference) */
+/* ============ REEL CARDS ============ */
 .reel-card {
     width: 290px;
     flex-shrink: 0;
@@ -2415,14 +2415,14 @@ ul {
     user-select: none;
 }
 
-/* ACTIVE / centre card — bigger and full opacity */
+/* ACTIVE / centre card */
 .reel-card.active {
     transform: scale(1.14);
     opacity: 1;
     z-index: 10;
 }
 
-/* Adjacent cards — same base size as default (slightly more visible) */
+/* Adjacent cards */
 .reel-card.prev,
 .reel-card.next {
     opacity: 0.7;
@@ -2430,7 +2430,7 @@ ul {
     z-index: 5;
 }
 
-/* Far cards — same base size, more faded */
+/* Far cards */
 .reel-card.far-prev,
 .reel-card.far-next {
     opacity: 0.4;
@@ -2447,7 +2447,7 @@ ul {
     box-shadow: 0 16px 40px rgba(0,0,0,.22);
 }
 
-/* Active card gets a subtle highlight ring */
+/* Active card highlight ring */
 .reel-card.active .reel-video {
     box-shadow: 0 24px 60px rgba(0,0,0,.32),
                 0 0 0 2px rgba(251,206,7,.2);
@@ -2457,95 +2457,62 @@ ul {
 .reel-video-element {
     width: 100%;
     height: 100%;
-    object-fit: contain;   /* no cropping — full video always visible */
+    object-fit: cover;
     background: #000;
     display: block;
     pointer-events: none;
 }
 
-/* Instagram embed reel cards */
-.reel-ig {
-    /* override object-fit — iframes fill the card */
-    background: #000;
-}
-.reel-ig-frame {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-    /* Scale down the Instagram embed (which renders at ~400px wide) */
-    transform-origin: top left;
-}
-/* Make .reel-ig position relative so the absolute iframe fits */
-.reel-video.reel-ig {
-    position: relative;
-    overflow: hidden;
-}
-
-/* Nav buttons — sit at very edges of screen */
+/* Nav buttons */
 .reels-nav-btn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    background: var(--white);
+    background: rgba(255,255,255,.95);
     color: var(--black);
-    box-shadow: 0 6px 24px rgba(0,0,0,.2);
+    box-shadow: 0 8px 28px rgba(0,0,0,.25);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 20;
     border: none;
-    transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+    transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
-
 .reels-nav-btn:hover {
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%) scale(1.12);
     background: var(--black);
     color: var(--white);
+    box-shadow: 0 12px 36px rgba(0,0,0,.4);
 }
+.reels-nav-btn svg { width: 20px; height: 20px; }
+.reels-nav-btn.prev { left: clamp(8px, 2vw, 32px); }
+.reels-nav-btn.next { right: clamp(8px, 2vw, 32px); }
 
-.reels-nav-btn svg {
-    width: 22px;
-    height: 22px;
-}
+/* Clip overflow */
+#reels { overflow: hidden; }
 
-.reels-nav-btn.prev {
-    left: clamp(8px, 2vw, 32px);
-}
-
-.reels-nav-btn.next {
-    right: clamp(8px, 2vw, 32px);
-}
-
-/* Clip the overflow on the outer wrapper to keep viewport clean */
-#reels {
-    overflow: hidden;
-}
-
-/* Re-add active nav-link styles */
+/* Active nav-link styles */
 .nav-link.active       { color: var(--white); }
 .nav-link.active::after { transform: scaleX(1); }
 .mnav-link.active      { background: rgba(255,255,255,.12); color: var(--accent); }
 
-/* KAPPA ON SCREEN title — centred inside the full-width section */
+/* Section title */
 #reels .section-head {
     padding: 0 6vw;
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 48px;
 }
 
 @media(max-width: 768px) {
     .reels-slider-container { padding: 24px 0 36px; }
     .reel-card              { width: 200px; }
     .reel-card.active       { transform: scale(1.1); }
-    .reels-nav-btn          { width: 38px; height: 38px; }
-    .reels-nav-btn svg      { width: 16px; height: 16px; }
+    .reels-nav-btn          { width: 36px; height: 36px; }
+    .reels-nav-btn svg      { width: 15px; height: 15px; }
 }
 
 

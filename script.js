@@ -61,20 +61,27 @@
     let discount = 0;
 
     /* ---------- LOADER ---------- */
-    window.addEventListener("load", () => {
+    function hideLoader() {
+        const loader = document.getElementById("loader");
+        if (loader && !loader.classList.contains("hide")) {
+            loader.classList.add("hide");
+            document.body.style.overflow = "";
+            revealCheck();
+        }
+    }
+    document.addEventListener("DOMContentLoaded", () => {
         const fill = document.getElementById("loaderFill");
         let p = 0;
         const iv = setInterval(() => {
             p += Math.random() * 18;
             if (p >= 100) { p = 100; clearInterval(iv); }
-            fill.style.width = p + "%";
+            if (fill) fill.style.width = p + "%";
         }, 110);
-        setTimeout(() => {
-            document.getElementById("loader").classList.add("hide");
-            document.body.style.overflow = "";
-            revealCheck();
-        }, 1200);
+        setTimeout(hideLoader, 1200);
     });
+    // Safety fallback: never stay black for more than 2s
+    window.addEventListener("load", () => setTimeout(hideLoader, 200));
+    setTimeout(hideLoader, 2000);
     document.body.style.overflow = "hidden";
 
     /* ---------- HERO SLIDESHOW ---------- */
@@ -566,94 +573,120 @@
     /* ---------- FOOTER YEAR ---------- */
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    /* ---------- REELS AUTOPLAY, SLIDER & PAUSE ON SCROLL ---------- */
+    /* ---------- REELS AUTOPLAY, SLIDER & AUDIO CONTROL ---------- */
     const reelsContainer = document.getElementById("reels");
     if (reelsContainer) {
-        const wrapper = reelsContainer.querySelector(".reels-wrapper");
-        const cards = reelsContainer.querySelectorAll(".reel-card");
-        const prevBtn = reelsContainer.querySelector(".reels-nav-btn.prev");
-        const nextBtn = reelsContainer.querySelector(".reels-nav-btn.next");
-        const videos = reelsContainer.querySelectorAll(".reel-video-element");
-        
-        let currentIndex = 2; // cards 0 & 1 left, card 2 center, cards 3+ right
+        const wrapper  = reelsContainer.querySelector(".reels-wrapper");
+        const cards    = reelsContainer.querySelectorAll(".reel-card");
+        const prevBtn  = reelsContainer.querySelector(".reels-nav-btn.prev");
+        const nextBtn  = reelsContainer.querySelector(".reels-nav-btn.next");
+        const videos   = reelsContainer.querySelectorAll(".reel-video-element");
 
+        let currentIndex = 2; // start with the 3rd card centred
+        let reelsVisible = false; // track whether the section is on screen
+
+        /* --- helpers --- */
+        function getVideo(idx) {
+            return cards[idx] ? cards[idx].querySelector(".reel-video-element") : null;
+        }
+
+        // Smoothly fade a video's volume from its current value to target
+        function fadeVolume(video, toVolume, duration = 400) {
+            if (!video) return;
+            const start     = video.volume;
+            const diff      = toVolume - start;
+            const startTime = performance.now();
+            function tick(now) {
+                const progress = Math.min((now - startTime) / duration, 1);
+                video.volume = Math.max(0, Math.min(1, start + diff * progress));
+                if (progress < 1) requestAnimationFrame(tick);
+                else if (toVolume === 0) video.muted = true;
+            }
+            if (toVolume > 0) { video.muted = false; }
+            requestAnimationFrame(tick);
+        }
+
+        // Mute all videos instantly
+        function muteAll() {
+            videos.forEach(v => { v.volume = 0; v.muted = true; });
+        }
+
+        // Unmute the active video (fade in) — only if section is visible
+        function activateAudio(idx) {
+            if (!reelsVisible) return;
+            const activeVideo = getVideo(idx);
+            if (!activeVideo) return;
+            activeVideo.muted = false;
+            activeVideo.volume = 0;
+            fadeVolume(activeVideo, 1, 500);
+        }
+
+        /* --- slider positioning & class update --- */
         function updateSlider() {
             if (!wrapper || !cards.length) return;
-            
+
             const containerWidth = reelsContainer.querySelector(".reels-slider-container").clientWidth;
-            const activeCard = cards[currentIndex];
-            const cardWidth = activeCard.clientWidth;
+            const activeCard     = cards[currentIndex];
             const cardOffsetLeft = activeCard.offsetLeft;
-            
-            // Calculate translation value to center the active card
-            const translateVal = (containerWidth / 2) - (cardOffsetLeft + cardWidth / 2);
+            const cardWidth      = activeCard.clientWidth;
+            const translateVal   = (containerWidth / 2) - (cardOffsetLeft + cardWidth / 2);
             wrapper.style.transform = `translateX(${translateVal}px)`;
-            
-            // Update classes
+
             cards.forEach((card, idx) => {
                 card.classList.remove("active", "prev", "next", "far-prev", "far-next");
                 const diff = idx - currentIndex;
-                if (diff === 0) {
-                    card.classList.add("active");
-                } else if (diff === -1) {
-                    card.classList.add("prev");
-                } else if (diff === 1) {
-                    card.classList.add("next");
-                } else if (diff <= -2) {
-                    card.classList.add("far-prev");
-                } else if (diff >= 2) {
-                    card.classList.add("far-next");
-                }
+                if      (diff ===  0) card.classList.add("active");
+                else if (diff === -1) card.classList.add("prev");
+                else if (diff ===  1) card.classList.add("next");
+                else if (diff  <  -1) card.classList.add("far-prev");
+                else if (diff  >   1) card.classList.add("far-next");
             });
         }
 
-        // Click on navigation buttons
-        if (prevBtn) {
-            prevBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                currentIndex = (currentIndex - 1 + cards.length) % cards.length;
-                updateSlider();
-            });
-        }
-        if (nextBtn) {
-            nextBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                currentIndex = (currentIndex + 1) % cards.length;
-                updateSlider();
-            });
+        /* --- navigate: mute old, activate new --- */
+        function goTo(newIndex) {
+            const oldVideo = getVideo(currentIndex);
+            fadeVolume(oldVideo, 0, 300);          // fade out old
+            currentIndex = (newIndex + cards.length) % cards.length;
+            updateSlider();
+            setTimeout(() => activateAudio(currentIndex), 350); // fade in new after CSS transition starts
         }
 
-        // Click directly on side cards to center them
+        /* --- nav buttons --- */
+        if (prevBtn) prevBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex - 1); });
+        if (nextBtn) nextBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex + 1); });
+
+        /* --- click a side card to centre it --- */
         cards.forEach((card, idx) => {
             card.addEventListener("click", () => {
-                currentIndex = idx;
-                updateSlider();
+                if (idx !== currentIndex) goTo(idx);
             });
         });
 
-        // Initialize slider positioning
-        // Use multiple triggers to ensure correct calculations as DOM renders and assets load
+        /* --- initialise positioning --- */
         setTimeout(updateSlider, 100);
         setTimeout(updateSlider, 500);
         setTimeout(updateSlider, 1500);
         window.addEventListener("load", updateSlider);
         window.addEventListener("resize", updateSlider);
 
-        // intersection observer for video playback (simultaneous, muted)
-        const observer = new IntersectionObserver((entries) => {
+        /* --- IntersectionObserver: play/pause & audio when section enters/leaves view --- */
+        const observer = new IntersectionObserver(entries => {
             entries.forEach(entry => {
+                reelsVisible = entry.isIntersecting;
                 if (entry.isIntersecting) {
-                    videos.forEach(video => {
-                        video.muted = true; // Ensure they are muted
-                        video.play().catch(err => console.log("Autoplay prevented:", err));
-                    });
+                    // Play all videos (muted by default)
+                    muteAll();
+                    videos.forEach(v => v.play().catch(() => {}));
+                    // Then unmute the active one
+                    activateAudio(currentIndex);
                 } else {
-                    videos.forEach(video => {
-                        video.pause();
-                    });
+                    // Pause everything and mute all when off screen
+                    muteAll();
+                    videos.forEach(v => v.pause());
                 }
             });
-        }, { threshold: 0.15 });
+        }, { threshold: 0.2 });
         observer.observe(reelsContainer);
     }
 
