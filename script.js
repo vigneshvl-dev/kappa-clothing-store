@@ -590,15 +590,11 @@
             return cards[idx] ? cards[idx].querySelector(".reel-video-element") : null;
         }
 
+        // Force play all videos MUTED (this is 100% allowed by all browsers under any condition)
         function playAll() {
-            videos.forEach((v, idx) => {
-                if (idx === currentIndex && userInteracted) {
-                    v.muted = false;
-                    v.volume = 1;
-                } else {
-                    v.muted  = true;
-                    v.volume = 0;
-                }
+            videos.forEach(v => {
+                v.muted  = true;
+                v.volume = 0;
                 v.play().catch(() => {});
             });
         }
@@ -622,36 +618,42 @@
             })(performance.now());
         }
 
-        // Unmute active video — only after user has interacted
+        // Unmute active video — only after user has clicked/tapped
         function activateAudio(idx) {
-            muteAll();
-            const v = getVideo(idx);
-            if (!v) return;
+            const activeVideo = getVideo(idx);
+            if (!activeVideo) return;
+
+            // Mute all other videos first
+            videos.forEach(v => {
+                if (v !== activeVideo) {
+                    v.muted = true;
+                    v.volume = 0;
+                }
+            });
+
             if (userInteracted) {
-                v.muted  = false;
-                v.volume = 0;
-                v.play().catch(() => {});
-                fadeVolume(v, 1, 400);
+                activeVideo.muted  = false;
+                activeVideo.volume = 0;
+                activeVideo.play().catch(() => {});
+                fadeVolume(activeVideo, 1, 400);
             } else {
-                v.muted = true;
-                v.volume = 0;
-                v.play().catch(() => {});
+                activeVideo.muted = true;
+                activeVideo.volume = 0;
+                activeVideo.play().catch(() => {});
             }
         }
 
-        /* ---- Listen to first page interaction to enable sound ---- */
+        /* ---- Listen to first real user gesture (click/touch) to enable sound ---- */
         function enableAudioOnInteraction() {
             if (userInteracted) return;
             userInteracted = true;
             activateAudio(currentIndex);
-            // Remove listeners once interaction is detected
+            // Remove interaction listeners
             window.removeEventListener("click", enableAudioOnInteraction);
             window.removeEventListener("touchstart", enableAudioOnInteraction);
-            window.removeEventListener("scroll", enableAudioOnInteraction);
         }
         window.addEventListener("click", enableAudioOnInteraction);
         window.addEventListener("touchstart", enableAudioOnInteraction);
-        window.addEventListener("scroll", enableAudioOnInteraction);
 
         /* ---- Slider positioning ---- */
         function updateSlider() {
@@ -674,14 +676,18 @@
 
         /* ---- Navigate ---- */
         function goTo(idx) {
+            userInteracted = true; // Mark as interacted on navigation click!
             const old = getVideo(currentIndex);
-            fadeVolume(old, 0, 250);
+            if (old) {
+                old.muted = true;
+                old.volume = 0;
+            }
             currentIndex = (idx + cards.length) % cards.length;
             updateSlider();
-            setTimeout(() => {
-                playAll();
-                activateAudio(currentIndex);
-            }, 300);
+            
+            // Play all muted first, then synchronously unmute the active one in the user-event callstack
+            playAll();
+            activateAudio(currentIndex);
         }
 
         /* ---- Events ---- */
@@ -689,7 +695,11 @@
         if (nextBtn) nextBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex + 1); });
 
         cards.forEach((card, idx) => {
-            card.addEventListener("click", () => { if (idx !== currentIndex) goTo(idx); });
+            card.addEventListener("click", () => {
+                if (idx !== currentIndex) {
+                    goTo(idx);
+                }
+            });
         });
 
         /* ---- Init ---- */
@@ -704,7 +714,10 @@
 
         /* ---- IntersectionObserver: pause when off-screen ---- */
         new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting) { playAll(); }
+            if (entries[0].isIntersecting) {
+                playAll();
+                activateAudio(currentIndex);
+            }
             else { muteAll(); videos.forEach(v => v.pause()); }
         }, { threshold: 0.01 }).observe(reelsContainer);
     }
