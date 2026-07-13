@@ -634,14 +634,14 @@
         const videos   = reelsContainer.querySelectorAll(".reel-video-element");
 
         let currentIndex = 2;
-        let userInteracted = false; // Tracks if user has interacted with the document yet
+        let reelsInView = false;
 
         /* ---- Helpers ---- */
         function getVideo(idx) {
             return cards[idx] ? cards[idx].querySelector(".reel-video-element") : null;
         }
 
-        // Force play all videos MUTED (this is 100% allowed by all browsers under any condition)
+        // Play all videos MUTED (background ready state)
         function playAll() {
             videos.forEach(v => {
                 v.muted  = true;
@@ -655,7 +655,7 @@
         }
 
         // Smooth volume fade
-        function fadeVolume(video, toVolume, duration = 350) {
+        function fadeVolume(video, toVolume, duration = 400) {
             if (!video) return;
             const from = video.volume;
             const diff = toVolume - from;
@@ -669,42 +669,31 @@
             })(performance.now());
         }
 
-        // Unmute active video — only after user has clicked/tapped
-        function activateAudio(idx) {
+        // Play active video WITH sound. Falls back to muted silently if browser blocks it.
+        function playActiveWithAudio(idx) {
             const activeVideo = getVideo(idx);
             if (!activeVideo) return;
 
-            // Mute all other videos first
+            // Silence all other videos
             videos.forEach(v => {
-                if (v !== activeVideo) {
-                    v.muted = true;
-                    v.volume = 0;
-                }
+                if (v !== activeVideo) { v.muted = true; v.volume = 0; }
             });
 
-            if (userInteracted) {
-                activeVideo.muted  = false;
-                activeVideo.volume = 0;
-                activeVideo.play().catch(() => {});
-                fadeVolume(activeVideo, 1, 400);
-            } else {
-                activeVideo.muted = true;
-                activeVideo.volume = 0;
-                activeVideo.play().catch(() => {});
+            // Attempt unmuted play — scroll is a user gesture on most browsers
+            activeVideo.muted = false;
+            activeVideo.volume = 0;
+            const promise = activeVideo.play();
+            if (promise !== undefined) {
+                promise
+                    .then(() => fadeVolume(activeVideo, 1, 500))  // fade in sound
+                    .catch(() => {
+                        // Browser blocked audio — silently fall back to muted
+                        activeVideo.muted = true;
+                        activeVideo.volume = 0;
+                        activeVideo.play().catch(() => {});
+                    });
             }
         }
-
-        /* ---- Listen to first real user gesture (click/touch) to enable sound ---- */
-        function enableAudioOnInteraction() {
-            if (userInteracted) return;
-            userInteracted = true;
-            activateAudio(currentIndex);
-            // Remove interaction listeners
-            window.removeEventListener("click", enableAudioOnInteraction);
-            window.removeEventListener("touchstart", enableAudioOnInteraction);
-        }
-        window.addEventListener("click", enableAudioOnInteraction);
-        window.addEventListener("touchstart", enableAudioOnInteraction);
 
         /* ---- Slider positioning ---- */
         function updateSlider() {
@@ -727,18 +716,12 @@
 
         /* ---- Navigate ---- */
         function goTo(idx) {
-            userInteracted = true; // Mark as interacted on navigation click!
             const old = getVideo(currentIndex);
-            if (old) {
-                old.muted = true;
-                old.volume = 0;
-            }
+            if (old) { old.muted = true; old.volume = 0; }
             currentIndex = (idx + cards.length) % cards.length;
             updateSlider();
-            
-            // Play all muted first, then synchronously unmute the active one in the user-event callstack
             playAll();
-            activateAudio(currentIndex);
+            playActiveWithAudio(currentIndex);
         }
 
         /* ---- Events ---- */
@@ -747,30 +730,33 @@
 
         cards.forEach((card, idx) => {
             card.addEventListener("click", () => {
-                if (idx !== currentIndex) {
-                    goTo(idx);
-                }
+                if (idx !== currentIndex) goTo(idx);
+                else playActiveWithAudio(currentIndex);
             });
         });
 
-        /* ---- Init ---- */
-        playAll();
-        setTimeout(playAll, 500);
-        setTimeout(playAll, 1500);
-        window.addEventListener("load",   () => { playAll(); updateSlider(); });
+        /* ---- Slider layout init ---- */
         window.addEventListener("resize", updateSlider);
         setTimeout(updateSlider, 100);
         setTimeout(updateSlider, 500);
         setTimeout(updateSlider, 1500);
+        window.addEventListener("load", updateSlider);
 
-        /* ---- IntersectionObserver: pause when off-screen ---- */
-        new IntersectionObserver(entries => {
+        /* ---- IntersectionObserver: auto-play WITH AUDIO on scroll into view ---- */
+        const reelsObserver = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting) {
-                playAll();
-                activateAudio(currentIndex);
+                reelsInView = true;
+                playAll();       // start all muted first
+                updateSlider();
+                // Small delay so browser registers the scroll gesture, then unmute center video
+                setTimeout(() => playActiveWithAudio(currentIndex), 80);
+            } else {
+                reelsInView = false;
+                muteAll();
+                videos.forEach(v => v.pause());
             }
-            else { muteAll(); videos.forEach(v => v.pause()); }
-        }, { threshold: 0.01 }).observe(reelsContainer);
+        }, { threshold: 0.2 }); // fires when 20% of section is visible
+        reelsObserver.observe(reelsContainer);
     }
 
     /* ---------- INIT ---------- */
