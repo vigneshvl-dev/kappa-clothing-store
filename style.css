@@ -98,8 +98,8 @@ ul {
 /* ============ NAVBAR ============ */
 .navbar {
     position: fixed;
-    top: 120px;
-    /* sits below hero-nav + marquee */
+    top: 60px;
+    /* sits just below the marquee bar */
     left: 50%;
     /* Initially hidden above viewport — snaps in on scroll (no transition) */
     transform: translate(-50%, -220%);
@@ -294,7 +294,7 @@ ul {
     }
 
     .mobile-menu {
-        top: calc(120px + var(--nav-h) + 16px);
+        top: calc(60px + var(--nav-h) + 16px);
         z-index: 1002;
     }
 }
@@ -311,7 +311,7 @@ ul {
     height: fit-content;
     background: var(--clr-bg);
     border-radius: 28px;
-    top: calc(120px + var(--nav-h) + 16px);
+    top: calc(60px + var(--nav-h) + 16px);
     overflow-y: auto;
     padding: 0;
     box-shadow: -4px -2px 20px rgba(0, 0, 0, .4);
@@ -661,7 +661,7 @@ ul {
 
     .hero {
         position: relative;
-        min-height: 100vh;
+        min-height: 70vw;
         padding: 90px 20px 40px;
         display: flex;
         flex-direction: column;
@@ -774,17 +774,21 @@ ul {
 
 /* ============ MARQUEE ============ */
 .marquee {
+    /* Fixed at very top — hidden until user scrolls */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1001;
+    /* above navbar (1000) */
     background: var(--black);
     color: var(--accent2);
     overflow: hidden;
     padding: 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, .08);
-    transform: translateY(0);
+    /* Initially off-screen above */
+    transform: translateY(-100%);
+    transition: transform 0.55s var(--ease);
 }
 
 /* Revealed on scroll */
@@ -2593,16 +2597,18 @@ ul {
 /* ============ HERO NAV (transparent — top of page only) ============ */
 .hero-nav {
     position: fixed;
-    top: 44px;
+    top: 0;
     left: 0;
     width: 100%;
-    padding: 18px 40px;
+    padding: 22px 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 24px;
     z-index: 998;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.65) 0%, transparent 41%);
+    /* below pill navbar (1000) but above content */
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, transparent 100%);
+    /* Visible by default */
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
