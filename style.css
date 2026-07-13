@@ -2383,7 +2383,7 @@ ul {
     width: 100%;
     /* MUST be visible so cards bleed past section edges */
     overflow: visible;
-    padding: 40px 0 50px;
+    padding: 60px 0 80px;
 }
 
 .reels-wrapper {
@@ -2398,7 +2398,7 @@ ul {
 
 /* ============ REEL CARDS ============ */
 .reel-card {
-    width: 290px;
+    width: 420px;
     flex-shrink: 0;
     background: transparent;
     border: none;
@@ -2410,14 +2410,14 @@ ul {
                 opacity   0.55s ease;
     transform-origin: center center;
     opacity: 0.45;
-    transform: scale(0.88);
+    transform: scale(0.75);
     cursor: pointer;
     user-select: none;
 }
 
 /* ACTIVE / centre card */
 .reel-card.active {
-    transform: scale(1.14);
+    transform: scale(1);
     opacity: 1;
     z-index: 10;
 }
@@ -2426,15 +2426,15 @@ ul {
 .reel-card.prev,
 .reel-card.next {
     opacity: 0.7;
-    transform: scale(0.88);
+    transform: scale(0.75);
     z-index: 5;
 }
 
 /* Far cards */
 .reel-card.far-prev,
 .reel-card.far-next {
-    opacity: 0.4;
-    transform: scale(0.88);
+    opacity: 0.35;
+    transform: scale(0.75);
 }
 
 .reel-video {
@@ -2508,11 +2508,17 @@ ul {
 }
 
 @media(max-width: 768px) {
-    .reels-slider-container { padding: 24px 0 36px; }
-    .reel-card              { width: 200px; }
-    .reel-card.active       { transform: scale(1.1); }
+    .reels-slider-container { padding: 40px 0 50px; }
+    .reel-card              { width: 260px; }
+    .reel-card.active       { transform: scale(1); }
+    .reel-card.prev,
+    .reel-card.next         { transform: scale(0.75); }
     .reels-nav-btn          { width: 36px; height: 36px; }
     .reels-nav-btn svg      { width: 15px; height: 15px; }
+}
+
+@media(max-width: 480px) {
+    .reel-card { width: 200px; }
 }
 
 
