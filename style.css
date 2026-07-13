@@ -2521,7 +2521,7 @@ ul {
     transform: translateX(-50%);
 }
 .hn-link {
-    color: rgba(255,255,255,.85);
+    color: rgba(0, 0, 0, 0.85);
     font-size: 15px;
     font-weight: 600;
     padding: 9px 18px;
@@ -2558,6 +2558,7 @@ ul {
 .hn-icon svg {
     width: 20px;
     height: 20px;
+    color:black;
 }
 .hn-icon:hover {
     background: rgba(255,255,255,.14);
