@@ -363,9 +363,10 @@
     const wishOverlay = document.getElementById("wishOverlay");
     const searchOverlay = document.getElementById("searchOverlay");
     const qvOverlay = document.getElementById("quickViewOverlay");
+    const accountOverlay = document.getElementById("accountOverlay");
 
-    function openOverlay(el) { el.classList.add("open"); document.body.style.overflow = "hidden"; }
-    function closeOverlay(el) { el.classList.remove("open"); document.body.style.overflow = ""; }
+    function openOverlay(el) { if (el) { el.classList.add("open"); document.body.style.overflow = "hidden"; } }
+    function closeOverlay(el) { if (el) { el.classList.remove("open"); document.body.style.overflow = ""; } }
 
     document.getElementById("cartBtn").addEventListener("click", () => openOverlay(cartOverlay));
     document.getElementById("bnavCart").addEventListener("click", () => openOverlay(cartOverlay));
@@ -376,12 +377,64 @@
     document.getElementById("searchBtn").addEventListener("click", () => { openOverlay(searchOverlay); document.getElementById("searchInput").focus(); });
     document.getElementById("bnavSearch").addEventListener("click", () => { openOverlay(searchOverlay); document.getElementById("searchInput").focus(); });
     document.getElementById("searchClose").addEventListener("click", () => closeOverlay(searchOverlay));
-    [cartOverlay, wishOverlay, searchOverlay, qvOverlay].forEach(o => {
-        o.addEventListener("click", e => { if (e.target === o) closeOverlay(o); });
+
+    const heroAccountBtn = document.getElementById("heroAccountBtn");
+    const profileBtn     = document.getElementById("profileBtn");
+    const mobileAccountLink = document.getElementById("mobileAccountLink");
+    const accountClose   = document.getElementById("accountClose");
+
+    if (heroAccountBtn) heroAccountBtn.addEventListener("click", () => openOverlay(accountOverlay));
+    if (profileBtn) profileBtn.addEventListener("click", () => openOverlay(accountOverlay));
+    if (mobileAccountLink) mobileAccountLink.addEventListener("click", e => {
+        e.preventDefault();
+        const hamburger = document.getElementById("hamburger");
+        const mobileMenu = document.getElementById("mobileMenu");
+        if (hamburger) hamburger.classList.remove("open");
+        if (mobileMenu) mobileMenu.classList.remove("open");
+        openOverlay(accountOverlay);
+    });
+    if (accountClose) accountClose.addEventListener("click", () => closeOverlay(accountOverlay));
+
+    [cartOverlay, wishOverlay, searchOverlay, qvOverlay, accountOverlay].forEach(o => {
+        if (o) {
+            o.addEventListener("click", e => { if (e.target === o) closeOverlay(o); });
+        }
     });
     document.addEventListener("keydown", e => {
-        if (e.key === "Escape") [cartOverlay, wishOverlay, searchOverlay, qvOverlay].forEach(closeOverlay);
+        if (e.key === "Escape") [cartOverlay, wishOverlay, searchOverlay, qvOverlay, accountOverlay].forEach(o => { if (o) closeOverlay(o); });
     });
+
+    /* ---------- ACCOUNT FORM PANELS & INTERACTIVITY ---------- */
+    if (accountOverlay) {
+        const panelLogin = document.getElementById('panel-login');
+        const panelSignup = document.getElementById('panel-signup');
+
+        const showPanel = target => {
+            const current = accountOverlay.querySelector('.panel.active');
+            if (current === target) return;
+            if (current) current.classList.remove('active');
+            if (target) target.classList.add('active');
+        };
+
+        const goSignup = document.getElementById('go-signup');
+        const goLogin = document.getElementById('go-login');
+        if (goSignup) goSignup.addEventListener('click', e => { e.preventDefault(); showPanel(panelSignup); });
+        if (goLogin) goLogin.addEventListener('click', e => { e.preventDefault(); showPanel(panelLogin); });
+
+        accountOverlay.querySelectorAll('.toggle-eye').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.getAttribute('data-target'));
+                if (!input) return;
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+
+                btn.innerHTML = isPassword
+                    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a19.6 19.6 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 7 11 7a19.7 19.7 0 0 1-2.29 3.36M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+                    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+            });
+        });
+    }
+
 
     function addToCart(id, size) {
         const p = PRODUCTS.find(x => x.id === id);

@@ -54,7 +54,7 @@
                 </svg>
                 <span class="hn-badge" id="heroCartCount">0</span>
             </button>
-            <button class="hn-icon" aria-label="Account">
+            <button class="hn-icon" id="heroAccountBtn" aria-label="Account">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                     stroke-linejoin="round">
                     <circle cx="12" cy="8" r="4"></circle>
@@ -102,7 +102,7 @@
                 </svg>
                 <span class="badge" id="cartCount">0</span>
             </button>
-            <button class="icon-btn profile-btn" aria-label="Profile">
+            <button class="icon-btn profile-btn" id="profileBtn" aria-label="Profile">
                 <svg viewBox="0 0 24 24">
                     <circle cx="12" cy="8" r="4"></circle>
                     <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
@@ -124,6 +124,7 @@
         <a href="#collections" class="mnav-link">Collections</a>
         <a href="#why" class="mnav-link">About</a>
         <a href="#footer" class="mnav-link">Contact</a>
+        <a href="#" class="mnav-link" id="mobileAccountLink">Sign In / Account</a>
     </div>
 
     <!-- BOTTOM NAV (mobile) -->
@@ -568,6 +569,157 @@
                     <button class="overlay-close" id="wishClose">✕</button>
                 </div>
                 <div class="cart-items" id="wishItems"></div>
+            </div>
+        </div>
+
+        <!-- ACCOUNT OVERLAY -->
+        <div class="overlay" id="accountOverlay">
+            <button class="overlay-close" id="accountClose" aria-label="Close overlay">✕</button>
+            <div class="stage">
+                <div class="logo-wrap">
+                    <div class="logo-mark">
+                        <img src="https://i.postimg.cc/gcvzsT9t/Screenshot-2026-07-13-231039.png" alt="KAPPA">
+                    </div>
+                    <div class="logo-name">KAPPA <em>FASHION STORE</em></div>
+                </div>
+                <div class="card">
+                    <!-- LOGIN PANEL -->
+                    <section class="panel active" id="panel-login">
+                        <h1 class="headline">Welcome Back</h1>
+                        <p class="subline">Sign in to continue shopping</p>
+                        <form onsubmit="return false;">
+                            <div class="field">
+                                <label for="login-email">Email Address</label>
+                                <div class="input-shell">
+                                    <input type="email" id="login-email" placeholder="you@example.com"
+                                        autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="login-password">Password</label>
+                                <div class="input-shell">
+                                    <input type="password" id="login-password" class="has-toggle"
+                                        placeholder="Enter your password" autocomplete="off">
+                                    <button type="button" class="toggle-eye" data-target="login-password"
+                                        aria-label="Show password">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row-between">
+                                <label class="checkbox-line">
+                                    <input type="checkbox">
+                                    Remember me
+                                </label>
+                                <a href="#" class="link">Forgot password?</a>
+                            </div>
+                            <button type="button" class="btn-primary">Sign In</button>
+                            <div class="divider">OR</div>
+                            <button type="button" class="btn-google">
+                                <svg viewBox="0 0 48 48">
+                                    <path fill="#FFC107"
+                                        d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z" />
+                                    <path fill="#FF3D00"
+                                        d="M6.3 14.7l6.6 4.8C14.5 16 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+                                    <path fill="#4CAF50"
+                                        d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.4C29.6 35.4 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.6 39.6 16.2 44 24 44z" />
+                                    <path fill="#1976D2"
+                                        d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.6 35.6 44 30.2 44 24c0-1.2-.1-2.4-.4-3.5z" />
+                                </svg>
+                                Continue with Google
+                            </button>
+                        </form>
+                        <p class="switch-line">
+                            Don't have an account? <a href="#" class="link" id="go-signup">Create Account</a>
+                        </p>
+                    </section>
+
+                    <!-- SIGNUP PANEL -->
+                    <section class="panel" id="panel-signup">
+                        <h1 class="headline">Create Account</h1>
+                        <p class="subline">Create your account to start shopping</p>
+                        <form onsubmit="return false;">
+                            <div class="field">
+                                <label for="su-name">Full Name</label>
+                                <div class="input-shell">
+                                    <input type="text" id="su-name" placeholder="Jane Doe" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="su-email">Email Address</label>
+                                <div class="input-shell">
+                                    <input type="email" id="su-email" placeholder="you@example.com" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="su-password">Password</label>
+                                <div class="input-shell">
+                                    <input type="password" id="su-password" class="has-toggle"
+                                        placeholder="Create a password" autocomplete="off">
+                                    <button type="button" class="toggle-eye" data-target="su-password"
+                                        aria-label="Show password">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="su-confirm">Confirm Password</label>
+                                <div class="input-shell">
+                                    <input type="password" id="su-confirm" class="has-toggle"
+                                        placeholder="Re-enter your password" autocomplete="off">
+                                    <button type="button" class="toggle-eye" data-target="su-confirm"
+                                        aria-label="Show password">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row-between" style="margin-bottom:22px;">
+                                <label class="checkbox-line terms-text">
+                                    <input type="checkbox">
+                                    I agree to the <a href="#">Terms &amp; Conditions</a> and <a href="#">Privacy
+                                        Policy</a>
+                                </label>
+                            </div>
+                            <button type="button" class="btn-primary">Create Account</button>
+                            <div class="divider">OR</div>
+                            <button type="button" class="btn-google">
+                                <svg viewBox="0 0 48 48">
+                                    <path fill="#FFC107"
+                                        d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z" />
+                                    <path fill="#FF3D00"
+                                        d="M6.3 14.7l6.6 4.8C14.5 16 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+                                    <path fill="#4CAF50"
+                                        d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.4C29.6 35.4 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.6 39.6 16.2 44 24 44z" />
+                                    <path fill="#1976D2"
+                                        d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.6 35.6 44 30.2 44 24c0-1.2-.1-2.4-.4-3.5z" />
+                                </svg>
+                                Continue with Google
+                            </button>
+                        </form>
+                        <p class="switch-line">
+                            Already have an account? <a href="#" class="link" id="go-login">Sign In</a>
+                        </p>
+                    </section>
+                </div>
+                <footer style="margin-top:20px; text-align:center; font-size:12px; color:#a7a7a7;">
+                    <div class="foot-links">
+                        <a href="#" style="color:#8a8a8a; text-decoration:none;">Privacy Policy</a> • <a href="#"
+                            style="color:#8a8a8a; text-decoration:none;">Terms &amp; Conditions</a>
+                    </div>
+                    <div class="copyright">© 2026 K Stores. All rights reserved.</div>
+                </footer>
             </div>
         </div>
 
