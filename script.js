@@ -119,7 +119,6 @@
     const progress  = document.getElementById("scrollProgress");
     const navbar    = document.getElementById("navbar");
     const heroNav   = document.getElementById("heroNav");
-    const marqueeEl = document.querySelector(".marquee");
     const REVEAL_THRESHOLD = 1; // appears the instant user scrolls
     let lastY = 0;
 
@@ -134,9 +133,8 @@
         // Hero nav: visible at top, hidden on scroll
         if (heroNav) heroNav.classList.toggle("hn-hidden", isRevealed);
 
-        // Pill navbar + marquee: hidden at top, revealed on scroll
+        // Pill navbar: hidden at top, revealed on scroll
         navbar.classList.toggle("nav-revealed", isRevealed);
-        if (marqueeEl) marqueeEl.classList.toggle("marquee-revealed", isRevealed);
 
         // Always keep navbar visible — never hide on scroll-down
         navbar.classList.remove("hide-nav");
