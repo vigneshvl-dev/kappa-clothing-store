@@ -583,7 +583,24 @@
         const videos   = reelsContainer.querySelectorAll(".reel-video-element");
 
         let currentIndex = 2; // start with the 3rd card centred
-        let reelsVisible = false; // track whether the section is on screen
+        let reelsVisible = true; // assume visible — play immediately
+
+        /* --- force play all videos (muted — browsers allow this) --- */
+        function playAll() {
+            videos.forEach(v => {
+                v.muted = true;
+                v.volume = 0;
+                const p = v.play();
+                if (p) p.catch(() => {});
+            });
+        }
+        // Play immediately + retry fallbacks
+        playAll();
+        setTimeout(playAll, 300);
+        setTimeout(playAll, 1000);
+        setTimeout(playAll, 2500);
+        document.addEventListener("DOMContentLoaded", playAll);
+        window.addEventListener("load", playAll);
 
         /* --- helpers --- */
         function getVideo(idx) {
@@ -611,13 +628,14 @@
             videos.forEach(v => { v.volume = 0; v.muted = true; });
         }
 
-        // Unmute the active video (fade in) — only if section is visible
+        // Unmute the active video (fade in)
         function activateAudio(idx) {
-            if (!reelsVisible) return;
             const activeVideo = getVideo(idx);
             if (!activeVideo) return;
+            // Make sure it's playing first
             activeVideo.muted = false;
             activeVideo.volume = 0;
+            activeVideo.play().catch(() => {});
             fadeVolume(activeVideo, 1, 500);
         }
 
@@ -646,10 +664,14 @@
         /* --- navigate: mute old, activate new --- */
         function goTo(newIndex) {
             const oldVideo = getVideo(currentIndex);
-            fadeVolume(oldVideo, 0, 300);          // fade out old
+            fadeVolume(oldVideo, 0, 300);
             currentIndex = (newIndex + cards.length) % cards.length;
             updateSlider();
-            setTimeout(() => activateAudio(currentIndex), 350); // fade in new after CSS transition starts
+            // Ensure all are still playing after navigation
+            setTimeout(() => {
+                playAll();
+                activateAudio(currentIndex);
+            }, 350);
         }
 
         /* --- nav buttons --- */
@@ -670,23 +692,19 @@
         window.addEventListener("load", updateSlider);
         window.addEventListener("resize", updateSlider);
 
-        /* --- IntersectionObserver: play/pause & audio when section enters/leaves view --- */
+        /* --- IntersectionObserver: pause when fully off screen, resume when back --- */
         const observer = new IntersectionObserver(entries => {
             entries.forEach(entry => {
                 reelsVisible = entry.isIntersecting;
                 if (entry.isIntersecting) {
-                    // Play all videos (muted by default)
-                    muteAll();
-                    videos.forEach(v => v.play().catch(() => {}));
-                    // Then unmute the active one
-                    activateAudio(currentIndex);
+                    playAll();
                 } else {
-                    // Pause everything and mute all when off screen
+                    // Only pause when completely off screen
                     muteAll();
                     videos.forEach(v => v.pause());
                 }
             });
-        }, { threshold: 0.2 });
+        }, { threshold: 0.01 }); // fires as soon as even 1% is visible
         observer.observe(reelsContainer);
     }
 
