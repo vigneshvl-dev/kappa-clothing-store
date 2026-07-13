@@ -582,130 +582,131 @@
         const nextBtn  = reelsContainer.querySelector(".reels-nav-btn.next");
         const videos   = reelsContainer.querySelectorAll(".reel-video-element");
 
-        let currentIndex = 2; // start with the 3rd card centred
-        let reelsVisible = true; // assume visible — play immediately
+        let currentIndex = 2;
+        let userInteracted = false; // Tracks if user has interacted with the document yet
 
-        /* --- force play all videos (muted — browsers allow this) --- */
-        function playAll() {
-            videos.forEach(v => {
-                v.muted = true;
-                v.volume = 0;
-                const p = v.play();
-                if (p) p.catch(() => {});
-            });
-        }
-        // Play immediately + retry fallbacks
-        playAll();
-        setTimeout(playAll, 300);
-        setTimeout(playAll, 1000);
-        setTimeout(playAll, 2500);
-        document.addEventListener("DOMContentLoaded", playAll);
-        window.addEventListener("load", playAll);
-
-        /* --- helpers --- */
+        /* ---- Helpers ---- */
         function getVideo(idx) {
             return cards[idx] ? cards[idx].querySelector(".reel-video-element") : null;
         }
 
-        // Smoothly fade a video's volume from its current value to target
-        function fadeVolume(video, toVolume, duration = 400) {
-            if (!video) return;
-            const start     = video.volume;
-            const diff      = toVolume - start;
-            const startTime = performance.now();
-            function tick(now) {
-                const progress = Math.min((now - startTime) / duration, 1);
-                video.volume = Math.max(0, Math.min(1, start + diff * progress));
-                if (progress < 1) requestAnimationFrame(tick);
-                else if (toVolume === 0) video.muted = true;
-            }
-            if (toVolume > 0) { video.muted = false; }
-            requestAnimationFrame(tick);
-        }
-
-        // Mute all videos instantly
-        function muteAll() {
-            videos.forEach(v => { v.volume = 0; v.muted = true; });
-        }
-
-        // Unmute the active video (fade in)
-        function activateAudio(idx) {
-            const activeVideo = getVideo(idx);
-            if (!activeVideo) return;
-            // Make sure it's playing first
-            activeVideo.muted = false;
-            activeVideo.volume = 0;
-            activeVideo.play().catch(() => {});
-            fadeVolume(activeVideo, 1, 500);
-        }
-
-        /* --- slider positioning & class update --- */
-        function updateSlider() {
-            if (!wrapper || !cards.length) return;
-
-            const containerWidth = reelsContainer.querySelector(".reels-slider-container").clientWidth;
-            const activeCard     = cards[currentIndex];
-            const cardOffsetLeft = activeCard.offsetLeft;
-            const cardWidth      = activeCard.clientWidth;
-            const translateVal   = (containerWidth / 2) - (cardOffsetLeft + cardWidth / 2);
-            wrapper.style.transform = `translateX(${translateVal}px)`;
-
-            cards.forEach((card, idx) => {
-                card.classList.remove("active", "prev", "next", "far-prev", "far-next");
-                const diff = idx - currentIndex;
-                if      (diff ===  0) card.classList.add("active");
-                else if (diff === -1) card.classList.add("prev");
-                else if (diff ===  1) card.classList.add("next");
-                else if (diff  <  -1) card.classList.add("far-prev");
-                else if (diff  >   1) card.classList.add("far-next");
+        function playAll() {
+            videos.forEach((v, idx) => {
+                if (idx === currentIndex && userInteracted) {
+                    v.muted = false;
+                    v.volume = 1;
+                } else {
+                    v.muted  = true;
+                    v.volume = 0;
+                }
+                v.play().catch(() => {});
             });
         }
 
-        /* --- navigate: mute old, activate new --- */
-        function goTo(newIndex) {
-            const oldVideo = getVideo(currentIndex);
-            fadeVolume(oldVideo, 0, 300);
-            currentIndex = (newIndex + cards.length) % cards.length;
+        function muteAll() {
+            videos.forEach(v => { v.muted = true; v.volume = 0; });
+        }
+
+        // Smooth volume fade
+        function fadeVolume(video, toVolume, duration = 350) {
+            if (!video) return;
+            const from = video.volume;
+            const diff = toVolume - from;
+            const t0   = performance.now();
+            if (toVolume > 0) video.muted = false;
+            (function tick(now) {
+                const p = Math.min((now - t0) / duration, 1);
+                video.volume = Math.max(0, Math.min(1, from + diff * p));
+                if (p < 1) requestAnimationFrame(tick);
+                else if (toVolume === 0) video.muted = true;
+            })(performance.now());
+        }
+
+        // Unmute active video — only after user has interacted
+        function activateAudio(idx) {
+            muteAll();
+            const v = getVideo(idx);
+            if (!v) return;
+            if (userInteracted) {
+                v.muted  = false;
+                v.volume = 0;
+                v.play().catch(() => {});
+                fadeVolume(v, 1, 400);
+            } else {
+                v.muted = true;
+                v.volume = 0;
+                v.play().catch(() => {});
+            }
+        }
+
+        /* ---- Listen to first page interaction to enable sound ---- */
+        function enableAudioOnInteraction() {
+            if (userInteracted) return;
+            userInteracted = true;
+            activateAudio(currentIndex);
+            // Remove listeners once interaction is detected
+            window.removeEventListener("click", enableAudioOnInteraction);
+            window.removeEventListener("touchstart", enableAudioOnInteraction);
+            window.removeEventListener("scroll", enableAudioOnInteraction);
+        }
+        window.addEventListener("click", enableAudioOnInteraction);
+        window.addEventListener("touchstart", enableAudioOnInteraction);
+        window.addEventListener("scroll", enableAudioOnInteraction);
+
+        /* ---- Slider positioning ---- */
+        function updateSlider() {
+            if (!wrapper || !cards.length) return;
+            const cw   = reelsContainer.querySelector(".reels-slider-container").clientWidth;
+            const card = cards[currentIndex];
+            const tx   = (cw / 2) - (card.offsetLeft + card.clientWidth / 2);
+            wrapper.style.transform = `translateX(${tx}px)`;
+
+            cards.forEach((c, i) => {
+                c.classList.remove("active","prev","next","far-prev","far-next");
+                const d = i - currentIndex;
+                if      (d ===  0) c.classList.add("active");
+                else if (d === -1) c.classList.add("prev");
+                else if (d ===  1) c.classList.add("next");
+                else if (d  < -1) c.classList.add("far-prev");
+                else              c.classList.add("far-next");
+            });
+        }
+
+        /* ---- Navigate ---- */
+        function goTo(idx) {
+            const old = getVideo(currentIndex);
+            fadeVolume(old, 0, 250);
+            currentIndex = (idx + cards.length) % cards.length;
             updateSlider();
-            // Ensure all are still playing after navigation
             setTimeout(() => {
                 playAll();
                 activateAudio(currentIndex);
-            }, 350);
+            }, 300);
         }
 
-        /* --- nav buttons --- */
+        /* ---- Events ---- */
         if (prevBtn) prevBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex - 1); });
         if (nextBtn) nextBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex + 1); });
 
-        /* --- click a side card to centre it --- */
         cards.forEach((card, idx) => {
-            card.addEventListener("click", () => {
-                if (idx !== currentIndex) goTo(idx);
-            });
+            card.addEventListener("click", () => { if (idx !== currentIndex) goTo(idx); });
         });
 
-        /* --- initialise positioning --- */
+        /* ---- Init ---- */
+        playAll();
+        setTimeout(playAll, 500);
+        setTimeout(playAll, 1500);
+        window.addEventListener("load",   () => { playAll(); updateSlider(); });
+        window.addEventListener("resize", updateSlider);
         setTimeout(updateSlider, 100);
         setTimeout(updateSlider, 500);
         setTimeout(updateSlider, 1500);
-        window.addEventListener("load", updateSlider);
-        window.addEventListener("resize", updateSlider);
 
-        /* --- IntersectionObserver: pause when fully off screen, resume when back --- */
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                reelsVisible = entry.isIntersecting;
-                if (entry.isIntersecting) {
-                    playAll();
-                } else {
-                    // Only pause when completely off screen
-                    muteAll();
-                    videos.forEach(v => v.pause());
-                }
-            });
-        }, { threshold: 0.01 }); // fires as soon as even 1% is visible
-        observer.observe(reelsContainer);
+        /* ---- IntersectionObserver: pause when off-screen ---- */
+        new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting) { playAll(); }
+            else { muteAll(); videos.forEach(v => v.pause()); }
+        }, { threshold: 0.01 }).observe(reelsContainer);
     }
 
     /* ---------- INIT ---------- */
