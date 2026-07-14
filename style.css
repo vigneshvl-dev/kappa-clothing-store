@@ -100,23 +100,20 @@ ul {
 .navbar {
     position: fixed;
     top: calc(var(--marquee-h) + 14px);
-    /* sits just below the marquee bar */
     left: 50%;
-    /* Initially hidden above viewport — snaps in on scroll (no transition) */
     transform: translate(-50%, -220%);
-    width: min(1180px, 92%);
+    width: min(1180px, 94%);
     height: var(--nav-h);
-    padding: 0 14px 0 28px;
+    padding: 0 10px 0 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 16px;
     background: #FFFF00;
     border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: 100px;
     z-index: 1000;
     box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .3);
-    /* NO transition on transform → snaps in instantly on scroll */
     transition: box-shadow .4s ease;
 }
 
@@ -152,24 +149,29 @@ ul {
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 2px;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .nav-link {
     position: relative;
     color: rgba(0, 0, 0, 0.8);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
-    padding: 10px 14px;
+    padding: 8px 10px;
     border-radius: 100px;
     transition: color .3s ease;
+    white-space: nowrap;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .nav-link::after {
     content: '';
     position: absolute;
-    left: 14px;
-    right: 14px;
+    left: 10px;
+    right: 10px;
     bottom: 6px;
     height: 1px;
     background: var(--grad);
@@ -190,19 +192,20 @@ ul {
 .nav-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 2px;
+    flex-shrink: 0;
 }
 
 .lang-select {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 13px;
+    gap: 2px;
+    font-size: 12px;
     font-weight: 600;
     color: rgba(0, 0, 0, 0.8);
     cursor: pointer;
-    padding: 6px 10px;
+    padding: 5px 8px;
     border-radius: 100px;
     transition: background .25s ease;
     white-space: nowrap;
@@ -265,12 +268,12 @@ ul {
 }
 
 .search-box input {
-    width: 160px;
-    padding: 8px 32px 8px 12px;
+    width: 110px;
+    padding: 6px 28px 6px 10px;
     border-radius: 100px;
     border: 1.5px solid rgba(0, 0, 0, 0.15);
     background: rgba(0, 0, 0, 0.04);
-    font-size: 13px;
+    font-size: 12px;
     outline: none;
     transition: border-color .25s ease, background .25s ease;
 }
@@ -282,17 +285,17 @@ ul {
 
 .search-box svg {
     position: absolute;
-    right: 10px;
-    width: 16px;
-    height: 16px;
+    right: 8px;
+    width: 14px;
+    height: 14px;
     stroke: rgba(0, 0, 0, 0.5);
     pointer-events: none;
 }
 
 .icon-btn {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -302,13 +305,30 @@ ul {
 }
 
 .icon-btn svg {
-    width: 19px;
-    height: 19px;
+    width: 17px;
+    height: 17px;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 14px;
+    height: 14px;
+    background: #ff5252;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
 }
 
 .icon-btn:hover {
