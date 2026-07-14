@@ -962,75 +962,133 @@ const supabaseClient = window.supabase.createClient(
     renderCart();
     renderWishlist();
     revealCheck();
+    /* ---------- SUPABASE AUTH ---------- */
 
-     const loginForm = document.getElementById('login-form');
+    // Restore session on page load so users stay logged in after a refresh
+    (async () => {
+        try {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session && session.user) {
+                const profileBtn = document.getElementById('profileBtn');
+                if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
+            }
+        } catch (_) {}
+    })();
 
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          alert('Login failed: ' + error.message);
-          return;
+    // Listen for auth state changes (covers Google OAuth redirect)
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+        const profileBtn = document.getElementById('profileBtn');
+        if (session && session.user) {
+            if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
+            if (event === 'SIGNED_IN') showToast('Signed in as ' + session.user.email);
+        } else {
+            if (profileBtn) profileBtn.style.color = '';
         }
-
-        alert('Logged in as ' + data.user.email);
-      });
-    }
-
-    const signupForm = document.getElementById('signup-form');
-
-    if (signupForm) {
-      signupForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const fullName = document.getElementById('su-name').value;
-        const email = document.getElementById('su-email').value;
-        const password = document.getElementById('su-password').value;
-        const confirmPassword = document.getElementById('su-confirm').value;
-
-        if (password !== confirmPassword) {
-          alert('Passwords do not match');
-          return;
-        }
-
-        const { data, error } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName }
-          }
-        });
-
-        if (error) {
-          alert('Signup failed: ' + error.message);
-          return;
-        }
-
-        alert('Account created! Check your email to confirm, or you can now sign in.');
-      });
-    }
-
-    document.querySelectorAll('.btn-google').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const { error } = await supabaseClient.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin + window.location.pathname
-          }
-        });
-        if (error) {
-          alert('Google sign-in failed: ' + error.message);
-        }
-      });
     });
-    
+
+    // Helper to close the account overlay
+    function closeAccountOverlay() {
+        const ov = document.getElementById('accountOverlay');
+        if (ov) { ov.classList.remove('open'); document.body.style.overflow = ''; }
+    }
+
+    /* --- LOGIN --- */
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email    = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showToast('Please enter your email and password');
+                return;
+            }
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                // Special case: account exists but email not confirmed yet
+                if (error.message.toLowerCase().includes('email not confirmed')) {
+                    // Auto-resend the confirmation email
+                    await supabaseClient.auth.resend({ type: 'signup', email });
+                    showToast('✉️ Confirmation email resent! Check your inbox and click the link, then sign in.');
+                } else {
+                    showToast('Login failed: ' + error.message);
+                }
+                return;
+            }
+
+            showToast('Welcome back, ' + data.user.email + '!');
+            setTimeout(closeAccountOverlay, 1200);
+        });
+    }
+
+    /* --- SIGN UP --- */
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fullName        = document.getElementById('su-name').value.trim();
+            const email           = document.getElementById('su-email').value.trim();
+            const password        = document.getElementById('su-password').value;
+            const confirmPassword = document.getElementById('su-confirm').value;
+
+            if (!fullName || !email || !password) {
+                showToast('Please fill in all required fields');
+                return;
+            }
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match');
+                return;
+            }
+
+            const { data, error } = await supabaseClient.auth.signUp({
+                email,
+                password,
+                options: { data: { full_name: fullName } }
+            });
+
+            if (error) {
+                showToast('Sign up failed: ' + error.message);
+                return;
+            }
+
+            if (data.session) {
+                // Email confirmation disabled — user is instantly logged in
+                showToast('Account created! You are now signed in.');
+                setTimeout(() => {
+                    const ov = document.getElementById('accountOverlay');
+                    if (ov) { ov.classList.remove('open'); document.body.style.overflow = ''; }
+                }, 1200);
+            } else {
+                // Email confirmation is ON — guide them clearly
+                showToast('✉️ Check your email and click the confirmation link, then sign in.');
+                // Switch back to the login panel so they know to sign in after confirming
+                setTimeout(() => {
+                    const panelSignup = document.getElementById('panel-signup');
+                    const panelLogin  = document.getElementById('panel-login');
+                    if (panelSignup) panelSignup.classList.remove('active');
+                    if (panelLogin)  panelLogin.classList.add('active');
+                }, 1500);
+            }
+        });
+    }
+
+    /* --- GOOGLE OAUTH --- */
+    document.querySelectorAll('.btn-google').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin + window.location.pathname }
+            });
+            if (error) showToast('Google sign-in failed: ' + error.message);
+        });
+    });
 })();
