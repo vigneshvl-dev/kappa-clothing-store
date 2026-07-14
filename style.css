@@ -284,13 +284,27 @@ ul {
     }
 }
 
+/* LEFT TOGGLE — mobile only */
+.hamburger-left {
+    display: none;
+    order: -1;
+}
+
+.hamburger-left span {
+    background: var(--black);
+}
+
 @media(max-width:1023px) {
+    .hamburger-left {
+        display: flex;
+    }
+
     .nav-links {
         display: none;
     }
 
     .navbar {
-        padding: 0 10px 0 22px;
+        padding: 0 10px 0 10px;
     }
 
     .mobile-menu {
@@ -2761,6 +2775,19 @@ ul {
     border-radius: 2px;
     transition: transform .3s ease, opacity .3s ease;
     display: block;
+}
+
+/* Animate to X when open */
+.hn-hamburger.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.hn-hamburger.open span:nth-child(2) {
+    opacity: 0;
+}
+
+.hn-hamburger.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
 }
 
 .hn-hide-mobile {

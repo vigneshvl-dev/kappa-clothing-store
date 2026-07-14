@@ -161,14 +161,19 @@
     window.addEventListener("resize", revealCheck);
 
     /* ---------- HAMBURGER / MOBILE MENU ---------- */
-    const hamburger = document.getElementById("hamburger");
+    const heroHamburger = document.getElementById("heroHamburger");
     const mobileMenu = document.getElementById("mobileMenu");
-    hamburger.addEventListener("click", () => {
-        hamburger.classList.toggle("open");
-        mobileMenu.classList.toggle("open");
-    });
+
+    function toggleMenu() {
+        const isOpen = mobileMenu.classList.toggle("open");
+        if (heroHamburger) heroHamburger.classList.toggle("open", isOpen);
+    }
+
+    if (heroHamburger) heroHamburger.addEventListener("click", toggleMenu);
+
     mobileMenu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => {
-        hamburger.classList.remove("open"); mobileMenu.classList.remove("open");
+        if (heroHamburger) heroHamburger.classList.remove("open");
+        mobileMenu.classList.remove("open");
     }));
 
     /* ---------- SMOOTH NAV LINKS ---------- */
