@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KAPPA — Modern Streetwear</title>
@@ -726,7 +727,8 @@
                     <section class="panel active" id="panel-login">
                         <h1 class="headline" data-i18n="acc_welcome">Welcome Back</h1>
                         <p class="subline" data-i18n="acc_signin_sub">Sign in to continue shopping</p>
-                        <form onsubmit="return false;">
+                        <form id="login-form">
+
                             <div class="field">
                                 <label for="login-email" data-i18n="acc_email">Email Address</label>
                                 <div class="input-shell">
@@ -756,7 +758,7 @@
                                 </label>
                                 <a href="#" class="link" data-i18n="acc_forgot">Forgot password?</a>
                             </div>
-                            <button type="button" class="btn-primary" data-i18n="acc_signin_btn">Sign In</button>
+                            <button type="submit" class="btn-primary" data-i18n="acc_signin_btn">Sign In</button>
                             <div class="divider">OR</div>
                             <button type="button" class="btn-google">
                                 <svg viewBox="0 0 48 48">
@@ -782,11 +784,12 @@
                     <section class="panel" id="panel-signup">
                         <h1 class="headline" data-i18n="acc_create_title">Create Account</h1>
                         <p class="subline" data-i18n="acc_create_sub">Create your account to start shopping</p>
-                        <form onsubmit="return false;">
+                        <form id="signup-form">
+
                             <div class="field">
                                 <label for="su-name" data-i18n="acc_fullname">Full Name</label>
                                 <div class="input-shell">
-                                    <input type="text" id="su-name" placeholder="Jane Doe" autocomplete="off">
+                                    <input type="text" id="su-name" placeholder="Name" autocomplete="off">
                                 </div>
                             </div>
                             <div class="field">
@@ -832,7 +835,7 @@
                                         and <a href="#">Privacy Policy</a></span>
                                 </label>
                             </div>
-                            <button type="button" class="btn-primary" data-i18n="acc_create_btn">Create Account</button>
+                            <button type="submit" class="btn-primary" data-i18n="acc_create_btn">Create Account</button>
                             <div class="divider">OR</div>
                             <button type="button" class="btn-google">
                                 <svg viewBox="0 0 48 48">
