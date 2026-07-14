@@ -1076,7 +1076,7 @@ ul {
     text-align: center;
 }
 
-.. .eyebrow {
+.eyebrow {
     font-family: var(--font-mono);
     font-size: 12.5px;
     letter-spacing: 3px;
@@ -1921,9 +1921,10 @@ ul {
 
 /* ============ FOOTER ============ */
 .footer {
-    background: var(--black);
-    color: var(--white);
+    background: #FFFF00;
+    color: var(--black);
     padding: 90px 6vw 30px;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .footer-top {
@@ -1931,11 +1932,11 @@ ul {
     grid-template-columns: 1.6fr 1fr 1fr 1fr;
     gap: 40px;
     padding-bottom: 60px;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .footer-brand p {
-    color: rgba(255, 255, 255, .55);
+    color: rgba(0, 0, 0, 0.7);
     font-size: 13.5px;
     line-height: 1.7;
     margin-top: 16px;
@@ -1945,26 +1946,26 @@ ul {
 .footer-col h4 {
     font-size: 13px;
     letter-spacing: 1px;
-    color: var(--accent2);
+    color: var(--black);
     margin-bottom: 18px;
     font-family: var(--font-mono);
 }
 
 .footer-col a {
     display: block;
-    color: rgba(255, 255, 255, .65);
+    color: rgba(0, 0, 0, 0.75);
     font-size: 14px;
     margin-bottom: 12px;
     transition: color .25s ease, padding-left .25s ease;
 }
 
 .footer-col a:hover {
-    color: var(--white);
+    color: #000;
     padding-left: 4px;
 }
 
 .footer-address {
-    color: rgba(255, 255, 255, .55);
+    color: rgba(0, 0, 0, 0.7);
     font-size: 13.5px;
     line-height: 1.6;
     margin-bottom: 16px;
@@ -1979,20 +1980,21 @@ ul {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, .2);
+    border: 1px solid rgba(0, 0, 0, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 11px;
     font-weight: 700;
     margin: 0;
+    color: rgba(0, 0, 0, 0.8);
     transition: all .3s ease;
 }
 
 .social-row a:hover {
-    background: var(--grad);
+    background: var(--black);
     border-color: transparent;
-    color: var(--black);
+    color: #FFFF00;
     transform: translateY(-3px);
 }
 
@@ -2000,7 +2002,7 @@ ul {
     display: flex;
     justify-content: space-between;
     padding-top: 24px;
-    color: rgba(255, 255, 255, .4);
+    color: rgba(0, 0, 0, 0.5);
     font-size: 12.5px;
     flex-wrap: wrap;
     gap: 10px;
@@ -3415,4 +3417,85 @@ ul {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* ============ REELS LUXURY HEADING ============ */
+.reels-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin-bottom: 12px;
+    opacity: 0.8;
+}
+
+.reels-heading {
+    font-family: var(--font-display);
+    font-size: clamp(2.8rem, 7vw, 6rem);
+    font-weight: 400;
+    letter-spacing: -1px;
+    line-height: 1;
+    text-transform: uppercase;
+    background: linear-gradient(120deg,
+            #8a6d00 0%,
+            #FBCE07 30%,
+            #FFE566 50%,
+            #FBCE07 70%,
+            #8a6d00 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: luxuryShimmer 4s linear infinite;
+    position: relative;
+    display: inline-block;
+}
+
+.reels-heading::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--grad);
+    border-radius: 2px;
+    box-shadow: 0 0 12px rgba(251, 206, 7, 0.6);
+    animation: luxuryLineGlow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes luxuryShimmer {
+    0% {
+        background-position: 0% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes luxuryLineGlow {
+    from {
+        box-shadow: 0 0 8px rgba(251, 206, 7, 0.4);
+        opacity: 0.7;
+    }
+
+    to {
+        box-shadow: 0 0 22px rgba(251, 206, 7, 0.9);
+        opacity: 1;
+    }
+}
+
+.center {
+    text-align: center;
+    align-items: center;
+}
+
+.section-head {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 40px;
+    padding: 0 20px;
 }
