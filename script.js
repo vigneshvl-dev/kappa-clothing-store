@@ -55,6 +55,158 @@
     const fmt = n => "₹" + n.toLocaleString("en-IN");
     const stars = n => "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
 
+    /* ---------- I18N ---------- */
+    const LANGS = {
+        en: {
+            nav_home: "Home", nav_shop: "Shop", nav_new_arrivals: "New Arrivals", nav_faq: "FaQ",
+            nav_about: "About", nav_contact: "Contact", nav_women: "Women", nav_signin: "Sign In / Account",
+            nav_search: "Search", nav_wishlist: "Wishlist", nav_cart: "Cart", nav_men: "Men",
+            reels_title: "Elevate Your Style",
+            footer_desc: "Modern streetwear designed for everyday icons. Kanniyakumari, Tamil Nadu, India.",
+            footer_quick_links: "Quick Links", footer_policies: "Policies", footer_shipping: "Shipping Policy",
+            footer_returns: "Returns & Exchange", footer_privacy: "Privacy Policy", footer_terms: "Terms of Service",
+            footer_store: "Store", footer_address: "Kappa Flagship Store<br>Thiruvananthapuram, Kerala, India",
+            footer_rights: "All rights reserved.", footer_designed: "Designed by Hyna Studio",
+            acc_welcome: "Welcome Back", acc_signin_sub: "Sign in to continue shopping",
+            acc_email: "Email Address", acc_password: "Password", acc_remember: "Remember me",
+            acc_forgot: "Forgot password?", acc_signin_btn: "Sign In", acc_google: "Continue with Google",
+            acc_no_account: "Don't have an account?", acc_create: "Create Account",
+            acc_create_title: "Create Account", acc_create_sub: "Create your account to start shopping",
+            acc_fullname: "Full Name", acc_confirm_password: "Confirm Password",
+            acc_terms: 'I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a>',
+            acc_create_btn: "Create Account", acc_has_account: "Already have an account?", acc_signin: "Sign In",
+            search_placeholder: "Search products, collections...",
+            cart_title: "Your Cart", cart_promo: "Promo code", cart_apply: "Apply",
+            cart_shipping: "Shipping estimate", cart_subtotal: "Subtotal", cart_discount: "Discount",
+            cart_total: "Total", cart_checkout: "Checkout",
+            wishlist_title: "Wishlist",
+            newsletter_title: "Join The Inner Circle",
+            newsletter_desc: "Early drops, private sales, and icon-only access — straight to your inbox.",
+            newsletter_email: "Your email address", newsletter_label: "Your email address", newsletter_btn: "Subscribe",
+        },
+        ta: {
+            nav_home: "முகப்பு", nav_shop: "கடை", nav_new_arrivals: "புதிய வரவு", nav_faq: "கேள்விகள்",
+            nav_about: "எங்களை பற்றி", nav_contact: " தொடர்பு", nav_women: "பெண்கள்", nav_signin: "உள்நுழைய",
+            nav_search: "தேடல்", nav_wishlist: "விருப்பப்பட்டியல்", nav_cart: "கர்த்", nav_men: "ஆண்கள்",
+            reels_title: "உங்கள் பாணியை உயர்த்துங்கள்",
+            footer_desc: "நவீன தெரு உடைகள். கன்னியாகுமரி, தமிழ்நாடு, இந்தியா.",
+            footer_quick_links: "விரைவு இணைப்புகள்", footer_policies: "நிபுணத்துவம்", footer_shipping: "கட்டுப்பாட்டு பதிப்பு",
+            footer_returns: "திரும்புதல் & பரிமாற்றம்", footer_privacy: "தனியுரிமைக் கொட்கை", footer_terms: "பணி விதிமுறைகள்",
+            footer_store: "கடை", footer_address: "கப்பா முனையக் கடை<br>திருவனந்தபுரம், கேரளா, இந்தியா",
+            footer_rights: "அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.", footer_designed: "ஐனா ஸ்டுடியோவால் வடிவமைக்கப்பட்டது",
+            acc_welcome: "மீண்டும் வருக", acc_signin_sub: "தொடர்ந்து வாங்க வேண்டும்",
+            acc_email: "மின்னஞ்சல் முகவரி", acc_password: "கடவுச்சொல்", acc_remember: "நினைவில் வைத்துக்கொள்",
+            acc_forgot: "கடவுச்சொல் மறந்துவிட்டது?", acc_signin_btn: "உள்நுழைய", acc_google: "Google உடன் தொடரவும்",
+            acc_no_account: "கணக்கு இல்லையோ?", acc_create: "கணக்கு உருவாக்கு",
+            acc_create_title: "கணக்கு உருவாக்கு", acc_create_sub: "உங்கள் கணக்கை வாங்க தொடங்கவும்",
+            acc_fullname: "முழு பெயர்", acc_confirm_password: "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
+            acc_terms: 'நான் <a href="#">விதிமுறைகள் & நிபுணத்துவம்</a> மற்றும் <a href="#">தனியுரிமைக் கொட்கை</a>க்கு ஒப்புக்கொள்கிறேன்',
+            acc_create_btn: "கணக்கு உருவாக்கு", acc_has_account: "ஏற்கனவே கணக்கு உள்ளதா?", acc_signin: "உள்நுழைய",
+            search_placeholder: "தயாரிப்புகளை, தொகுப்புகளை தேடுங்கள்...",
+            cart_title: "உங்கள் கர்த்", cart_promo: " promo குறியீடு", cart_apply: "விண்ணப்பு",
+            cart_shipping: "அனுப்பும் மதிப்பீடு", cart_subtotal: "உபமொத்தம்", cart_discount: "விலக்கு",
+            cart_total: "மொத்தம்", cart_checkout: "சettlement",
+        },
+        ml: {
+            nav_home: "വീട്", nav_shop: "ശോപ്പ്", nav_new_arrivals: "പുതിയ വരവുകൾ", nav_faq: "ചോദ്യങ്ങൾ",
+            nav_about: "ഞങ്ങളെക്കുറിച്ച്", nav_contact: "ബന്ധപ്പെടുക", nav_women: "സ്ത്രീകൾ", nav_signin: "പ്രവേശിക്കുക",
+            nav_search: "തിരയുക", nav_wishlist: "ഇച്ഛാസമ്പത്ത്", nav_cart: "কার്റ്റ്", nav_men: "ആൺകൾ",
+            reels_title: "നിങ്ങളുടെ ശൈലി ഉയർത്തുക",
+            footer_desc: "കഴുകുന്ട് കഷണ്ടു. കന്നിയாகുമരി, തമിഴ്, ഇന്ത്യ.",
+            footer_quick_links: "വേഗത്തിലുള്ള ലിങ്കുകൾ", footer_policies: "നയങ്ങൾ", footer_shipping: "ഷിപ്പ്പിംഗ് നയം",
+            footer_returns: "തിരികെല്പന & പരിവർത്തനം", footer_privacy: "സ്വകാര്യതാ നയം", footer_terms: "സേവന നിബന്ധനകൾ",
+            footer_store: "സ്റ്റോർ", footer_address: "കപ്പ മുതിർന്ന സ്റ്റോർ<br>തിരുവനന്തപുരം, കേരളം, ഇന്ത്യ",
+            footer_rights: "എല്ലാവരുടെ അവകാശങ്ങളും സംരക്ഷിക്കുന്നു.", footer_designed: "ഹൈന സ്റ്റുഡിയോ രൂപകൽപ്പന ചെയ്തത്",
+            acc_welcome: "തിരിച്ചു വര vě", acc_signin_sub: "ഷോപ്പിംഗ് തുആരുട്ട്",
+            acc_email: "ഇമെയിൽ വിലാസം", acc_password: "പാസ്‌വേഡ്", acc_remember: "ഓർമ്മയ്ക്ക്",
+            acc_forgot: "പാസ്‌വേഡ് മറന്നോ?", acc_signin_btn: "പ്രവേശിക്കുക", acc_google: "Google ഉപയോഗിച്ച് തുആരുട്ട്",
+            acc_no_account: "അക്കൗണ്ട് ഇല്ലോ?", acc_create: "അക്കൗണ്ട് സൃഷ്ടിക്കുക",
+            acc_create_title: "അക്കൗണ്ട് സൃഷ്ടിക്കുക", acc_create_sub: "ഷോപ്പിംഗ് ആരംച്ചക്ക് അക്കൗണ്ട് സൃഷ്ടിക്കുക",
+            acc_fullname: "പൂർണ്ണ നാമം", acc_confirm_password: "പാസ്‌വേഡ് ഉറപ്പിക്കുക",
+            acc_terms: 'ഞാൻ <a href="#">നിബന്ധനകൾ & നയങ്ങൾ</a> കൂടെ <a href="#">സ്വകാര്യതാ നയം</a> സമ്മതിക്കുന്നു',
+            acc_create_btn: "അക്കൗണ്ട് സൃഷ്ടിക്കുക", acc_has_account: "ഏകീകരണം ഉണ്ടോ?", acc_signin: "പ്രവേശിക്കുക",
+            search_placeholder: "ഉൽപ്പന്നങ്ങൾ, കൂട്ടുകൾ തിരയുക...",
+            cart_title: "നിങ്ങളുടെ കാർട്ട്", cart_promo: "പ്രോമോ കോഡ്", cart_apply: "വിണ്ണപ്പുചെയ്യുക",
+            cart_shipping: "ഷിപ്പ്പിംഗ് ചെലവு", cart_subtotal: "ഉപജോഡി", cart_discount: "രiation",
+            cart_total: "ആകെ", cart_checkout: "ചെക്ക്‌ഔട്ട്",
+            wishlist_title: "ഇച്ഛാസമ്പത്ത്",
+            newsletter_title: "അന്തർഗത വൺ ചേർക്കുക",
+            newsletter_desc: "ആദ്യ പുറത്തിരിക്കൽ, തകൈപ്പെട്ട വിൽക്കുന്നത്, നിങ്ങളുടെ ഇമെയിലിലേക്ക് നേടുക.",
+            newsletter_email: "നിങ്ങളുടെ ഇമെയിൽ വിലാസം", newsletter_label: "നിങ്ങളുടെ ഇമെയിൽ വിലാസം", newsletter_btn: "സബ്‌സ്ക്രൈബ് ചെയ്യുക",
+        },
+        hi: {
+            nav_home: "होम", nav_shop: "दुकान", nav_new_arrivals: "नए आगमन", nav_faq: "सामान्य प्रश्न",
+            nav_about: "हमारे बारे में", nav_contact: "संपर्क करें", nav_women: "महिलाएं", nav_signin: "साइन इन करें",
+            nav_search: "खोजें", nav_wishlist: "इच्छा सूची", nav_cart: "कार्ट", nav_men: "पुरुष",
+            reels_title: "अपनी स्टाइल बढ़ाएं",
+            footer_desc: "आधुनिक स्ट्रीटवियर। कन्नियाकुमारी, तमिलनाडु, भारत।",
+            footer_quick_links: "त्वरित लिंक", footer_policies: "नीतियां", footer_shipping: "शिपिंग नीति",
+            footer_returns: "वापसी & बदलाव", footer_privacy: "गोपनीयता नीति", footer_terms: "सेवा की शर्तें",
+            footer_store: "स्टोर", footer_address: "कप्पा फ्लैगशिप स्टोर<br>तिरुवनंतपुरम, केरल, भारत",
+            footer_rights: "सर्वाधिकार सुरक्षित।", footer_designed: "हाइना स्टूडियो द्वारा डिज़ाइन",
+            acc_welcome: "स्वागत है", acc_signin_sub: "खरीदारी जारी रखने के लिए साइन इन करें",
+            acc_email: "ईमेल पता", acc_password: "पासवर्ड", acc_remember: "मुझे याद रखें",
+            acc_forgot: "पासवर्ड भूल गए?", acc_signin_btn: "साइन इन", acc_google: "Google के साथ जारी रखें",
+            acc_no_account: "खाता नहीं है?", acc_create: "खाता बनाएं",
+            acc_create_title: "खाता बनाएं", acc_create_sub: "खरीदारी शुरू करने के लिए खाता बनाएं",
+            acc_fullname: "पूरा नाम", acc_confirm_password: "पासवर्ड की पुष्टि करें",
+            acc_terms: 'मैं <a href="#">नियम & शर्तें</a> और <a href="#">गोपनीयता नीति</a> से सहमत हूं',
+            acc_create_btn: "खाता बनाएं", acc_has_account: "पहले से खाता है?", acc_signin: "साइन इन",
+            search_placeholder: "उत्पाद, संग्रह खोजें...",
+            cart_title: "आपका कार्ट", cart_promo: "प्रोमो कोड", cart_apply: "लागू करें",
+            cart_shipping: "शिपिंग अनुमान", cart_subtotal: "उप-योग", cart_discount: "छूट",
+            cart_total: "कुल", cart_checkout: "चेकआउट",
+            wishlist_title: "इच्छा सूची",
+            newsletter_title: "अंदर के वल समूह में शामिल हों",
+            newsletter_desc: "शीर्ष ड्रॉप, निजी विक्रय, और आइकन-मात्र पहुंच — सीधे आपके इनबॉक्स में।",
+            newsletter_email: "आपका ईमेल पता", newsletter_label: "आपका ईमेल पता", newsletter_btn: "सब्सक्राइब करें",
+        },
+    };
+    const LANG_NAMES = { en: "English", ta: "Tamil", ml: "Malayalam", hi: "Hindi" };
+    let currentLang = localStorage.getItem("kappa-lang") || "en";
+
+    function applyLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem("kappa-lang", lang);
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const key = el.getAttribute("data-i18n");
+            if (LANGS[lang] && LANGS[lang][key]) {
+                el.innerHTML = LANGS[lang][key];
+            }
+        });
+        document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+            const key = el.getAttribute("data-i18n-placeholder");
+            if (LANGS[lang] && LANGS[lang][key]) {
+                el.placeholder = LANGS[lang][key];
+            }
+        });
+        document.querySelectorAll(".hn-lang span, .lang-select span").forEach(span => {
+            span.textContent = LANG_NAMES[lang] + " ▼";
+        });
+    }
+
+    document.querySelectorAll(".hn-lang .lang-dropdown button, .lang-select .lang-dropdown button").forEach(btn => {
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const lang = btn.getAttribute("data-lang");
+            applyLanguage(lang);
+            document.querySelectorAll(".hn-lang, .lang-select").forEach(d => d.classList.remove("open"));
+        });
+    });
+
+    document.querySelectorAll(".hn-lang, .lang-select").forEach(d => {
+        d.addEventListener("click", e => {
+            e.stopPropagation();
+            d.classList.toggle("open");
+        });
+    });
+
+    document.addEventListener("click", () => {
+        document.querySelectorAll(".hn-lang, .lang-select").forEach(d => d.classList.remove("open"));
+    });
+
+    applyLanguage(currentLang);
+
     /* ---------- STATE ---------- */
     let cart = [];     // {id, size, qty}
     let wishlist = []; // [id]

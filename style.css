@@ -194,6 +194,7 @@ ul {
 }
 
 .lang-select {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -209,6 +210,52 @@ ul {
 
 .lang-select:hover {
     background: rgba(0, 0, 0, 0.08);
+}
+
+.lang-select {
+  position: relative;
+}
+
+.lang-select .lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  padding: 6px;
+  min-width: 140px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: all .2s ease;
+  z-index: 1001;
+}
+
+.lang-select.open .lang-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.lang-select .lang-dropdown button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #000;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: background .15s ease;
+}
+
+.lang-select .lang-dropdown button:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .search-box {
@@ -2802,6 +2849,7 @@ ul {
 }
 
 .hn-lang {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -2817,6 +2865,48 @@ ul {
 
 .hn-lang:hover {
   background: rgba(0, 0, 0, 0.08);
+}
+
+.hn-lang .lang-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  padding: 6px;
+  min-width: 140px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: all .2s ease;
+  z-index: 1001;
+}
+
+.hn-lang.open .lang-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.hn-lang .lang-dropdown button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #000;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: background .15s ease;
+}
+
+.hn-lang .lang-dropdown button:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .hn-search {

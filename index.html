@@ -38,18 +38,24 @@
             <span class="hn-brand">KAPPA</span>
         </a>
         <nav class="hn-links">
-            <a href="#home" class="hn-link hn-link-active">Home</a>
-            <a href="#arrivals" class="hn-link">Shop</a>
-            <a href="#collections" class="hn-link">Collections</a>
-            <a href="#why" class="hn-link">About Us</a>
-            <a href="#footer" class="hn-link">Contact</a>
+            <a href="#home" class="hn-link hn-link-active" data-i18n="nav_home">Home</a>
+            <a href="#arrivals" class="hn-link" data-i18n="nav_shop">Shop</a>
+            <a href="#collections" class="hn-link" data-i18n="nav_collections">Collections</a>
+            <a href="#why" class="hn-link" data-i18n="nav_about">About Us</a>
+            <a href="#footer" class="hn-link" data-i18n="nav_contact">Contact</a>
         </nav>
         <div class="hn-actions">
-            <div class="hn-lang">
+            <div class="hn-lang" id="heroLang">
                 <span>English ▼</span>
+                <div class="lang-dropdown">
+                    <button data-lang="en">English</button>
+                    <button data-lang="ta">Tamil</button>
+                    <button data-lang="ml">Malayalam</button>
+                    <button data-lang="hi">Hindi</button>
+                </div>
             </div>
             <div class="hn-search">
-                <input type="text" placeholder="I'm looking for..." />
+                <input type="text" data-i18n-placeholder="search_placeholder" placeholder="I'm looking for..." />
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="7"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -77,22 +83,28 @@
                 alt="KAPPA Fashion Store"></a>
 
         <nav class="nav-links">
-            <a href="#home" class="nav-link">Home</a>
-            <a href="#reels" class="nav-link">Shop</a>
-            <a href="#arrivals" class="nav-link">New Arrivals</a>
-            <a href="#men" class="nav-link">FaQ</a>
-            <a href="#why" class="nav-link">About</a>
-            <a href="#footer" class="nav-link">Contact</a>
+            <a href="#home" class="nav-link" data-i18n="nav_home">Home</a>
+            <a href="#reels" class="nav-link" data-i18n="nav_shop">Shop</a>
+            <a href="#arrivals" class="nav-link" data-i18n="nav_new_arrivals">New Arrivals</a>
+            <a href="#men" class="nav-link" data-i18n="nav_faq">FaQ</a>
+            <a href="#why" class="nav-link" data-i18n="nav_about">About</a>
+            <a href="#footer" class="nav-link" data-i18n="nav_contact">Contact</a>
         </nav>
 
        
   <div class="nav-actions">
-    <div class="lang-select">
+    <div class="lang-select" id="pillLang">
       <span>English ▼</span>
+      <div class="lang-dropdown">
+        <button data-lang="en">English</button>
+        <button data-lang="ta">Tamil</button>
+        <button data-lang="ml">Malayalam</button>
+        <button data-lang="hi">Hindi</button>
+      </div>
     </div>
     <div class="search-box" id="searchBtn">
-      <input type="text" placeholder="I'm looking for..." />
-      <svg viewBox="0 0 24 24">
+      <input type="text" data-i18n-placeholder="search_placeholder" placeholder="I'm looking for..." />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="7"></circle>
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
       </svg>
@@ -122,40 +134,40 @@
 
     <!-- MOBILE MENU -->
     <div class="mobile-menu" id="mobileMenu">
-        <a href="#home" class="mnav-link">Home</a>
-        <a href="#reels" class="mnav-link">Reels</a>
-        <a href="#arrivals" class="mnav-link">New Arrivals</a>
-        <a href="#men" class="mnav-link">Men</a>
-        <a href="#women" class="mnav-link">Women</a>
-        <a href="#collections" class="mnav-link">Collections</a>
-        <a href="#why" class="mnav-link">About</a>
-        <a href="#footer" class="mnav-link">Contact</a>
-        <a href="#" class="mnav-link" id="mobileAccountLink">Sign In / Account</a>
+        <a href="#home" class="mnav-link" data-i18n="nav_home">Home</a>
+        <a href="#reels" class="mnav-link" data-i18n="nav_shop">Shop</a>
+        <a href="#arrivals" class="mnav-link" data-i18n="nav_new_arrivals">New Arrivals</a>
+        <a href="#men" class="mnav-link" data-i18n="nav_faq">FaQ</a>
+        <a href="#women" class="mnav-link" data-i18n="nav_women">Women</a>
+        <a href="#collections" class="mnav-link" data-i18n="nav_collections">Collections</a>
+        <a href="#why" class="mnav-link" data-i18n="nav_about">About</a>
+        <a href="#footer" class="mnav-link" data-i18n="nav_contact">Contact</a>
+        <a href="#" class="mnav-link" id="mobileAccountLink" data-i18n="nav_signin">Sign In / Account</a>
     </div>
     
 
     <!-- BOTTOM NAV (mobile) -->
     <nav class="bottom-nav">
-        <a href="#home" class="bnav-item active" data-label="Home">
+        <a href="#home" class="bnav-item active" data-label="Home" data-i18n="nav_home">
             <svg viewBox="0 0 24 24">
                 <path d="M3 11l9-8 9 8"></path>
                 <path d="M5 10v10h14V10"></path>
             </svg>
         </a>
-        <button class="bnav-item" id="bnavSearch" data-label="Search">
+        <button class="bnav-item" id="bnavSearch" data-label="Search" data-i18n="nav_search">
             <svg viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="7"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
         </button>
-        <button class="bnav-item" id="bnavWish" data-label="Wishlist">
+        <button class="bnav-item" id="bnavWish" data-label="Wishlist" data-i18n="nav_wishlist">
             <svg viewBox="0 0 24 24">
                 <path
                     d="M12 21s-7.5-4.6-10-9.2C.4 8 2 4 6 4c2.2 0 3.7 1.2 4.7 2.6C11.7 5.2 13.2 4 15.4 4c4 0 5.6 4 4 7.8-2.5 4.6-10 9.2-10 9.2z">
                 </path>
             </svg>
         </button>
-        <button class="bnav-item" id="bnavCart" data-label="Cart">
+        <button class="bnav-item" id="bnavCart" data-label="Cart" data-i18n="nav_cart">
             <svg viewBox="0 0 24 24">
                 <circle cx="9" cy="21" r="1"></circle>
                 <circle cx="20" cy="21" r="1"></circle>
@@ -209,7 +221,7 @@
             <div class="section-head reveal-up center">
                 <div>
 
-                    <h2 class="section-title reels-heading">Elevate Your Style</h2>
+                    <h2 class="section-title reels-heading" data-i18n="reels_title">Elevate Your Style</h2>
                 </div>
             </div>
             <div class="reels-slider-container reveal-up">
@@ -426,14 +438,14 @@
         <!-- NEWSLETTER 
         <section class="newsletter">
             <div class="newsletter-card reveal-up">
-                <h2>Join The Inner Circle</h2>
-                <p>Early drops, private sales, and icon-only access — straight to your inbox.</p>
+                <h2 data-i18n="newsletter_title">Join The Inner Circle</h2>
+                <p data-i18n="newsletter_desc">Early drops, private sales, and icon-only access — straight to your inbox.</p>
                 <form id="newsletterForm" class="newsletter-form">
                     <div class="field-wrap">
-                        <input type="email" id="newsletterEmail" placeholder=" " required>
-                        <label for="newsletterEmail">Your email address</label>
+                        <input type="email" id="newsletterEmail" data-i18n-placeholder="newsletter_email" placeholder=" " required>
+                        <label for="newsletterEmail" data-i18n="newsletter_label">Your email address</label>
                     </div>
-                    <button type="submit" class="btn btn-primary magnetic"><span>Subscribe</span></button>
+                    <button type="submit" class="btn btn-primary magnetic"><span data-i18n="newsletter_btn">Subscribe</span></button>
                 </form>
                 <p class="newsletter-note" id="newsletterNote"></p>
             </div>
@@ -448,25 +460,25 @@
                     <div class="nav-logo"><img
                             src="https://i.postimg.cc/G2GCn5h6/Screenshot-2026-07-13-210144-removebg-preview.png"
                             alt="KAPPA Fashion Store"></div>
-                    <p>Modern streetwear designed for everyday icons. Kanniyakumari, Tamil Nadu, India.</p>
+                    <p data-i18n="footer_desc">Modern streetwear designed for everyday icons. Kanniyakumari, Tamil Nadu, India.</p>
                 </div>
                 <div class="footer-col">
-                    <h4>Quick Links</h4>
-                    <a href="#arrivals">New Arrivals</a>
-                    <a href="#men">Men</a>
-                    <a href="#women">Women</a>
-                    <a href="#collections">Collections</a>
+                    <h4 data-i18n="footer_quick_links">Quick Links</h4>
+                    <a href="#arrivals" data-i18n="nav_new_arrivals">New Arrivals</a>
+                    <a href="#men" data-i18n="nav_men">Men</a>
+                    <a href="#women" data-i18n="nav_women">Women</a>
+                    <a href="#collections" data-i18n="nav_collections">Collections</a>
                 </div>
                 <div class="footer-col">
-                    <h4>Policies</h4>
-                    <a href="#">Shipping Policy</a>
-                    <a href="#">Returns &amp; Exchange</a>
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
+                    <h4 data-i18n="footer_policies">Policies</h4>
+                    <a href="#" data-i18n="footer_shipping">Shipping Policy</a>
+                    <a href="#" data-i18n="footer_returns">Returns &amp; Exchange</a>
+                    <a href="#" data-i18n="footer_privacy">Privacy Policy</a>
+                    <a href="#" data-i18n="footer_terms">Terms of Service</a>
                 </div>
                 <div class="footer-col">
-                    <h4>Store</h4>
-                    <p class="footer-address">Kappa Flagship Store<br>Thiruvananthapuram, Kerala, India</p>
+                    <h4 data-i18n="footer_store">Store</h4>
+                    <p class="footer-address" data-i18n="footer_address">Kappa Flagship Store<br>Thiruvananthapuram, Kerala, India</p>
                     <div class="social-row">
                         <a href="#" aria-label="Instagram">IG</a>
                         <a href="#" aria-label="X">X</a>
@@ -475,15 +487,15 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© <span id="year"></span> KAPPA. All rights reserved.</p>
-                <p>Designed by Hyna Studio</p>
+                <p>© <span id="year"></span> KAPPA. <span data-i18n="footer_rights">All rights reserved.</span></p>
+                <p data-i18n="footer_designed">Designed by Hyna Studio</p>
             </div>
         </footer>
 
         <!-- SEARCH POPUP -->
         <div class="overlay" id="searchOverlay">
             <div class="search-panel">
-                <input type="text" id="searchInput" placeholder="Search products, collections..." autocomplete="off">
+                <input type="text" id="searchInput" data-i18n-placeholder="search_placeholder" placeholder="Search products, collections..." autocomplete="off">
                 <button class="overlay-close" id="searchClose">✕</button>
                 <div class="search-results" id="searchResults"></div>
             </div>
@@ -493,28 +505,28 @@
         <div class="overlay overlay-right" id="cartOverlay">
             <div class="side-panel">
                 <div class="side-head">
-                    <h3>Your Cart</h3>
+                    <h3 data-i18n="cart_title">Your Cart</h3>
                     <button class="overlay-close" id="cartClose">✕</button>
                 </div>
                 <div class="cart-items" id="cartItems"></div>
                 <div class="cart-summary">
                     <div class="promo-row">
-                        <input type="text" id="promoInput" placeholder="Promo code">
-                        <button class="btn-mini" id="promoApply">Apply</button>
+                        <input type="text" id="promoInput" data-i18n-placeholder="cart_promo" placeholder="Promo code">
+                        <button class="btn-mini" id="promoApply" data-i18n="cart_apply">Apply</button>
                     </div>
                     <p class="promo-msg" id="promoMsg"></p>
                     <div class="shipping-row">
-                        <span>Shipping estimate</span>
+                        <span data-i18n="cart_shipping">Shipping estimate</span>
                         <select id="shipSelect">
                             <option value="0" data-name="India">India — Free</option>
                             <option value="1500" data-name="International">International — ₹1500</option>
                         </select>
                     </div>
-                    <div class="summary-line"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
-                    <div class="summary-line"><span>Discount</span><span id="cartDiscount">− ₹0</span></div>
-                    <div class="summary-line"><span>Shipping</span><span id="cartShipping">₹0</span></div>
-                    <div class="summary-line total"><span>Total</span><span id="cartTotal">₹0</span></div>
-                    <button class="btn btn-primary full magnetic"><span>Checkout</span></button>
+                    <div class="summary-line"><span data-i18n="cart_subtotal">Subtotal</span><span id="cartSubtotal">₹0</span></div>
+                    <div class="summary-line"><span data-i18n="cart_discount">Discount</span><span id="cartDiscount">− ₹0</span></div>
+                    <div class="summary-line"><span data-i18n="cart_shipping">Shipping</span><span id="cartShipping">₹0</span></div>
+                    <div class="summary-line total"><span data-i18n="cart_total">Total</span><span id="cartTotal">₹0</span></div>
+                    <button class="btn btn-primary full magnetic"><span data-i18n="cart_checkout">Checkout</span></button>
                 </div>
             </div>
         </div>
@@ -523,7 +535,7 @@
         <div class="overlay overlay-right" id="wishOverlay">
             <div class="side-panel">
                 <div class="side-head">
-                    <h3>Wishlist</h3>
+                    <h3 data-i18n="wishlist_title">Wishlist</h3>
                     <button class="overlay-close" id="wishClose">✕</button>
                 </div>
                 <div class="cart-items" id="wishItems"></div>
@@ -543,18 +555,18 @@
                 <div class="card">
                     <!-- LOGIN PANEL -->
                     <section class="panel active" id="panel-login">
-                        <h1 class="headline">Welcome Back</h1>
-                        <p class="subline">Sign in to continue shopping</p>
+                        <h1 class="headline" data-i18n="acc_welcome">Welcome Back</h1>
+                        <p class="subline" data-i18n="acc_signin_sub">Sign in to continue shopping</p>
                         <form onsubmit="return false;">
                             <div class="field">
-                                <label for="login-email">Email Address</label>
+                                <label for="login-email" data-i18n="acc_email">Email Address</label>
                                 <div class="input-shell">
                                     <input type="email" id="login-email" placeholder="you@example.com"
                                         autocomplete="off">
                                 </div>
                             </div>
                             <div class="field">
-                                <label for="login-password">Password</label>
+                                <label for="login-password" data-i18n="acc_password">Password</label>
                                 <div class="input-shell">
                                     <input type="password" id="login-password" class="has-toggle"
                                         placeholder="Enter your password" autocomplete="off">
@@ -571,11 +583,11 @@
                             <div class="row-between">
                                 <label class="checkbox-line">
                                     <input type="checkbox">
-                                    Remember me
+                                    <span data-i18n="acc_remember">Remember me</span>
                                 </label>
-                                <a href="#" class="link">Forgot password?</a>
+                                <a href="#" class="link" data-i18n="acc_forgot">Forgot password?</a>
                             </div>
-                            <button type="button" class="btn-primary">Sign In</button>
+                            <button type="button" class="btn-primary" data-i18n="acc_signin_btn">Sign In</button>
                             <div class="divider">OR</div>
                             <button type="button" class="btn-google">
                                 <svg viewBox="0 0 48 48">
@@ -588,33 +600,33 @@
                                     <path fill="#1976D2"
                                         d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.6 35.6 44 30.2 44 24c0-1.2-.1-2.4-.4-3.5z" />
                                 </svg>
-                                Continue with Google
+                                <span data-i18n="acc_google">Continue with Google</span>
                             </button>
                         </form>
                         <p class="switch-line">
-                            Don't have an account? <a href="#" class="link" id="go-signup">Create Account</a>
+                            <span data-i18n="acc_no_account">Don't have an account?</span> <a href="#" class="link" id="go-signup" data-i18n="acc_create">Create Account</a>
                         </p>
                     </section>
 
                     <!-- SIGNUP PANEL -->
                     <section class="panel" id="panel-signup">
-                        <h1 class="headline">Create Account</h1>
-                        <p class="subline">Create your account to start shopping</p>
+                        <h1 class="headline" data-i18n="acc_create_title">Create Account</h1>
+                        <p class="subline" data-i18n="acc_create_sub">Create your account to start shopping</p>
                         <form onsubmit="return false;">
                             <div class="field">
-                                <label for="su-name">Full Name</label>
+                                <label for="su-name" data-i18n="acc_fullname">Full Name</label>
                                 <div class="input-shell">
                                     <input type="text" id="su-name" placeholder="Jane Doe" autocomplete="off">
                                 </div>
                             </div>
                             <div class="field">
-                                <label for="su-email">Email Address</label>
+                                <label for="su-email" data-i18n="acc_email">Email Address</label>
                                 <div class="input-shell">
                                     <input type="email" id="su-email" placeholder="you@example.com" autocomplete="off">
                                 </div>
                             </div>
                             <div class="field">
-                                <label for="su-password">Password</label>
+                                <label for="su-password" data-i18n="acc_password">Password</label>
                                 <div class="input-shell">
                                     <input type="password" id="su-password" class="has-toggle"
                                         placeholder="Create a password" autocomplete="off">
@@ -629,7 +641,7 @@
                                 </div>
                             </div>
                             <div class="field">
-                                <label for="su-confirm">Confirm Password</label>
+                                <label for="su-confirm" data-i18n="acc_confirm_password">Confirm Password</label>
                                 <div class="input-shell">
                                     <input type="password" id="su-confirm" class="has-toggle"
                                         placeholder="Re-enter your password" autocomplete="off">
@@ -646,11 +658,10 @@
                             <div class="row-between" style="margin-bottom:22px;">
                                 <label class="checkbox-line terms-text">
                                     <input type="checkbox">
-                                    I agree to the <a href="#">Terms &amp; Conditions</a> and <a href="#">Privacy
-                                        Policy</a>
+                                    <span data-i18n="acc_terms">I agree to the <a href="#">Terms &amp; Conditions</a> and <a href="#">Privacy Policy</a></span>
                                 </label>
                             </div>
-                            <button type="button" class="btn-primary">Create Account</button>
+                            <button type="button" class="btn-primary" data-i18n="acc_create_btn">Create Account</button>
                             <div class="divider">OR</div>
                             <button type="button" class="btn-google">
                                 <svg viewBox="0 0 48 48">
@@ -663,18 +674,18 @@
                                     <path fill="#1976D2"
                                         d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.6 35.6 44 30.2 44 24c0-1.2-.1-2.4-.4-3.5z" />
                                 </svg>
-                                Continue with Google
+                                <span data-i18n="acc_google">Continue with Google</span>
                             </button>
                         </form>
                         <p class="switch-line">
-                            Already have an account? <a href="#" class="link" id="go-login">Sign In</a>
+                            <span data-i18n="acc_has_account">Already have an account?</span> <a href="#" class="link" id="go-login" data-i18n="acc_signin">Sign In</a>
                         </p>
                     </section>
                 </div>
                 <footer style="margin-top:20px; text-align:center; font-size:12px; color:#a7a7a7;">
                     <div class="foot-links">
-                        <a href="#" style="color:#8a8a8a; text-decoration:none;">Privacy Policy</a> • <a href="#"
-                            style="color:#8a8a8a; text-decoration:none;">Terms &amp; Conditions</a>
+                        <a href="#" style="color:#8a8a8a; text-decoration:none;" data-i18n="footer_privacy">Privacy Policy</a> • <a href="#"
+                            style="color:#8a8a8a; text-decoration:none;" data-i18n="footer_terms">Terms &amp; Conditions</a>
                     </div>
                     <div class="copyright">© 2026 K Stores. All rights reserved.</div>
                 </footer>
