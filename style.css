@@ -2610,7 +2610,6 @@ ul {
     gap: 24px;
     z-index: 998;
     /* below pill navbar (1000) but above content */
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, transparent 100%);
     /* Visible by default */
     opacity: 1;
     transform: translateY(0);
@@ -2651,7 +2650,7 @@ ul {
 }
 
 .hn-link {
-    color: rgba(0, 0, 0, 0.85);
+    color: rgba(255, 255, 255, 0.9);
     font-size: 15px;
     font-weight: 600;
     padding: 9px 18px;
@@ -2691,7 +2690,8 @@ ul {
 .hn-icon svg {
     width: 20px;
     height: 20px;
-    color: black;
+    color: rgba(255, 255, 255, 0.9);
+    stroke: rgba(255, 255, 255, 0.9);
 }
 
 .hn-icon:hover {
