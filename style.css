@@ -2610,6 +2610,8 @@ ul {
     gap: 24px;
     z-index: 998;
     /* below pill navbar (1000) but above content */
+    background: #FFFF00;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     /* Visible by default */
     opacity: 1;
     transform: translateY(0);
@@ -2639,18 +2641,17 @@ ul {
     display: block;
 }
 
-/* Centre nav links */
+/* Centre-right nav links */
 .hn-links {
     display: flex;
     align-items: center;
     gap: 4px;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    margin-left: auto;
+    margin-right: 48px;
 }
 
 .hn-link {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(0, 0, 0, 0.85);
     font-size: 15px;
     font-weight: 600;
     padding: 9px 18px;
@@ -2660,8 +2661,8 @@ ul {
 }
 
 .hn-link:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, .1);
+    color: #000;
+    background: rgba(0, 0, 0, 0.1);
 }
 
 /* Right icons */
@@ -2680,8 +2681,8 @@ ul {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, .9);
-    background: rgba(255, 255, 255, 0);
+    color: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0);
     border: none;
     cursor: pointer;
     transition: background .25s ease, transform .25s var(--ease);
@@ -2690,12 +2691,12 @@ ul {
 .hn-icon svg {
     width: 20px;
     height: 20px;
-    color: rgba(255, 255, 255, 0.9);
-    stroke: rgba(255, 255, 255, 0.9);
+    color: rgba(0, 0, 0, 0.85);
+    stroke: rgba(0, 0, 0, 0.85);
 }
 
 .hn-icon:hover {
-    background: rgba(255, 255, 255, .14);
+    background: rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
 
