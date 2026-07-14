@@ -163,7 +163,7 @@ ul {
 .nav-link {
     position: relative;
     color: rgba(0, 0, 0, 0.8);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
     padding: 8px 10px;
     border-radius: 100px;
@@ -207,7 +207,7 @@ ul {
     display: flex;
     align-items: center;
     gap: 2px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     color: rgba(0, 0, 0, 0.8);
     cursor: pointer;
@@ -623,6 +623,7 @@ ul {
     overflow: hidden;
     padding: 0;
 }
+
 
 .hero-slides {
     position: absolute;
@@ -2880,7 +2881,7 @@ ul {
     top: var(--marquee-h);
     left: 0;
     width: 100%;
-    padding: 20px 5px;
+    padding: 20px 65px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2986,7 +2987,7 @@ ul {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: rgba(0, 0, 0, 0.8);
     cursor: pointer;
