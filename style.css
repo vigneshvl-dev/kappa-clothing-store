@@ -992,7 +992,7 @@ ul {
     text-align: center;
 }
 
-.. .eyebrow {
+.eyebrow {
     font-family: var(--font-mono);
     font-size: 12.5px;
     letter-spacing: 3px;
@@ -3329,14 +3329,12 @@ ul {
     letter-spacing: -1px;
     line-height: 1;
     text-transform: uppercase;
-    background: linear-gradient(
-        120deg,
-        #8a6d00 0%,
-        #FBCE07 30%,
-        #FFE566 50%,
-        #FBCE07 70%,
-        #8a6d00 100%
-    );
+    background: linear-gradient(120deg,
+            #8a6d00 0%,
+            #FBCE07 30%,
+            #FFE566 50%,
+            #FBCE07 70%,
+            #8a6d00 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -3360,13 +3358,25 @@ ul {
 }
 
 @keyframes luxuryShimmer {
-    0% { background-position: 0% center; }
-    100% { background-position: 200% center; }
+    0% {
+        background-position: 0% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
 }
 
 @keyframes luxuryLineGlow {
-    from { box-shadow: 0 0 8px rgba(251, 206, 7, 0.4); opacity: 0.7; }
-    to   { box-shadow: 0 0 22px rgba(251, 206, 7, 0.9); opacity: 1; }
+    from {
+        box-shadow: 0 0 8px rgba(251, 206, 7, 0.4);
+        opacity: 0.7;
+    }
+
+    to {
+        box-shadow: 0 0 22px rgba(251, 206, 7, 0.9);
+        opacity: 1;
+    }
 }
 
 .center {
@@ -3379,4 +3389,4 @@ ul {
     flex-direction: column;
     margin-bottom: 40px;
     padding: 0 20px;
-}
+}
