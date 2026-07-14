@@ -445,33 +445,32 @@ ul {
 }
 .image-section {
   position: relative;
-  width: 100vw;   /* full viewport width */
-  height: 100vh;  /* full viewport height */
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff; /* optional background color */
+  background: #000;
 }
+
 .image-section img {
     width: 100%;
   height: 100%;
-  object-fit: cover; /* fills screen without distortion */
+  object-fit: cover;
   display: block;
-
 }
+
 .image-wrapper {
-  max-width: 1200px;
-  width: 90%;
-  border-radius: 20px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
 .image-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* fills screen without distortion */
+  object-fit: cover;
   display: block;
 }
 
