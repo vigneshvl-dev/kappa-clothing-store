@@ -692,6 +692,66 @@ ul {
     flex-wrap: wrap;
 }
 
+/* ============ HERO CTA SHOP NOW BUTTON ============ */
+.hero-cta-wrap {
+    position: absolute;
+    bottom: 50px;
+    left: 6%;
+    z-index: 10;
+}
+
+.hero-shop-btn {
+    background: #FFFF00; /* navbar background color (yellow) */
+    color: var(--black);
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+.hero-shop-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--black);
+    transition: transform 0.4s var(--ease);
+}
+
+.hero-shop-btn:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 16px 40px rgba(251, 206, 7, 0.4);
+    background: var(--white);
+    color: var(--black);
+}
+
+.hero-shop-btn:hover svg {
+    transform: translateX(5px);
+    stroke: var(--black);
+}
+
+/* Adjust position on mobile devices */
+@media (max-width: 768px) {
+    .hero-cta-wrap {
+        bottom: 100px; /* high enough so it doesn't collide with mobile bottom nav bar */
+        left: 5%;
+    }
+    
+    .hero-shop-btn {
+        padding: 12px 28px;
+        font-size: 13px;
+        gap: 8px;
+    }
+}
+
+
 .btn {
     position: relative;
     overflow: hidden;
