@@ -111,13 +111,11 @@ ul {
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    background: rgba(10, 10, 10, .55);
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, .08);
+    background: #FFFF00;
+    border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: 100px;
     z-index: 1000;
-    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .5);
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .3);
     /* NO transition on transform → snaps in instantly on scroll */
     transition: box-shadow .4s ease;
 }
@@ -159,7 +157,7 @@ ul {
 
 .nav-link {
     position: relative;
-    color: rgba(255, 255, 255, .78);
+    color: rgba(0, 0, 0, 0.8);
     font-size: 14px;
     font-weight: 500;
     padding: 10px 14px;
@@ -181,7 +179,8 @@ ul {
 }
 
 .nav-link:hover {
-    color: var(--white);
+    color: #000;
+    background: rgba(0, 0, 0, 0.08);
 }
 
 .nav-link:hover::after {
@@ -202,7 +201,7 @@ ul {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--white);
+    color: rgba(0, 0, 0, 0.8);
     transition: background .3s ease, transform .3s var(--ease);
 }
 
@@ -217,7 +216,7 @@ ul {
 }
 
 .icon-btn:hover {
-    background: rgba(255, 255, 255, .12);
+    background: rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
 
@@ -2603,7 +2602,7 @@ ul {
     /* sits below the fixed marquee bar */
     left: 0;
     width: 100%;
-    padding: 22px 40px;
+    padding: 10px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2611,7 +2610,7 @@ ul {
     z-index: 998;
     /* below pill navbar (1000) but above content */
     background: #FFFF00;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
     /* Visible by default */
     opacity: 1;
     transform: translateY(0);
@@ -2629,59 +2628,80 @@ ul {
 /* Logo */
 .hn-logo {
     display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: 2px;
     flex-shrink: 0;
+    text-decoration: none;
 }
 
 .hn-logo img {
-    height: 48px;
-    width: 48px;
+    height: 36px;
+    width: 36px;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 8px;
     display: block;
 }
 
-/* Centre-right nav links */
+.hn-brand {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #000;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+/* Centre nav links */
 .hn-links {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-left: auto;
-    margin-right: 48px;
+    gap: 2px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .hn-link {
-    color: rgba(0, 0, 0, 0.85);
-    font-size: 15px;
-    font-weight: 600;
-    padding: 9px 18px;
+    color: rgba(0, 0, 0, 0.8);
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 7px 14px;
     border-radius: 100px;
-    letter-spacing: .2px;
+    letter-spacing: .1px;
     transition: color .25s ease, background .25s ease;
+    position: relative;
+}
+
+.hn-link-active {
+    font-weight: 700;
+    color: #000;
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .hn-link:hover {
     color: #000;
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.08);
 }
 
 /* Right icons */
 .hn-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 2px;
     flex-shrink: 0;
 }
 
 .hn-icon {
     position: relative;
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(0, 0, 0, 0.85);
+    color: rgba(0, 0, 0, 0.8);
     background: rgba(0, 0, 0, 0);
     border: none;
     cursor: pointer;
@@ -2689,15 +2709,15 @@ ul {
 }
 
 .hn-icon svg {
-    width: 20px;
-    height: 20px;
-    color: rgba(0, 0, 0, 0.85);
-    stroke: rgba(0, 0, 0, 0.85);
+    width: 18px;
+    height: 18px;
+    color: rgba(0, 0, 0, 0.8);
+    stroke: rgba(0, 0, 0, 0.8);
 }
 
 .hn-icon:hover {
     background: rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 .hn-badge {

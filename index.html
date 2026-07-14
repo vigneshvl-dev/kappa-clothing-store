@@ -30,12 +30,15 @@
     <!-- HERO NAV (visible at top only — hides on scroll) -->
     <header class="hero-nav" id="heroNav">
         <a href="#home" class="hn-logo">
-            <img src="https://i.postimg.cc/gcvzsT9t/Screenshot-2026-07-13-231039.png" alt="">
+            <img src="https://i.postimg.cc/G2GCn5h6/Screenshot-2026-07-13-210144-removebg-preview.png" alt="">
+            <span class="hn-brand">KAPPA</span>
         </a>
         <nav class="hn-links">
+            <a href="#home" class="hn-link hn-link-active">Home</a>
             <a href="#arrivals" class="hn-link">Shop</a>
             <a href="#collections" class="hn-link">Collections</a>
-            <a href="#why" class="hn-link">About</a>
+            <a href="#why" class="hn-link">About Us</a>
+            <a href="#footer" class="hn-link">Contact</a>
         </nav>
         <div class="hn-actions">
             <button class="hn-icon" id="heroSearchBtn" aria-label="Search">
@@ -45,21 +48,21 @@
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </button>
-            <button class="hn-icon" id="heroCartBtn" aria-label="Cart" style="position:relative">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path>
-                </svg>
-                <span class="hn-badge" id="heroCartCount">0</span>
-            </button>
             <button class="hn-icon" id="heroAccountBtn" aria-label="Account">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                     stroke-linejoin="round">
                     <circle cx="12" cy="8" r="4"></circle>
                     <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
                 </svg>
+            </button>
+            <button class="hn-icon" id="heroCartBtn" aria-label="Cart" style="position:relative">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span class="hn-badge" id="heroCartCount">0</span>
             </button>
         </div>
     </header>
