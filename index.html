@@ -45,23 +45,24 @@
             <a href="#footer" class="hn-link">Contact</a>
         </nav>
         <div class="hn-actions">
-            <button class="hn-icon" id="heroSearchBtn" aria-label="Search">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                    stroke-linejoin="round">
+            <div class="hn-lang">
+                <span>English ▼</span>
+            </div>
+            <div class="hn-search">
+                <input type="text" placeholder="I'm looking for..." />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="7"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-            </button>
+            </div>
             <button class="hn-icon" id="heroAccountBtn" aria-label="Account">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                    stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="8" r="4"></circle>
                     <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
                 </svg>
             </button>
             <button class="hn-icon" id="heroCartBtn" aria-label="Cart" style="position:relative">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                    stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <path d="M16 10a4 4 0 0 1-8 0"></path>
@@ -77,45 +78,46 @@
 
         <nav class="nav-links">
             <a href="#home" class="nav-link">Home</a>
-            <a href="#reels" class="nav-link">Reels</a>
+            <a href="#reels" class="nav-link">Shop</a>
             <a href="#arrivals" class="nav-link">New Arrivals</a>
-            <a href="#men" class="nav-link">Men</a>
-            <a href="#women" class="nav-link">Women</a>
-            <a href="#collections" class="nav-link">Collections</a>
+            <a href="#men" class="nav-link">FaQ</a>
             <a href="#why" class="nav-link">About</a>
             <a href="#footer" class="nav-link">Contact</a>
         </nav>
 
-        <div class="nav-actions">
-            <button class="icon-btn" id="searchBtn" aria-label="Search">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-            </button>
-            <button class="icon-btn" id="wishBtn" aria-label="Wishlist">
-                <svg viewBox="0 0 24 24">
-                    <path
-                        d="M12 21s-7.5-4.6-10-9.2C.4 8 2 4 6 4c2.2 0 3.7 1.2 4.7 2.6C11.7 5.2 13.2 4 15.4 4c4 0 5.6 4 4 7.8-2.5 4.6-10 9.2-10 9.2z">
-                    </path>
-                </svg>
-                <span class="badge" id="wishCount">0</span>
-            </button>
-            <button class="icon-btn" id="cartBtn" aria-label="Cart">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path>
-                </svg>
-                <span class="badge" id="cartCount">0</span>
-            </button>
-            <button class="icon-btn profile-btn" id="profileBtn" aria-label="Profile">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="8" r="4"></circle>
-                    <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
-                </svg>
-            </button>
-        </div>
+       
+  <div class="nav-actions">
+    <div class="lang-select">
+      <span>English ▼</span>
+    </div>
+    <div class="search-box" id="searchBtn">
+      <input type="text" placeholder="I'm looking for..." />
+      <svg viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    </div>
+    <button class="icon-btn profile-btn" id="profileBtn">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"></circle>
+        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
+      </svg>
+    </button>
+    <button class="icon-btn cart-btn" id="cartBtn">
+      <svg viewBox="0 0 24 24">
+        <circle cx="9" cy="21" r="1"></circle>
+        <circle cx="20" cy="21" r="1"></circle>
+        <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path>
+      </svg>
+      <span class="badge">0</span>
+    </button>
+    <button class="icon-btn wish-btn" id="wishBtn">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 21s-7.5-4.6-10-9.2C.4 8 2 4 6 4c2.2 0 3.7 1.2 4.7 2.6C11.7 5.2 13.2 4 15.4 4c4 0 5.6 4 4 7.8-2.5 4.6-10 9.2-10 9.2z"></path>
+      </svg>
+      <span class="badge">0</span>
+    </button>
+  </div>
     </header>
 
     <!-- MOBILE MENU -->
@@ -130,6 +132,7 @@
         <a href="#footer" class="mnav-link">Contact</a>
         <a href="#" class="mnav-link" id="mobileAccountLink">Sign In / Account</a>
     </div>
+    
 
     <!-- BOTTOM NAV (mobile) -->
     <nav class="bottom-nav">

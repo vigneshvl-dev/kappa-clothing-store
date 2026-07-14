@@ -96,24 +96,27 @@
     if (heroSlides.length > 1) {
         setInterval(nextSlide, 5000);
     }
-
-    /* ---------- CUSTOM CURSOR ---------- */
+    /* ---------- HAMBURGER / MOBILE MENU ---------- */
     const glow = document.getElementById("cursorGlow");
     const dot = document.getElementById("cursorDot");
     let mx = innerWidth / 2, my = innerHeight / 2, gx = mx, gy = my;
-    window.addEventListener("mousemove", e => {
-        mx = e.clientX; my = e.clientY;
-        dot.style.left = mx + "px"; dot.style.top = my + "px";
-    });
+    if (dot) {
+        window.addEventListener("mousemove", e => {
+            mx = e.clientX; my = e.clientY;
+            dot.style.left = mx + "px"; dot.style.top = my + "px";
+        });
+    }
     (function loop() {
         gx += (mx - gx) * 0.12; gy += (my - gy) * 0.12;
         glow.style.left = gx + "px"; glow.style.top = gy + "px";
         requestAnimationFrame(loop);
     })();
-    document.querySelectorAll("a, button, .cat-item, .look-item, .product-card").forEach(el => {
-        el.addEventListener("mouseenter", () => dot.classList.add("grow"));
-        el.addEventListener("mouseleave", () => dot.classList.remove("grow"));
-    });
+    if (dot) {
+        document.querySelectorAll("a, button, .cat-item, .look-item, .product-card").forEach(el => {
+            el.addEventListener("mouseenter", () => dot.classList.add("grow"));
+            el.addEventListener("mouseleave", () => dot.classList.remove("grow"));
+        });
+    }
 
     /* ---------- SCROLL PROGRESS + NAVBAR / MARQUEE REVEAL ---------- */
     const progress  = document.getElementById("scrollProgress");
@@ -145,10 +148,10 @@
     }, { passive: true });
 
     // Wire hero nav search/cart buttons to the same overlays
-    const heroSearchBtn = document.getElementById("heroSearchBtn");
+    const heroSearchInput = document.querySelector(".hn-search input");
     const heroCartBtn   = document.getElementById("heroCartBtn");
-    if (heroSearchBtn) heroSearchBtn.addEventListener("click", () => document.getElementById("searchBtn").click());
-    if (heroCartBtn)   heroCartBtn.addEventListener("click",   () => document.getElementById("cartBtn").click());
+    if (heroSearchInput) heroSearchInput.addEventListener("focus", () => { openOverlay(searchOverlay); setTimeout(() => document.getElementById("searchInput")?.focus(), 100); });
+    if (heroCartBtn)   heroCartBtn.addEventListener("click",   () => openOverlay(cartOverlay));
 
     /* ---------- REVEAL ON SCROLL ---------- */
     function revealCheck() {
@@ -390,9 +393,7 @@
     if (profileBtn) profileBtn.addEventListener("click", () => openOverlay(accountOverlay));
     if (mobileAccountLink) mobileAccountLink.addEventListener("click", e => {
         e.preventDefault();
-        const hamburger = document.getElementById("hamburger");
-        const mobileMenu = document.getElementById("mobileMenu");
-        if (hamburger) hamburger.classList.remove("open");
+        if (heroHamburger) heroHamburger.classList.remove("open");
         if (mobileMenu) mobileMenu.classList.remove("open");
         openOverlay(accountOverlay);
     });
@@ -451,7 +452,13 @@
 
     function renderCart() {
         const wrap = document.getElementById("cartItems");
-        document.getElementById("cartCount").textContent = cart.reduce((a, c) => a + c.qty, 0);
+        const cartTotal = cart.reduce((a, c) => a + c.qty, 0);
+        const cartCountEl = document.getElementById("cartCount");
+        if (cartCountEl) cartCountEl.textContent = cartTotal;
+        const heroCartCount = document.getElementById("heroCartCount");
+        if (heroCartCount) heroCartCount.textContent = cartTotal;
+        const cartBtnBadge = document.querySelector("#cartBtn .badge");
+        if (cartBtnBadge) cartBtnBadge.textContent = cartTotal;
         if (!cart.length) {
             wrap.innerHTML = `<div class="cart-empty">Your cart is empty.<br>Start adding icons.</div>`;
         } else {
@@ -518,7 +525,11 @@
     }
     function renderWishlist() {
         const wrap = document.getElementById("wishItems");
-        document.getElementById("wishCount").textContent = wishlist.length;
+        const wishTotal = wishlist.length;
+        const wishCountEl = document.getElementById("wishCount");
+        if (wishCountEl) wishCountEl.textContent = wishTotal;
+        const wishBtnBadge = document.querySelector("#wishBtn .badge");
+        if (wishBtnBadge) wishBtnBadge.textContent = wishTotal;
         if (!wishlist.length) {
             wrap.innerHTML = `<div class="wish-empty">No favorites yet.<br>Tap the heart on any product.</div>`;
             return;
