@@ -443,6 +443,37 @@ ul {
         z-index: 1002;
     }
 }
+.image-section {
+  position: relative;
+  width: 100vw;   /* full viewport width */
+  height: 100vh;  /* full viewport height */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff; /* optional background color */
+}
+.image-section img {
+    width: 100%;
+  height: 100%;
+  object-fit: cover; /* fills screen without distortion */
+  display: block;
+
+}
+.image-wrapper {
+  max-width: 1200px;
+  width: 90%;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* fills screen without distortion */
+  display: block;
+}
 
 /* MOBILE MENU */
 .mobile-menu {
@@ -575,7 +606,8 @@ ul {
 /* ============ HERO ============ */
 .hero {
     position: relative;
-    min-height: 110vh;
+    height: 100vh;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -583,7 +615,7 @@ ul {
     background: var(--black);
     color: var(--white);
     overflow: hidden;
-    padding: 140px 20px 80px;
+    padding: 0;
 }
 
 .hero-slides {
@@ -604,6 +636,17 @@ ul {
 
 .hero-slide.active {
     opacity: 1;
+}
+
+.hero-content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
 }
 
 #particleCanvas {
