@@ -109,7 +109,7 @@ ul {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    background: #FFFF00;
+    background: #f9f9f6;
     border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: 100px;
     z-index: 1000;
@@ -139,10 +139,16 @@ ul {
 }
 
 .nav-logo img {
-    height: 52px;
-    width: 52px;
-    object-fit: cover;
-    border-radius: 14px;
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.footer-brand .nav-logo img {
+    height: 64px;
+    width: auto;
+    object-fit: contain;
     display: block;
 }
 
@@ -2871,13 +2877,13 @@ ul {
     top: var(--marquee-h);
     left: 0;
     width: 100%;
-    padding: 4px 40px;
+    padding: 20px 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 24px;
     z-index: 998;
-    background: #fff708;
+    background: #fdfdfd;
     /* cleaner white background */
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -2918,7 +2924,7 @@ ul {
 
 .hn-link {
     color: rgba(0, 0, 0, 0.8);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
     padding: 8px 16px;
     border-radius: 100px;
@@ -3139,7 +3145,7 @@ ul {
 
     .hn-logo img {
         height: 28px;
-        width: 28px;
+        width: auto;
         border-radius: 6px;
     }
 
@@ -3190,7 +3196,7 @@ ul {
 @media (max-width: 480px) {
     .hn-logo img {
         height: 26px;
-        width: 26px;
+        width: auto;
     }
 
     .hn-brand {
@@ -3274,9 +3280,10 @@ ul {
 #accountOverlay .logo-mark img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
     border-radius: inherit;
+    padding: 6px;
 }
 
 #accountOverlay .logo-mark::after {
