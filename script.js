@@ -927,6 +927,32 @@
         reelsObserver.observe(reelsContainer);
     }
 
+    /* ---------- CATEGORIES TAB SWITCHING ---------- */
+    const catTabBtns = document.querySelectorAll(".cat-tab-btn");
+    const catGrids = document.querySelectorAll(".categories-grid");
+    
+    catTabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const targetTab = btn.dataset.tab;
+            
+            // Update buttons active class
+            catTabBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            
+            // Switch grids
+            catGrids.forEach(grid => {
+                if (grid.id === `cat-grid-${targetTab}`) {
+                    grid.classList.add("active");
+                } else {
+                    grid.classList.remove("active");
+                }
+            });
+            
+            // Check scroll reveal for the new grid cards
+            setTimeout(revealCheck, 50);
+        });
+    });
+
     /* ---------- INIT ---------- */
     renderCart();
     renderWishlist();
