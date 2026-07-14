@@ -2738,35 +2738,119 @@ ul {
     font-family: var(--font-mono);
 }
 
-/* Mobile: hide centre links, keep logo + icons */
+/* Hamburger — hidden on desktop, shown on mobile */
+.hn-hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    z-index: 2;
+}
+
+.hn-hamburger span {
+    width: 20px;
+    height: 2px;
+    background: #000;
+    border-radius: 2px;
+    transition: transform .3s ease, opacity .3s ease;
+    display: block;
+}
+
+.hn-hide-mobile {
+    /* hidden on mobile — toggled by media query */
+}
+
+/* Mobile: hamburger | centred logo | icons */
 @media (max-width: 768px) {
     .hero-nav {
-        padding: 18px 20px;
+        padding: 8px 12px;
+        background: #FFFF00;
+        position: relative;
+        /* needed so absolute logo centres within nav */
     }
 
+    /* Show hamburger */
+    .hn-hamburger {
+        display: flex;
+        order: 1;
+    }
+
+    /* Absolutely centre the logo */
+    .hn-logo {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        flex-direction: column;
+        align-items: center;
+        gap: 1px;
+        order: 2;
+    }
+
+    .hn-logo img {
+        height: 28px;
+        width: 28px;
+        border-radius: 6px;
+    }
+
+    .hn-brand {
+        font-size: 9px;
+        letter-spacing: 2px;
+        font-weight: 800;
+    }
+
+    /* Hide nav links */
     .hn-links {
         display: none;
     }
 
-    .hero-nav {
-        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.65) 0%, transparent 100%);
+    /* Push icons to far right */
+    .hn-actions {
+        margin-left: auto;
+        order: 3;
+        gap: 0;
     }
-}
 
-@media (max-width: 480px) {
-    .hn-logo img {
-        height: 40px;
-        width: 40px;
+    /* Hide account on mobile */
+    .hn-hide-mobile {
+        display: none !important;
     }
 
     .hn-icon {
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
     }
 
     .hn-icon svg {
         width: 17px;
         height: 17px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hn-logo img {
+        height: 26px;
+        width: 26px;
+    }
+
+    .hn-brand {
+        font-size: 8px;
+    }
+
+    .hn-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .hn-icon svg {
+        width: 16px;
+        height: 16px;
     }
 }
 
