@@ -1,3 +1,8 @@
+const supabaseClient = window.supabase.createClient(
+  'https://ugphxapfbzcrauchwlef.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
+);
+
 /* ============================================================
    KAPPA — vanilla JS
    ============================================================ */
@@ -958,4 +963,74 @@
     renderWishlist();
     revealCheck();
 
+     const loginForm = document.getElementById('login-form');
+
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          alert('Login failed: ' + error.message);
+          return;
+        }
+
+        alert('Logged in as ' + data.user.email);
+      });
+    }
+
+    const signupForm = document.getElementById('signup-form');
+
+    if (signupForm) {
+      signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fullName = document.getElementById('su-name').value;
+        const email = document.getElementById('su-email').value;
+        const password = document.getElementById('su-password').value;
+        const confirmPassword = document.getElementById('su-confirm').value;
+
+        if (password !== confirmPassword) {
+          alert('Passwords do not match');
+          return;
+        }
+
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName }
+          }
+        });
+
+        if (error) {
+          alert('Signup failed: ' + error.message);
+          return;
+        }
+
+        alert('Account created! Check your email to confirm, or you can now sign in.');
+      });
+    }
+
+    document.querySelectorAll('.btn-google').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + window.location.pathname
+          }
+        });
+        if (error) {
+          alert('Google sign-in failed: ' + error.message);
+        }
+      });
+    });
+    
 })();
