@@ -276,6 +276,7 @@ ul {
     font-size: 12px;
     outline: none;
     transition: border-color .25s ease, background .25s ease;
+    background-color: white;
 }
 
 .search-box input:focus {
