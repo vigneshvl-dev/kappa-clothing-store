@@ -2887,7 +2887,7 @@ ul {
     top: var(--marquee-h);
     left: 0;
     width: 100%;
-    padding: 20px 65px;
+    padding: 15px 65px;
     display: flex;
     align-items: center;
     justify-content: space-between;
