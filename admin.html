@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAPPA Store | Admin Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <div class="dashboard-wrapper">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <span>❖</span> KAPPA
+            </div>
+            <ul class="sidebar-menu" id="sidebar-nav">
+                <li data-target="dashboard" class="active">Dashboard</li>
+                <li data-target="orders">Orders</li>
+                <li data-target="products">Products</li> 
+                <li data-target="customers">Customers</li>
+                <li data-target="categories">Categories</li>
+                <li data-target="reviews">Reviews</li>
+                <li data-target="settings" style="margin-top: auto;">Settings</li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            
+            <header class="top-header">
+                <h1 class="page-title" id="dynamic-page-title">Dashboard</h1>
+                <div class="user-profile">
+                    <div class="avatar" id="admin-avatar">A</div>
+                    <span id="admin-name">Admin User</span>
+                </div>
+            </header>
+
+            <!-- VIEW: DASHBOARD -->
+            <div id="view-dashboard" class="view-section active-view">
+                <div class="stats-grid">
+                    <div class="card stat-card">
+                        <h3>Total Revenue</h3>
+                        <div class="stat-value" id="stat-revenue">₹0</div>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>Total Orders</h3>
+                        <div class="stat-value" id="stat-orders">0</div>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>Total Products</h3>
+                        <div class="stat-value" id="stat-products">0</div>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>Total Customers</h3>
+                        <div class="stat-value" id="stat-customers">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: ORDERS -->
+            <div id="view-orders" class="view-section">
+                <div class="card">
+                    <!-- Dynamic content injected here -->
+                </div>
+            </div>
+
+            <!-- VIEW: PRODUCTS -->
+            <div id="view-products" class="view-section">
+                <form id="add-product-form">
+                    <section class="card">
+                        <h2 class="card-title">Basic Information</h2>
+                        <div class="form-group row">
+                            <div>
+                                <label for="prod-name">Product Name *</label>
+                                <input type="text" id="prod-name" class="admin-input" placeholder="e.g., Summer Floral Dress" required>
+                            </div>
+                            <div>
+                                <label for="prod-category">Category *</label>
+                                <select id="prod-category" class="admin-input" required>
+                                    <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div>
+                                <label for="prod-price">Selling Price (₹) *</label>
+                                <input type="number" id="prod-price" class="admin-input" placeholder="e.g., 2499" required>
+                            </div>
+                            <div>
+                                <label for="prod-compare-price">Compare At / Old Price (₹)</label>
+                                <input type="number" id="prod-compare-price" class="admin-input" placeholder="e.g., 2999">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="prod-desc">Product Description</label>
+                            <textarea id="prod-desc" class="admin-input" placeholder="Fabric details, fit type, care rules..."></textarea>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">Variants & Inventory</h2>
+                        <div class="variant-generator-grid">
+                            <div>
+                                <label>Colors Available</label>
+                                <input type="text" id="variant-colors" class="admin-input" placeholder="e.g., Red, Blue">
+                            </div>
+                            <div>
+                                <label>Sizes Available</label>
+                                <input type="text" id="variant-sizes" class="admin-input" placeholder="e.g., S, M, L">
+                            </div>
+                            <button type="button" id="btn-generate-variants" class="btn-secondary">Generate Grid</button>
+                        </div>
+                        <div id="stock-table-container"></div>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card-title">Product Media</h2>
+                        <div class="form-group">
+                            <label>Upload Images (Select multiple files) *</label>
+                            <div class="file-upload-wrapper">
+                                <input type="file" id="prod-images" accept="image/png, image/jpeg, image/webp" multiple required>
+                            </div>
+                        </div>
+                    </section>
+
+                    <button type="submit" class="submit-btn">Publish Product to Storefront</button>
+                </form>
+            </div>
+
+            <!-- VIEW: CUSTOMERS -->
+            <div id="view-customers" class="view-section">
+                <div class="card">
+                    <!-- Dynamic content injected here -->
+                </div>
+            </div>
+
+            <!-- VIEW: CATEGORIES -->
+            <div id="view-categories" class="view-section">
+                <section class="card">
+                    <h2 class="card-title">Add New Category</h2>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <input type="text" id="new-cat-name" class="admin-input" placeholder="e.g., T-Shirts" style="flex: 2;">
+                        <select id="parent-cat-select" class="admin-input" style="flex: 1;">
+                            <option value="">No Parent (Root)</option>
+                        </select>
+                        <button class="btn-secondary" onclick="addCategory()">Add Category</button>
+                    </div>
+                </section>
+                <section class="card">
+                    <h2 class="card-title">Current Categories</h2>
+                    <div id="categories-list-container"></div>
+                </section>
+            </div>
+
+            <!-- VIEW: REVIEWS -->
+            <div id="view-reviews" class="view-section">
+                <div class="card">
+                    <!-- Dynamic content injected here -->
+                </div>
+            </div>
+
+            <!-- VIEW: SETTINGS -->
+            <div id="view-settings" class="view-section">
+                <section class="card">
+                    <h2 class="card-title">Account Settings</h2>
+                    <div id="admin-profile-info" style="margin-bottom: 20px;">
+                        <p><strong>Logged in as:</strong> <span id="settings-admin-name">Loading...</span></p>
+                    </div>
+                    <button class="btn-delete" onclick="logoutAdmin()" style="background: #1a1a1a; color: #fff; padding: 10px 20px; border: none; cursor: pointer; border-radius: 6px;">
+                        Logout Admin Panel
+                    </button>
+                </section>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
