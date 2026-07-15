@@ -318,10 +318,10 @@ ul {
 }
 
 .icon-btn svg {
-    width: 17px;
+    width: 25px;
     height: 17px;
     fill: none;
-    stroke: currentColor;
+    stroke: black;
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -615,99 +615,148 @@ ul {
         padding: 40px 0px 80px;
     }
 }
+
 /*===========Testomionals-----------*/
 .testimonials {
-  background-color: #fff;
-  text-align: center;
-  padding: 60px 20px;
-  font-family: 'Poppins', sans-serif;
+    background-color: #fff;
+    text-align: center;
+    padding: 60px 20px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .testimonials h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.5rem;
-  color: #2c3e50;
-  margin-bottom: 50px;
-  font-style: italic;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 50px;
+    font-style: italic;
 }
 
 .testimonial-container {
-  display: flex;
-  gap: 40px;
-  width: max-content;
-  animation: scrollLoop 50s linear infinite;
+    display: flex;
+    gap: 40px;
+    width: max-content;
+    animation: scrollLoop 50s linear infinite;
 }
 
 @keyframes scrollLoop {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
 }
 
 
 
 .testimonial {
-  max-width: 300px;
-  background: #fff;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    max-width: 300px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .testimonial img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 20px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 20px;
 }
 
 .testimonial p {
-  font-size: 1rem;
-  color: #34495e;
-  font-style: italic;
-  margin-bottom: 15px;
+    font-size: 1rem;
+    color: #34495e;
+    font-style: italic;
+    margin-bottom: 15px;
 }
 
 .testimonial h4 {
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 5px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 5px;
 }
 
 .testimonial .role {
-  display: block;
-  font-size: 0.9rem;
-  color: #7f8c8d;
-  margin-bottom: 10px;
+    display: block;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 10px;
 }
 
 .stars {
-  color: #f1c40f;
-  font-size: 1.2rem;
+    color: #f1c40f;
+    font-size: 1.2rem;
 }
+
 /*==========fornt========*/
 .fashion-banner {
-  background-color: #fff;
-  text-align: center;
-  padding: 80px 20px;
-  font-family: 'Playfair Display', serif;
+    background-color: #fff;
+    text-align: center;
+    padding: 80px 20px;
+    font-family: 'Playfair Display', serif;
+    overflow: hidden;
 }
 
 .headline {
-  font-size: 3rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #111;
-  text-transform: uppercase;
-  font-family: 'Cormorant Garamond', sans-serif;
+    font-family: var(--font-display);
+    font-size: clamp(2.8rem, 7vw, 6rem);
+    font-weight: 900;
+    letter-spacing: 2px;
+    line-height: 1;
+    text-transform: uppercase;
+    background: linear-gradient(105deg,
+            #111 0%,
+            #1a1a1a 30%,
+            #fff 48%,
+            #e0e0e0 52%,
+            #1a1a1a 70%,
+            #111 100%);
+    background-size: 250% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: blackShine 3.5s linear infinite;
+    display: inline-block;
+    position: relative;
 }
 
 .subline {
-  font-size: 2rem;
-  font-style: italic;
-  color: #555;
-  font-family: 'Cormorant Garamond', serif;
-  margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: clamp(2.8rem, 7vw, 6rem);
+    font-weight: 900;
+    font-style: normal;
+    letter-spacing: 2px;
+    line-height: 1;
+    text-transform: uppercase;
+    background: linear-gradient(105deg,
+            #111 0%,
+            #1a1a1a 30%,
+            #fff 48%,
+            #e0e0e0 52%,
+            #1a1a1a 70%,
+            #111 100%);
+    background-size: 250% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: blackShine 3.5s linear infinite;
+    display: inline-block;
+    margin-top: 0;
+    position: relative;
+}
+
+@keyframes blackShine {
+    0% {
+        background-position: 200% center;
+    }
+
+    100% {
+        background-position: -50% center;
+    }
 }
 
 
@@ -2298,38 +2347,51 @@ ul {
 }
 
 .footer-brand p {
-    color: rgba(0, 0, 0, 0.7);
-    font-size: 13.5px;
-    line-height: 1.7;
-    margin-top: 16px;
+    color: rgba(0, 0, 0, 0.65);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    line-height: 1.75;
+    margin-top: 14px;
     max-width: 280px;
 }
 
 .footer-col h4 {
-    font-size: 13px;
-    letter-spacing: 1px;
-    color: var(--black);
-    margin-bottom: 18px;
-    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #000;
+    margin-bottom: 20px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #000;
+    display: inline-block;
 }
 
 .footer-col a {
     display: block;
-    color: rgba(0, 0, 0, 0.75);
-    font-size: 14px;
-    margin-bottom: 12px;
+    color: rgba(0, 0, 0, 0.65);
+    font-size: 13.5px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    margin-bottom: 11px;
+    text-decoration: none;
     transition: color .25s ease, padding-left .25s ease;
 }
 
 .footer-col a:hover {
     color: #000;
-    padding-left: 4px;
+    font-weight: 600;
+    padding-left: 5px;
 }
 
 .footer-address {
-    color: rgba(0, 0, 0, 0.7);
+    color: rgba(0, 0, 0, 0.65);
     font-size: 13.5px;
-    line-height: 1.6;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
     margin-bottom: 16px;
 }
 
@@ -2366,6 +2428,8 @@ ul {
     padding-top: 24px;
     color: rgba(0, 0, 0, 0.5);
     font-size: 12.5px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
     flex-wrap: wrap;
     gap: 10px;
 }
@@ -3826,6 +3890,15 @@ ul {
     margin: 0 0 6px;
     letter-spacing: -0.02em;
     color: var(--ink);
+    /* Reset global gradient/animation */
+    font-family: 'Inter', sans-serif;
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
+    animation: none;
+    text-transform: none;
+    font-style: normal;
 }
 
 #accountOverlay .subline {
@@ -3833,6 +3906,17 @@ ul {
     color: var(--ink-soft);
     text-align: center;
     margin: 0 0 28px;
+    /* Reset global gradient/animation */
+    font-family: 'Inter', sans-serif;
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
+    animation: none;
+    text-transform: none;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: normal;
 }
 
 #accountOverlay .field {
@@ -4403,31 +4487,38 @@ ul {
     }
 }
 
-  * { box-sizing: border-box; }
-  body {
+* {
+    box-sizing: border-box;
+}
+
+body {
     margin: 0;
     background: #ffffff;
     font-family: Arial, Helvetica, sans-serif;
-  }
-  .section2 {
+}
+
+.section2 {
     max-width: 1900px;
     margin: 0 auto;
     padding: 40px 40px 60px;
     position: relative;
-  }
-  .header-row {
+}
+
+.header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
-  }
-  .header-row h2 {
+}
+
+.header-row h2 {
     font-size: 32px;
     font-weight: 800;
     margin: 0;
     color: #111;
-  }
-  .shop-all-btn {
+}
+
+.shop-all-btn {
     border: 1px solid #111;
     background: #fff;
     padding: 10px 22px;
@@ -4435,34 +4526,39 @@ ul {
     letter-spacing: 1px;
     font-weight: 600;
     cursor: pointer;
-  }
-  .carousel-wrapper {
+}
+
+.carousel-wrapper {
     position: relative;
-  }
-  .carousel-track {
+}
+
+.carousel-track {
     display: flex;
     gap: 24px;
     overflow-x: hidden;
     scroll-behavior: smooth;
-  }
-  .product-card {
+}
+
+.product-card {
     flex: 0 0 calc(20% - 20px);
     position: relative;
     text-align: left;
-  }
-  .badge {
+}
+
+.badge {
     position: absolute;
-    top: 0;
+    top: -9px;
     right: 0;
     background: #111;
     color: #fff;
     font-size: 11px;
-    letter-spacing: 1px;
+    letter-spacing: -11px;
     font-weight: 600;
     padding: 6px 12px;
     z-index: 2;
-  }
-  .product-img-wrap {
+}
+
+.product-img-wrap {
     background: #f2f2f2;
     display: flex;
     align-items: center;
@@ -4470,45 +4566,52 @@ ul {
     aspect-ratio: 1 / 1;
     overflow: hidden;
     margin-bottom: 16px;
-  }
-  .product-img-wrap img {
+}
+
+.product-img-wrap img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-  }
-  .product-title {
+}
+
+.product-title {
     font-size: 15px;
     color: #111;
     margin: 0 0 8px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .price-row {
+}
+
+.price-row {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 14px;
     flex-wrap: wrap;
-  }
-  .price-current {
+}
+
+.price-current {
     color: #c0392b;
     font-weight: 700;
     font-size: 15px;
-  }
-  .price-original {
+}
+
+.price-original {
     color: #999;
     text-decoration: line-through;
     font-size: 14px;
-  }
-  .discount-tag {
+}
+
+.discount-tag {
     background: #c0392b;
     color: #fff;
     font-size: 12px;
     font-weight: 600;
     padding: 3px 8px;
-  }
-  .add-to-cart {
+}
+
+.add-to-cart {
     width: 100%;
     background: #111;
     color: #fff;
@@ -4517,17 +4620,19 @@ ul {
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-  }
-  .add-to-cart:hover {
+}
+
+.add-to-cart:hover {
     background: #333;
-  }
-  .nav-btn {
+}
+
+.nav-btn {
     position: absolute;
     top: calc(50% - 60px);
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0, 0, 0, 0.55);
     color: #fff;
     border: none;
     font-size: 18px;
@@ -4536,21 +4641,30 @@ ul {
     justify-content: center;
     cursor: pointer;
     z-index: 3;
-  }
-  .nav-prev { left: -10px; }
-  .nav-next { right: -10px; }
-  .dots {
+}
+
+.nav-prev {
+    left: -10px;
+}
+
+.nav-next {
+    right: -10px;
+}
+
+.dots {
     display: flex;
     justify-content: center;
     gap: 6px;
     margin-top: 30px;
-  }
-  .dot {
+}
+
+.dot {
     width: 20px;
     height: 4px;
     background: #ddd;
     cursor: pointer;
-  }
-  .dot.active {
+}
+
+.dot.active {
     background: #111;
-  }
+}
