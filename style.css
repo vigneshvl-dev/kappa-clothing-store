@@ -109,7 +109,7 @@ ul {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    background: #f9f9f6;
+    background: #e9e939;
     border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: 100px;
     z-index: 1000;
@@ -298,9 +298,11 @@ ul {
     stroke: rgba(0, 0, 0, 0.5);
     pointer-events: none;
 }
+
 .hero-slide-woomen {
-  margin-top: 100px;   /* adjust only this image’s top spacing */
-        /* optional: control section height */
+    margin-top: 100px;
+    /* adjust only this image’s top spacing */
+    /* optional: control section height */
 }
 
 .icon-btn {
@@ -648,7 +650,7 @@ ul {
 .hero-slide.active {
     opacity: 1;
 
-    
+
 }
 
 .hero-content {
@@ -774,6 +776,7 @@ ul {
     transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     border: 1px solid rgba(0, 0, 0, 0.1);
     text-decoration: none;
+    margin-bottom: 83px;
 }
 
 .hero-shop-btn svg {
@@ -2887,13 +2890,13 @@ ul {
     top: var(--marquee-h);
     left: 0;
     width: 100%;
-    padding: 15px 65px;
+    padding: 3.5px 65px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 24px;
     z-index: 998;
-    background: #fdfdfd;
+    background: #f1ee26;
     /* cleaner white background */
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
