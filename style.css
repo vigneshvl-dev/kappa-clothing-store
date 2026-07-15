@@ -546,9 +546,9 @@ ul {
 /* ---- Instagram Follow Strip ---- */
 .insta-follow-section {
     background: #fff;
-    border-top: 1px solid #e8e8e8;
     border-bottom: 1px solid #e8e8e8;
-    padding: 50px 6%;
+    padding: 36px 6%;
+    margin-top: 0;
 }
 
 .insta-follow-inner {
@@ -3093,6 +3093,63 @@ ul {
 }
 
 /* ============ REELS STYLES ============ */
+/* ---- Instagram Bar under Reels Title ---- */
+.reels-insta-bar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+    background: transparent;
+    padding: 8px 16px;
+    border-radius: 100px;
+}
+
+.reels-insta-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #111;
+}
+
+.reels-insta-left svg {
+    stroke: #111;
+}
+
+.reels-insta-handle {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    color: #111;
+    text-transform: uppercase;
+}
+
+.reels-insta-follow-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #111;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    border: 1px solid #111;
+}
+
+.reels-insta-follow-btn:hover {
+    background: #ffcc00;
+    color: #111;
+    border-color: #ffcc00;
+    transform: translateY(-1px);
+}
+
 /* Section is already white via .section1 */
 .reels-slider-container {
     position: relative;
