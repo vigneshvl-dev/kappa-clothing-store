@@ -488,6 +488,49 @@ ul {
     display: block;
 }
 
+/* ---- Explore Boy's Collection CTA ---- */
+.explore-boys-wrap {
+    text-align: center;
+    padding: 50px 20px 40px;
+    background: #fff;
+}
+
+.explore-boys-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: #111;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 18px 48px;
+    border-radius: 4px;
+    border: 2px solid #111;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.explore-boys-btn:hover {
+    background: #ffcc00;
+    color: #111;
+    border-color: #ffcc00;
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+}
+
+.explore-boys-btn svg {
+    transition: transform 0.35s ease;
+    flex-shrink: 0;
+}
+
+.explore-boys-btn:hover svg {
+    transform: translateX(6px);
+}
+
 /* MOBILE MENU */
 .mobile-menu {
     position: fixed;
