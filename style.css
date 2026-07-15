@@ -109,7 +109,7 @@ ul {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    background: #e9e939;
+    background: #ffcc00;
     border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: 100px;
     z-index: 1000;
@@ -2283,7 +2283,7 @@ ul {
 
 /* ============ FOOTER ============ */
 .footer {
-    background: #FFFF00;
+    background: #ffcc00;
     color: var(--black);
     padding: 90px 6vw 30px;
     border-top: 1px solid rgba(0, 0, 0, 0.12);
@@ -3055,7 +3055,297 @@ ul {
         width: 200px;
     }
 }
+/*============Boys collection============*/
+/* ==========================================
+   BOYS COLLECTION
+========================================== */
 
+.boys-collection{
+    width:100%;
+    padding:90px 6%;
+    background:#fff;
+}
+
+.boys-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:45px;
+}
+
+.boys-header h2{
+    font-size:42px;
+    font-weight:800;
+    color:#111;
+    margin:0;
+}
+
+.boys-btn{
+    text-decoration:none;
+    color:#111;
+    border:2px solid #111;
+    padding:14px 32px;
+    font-weight:700;
+    letter-spacing:1px;
+    transition:.35s;
+}
+
+.boys-btn:hover{
+    background:#111;
+    color:#fff;
+}
+
+.boys-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:30px;
+}
+
+.boys-card{
+    background:#f7f7f7;
+    overflow:hidden;
+    position:relative;
+    transition:.4s;
+}
+
+.boys-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 18px 45px rgba(0,0,0,.12);
+}
+
+.boys-badge{
+    position:absolute;
+    top:18px;
+    left:18px;
+    background:#111;
+    color:#fff;
+    padding:8px 16px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1px;
+    z-index:5;
+}
+
+.boys-card img{
+    width:100%;
+    aspect-ratio:4/5;
+    object-fit:cover;
+    transition:.5s;
+}
+
+.boys-card:hover img{
+    transform:scale(1.08);
+}
+
+.boys-card h3{
+    margin:22px 20px 10px;
+    font-size:18px;
+    color:#111;
+    font-weight:700;
+}
+
+.boys-price{
+    margin:0 20px 20px;
+    font-size:20px;
+    font-weight:700;
+    color:#111;
+}
+
+.boys-price span{
+    margin-left:10px;
+    color:#999;
+    font-size:16px;
+    text-decoration:line-through;
+}
+
+.boys-card button{
+    width:calc(100% - 40px);
+    margin:0 20px 20px;
+    height:50px;
+    border:none;
+    background:#111;
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.boys-card button:hover{
+    background:#333;
+}
+
+/* ==========================
+   Tablet
+========================== */
+
+@media (max-width:992px){
+
+.boys-grid{
+    grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+/* ==========================
+   Mobile
+========================== */
+
+@media (max-width:768px){
+
+.boys-collection{
+    padding:70px 20px;
+}
+
+.boys-header{
+    flex-direction:column;
+    gap:18px;
+    text-align:center;
+}
+
+.boys-header h2{
+    font-size:32px;
+}
+
+.boys-grid{
+    grid-template-columns:1fr;
+    gap:25px;
+}
+
+.boys-btn{
+    padding:12px 26px;
+}
+
+.boys-card h3{
+    font-size:17px;
+}
+
+.boys-price{
+    font-size:18px;
+}
+
+}
+/*============girls fashion cart========*/
+.girls-collection{
+    padding:90px 6%;
+    background:#fff;
+}
+
+.girls-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:45px;
+}
+
+.girls-header h2{
+    font-size:42px;
+    font-weight:800;
+    color:#111;
+}
+
+.girls-btn{
+    padding:12px 28px;
+    border:2px solid #111;
+    color:#111;
+    text-decoration:none;
+    font-weight:700;
+    transition:.35s;
+}
+
+.girls-btn:hover{
+    background:#111;
+    color:#fff;
+}
+
+.girls-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:35px;
+}
+
+.girls-card{
+    position:relative;
+    overflow:hidden;
+    background:#f8f8f8;
+    transition:.4s;
+}
+
+.girls-card:hover{
+    transform:translateY(-10px);
+}
+
+.girls-card img{
+    width:100%;
+    aspect-ratio:4/5;
+    object-fit:cover;
+    transition:.5s;
+}
+
+.girls-card:hover img{
+    transform:scale(1.08);
+}
+
+.girls-badge{
+    position:absolute;
+    top:18px;
+    left:18px;
+    background:#111;
+    color:#fff;
+    padding:7px 16px;
+    font-size:12px;
+    letter-spacing:1px;
+    z-index:2;
+}
+
+.girls-card h3{
+    padding:22px 22px 10px;
+    font-size:20px;
+    color:#111;
+}
+
+.girls-price{
+    padding:0 22px;
+    color:#111;
+    font-weight:700;
+    font-size:20px;
+}
+
+.girls-price span{
+    margin-left:10px;
+    color:#888;
+    text-decoration:line-through;
+    font-size:16px;
+}
+
+.girls-card button{
+    width:calc(100% - 44px);
+    margin:22px;
+    height:52px;
+    border:none;
+    background:#111;
+    color:#fff;
+    font-size:15px;
+    cursor:pointer;
+    transition:.35s;
+}
+
+.girls-card button:hover{
+    background:#444;
+}
+
+@media(max-width:768px){
+
+.girls-header{
+    flex-direction:column;
+    gap:18px;
+}
+
+.girls-header h2{
+    font-size:32px;
+}
+
+}
 
 /* ============ HERO NAV (transparent — top of page only) ============ */
 .hero-nav {
@@ -3069,7 +3359,7 @@ ul {
     justify-content: space-between;
     gap: 24px;
     z-index: 998;
-    background: #f1ee26;
+    background: #ffcc00;
     /* cleaner white background */
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);

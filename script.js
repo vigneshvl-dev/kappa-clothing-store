@@ -793,61 +793,6 @@ const supabaseClient = window.supabase.createClient(
             showToast("Welcome to the inner circle");
         });
     }
-// Replace image URLs with your real product photos
-const products = [
-  { title: "Max Verstappen Speed Off-White Oversized 240 GSM Tee", img: "https://source.unsplash.com/300x400/?tshirt" },
-  { title: "LH44 Drive Off-White Oversized 240 GSM Tee", img: "https://source.unsplash.com/300x400/?fashion" },
-  { title: "Coldplay Mylo Off-White Oversized 240 GSM Tee", img: "https://source.unsplash.com/300x400/?clothes" },
-  { title: "Rock N Roll Black Oversized 240 GSM Tee", img: "https://source.unsplash.com/300x400/?streetwear" },
-  { title: "Espresso Italy Off-White Oversized 240 GSM Tee", img: "https://source.unsplash.com/300x400/?style" },
-  { title: "Max Verstappen Speed Off-White Oversized 240 GSM Tee", img: "https://source.unsplash.com/300x400/?oversized" },
-  { title: "LH44 Drive Off-White Oversized 240 GSM Tee", img: "https://source.unsplash.com/300x400/?luxury" }
-];
-
-const price = { current: 1439, original: 1699, off: 15 };
-
-function createCard(p) {
-  const card = document.createElement('div');
-  card.className = 'product-card';
-  card.innerHTML = `
-    <span class="badge">NEW ARRIVAL</span>
-    <div class="product-img-wrap">
-      <img src="${p.img}" alt="${p.title}">
-    </div>
-    <p class="product-title" title="${p.title}">${p.title}</p>
-    <div class="price-row">
-      <span class="price-current">Rs. ${price.current.toLocaleString()}.00</span>
-      <span class="price-original">Rs. ${price.original.toLocaleString()}.00</span>
-      <span class="discount-tag">${price.off}% OFF</span>
-    </div>
-    <button class="add-to-cart">Add To Cart</button>
-  `;
-  return card;
-}
-
-const track = document.getElementById('track');
-products.forEach(p => track.appendChild(createCard(p)));
-
-// Carousel navigation
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const scrollAmount = 300;
-
-prevBtn.addEventListener('click', () => {
-  track.scrollBy({ left: -scrollAmount * 2, behavior: 'smooth' });
-});
-nextBtn.addEventListener('click', () => {
-  track.scrollBy({ left: scrollAmount * 2, behavior: 'smooth' });
-});
-
-// Dots (simple visual indicator, adjust count as needed)
-const dotsContainer = document.getElementById('dots');
-const dotCount = 8;
-for (let i = 0; i < dotCount; i++) {
-  const dot = document.createElement('div');
-  dot.className = 'dot' + (i === 0 ? ' active' : '');
-  dotsContainer.appendChild(dot);
-}
 
     /* ---------- FOOTER YEAR ---------- */
     document.getElementById("year").textContent = new Date().getFullYear();
