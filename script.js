@@ -1008,12 +1008,11 @@ const supabaseClient = window.supabase.createClient(
 
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-            if (error) {
+           if (error) {
                 // Special case: account exists but email not confirmed yet
                 if (error.message.toLowerCase().includes('email not confirmed')) {
-                    // Auto-resend the confirmation email
-                    await supabaseClient.auth.resend({ type: 'signup', email });
-                    showToast('✉️ Confirmation email resent! Check your inbox and click the link, then sign in.');
+                    // Removed auto-resend to prevent hitting strict email rate limits
+                    showToast('Account not confirmed yet. Please check your inbox for the confirmation link.');
                 } else {
                     showToast('Login failed: ' + error.message);
                 }
