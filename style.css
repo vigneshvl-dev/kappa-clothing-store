@@ -3577,6 +3577,15 @@ ul {
     margin: 0 0 6px;
     letter-spacing: -0.02em;
     color: var(--ink);
+    /* Reset global gradient/animation */
+    font-family: 'Inter', sans-serif;
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
+    animation: none;
+    text-transform: none;
+    font-style: normal;
 }
 
 #accountOverlay .subline {
@@ -3584,6 +3593,17 @@ ul {
     color: var(--ink-soft);
     text-align: center;
     margin: 0 0 28px;
+    /* Reset global gradient/animation */
+    font-family: 'Inter', sans-serif;
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
+    animation: none;
+    text-transform: none;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: normal;
 }
 
 #accountOverlay .field {
