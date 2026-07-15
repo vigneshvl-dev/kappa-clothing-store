@@ -485,8 +485,8 @@ ul {
     align-items:center;
     gap:10px;
     padding:25px 40px;
-    background:#111;
-    color:white;
+    background:#ffc802;
+    color:rgb(0, 0, 0);
     text-decoration:none;
     border-radius:50px;
     font-weight:900;
@@ -496,7 +496,7 @@ ul {
 }
 
 .explore-boys-btn:hover{
-    background:#f5c400;
+    background:#fffffe;
     color:#111;
     transform:translateY(-4px);
 }
@@ -2494,7 +2494,7 @@ ul {
 .footer {
     background: #ffcc00;
     color: var(--black);
-    padding: 90px 6vw 30px;
+     padding: 120px 6vw 60px;
     border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
@@ -3451,6 +3451,49 @@ ul {
 
 }
 /*============girls fashion cart========*/
+.explore-girls-wrap{
+    position:absolute;
+    bottom:35px;
+    left:50%;
+    transform:translateX(-50%);
+    background:transparent;
+    padding:0;
+    margin:0;
+    border:none;
+    box-shadow:none;
+    z-index:10;
+}
+
+.explore-girls-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:16px 34px;
+
+    background:#ffb700;
+    color:#000000;
+
+    text-decoration:none;
+    font-weight:700;
+    letter-spacing:.5px;
+
+    border-radius:8px;
+    transition:.35s;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+
+.explore-girls-btn:hover{
+    background:#fefefd;
+    color:#111;
+}
+
+.explore-girls-btn svg{
+    transition:.3s;
+}
+
+.explore-girls-btn:hover svg{
+    transform:translateX(5px);
+}
 .girls-collection{
     padding:90px 6%;
     background:#fff;
