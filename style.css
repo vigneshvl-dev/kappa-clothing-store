@@ -691,23 +691,64 @@ ul {
   text-align: center;
   padding: 80px 20px;
   font-family: 'Playfair Display', serif;
+  overflow: hidden;
 }
 
 .headline {
-  font-size: 3rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #111;
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 7vw, 6rem);
+  font-weight: 900;
+  letter-spacing: 2px;
+  line-height: 1;
   text-transform: uppercase;
-  font-family: 'Cormorant Garamond', sans-serif;
+  background: linear-gradient(
+      105deg,
+      #111 0%,
+      #1a1a1a 30%,
+      #fff 48%,
+      #e0e0e0 52%,
+      #1a1a1a 70%,
+      #111 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: blackShine 3.5s linear infinite;
+  display: inline-block;
+  position: relative;
 }
 
 .subline {
-  font-size: 2rem;
-  font-style: italic;
-  color: #555;
-  font-family: 'Cormorant Garamond', serif;
-  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 7vw, 6rem);
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: 2px;
+  line-height: 1;
+  text-transform: uppercase;
+  background: linear-gradient(
+      105deg,
+      #111 0%,
+      #1a1a1a 30%,
+      #fff 48%,
+      #e0e0e0 52%,
+      #1a1a1a 70%,
+      #111 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: blackShine 3.5s linear infinite;
+  display: inline-block;
+  margin-top: 0;
+  position: relative;
+}
+
+@keyframes blackShine {
+  0%   { background-position: 200% center; }
+  100% { background-position: -50% center; }
 }
 
 
