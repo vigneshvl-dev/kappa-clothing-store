@@ -797,6 +797,7 @@ const supabaseClient = window.supabase.createClient(
     /* ---------- FOOTER YEAR ---------- */
     document.getElementById("year").textContent = new Date().getFullYear();
 
+
     /* ---------- REELS AUTOPLAY, SLIDER & AUDIO CONTROL ---------- */
     const reelsContainer = document.getElementById("reels");
     if (reelsContainer) {
@@ -811,61 +812,41 @@ const supabaseClient = window.supabase.createClient(
 
         /* ---- Helpers ---- */
         function getVideo(idx) {
-            return cards[idx] ? cards[idx].querySelector(".reel-video-element") : null;
+            const actualIdx = (idx + cards.length) % cards.length;
+            return cards[actualIdx] ? cards[actualIdx].querySelector(".reel-video-element") : null;
         }
 
-        // Play all videos MUTED (background ready state)
-        function playAll() {
-            videos.forEach(v => {
-                v.muted  = true;
-                v.volume = 0;
-                v.play().catch(() => {});
+        // Control playback (play/pause/mute) based on current active card and viewport visibility
+        function updateVideosState() {
+            cards.forEach((card, i) => {
+                const v = card.querySelector(".reel-video-element");
+                if (!v) return;
+
+                if (i === currentIndex && reelsInView) {
+                    // Play active video with sound when the reels section is visible
+                    v.muted = false;
+                    v.volume = 1;
+                    const promise = v.play();
+                    if (promise !== undefined) {
+                        promise.catch(() => {
+                            // Fallback to muted playback if audio is blocked by user gesture policy
+                            v.muted = true;
+                            v.volume = 0;
+                            v.play().catch(() => {});
+                        });
+                    }
+                } else {
+                    // Pause all other videos
+                    v.pause();
+                    v.muted = true;
+                    v.volume = 0;
+                }
             });
         }
 
-        function muteAll() {
-            videos.forEach(v => { v.muted = true; v.volume = 0; });
-        }
-
-        // Smooth volume fade
-        function fadeVolume(video, toVolume, duration = 400) {
-            if (!video) return;
-            const from = video.volume;
-            const diff = toVolume - from;
-            const t0   = performance.now();
-            if (toVolume > 0) video.muted = false;
-            (function tick(now) {
-                const p = Math.min((now - t0) / duration, 1);
-                video.volume = Math.max(0, Math.min(1, from + diff * p));
-                if (p < 1) requestAnimationFrame(tick);
-                else if (toVolume === 0) video.muted = true;
-            })(performance.now());
-        }
-
-        // Play active video WITH sound. Falls back to muted silently if browser blocks it.
         function playActiveWithAudio(idx) {
-            const activeVideo = getVideo(idx);
-            if (!activeVideo) return;
-
-            // Silence all other videos
-            videos.forEach(v => {
-                if (v !== activeVideo) { v.muted = true; v.volume = 0; }
-            });
-
-            // Attempt unmuted play — scroll is a user gesture on most browsers
-            activeVideo.muted = false;
-            activeVideo.volume = 0;
-            const promise = activeVideo.play();
-            if (promise !== undefined) {
-                promise
-                    .then(() => fadeVolume(activeVideo, 1, 500))  // fade in sound
-                    .catch(() => {
-                        // Browser blocked audio — silently fall back to muted
-                        activeVideo.muted = true;
-                        activeVideo.volume = 0;
-                        activeVideo.play().catch(() => {});
-                    });
-            }
+            currentIndex = (idx + cards.length) % cards.length;
+            updateVideosState();
         }
 
         /* ---- Slider positioning ---- */
@@ -889,12 +870,9 @@ const supabaseClient = window.supabase.createClient(
 
         /* ---- Navigate ---- */
         function goTo(idx) {
-            const old = getVideo(currentIndex);
-            if (old) { old.muted = true; old.volume = 0; }
             currentIndex = (idx + cards.length) % cards.length;
             updateSlider();
-            playAll();
-            playActiveWithAudio(currentIndex);
+            updateVideosState();
         }
 
         /* ---- Events ---- */
@@ -915,20 +893,20 @@ const supabaseClient = window.supabase.createClient(
         setTimeout(updateSlider, 1500);
         window.addEventListener("load", updateSlider);
 
-        /* ---- IntersectionObserver: auto-play WITH AUDIO on scroll into view ---- */
+        // Run updateVideosState once initially to load the active poster frame
+        setTimeout(updateVideosState, 200);
+
+        /* ---- IntersectionObserver: auto-play on scroll into view ---- */
         const reelsObserver = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting) {
                 reelsInView = true;
-                playAll();       // start all muted first
                 updateSlider();
-                // Small delay so browser registers the scroll gesture, then unmute center video
-                setTimeout(() => playActiveWithAudio(currentIndex), 80);
+                updateVideosState();
             } else {
                 reelsInView = false;
-                muteAll();
-                videos.forEach(v => v.pause());
+                updateVideosState();
             }
-        }, { threshold: 0.2 }); // fires when 20% of section is visible
+        }, { threshold: 0.1 }); // Lowered threshold so videos load/play as soon as they enter screen
         reelsObserver.observe(reelsContainer);
     }
 
