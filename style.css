@@ -685,6 +685,31 @@ ul {
   color: #f1c40f;
   font-size: 1.2rem;
 }
+/*==========fornt========*/
+.fashion-banner {
+  background-color: #fff;
+  text-align: center;
+  padding: 80px 20px;
+  font-family: 'Playfair Display', serif;
+}
+
+.headline {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #111;
+  text-transform: uppercase;
+  font-family: 'Cormorant Garamond', sans-serif;
+}
+
+.subline {
+  font-size: 2rem;
+  font-style: italic;
+  color: #555;
+  font-family: 'Cormorant Garamond', serif;
+  margin-top: 10px;
+}
+
 
 
 /*===========Testomionals-----------*/
