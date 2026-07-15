@@ -531,6 +531,111 @@ ul {
     transform: translateX(6px);
 }
 
+/* ---- Instagram Follow Strip ---- */
+.insta-follow-section {
+    background: #fff;
+    border-top: 1px solid #e8e8e8;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 50px 6%;
+}
+
+.insta-follow-inner {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    max-width: 900px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.insta-follow-icon {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    background: #f2f2f2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.insta-follow-section:hover .insta-follow-icon {
+    background: #ffcc00;
+}
+
+.insta-follow-text {
+    flex: 1;
+    min-width: 200px;
+}
+
+.insta-follow-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #888;
+    text-transform: uppercase;
+    margin: 0 0 6px;
+}
+
+.insta-follow-handle {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 400;
+    color: #111;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0;
+    line-height: 1;
+}
+
+.insta-follow-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #111;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 16px 36px;
+    border-radius: 4px;
+    border: 2px solid #111;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.insta-follow-btn:hover {
+    background: #ffcc00;
+    color: #111;
+    border-color: #ffcc00;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
+}
+
+.insta-follow-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.insta-follow-btn:hover svg {
+    transform: translateX(5px);
+}
+
+@media (max-width: 600px) {
+    .insta-follow-inner {
+        flex-direction: column;
+        text-align: center;
+    }
+    .insta-follow-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 /* MOBILE MENU */
 .mobile-menu {
     position: fixed;
