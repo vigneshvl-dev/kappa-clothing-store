@@ -3170,6 +3170,8 @@ ul {
     font-weight: 800;
     color: #111;
     margin: 0;
+    position: relative;
+    top: -50px
 }
 
 .boys-btn {
@@ -3383,6 +3385,8 @@ ul {
     font-size: 42px;
     font-weight: 800;
     color: #111;
+    position: relative;
+    top: -50px;
 }
 
 .girls-btn {
