@@ -756,7 +756,11 @@ function stars(rating) {
                 if (!v) return;
 
                 if (i === currentIndex && reelsInView) {
-                    // Play active video
+                    // Play active video and unmute it!
+                    v.muted = false;
+                    v.volume = 1;
+                    updateSoundButtonIcon(soundBtn, false);
+
                     const promise = v.play();
                     if (promise !== undefined) {
                         promise.catch(() => {
