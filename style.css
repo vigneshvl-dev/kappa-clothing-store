@@ -9,6 +9,8 @@
     --accent: #fdfcf6;
     --accent2: #faf9f5;
     --accent-ink: #8a6d00;
+    --yellow: #F5C518;
+    --yellow-deep: #E0AE00;
     --grad: linear-gradient(135deg, var(--accent), var(--accent2));
     --font-display: 'Anton', sans-serif;
     --font-body: 'Inter', sans-serif;
@@ -109,7 +111,7 @@ ul {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    background: var(--accent2); /* warm off-white/cream background */
+    background: var(--yellow);
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
@@ -335,8 +337,10 @@ ul {
     min-width: 16px;
     height: 16px;
     padding: 0 4px;
-    background: #ff4d4f; /* pink/red background matching the reference */
-    color: #ffffff;      /* white text matching the reference */
+    background: #ff4d4f;
+    /* pink/red background matching the reference */
+    color: #ffffff;
+    /* white text matching the reference */
     font-size: 9px;
     font-weight: 700;
     border-radius: 50%;
@@ -3095,194 +3099,7 @@ ul {
     /* navbar border-radius override removed to keep full-width flat styling */
 }
 
-/* ============ REELS STYLES ============ */
-/* ---- Instagram Bar under Reels Title ---- */
-.reels-insta-bar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 24px;
-    background: transparent;
-    padding: 8px 16px;
-    border-radius: 100px;
-}
-
-.reels-insta-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #111;
-}
-
-.reels-insta-left svg {
-    stroke: #111;
-}
-
-.reels-insta-handle {
-    font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: 400;
-    letter-spacing: 1px;
-    color: #111;
-    text-transform: uppercase;
-}
-
-.reels-insta-follow-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #111;
-    color: #fff;
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    text-decoration: none;
-    padding: 6px 14px;
-    border-radius: 20px;
-    transition: all 0.3s ease;
-    border: 1px solid #111;
-}
-
-.reels-insta-follow-btn:hover {
-    background: #ffcc00;
-    color: #111;
-    border-color: #ffcc00;
-    transform: translateY(-1px);
-}
-
-/* Section is already white via .section1 */
-.reels-slider-container {
-    position: relative;
-    width: 100%;
-    /* MUST be visible so cards bleed past section edges */
-    overflow: visible;
-    padding: 60px 0 80px;
-}
-
-.reels-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: max-content;
-    gap: 24px;
-    transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
-    will-change: transform;
-}
-
-/* ============ REEL CARDS ============ */
-.reel-card {
-    width: 420px;
-    flex-shrink: 0;
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1),
-        opacity 0.55s ease;
-    transform-origin: center center;
-    opacity: 0.45;
-    transform: scale(0.75);
-    cursor: pointer;
-    user-select: none;
-}
-
-/* ACTIVE / centre card */
-.reel-card.active {
-    transform: scale(1);
-    opacity: 1;
-    z-index: 10;
-}
-
-/* Adjacent cards */
-.reel-card.prev,
-.reel-card.next {
-    opacity: 0.7;
-    transform: scale(0.75);
-    z-index: 5;
-}
-
-/* Far cards */
-.reel-card.far-prev,
-.reel-card.far-next {
-    opacity: 0.35;
-    transform: scale(0.75);
-}
-
-.reel-video {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 9 / 16;
-    border-radius: 22px;
-    overflow: hidden;
-    background: #111;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, .22);
-}
-
-/* Active card highlight ring */
-.reel-card.active .reel-video {
-    box-shadow: 0 24px 60px rgba(0, 0, 0, .32),
-        0 0 0 2px rgba(251, 206, 7, .2);
-    border-radius: 24px;
-}
-
-.reel-video-element {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background: #000;
-    display: block;
-    pointer-events: none;
-}
-
-/* Nav buttons */
-.reels-nav-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, .95);
-    color: var(--black);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, .25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 20;
-    border: none;
-    transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.reels-nav-btn:hover {
-    transform: translateY(-50%) scale(1.12);
-    background: var(--black);
-    color: var(--white);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, .4);
-}
-
-.reels-nav-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-.reels-nav-btn.prev {
-    left: clamp(8px, 2vw, 32px);
-}
-
-.reels-nav-btn.next {
-    right: clamp(8px, 2vw, 32px);
-}
-
-/* Clip overflow */
-#reels {
-    overflow: hidden;
-}
+/* Reels styling removed */
 
 /* Active nav-link styles */
 .nav-link.active {
@@ -3298,47 +3115,7 @@ ul {
     color: var(--accent);
 }
 
-/* Section title */
-#reels .section-head {
-    padding: 0 6vw;
-    text-align: center;
-    margin-bottom: 48px;
-}
-
-@media(max-width: 768px) {
-    .reels-slider-container {
-        padding: 40px 0 50px;
-    }
-
-    .reel-card {
-        width: 260px;
-    }
-
-    .reel-card.active {
-        transform: scale(1);
-    }
-
-    .reel-card.prev,
-    .reel-card.next {
-        transform: scale(0.75);
-    }
-
-    .reels-nav-btn {
-        width: 36px;
-        height: 36px;
-    }
-
-    .reels-nav-btn svg {
-        width: 15px;
-        height: 15px;
-    }
-}
-
-@media(max-width: 480px) {
-    .reel-card {
-        width: 200px;
-    }
-}
+/* Reels responsive styles removed */
 
 /*============Boys collection============*/
 /* ==========================================
