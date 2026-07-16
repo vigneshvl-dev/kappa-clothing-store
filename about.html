@@ -29,46 +29,26 @@
     <div class="cursor-glow" id="cursorGlow"></div>
 
     <!-- NAVBAR -->
-    <header class="navbar" id="navbar">
-        <!-- LEFT TOGGLE (mobile only) -->
-        <button class="hn-hamburger" id="heroHamburger" aria-label="Menu">
-            <span></span><span></span><span></span>
-        </button>
+    <header class="navbar about-navbar" id="navbar">
+        <!-- Left Side Links -->
+        <div class="about-nav-left">
+            <a href="index.html#home" class="about-nav-link">Home</a>
+            <a href="about.html" class="about-nav-link active">About</a>
+            <a href="#footer" class="about-nav-link">Contact</a>
+        </div>
 
-        <nav class="nav-links">
-            <a href="index.html#home" class="nav-link" data-i18n="nav_home">Home</a>
-            <a href="reels.html" class="nav-link">Reels</a>
-            <a href="index.html#men" class="nav-link" data-i18n="nav_faq">FaQ</a>
-            <a href="about.html" class="nav-link active">About</a>
-            <a href="#footer" class="nav-link" data-i18n="nav_contact">Contact</a>
-        </nav>
+        <!-- Center Logo / Name -->
+        <a href="index.html#home" class="about-nav-logo">KAPPA</a>
 
-        <a href="index.html#home" class="nav-logo"><img src="https://cdn.corenexis.com/f/fRkaM2Pbrr7.png"
-                alt="KAPPA Fashion Store"></a>
-
-        <div class="nav-actions">
-            <div class="search-box" id="searchBtn">
-                <input type="text" data-i18n-placeholder="search_placeholder" placeholder="Search for products..." />
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        <!-- Right Side 'Back to Home' -->
+        <div class="about-nav-right">
+            <a href="index.html#home" class="back-to-home-btn">
+                <span>Back to Home</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
                 </svg>
-            </div>
-            <button class="icon-btn cart-btn" id="cartBtn">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path>
-                </svg>
-                <span class="badge">0</span>
-            </button>
-            <button class="icon-btn profile-btn" id="profileBtn">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="8" r="4"></circle>
-                    <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
-                </svg>
-            </button>
+            </a>
         </div>
     </header>
 
