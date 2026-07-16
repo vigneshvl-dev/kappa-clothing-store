@@ -370,6 +370,17 @@ function stars(rating) {
   </div>`).join('');
     }
 
+    const testimonialTrack = document.querySelector(".testimonial-container");
+    if (testimonialTrack && !testimonialTrack.dataset.looped) {
+        const originals = Array.from(testimonialTrack.children);
+        originals.forEach(item => {
+            const clone = item.cloneNode(true);
+            clone.setAttribute("aria-hidden", "true");
+            testimonialTrack.appendChild(clone);
+        });
+        testimonialTrack.dataset.looped = "true";
+    }
+
     /* ---------- RENDER: INSTAGRAM ---------- */
     const instaGrid = document.getElementById("instaGrid");
     if (instaGrid) {
