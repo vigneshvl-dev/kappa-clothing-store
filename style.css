@@ -4496,8 +4496,8 @@ body {
     background: #111;
 }
 
-<<<<<<< HEAD
-/*============EDITORIAL SPLIT SECTION============*/ .editorial-split {
+/*============ EDITORIAL SPLIT SECTION ============*/
+.editorial-split {
     padding: 80px 4% 60px;
     background: var(--white);
     display: flex;
@@ -4509,6 +4509,8 @@ body {
 .editorial-intro {
     max-width: 800px;
     text-align: center;
+    margin: 0 auto;
+    width: 100%;
 }
 
 .editorial-intro p {
@@ -4527,6 +4529,7 @@ body {
     gap: 30px;
     width: 100%;
     max-width: 1400px;
+    align-items: stretch;
 }
 
 .editorial-card {
@@ -4535,6 +4538,7 @@ body {
     overflow: hidden;
     cursor: pointer;
     border-radius: 8px;
+    align-self: stretch;
 }
 
 .editorial-card img {
@@ -4932,7 +4936,8 @@ body {
         padding: 56px 20px;
     }
 }
-=======
+
+/* ============ PRODUCT DETAIL PAGE (PDP) ============ */
 /* --- ZARA PDP LAYOUT --- */
 .zara-pdp-container {
     display: grid;
@@ -5089,4 +5094,3 @@ body {
         width: 60px;
     }
 }
->>>>>>> aba4564 (Product descripption page with oparent and child integ)
