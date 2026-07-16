@@ -5473,7 +5473,7 @@ body {
 ============================================================ */
 .visit-store-section {
     padding: 80px 24px;
-    background: var(--grey-100);
+    background: var(--white);
 }
 
 .visit-store-container {
@@ -5521,7 +5521,7 @@ body {
 }
 
 .visit-store-eyebrow {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 11px;
     letter-spacing: 0.2em;
     color: var(--accent-ink);
@@ -5530,8 +5530,9 @@ body {
 }
 
 .visit-store-heading {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
     color: var(--ink);
     line-height: 1.1;
     letter-spacing: -0.01em;
@@ -5539,8 +5540,7 @@ body {
 
 .visit-store-accent {
     color: var(--accent-ink);
-    font-style: italic;
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-body);
 }
 
 .visit-store-detail {
