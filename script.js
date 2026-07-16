@@ -1671,3 +1671,21 @@ function addToCart(productId, name, price, imageUrl) {
     const cartBtn = document.getElementById('cartBtn');
     if (cartBtn) cartBtn.click();
 }
+
+// --- FLOATING WHATSAPP BUTTON ---
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.querySelector('.floating-whatsapp-btn')) return;
+
+    const whatsappBtn = document.createElement('a');
+    whatsappBtn.href = 'https://wa.me/916238616662';
+    whatsappBtn.target = '_blank';
+    whatsappBtn.rel = 'noopener noreferrer';
+    whatsappBtn.className = 'floating-whatsapp-btn';
+    whatsappBtn.title = 'Chat on WhatsApp';
+    whatsappBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.012 2C6.48 2 2.01 6.47 2.01 12c0 1.91.54 3.7 1.48 5.24L2 22l4.91-1.29c1.46.8 3.12 1.28 4.91 1.28 5.53 0 10-4.47 10-10S17.54 2 12.012 2zM17.84 15.8c-.27.76-1.34 1.4-1.85 1.48-.46.08-.94.13-2.93-.69-2.54-1.05-4.14-3.64-4.27-3.8-.13-.17-.98-1.3-1.02-2.52-.02-1.22.61-1.82.85-2.07.2-.2.53-.29.84-.29.1 0 .2 0 .28.01.24.01.36.02.52.4.2.47.69 1.68.75 1.8.06.12.1.26.02.43-.08.17-.18.3-.35.49-.17.18-.36.42-.51.57-.17.17-.35.36-.15.7.2.34.89 1.47 1.91 2.38 1.31 1.17 2.42 1.53 2.76 1.7.34.17.54.14.74-.08.2-.23.88-1.02 1.11-1.37.23-.34.46-.29.77-.17.31.11 1.99.94 2.33 1.11.34.17.57.26.65.4.08.14.08.82-.19 1.58z"/>
+        </svg>
+    `;
+    document.body.appendChild(whatsappBtn);
+});
