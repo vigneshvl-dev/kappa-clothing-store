@@ -5962,3 +5962,452 @@ body {
     width: auto;
     object-fit: contain;
 }
+
+/* ============ INNER PAGES SPACING & LAYOUT FIXES ============ */
+
+/* About Page Spacing */
+body.about-page {
+    padding-top: 166px; /* 46px marquee + 120px about-navbar */
+}
+
+@media (max-width: 768px) {
+    body.about-page {
+        padding-top: 46px; /* marquee remains fixed at top: 0 */
+    }
+    body.about-page .about-navbar {
+        position: relative;
+        top: 0;
+    }
+}
+
+/* Reels Page Spacing */
+body.reels-page {
+    padding-top: 130px; /* 46px marquee + 84px standard navbar */
+}
+
+/* ============ USER DASHBOARD & ORDER TRACKING STYLES ============ */
+#accountOverlay.dashboard-active .stage {
+    max-width: 680px; /* Increased from 520px to 680px */
+    transition: max-width 0.4s var(--ease);
+}
+
+#panel-dashboard {
+    text-align: left;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+#panel-dashboard::-webkit-scrollbar {
+    width: 6px;
+}
+#panel-dashboard::-webkit-scrollbar-track {
+    background: transparent;
+}
+#panel-dashboard::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+}
+
+.dash-title {
+    font-family: var(--font-body);
+    font-size: 28px; /* Increased from 20px */
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.dash-logout-btn {
+    font-family: var(--font-body);
+    font-size: 12px; /* Increased from 11px */
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #cc0000;
+    border: 1.5px solid #cc0000;
+    padding: 8px 16px; /* Increased padding */
+    border-radius: 0;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+.dash-logout-btn:hover {
+    background: #cc0000;
+    color: var(--white);
+}
+
+.dash-profile-card {
+    background: var(--accent2);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 0;
+    padding: 24px; /* Increased padding */
+    margin-bottom: 24px;
+}
+
+.dash-profile-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.dash-avatar-wrapper {
+    position: relative;
+    width: 80px; /* Increased from 72px */
+    height: 80px; /* Increased from 72px */
+    border-radius: 0;
+    overflow: hidden;
+    border: 2px solid var(--yellow);
+    cursor: pointer;
+    background: var(--grey-300);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dash-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dash-avatar-placeholder {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 32px; /* Increased from 28px */
+    color: var(--ink);
+}
+
+.dash-avatar-upload-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    color: var(--white);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.dash-avatar-wrapper:hover .dash-avatar-upload-overlay {
+    opacity: 1;
+}
+
+.dash-profile-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-profile-name {
+    font-size: 20px; /* Increased from 18px */
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-profile-email {
+    font-size: 14px; /* Increased from 13px */
+    color: #666;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-profile-fields {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+.dash-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dash-field label {
+    font-size: 12px; /* Increased from 11px */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--grey-500);
+}
+
+.dash-input {
+    width: 100%;
+    padding: 12px 16px; /* Increased padding */
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0;
+    font-size: 14.5px; /* Increased from 13.5px */
+    background: var(--white);
+    color: var(--black);
+    transition: border 0.3s ease;
+}
+
+.dash-input:focus {
+    outline: none;
+    border-color: var(--yellow);
+}
+
+.dash-textarea {
+    resize: vertical;
+    min-height: 80px; /* Increased from 60px */
+    font-family: inherit;
+}
+
+.dash-save-btn {
+    margin-top: 20px;
+    width: 100%;
+    background: var(--ink);
+    color: var(--white);
+    padding: 14px; /* Increased padding */
+    border-radius: 0;
+    font-weight: 700;
+    font-size: 14.5px; /* Increased from 13px */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.dash-save-btn:hover {
+    background: var(--yellow);
+    color: var(--ink);
+}
+
+/* Tracking Section */
+.dash-tracking-title {
+    font-family: var(--font-body);
+    font-size: 22px; /* Increased from 16px */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    color: var(--ink);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding-bottom: 8px;
+    margin-top: 10px;
+}
+
+.dash-track-search {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.dash-track-search input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0;
+    font-size: 14px;
+    background: var(--white);
+}
+
+.dash-track-search input:focus {
+    outline: none;
+    border-color: var(--yellow);
+}
+
+.dash-track-search-btn {
+    background: var(--yellow);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 0 20px;
+    border-radius: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: opacity 0.3s ease;
+}
+
+.dash-track-search-btn:hover {
+    opacity: 0.9;
+}
+
+.dash-orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dash-order-card {
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 0;
+    padding: 20px; /* Increased padding */
+    background: var(--white);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.01);
+}
+
+.dash-order-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dash-order-id-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dash-order-id {
+    font-family: var(--font-mono);
+    font-size: 14.5px; /* Increased from 13px */
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.dash-order-platform {
+    font-size: 11px; /* Increased from 10px */
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 4px 10px; /* Increased padding */
+    border-radius: 0;
+    letter-spacing: 0.5px;
+}
+
+.dash-order-platform.shopify {
+    background: rgba(150, 191, 72, 0.12);
+    color: #6d8c2c;
+    border: 1px solid rgba(150, 191, 72, 0.2);
+}
+
+.dash-order-platform.flipkart {
+    background: rgba(40, 116, 240, 0.1);
+    color: #2874f0;
+    border: 1px solid rgba(40, 116, 240, 0.2);
+}
+
+.dash-order-platform.kappa {
+    background: rgba(10, 10, 10, 0.06);
+    color: #0a0a0a;
+    border: 1px solid rgba(10, 10, 10, 0.12);
+}
+
+.dash-order-date {
+    font-size: 13px; /* Increased from 12px */
+    color: #888;
+}
+
+.dash-order-info {
+    font-size: 14px; /* Increased from 13px */
+    line-height: 1.5;
+    color: #444;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
+}
+
+.dash-order-track-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.dash-order-track-steps::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: #eaeaea;
+    z-index: 1;
+}
+
+.dash-order-track-progress-bar {
+    position: absolute;
+    top: 6px;
+    left: 10%;
+    height: 3px;
+    background: var(--yellow);
+    z-index: 2;
+    transition: width 0.4s ease;
+}
+
+.dash-order-step-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 3;
+    flex: 1;
+}
+
+.dash-order-step-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 0;
+    background: #eaeaea;
+    border: 2px solid var(--white);
+    margin-bottom: 6px;
+    box-shadow: 0 0 0 1px #ccc;
+    transition: all 0.3s ease;
+}
+
+.dash-order-step-node.active .dash-order-step-dot {
+    background: var(--yellow);
+    box-shadow: 0 0 0 2px var(--yellow);
+}
+
+.dash-order-step-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.dash-order-step-node.active .dash-order-step-label {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.dash-order-status-desc {
+    font-size: 13.5px; /* Increased from 12px */
+    margin-top: 8px;
+    color: #555;
+    background: var(--accent2);
+    padding: 10px 14px; /* Increased padding */
+    border-radius: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dash-order-status-desc span {
+    font-weight: 700;
+    color: var(--ink);
+}
+
+/* ============ SQUARE SHAPE OVERRIDES FOR ACCOUNT SECTION ============ */
+#accountOverlay,
+#accountOverlay .card,
+#accountOverlay .logo-mark,
+#accountOverlay .logo-mark::after,
+#accountOverlay .field input,
+#accountOverlay .btn-primary,
+#accountOverlay .btn-google {
+    border-radius: 0 !important;
+}

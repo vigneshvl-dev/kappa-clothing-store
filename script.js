@@ -1071,27 +1071,352 @@ function stars(rating) {
     revealCheck();
     /* ---------- SUPABASE AUTH ---------- */
 
-    // Restore session on page load so users stay logged in after a refresh
-    (async () => {
-        try {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session && session.user) {
-                const profileBtn = document.getElementById('profileBtn');
-                if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
-            }
-        } catch (_) { }
-    })();
-
     // Listen for auth state changes (covers Google OAuth redirect)
     supabaseClient.auth.onAuthStateChange((event, session) => {
         const profileBtn = document.getElementById('profileBtn');
         if (session && session.user) {
             if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
             if (event === 'SIGNED_IN') showToast('Signed in as ' + session.user.email);
+            
+            injectDashboardPanel();
+            
+            // Adjust overlay class
+            const accountOverlay = document.getElementById('accountOverlay');
+            if (accountOverlay) accountOverlay.classList.add('dashboard-active');
+            
+            // Load user data
+            const userId = session.user.id;
+            const email = session.user.email;
+            const name = session.user.user_metadata?.full_name || email.split('@')[0];
+            loadProfile(userId, email, name);
+            
+            // Activate the dashboard panel
+            const panelDashboard = document.getElementById('panel-dashboard');
+            const panelLogin = document.getElementById('panel-login');
+            const panelSignup = document.getElementById('panel-signup');
+            if (panelLogin) panelLogin.classList.remove('active');
+            if (panelSignup) panelSignup.classList.remove('active');
+            if (panelDashboard) panelDashboard.classList.add('active');
         } else {
             if (profileBtn) profileBtn.style.color = '';
+            
+            // Remove dashboard active class from overlay
+            const accountOverlay = document.getElementById('accountOverlay');
+            if (accountOverlay) accountOverlay.classList.remove('dashboard-active');
+            
+            // If logged out, show the login panel and hide the dashboard
+            const panelDashboard = document.getElementById('panel-dashboard');
+            const panelLogin = document.getElementById('panel-login');
+            const panelSignup = document.getElementById('panel-signup');
+            if (panelDashboard) panelDashboard.classList.remove('active');
+            if (panelSignup) panelSignup.classList.remove('active');
+            if (panelLogin) panelLogin.classList.add('active');
         }
     });
+
+    const DEFAULT_MOCK_ORDERS = [];
+
+    function injectDashboardPanel() {
+        const accountOverlay = document.getElementById('accountOverlay');
+        if (!accountOverlay) return;
+        const card = accountOverlay.querySelector('.card');
+        if (!card) return;
+        if (document.getElementById('panel-dashboard')) return; // already injected
+
+        const dashboardHtml = `
+            <section class="panel" id="panel-dashboard">
+                <div class="dash-header">
+                    <h2 class="dash-title">My Account</h2>
+                    <button type="button" class="dash-logout-btn" id="dashLogoutBtn">Sign Out</button>
+                </div>
+
+                <!-- PROFILE INFO -->
+                <div class="dash-profile-card">
+                    <div class="dash-profile-top">
+                        <div class="dash-avatar-wrapper" id="dashAvatarBtn" title="Click to change avatar URL">
+                            <img src="" id="dashAvatarImg" class="dash-avatar-img" style="display:none;" />
+                            <div id="dashAvatarPlaceholder" class="dash-avatar-placeholder">U</div>
+                            <div class="dash-avatar-upload-overlay">Edit</div>
+                        </div>
+                        <div class="dash-profile-meta">
+                            <div class="dash-profile-name" id="dashProfileNameDisplay">User</div>
+                            <div class="dash-profile-email" id="dashProfileEmailDisplay">user@example.com</div>
+                        </div>
+                    </div>
+
+                    <form id="dash-profile-form">
+                        <div class="dash-profile-fields">
+                           <div class="dash-field">
+                               <label for="dash-name">Full Name</label>
+                               <input type="text" id="dash-name" class="dash-input" placeholder="Your Name" />
+                           </div>
+                           <div class="dash-field">
+                               <label for="dash-phone">Mobile Number</label>
+                               <input type="tel" id="dash-phone" class="dash-input" placeholder="Enter Mobile Number" />
+                           </div>
+                           <div class="dash-field">
+                               <label for="dash-address">Shipping Address</label>
+                               <textarea id="dash-address" class="dash-input dash-textarea" placeholder="Enter Shipping Address"></textarea>
+                           </div>
+                        </div>
+                        <button type="submit" class="dash-save-btn">Save Profile</button>
+                    </form>
+                </div>
+
+                <!-- ORDER TRACKING -->
+                <h3 class="dash-tracking-title">Track My Orders</h3>
+                <div class="dash-track-search">
+                    <input type="text" id="dashTrackSearchInput" placeholder="Enter Order ID (e.g. SP-883719, OD402948194)" />
+                    <button type="button" class="dash-track-search-btn" id="dashTrackSearchBtn">Track</button>
+                </div>
+                
+                <div class="dash-orders-list" id="dashOrdersList">
+                    <!-- Orders dynamically loaded -->
+                </div>
+            </section>
+        `;
+
+        card.insertAdjacentHTML('beforeend', dashboardHtml);
+        setupDashboardEvents();
+    }
+
+    function setupDashboardEvents() {
+        const logoutBtn = document.getElementById('dashLogoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) showToast('Logout failed: ' + error.message);
+                else showToast('Logged out successfully');
+            });
+        }
+
+        const profileForm = document.getElementById('dash-profile-form');
+        if (profileForm) {
+            profileForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                    const userId = session?.user?.id || "guest";
+                    const name = document.getElementById('dash-name').value.trim();
+                    const phone = document.getElementById('dash-phone').value.trim();
+                    const address = document.getElementById('dash-address').value.trim();
+                    saveProfile(userId, name, phone, address);
+                });
+            });
+        }
+
+        const avatarBtn = document.getElementById('dashAvatarBtn');
+        if (avatarBtn) {
+            avatarBtn.addEventListener('click', () => {
+                const url = prompt("Enter Image URL for your avatar:");
+                if (url !== null) {
+                    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                        const userId = session?.user?.id || "guest";
+                        const avatarImg = document.getElementById('dashAvatarImg');
+                        const avatarPlaceholder = document.getElementById('dashAvatarPlaceholder');
+                        if (url.trim() === "") {
+                            localStorage.removeItem(`kappa_avatar_${userId}`);
+                            avatarImg.style.display = 'none';
+                            avatarPlaceholder.style.display = 'flex';
+                        } else {
+                            localStorage.setItem(`kappa_avatar_${userId}`, url);
+                            avatarImg.src = url;
+                            avatarImg.style.display = 'block';
+                            avatarPlaceholder.style.display = 'none';
+                            showToast("Avatar image updated!");
+                        }
+                    });
+                }
+            });
+        }
+
+        const trackBtn = document.getElementById('dashTrackSearchBtn');
+        const trackInput = document.getElementById('dashTrackSearchInput');
+        if (trackBtn && trackInput) {
+            trackBtn.addEventListener('click', () => {
+                supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                    const userId = session?.user?.id || "guest";
+                    trackOrder(trackInput.value.trim(), userId);
+                });
+            });
+            trackInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    trackBtn.click();
+                }
+            });
+        }
+    }
+
+    function loadOrders(userId) {
+        const customOrdersKey = `kappa_orders_${userId}`;
+        let orders = localStorage.getItem(customOrdersKey);
+        if (!orders) {
+            orders = JSON.stringify(DEFAULT_MOCK_ORDERS);
+            localStorage.setItem(customOrdersKey, orders);
+        }
+        return JSON.parse(orders);
+    }
+
+    function trackOrder(orderId, userId) {
+        if (!orderId) {
+            showToast("Please enter an Order ID");
+            return;
+        }
+        orderId = orderId.toUpperCase().trim();
+        const customOrdersKey = `kappa_orders_${userId}`;
+        let orders = loadOrders(userId);
+
+        const existingIndex = orders.findIndex(o => o.id === orderId);
+        if (existingIndex !== -1) {
+            const order = orders.splice(existingIndex, 1)[0];
+            orders.unshift(order);
+            localStorage.setItem(customOrdersKey, JSON.stringify(orders));
+            renderOrdersList(orders);
+            showToast(`Tracking order ${orderId}`);
+            return;
+        }
+
+        let platform = "Kappa Store";
+        let platformClass = "kappa";
+        if (orderId.startsWith("OD") || orderId.startsWith("FK") || /^\d+$/.test(orderId)) {
+            platform = "Flipkart";
+            platformClass = "flipkart";
+        } else if (orderId.startsWith("SP") || orderId.startsWith("SH")) {
+            platform = "Shopify";
+            platformClass = "shopify";
+        }
+
+        const statuses = [
+            { status: "Processing", desc: "Order received. Preparing items.", progress: 25, activeStepIndex: 0 },
+            { status: "Shipped", desc: "Order shipped via Express Delivery.", progress: 50, activeStepIndex: 1 },
+            { status: "In Transit", desc: "In transit. Arrived at hub.", progress: 75, activeStepIndex: 2 },
+            { status: "Delivered", desc: "Package delivered to door.", progress: 100, activeStepIndex: 3 }
+        ];
+        const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+
+        const newOrder = {
+            id: orderId,
+            platform: platform,
+            platformClass: platformClass,
+            date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            items: "Kappa Premium Streetwear Apparel",
+            status: randomStatus.status,
+            statusDesc: randomStatus.desc,
+            progress: randomStatus.progress,
+            steps: ["Ordered", "Shipped", "Out for Delivery", "Delivered"],
+            activeStepIndex: randomStatus.activeStepIndex
+        };
+
+        orders.unshift(newOrder);
+        localStorage.setItem(customOrdersKey, JSON.stringify(orders));
+        renderOrdersList(orders);
+        showToast(`Order ${orderId} registered and tracked!`);
+    }
+
+    function saveProfile(userId, name, phone, address) {
+        const profileKey = `kappa_profile_${userId}`;
+        const profileData = { name, phone, address };
+        localStorage.setItem(profileKey, JSON.stringify(profileData));
+        showToast("Profile details updated!");
+        const nameDisplay = document.getElementById('dashProfileNameDisplay');
+        if (nameDisplay) nameDisplay.textContent = name || "User";
+    }
+
+    function loadProfile(userId, defaultEmail, defaultName) {
+        const profileKey = `kappa_profile_${userId}`;
+        const stored = localStorage.getItem(profileKey);
+        let name = defaultName || "User";
+        let phone = "";
+        let address = "";
+        
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                name = parsed.name || name;
+                phone = parsed.phone || "";
+                address = parsed.address || "";
+            } catch (_) {}
+        }
+
+        const nameInput = document.getElementById('dash-name');
+        const phoneInput = document.getElementById('dash-phone');
+        const addressInput = document.getElementById('dash-address');
+        const nameDisplay = document.getElementById('dashProfileNameDisplay');
+        const emailDisplay = document.getElementById('dashProfileEmailDisplay');
+
+        if (nameInput) nameInput.value = name;
+        if (phoneInput) phoneInput.value = phone;
+        if (addressInput) addressInput.value = address;
+        if (nameDisplay) nameDisplay.textContent = name;
+        if (emailDisplay) emailDisplay.textContent = defaultEmail;
+
+        const avatarKey = `kappa_avatar_${userId}`;
+        const avatarSrc = localStorage.getItem(avatarKey);
+        const avatarImg = document.getElementById('dashAvatarImg');
+        const avatarPlaceholder = document.getElementById('dashAvatarPlaceholder');
+
+        if (avatarImg && avatarPlaceholder) {
+            if (avatarSrc) {
+                avatarImg.src = avatarSrc;
+                avatarImg.style.display = 'block';
+                avatarPlaceholder.style.display = 'none';
+            } else {
+                avatarImg.style.display = 'none';
+                avatarPlaceholder.style.display = 'flex';
+                avatarPlaceholder.textContent = (name ? name.charAt(0).toUpperCase() : "U");
+            }
+        }
+
+        const orders = loadOrders(userId);
+        renderOrdersList(orders);
+    }
+
+    function renderOrdersList(orders) {
+        const listContainer = document.getElementById('dashOrdersList');
+        if (!listContainer) return;
+
+        if (orders.length === 0) {
+            listContainer.innerHTML = '<p style="text-align:center; color:#888; font-size:13px; margin: 20px 0;">No orders tracked yet.</p>';
+            return;
+        }
+
+        listContainer.innerHTML = orders.map(order => {
+            const stepWidth = (order.activeStepIndex / (order.steps.length - 1)) * 100;
+            return `
+                <div class="dash-order-card">
+                    <div class="dash-order-meta">
+                        <div class="dash-order-id-wrap">
+                            <span class="dash-order-platform ${order.platformClass}">${order.platform}</span>
+                            <span class="dash-order-id">${order.id}</span>
+                        </div>
+                        <span class="dash-order-date">${order.date}</span>
+                    </div>
+                    <div class="dash-order-info">
+                        <strong>Items:</strong> ${order.items}
+                    </div>
+                    
+                    <div class="dash-order-track-steps" style="margin-bottom: 20px;">
+                        <div class="dash-order-track-progress-bar" style="width: ${stepWidth}%"></div>
+                        ${order.steps.map((step, idx) => {
+                            const isActive = idx <= order.activeStepIndex ? 'active' : '';
+                            return `
+                                <div class="dash-order-step-node ${isActive}">
+                                    <div class="dash-order-step-dot"></div>
+                                    <span class="dash-order-step-label">${step}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div class="dash-order-status-desc">
+                        Status: <span>${order.status}</span>
+                    </div>
+                    <p style="font-size: 11.5px; color: #777; margin-top: 6px; line-height: 1.4;">
+                        ${order.statusDesc}
+                    </p>
+                </div>
+            `;
+        }).join('');
+    }
 
     // Helper to close the account overlay
     function closeAccountOverlay() {
