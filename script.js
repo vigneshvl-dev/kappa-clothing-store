@@ -1071,12 +1071,37 @@ function stars(rating) {
     revealCheck();
     /* ---------- SUPABASE AUTH ---------- */
 
+    function getUserDisplayName(user) {
+        if (!user) return "User";
+        // 1. Try local storage profile name first!
+        const storedProfile = localStorage.getItem(`kappa_profile_${user.id}`);
+        if (storedProfile) {
+            try {
+                const parsed = JSON.parse(storedProfile);
+                if (parsed.name && parsed.name.trim() !== "") {
+                    return parsed.name.trim();
+                }
+            } catch (_) {}
+        }
+        // 2. Try user metadata full name
+        if (user.user_metadata && user.user_metadata.full_name) {
+            return user.user_metadata.full_name;
+        }
+        // 3. Fallback to email name part
+        if (user.email) {
+            const parts = user.email.split('@')[0];
+            const namePart = parts.split(/[\._\d]/)[0];
+            return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+        }
+        return "User";
+    }
+
     // Listen for auth state changes (covers Google OAuth redirect)
     supabaseClient.auth.onAuthStateChange((event, session) => {
         const profileBtn = document.getElementById('profileBtn');
         if (session && session.user) {
             if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
-            if (event === 'SIGNED_IN') showToast('Signed in as ' + session.user.email);
+            if (event === 'SIGNED_IN') showToast('Welcome back, ' + getUserDisplayName(session.user) + '!');
             
             injectDashboardPanel();
             
@@ -1488,7 +1513,7 @@ function stars(rating) {
                 return;
             }
 
-            showToast('Welcome back, ' + data.user.email + '!');
+            showToast('Welcome back, ' + getUserDisplayName(data.user) + '!');
             setTimeout(closeAccountOverlay, 1200);
         });
     }
