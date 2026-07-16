@@ -1059,7 +1059,7 @@ body.home-page .navbar.scrolled {
     background-repeat: no-repeat;
     opacity: 0;
     z-index: 1;
-    transition: opacity 1.2s ease-in-out;
+    transition: opacity 3s ease-in-out;
 }
 
 .hero-slide.previous {
