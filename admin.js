@@ -128,17 +128,34 @@ async function loadParentCategories() {
     const select = document.getElementById('parent-cat-select');
     if(!select) return;
     
-    const { data } = await supabaseClient
+    // 1. Fetch ALL categories, not just the root ones
+    const { data, error } = await supabaseClient
         .from('categories')
-        .select('id, name')
-        .is('parent_id', null);
+        .select('*')
+        .order('name', { ascending: true });
+        
+    if (error || !data) return;
     
-    select.innerHTML = '<option value="">No Parent (Root)</option>';
-    if (data) {
-        data.forEach(cat => {
-            select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+    // 2. Start with the default option
+    let html = '<option value="">No Parent (Root)</option>';
+    
+    // 3. Separate Roots from Children
+    const roots = data.filter(c => !c.parent_id);
+    const children = data.filter(c => c.parent_id);
+    
+    // 4. Loop through roots and nest their children beneath them
+    roots.forEach(root => {
+        // Add the Root category (bolded for clarity if the browser supports it)
+        html += `<option value="${root.id}" style="font-weight: bold;">${root.name}</option>`;
+        
+        // Find and add the children for this specific root
+        const myChildren = children.filter(c => c.parent_id === root.id);
+        myChildren.forEach(child => {
+            html += `<option value="${child.id}">&nbsp;&nbsp;&nbsp;↳ ${child.name}</option>`;
         });
-    }
+    });
+    
+    select.innerHTML = html;
 }
 
 async function loadCategoriesList() {
