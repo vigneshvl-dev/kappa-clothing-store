@@ -2504,7 +2504,8 @@ ul {
     background: #FAF5EC;
     padding: 14px 6vw;
     display: flex;
-    justify-content: flex-end; /* Align right on desktop */
+    justify-content: flex-end;
+    /* Align right on desktop */
     align-items: center;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -2523,7 +2524,8 @@ ul {
 
 @media (max-width: 768px) {
     .crafted-in-india-bar {
-        justify-content: center; /* Center align on mobile */
+        justify-content: center;
+        /* Center align on mobile */
         padding: 12px 6vw;
     }
 }
@@ -2532,7 +2534,7 @@ ul {
 .footer {
     background: var(--yellow);
     color: var(--black);
-    padding: 100px 6vw 60px;
+    padding: 100px 0 60px 0;
     border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
@@ -2540,7 +2542,7 @@ ul {
     display: grid;
     grid-template-columns: 1.6fr 1fr 1fr 1fr;
     gap: 60px;
-    padding-bottom: 60px;
+    padding: 0 6vw 60px 6vw;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
@@ -2613,17 +2615,18 @@ ul {
 }
 
 .footer-illustration img {
-    max-width: 100%;
+    width: 100%;
     height: auto;
-    max-height: 280px;
-    mix-blend-mode: multiply; /* blends white image background with yellow footer background */
+    display: block;
+    mix-blend-mode: multiply;
+    /* blends white image background with yellow footer background */
     opacity: 0.9;
 }
 
 .footer-bottom {
     display: flex;
     justify-content: space-between;
-    padding-top: 30px;
+    padding: 30px 6vw 0 6vw;
     color: rgba(0, 0, 0, 0.6);
     font-size: 13px;
     font-family: var(--font-body);
@@ -4490,4 +4493,138 @@ body {
 
 .dot.active {
     background: #111;
+}
+
+/*============EDITORIAL SPLIT SECTION============*/ .editorial-split {
+    padding: 80px 4% 60px;
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+.editorial-intro {
+    max-width: 800px;
+    text-align: center;
+}
+
+.editorial-intro p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 24px;
+    line-height: 1.6;
+    color: #2b2b2b;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+.editorial-grid-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    width: 100%;
+    max-width: 1400px;
+}
+
+.editorial-card {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.editorial-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--ease);
+}
+
+.editorial-card:hover img {
+    transform: scale(1.05);
+}
+
+.editorial-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.1) 40%, transparent 100%);
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.editorial-card-content {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    z-index: 2;
+    color: #ffffff;
+}
+
+.editorial-card-content h3 {
+    font-family: var(--font-body);
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.editorial-shop-link {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #ffffff;
+    text-decoration: none;
+    border-bottom: 2px solid #ffffff;
+    padding-bottom: 4px;
+    display: inline-block;
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.editorial-card:hover .editorial-shop-link {
+    color: var(--yellow);
+    border-color: var(--yellow);
+}
+
+/* ============ RACING MARQUEE ============ */
+.racing-marquee {
+    width: 100%;
+    background: #ffffff;
+    border-top: 1px solid #e2e2e2;
+    border-bottom: 2.2px solid #111111;
+    overflow: hidden;
+    padding: 22px 0;
+    display: flex;
+    align-items: center;
+}
+
+.racing-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: racingMarqueeScroll 28s linear infinite;
+    gap: 80px;
+    padding-right: 80px;
+}
+
+.racing-marquee-track span {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #111111;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+@keyframes racingMarqueeScroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
 }
