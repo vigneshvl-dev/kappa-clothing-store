@@ -1,6 +1,6 @@
 const supabaseClient = window.supabase.createClient(
-  'https://ugphxapfbzcrauchwlef.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
+    'https://ugphxapfbzcrauchwlef.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
 );
 
 /* ============================================================
@@ -57,27 +57,6 @@ const supabaseClient = window.supabase.createClient(
         "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400&auto=format&fit=crop",
     ];
 
-    const fmt = n => "₹" + n.toLocaleString("en-IN");
-    const stars = n => "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
-
-            acc_welcome: "स्वागत है", acc_signin_sub: "खरीदारी जारी रखने के लिए साइन इन करें",
-            acc_email: "ईमेल पता", acc_password: "पासवर्ड", acc_remember: "मुझे याद रखें",
-            acc_forgot: "पासवर्ड भूल गए?", acc_signin_btn: "साइन इन", acc_google: "Google के साथ जारी रखें",
-            acc_no_account: "खाता नहीं है?", acc_create: "खाता बनाएं",
-            acc_create_title: "खाता बनाएं", acc_create_sub: "खरीदारी शुरू करने के लिए खाता बनाएं",
-            acc_fullname: "पूरा नाम", acc_confirm_password: "पासवर्ड की पुष्टि करें",
-            acc_terms: 'मैं <a href="#">नियम & शर्तें</a> और <a href="#">गोपनीयता नीति</a> से सहमत हूं',
-            acc_create_btn: "खाता बनाएं", acc_has_account: "पहले से खाता है?", acc_signin: "साइन इन",
-            search_placeholder: "उत्पाद, संग्रह खोजें...",
-            cart_title: "आपका कार्ट", cart_promo: "प्रोमो कोड", cart_apply: "लागू करें",
-            cart_shipping: "शिपिंग अनुमान", cart_subtotal: "उप-योग", cart_discount: "छूट",
-            cart_total: "कुल", cart_checkout: "चेकआउट",
-            wishlist_title: "इच्छा सूची",
-            newsletter_title: "अंदर के वल समूह में शामिल हों",
-            newsletter_desc: "शीर्ष ड्रॉप, निजी विक्रय, और आइकन-मात्र पहुंच — सीधे आपके इनबॉक्स में।",
-            newsletter_email: "आपका ईमेल पता", newsletter_label: "आपका ईमेल पता", newsletter_btn: "सब्सक्राइब करें",
-        },
-    };
     const LANG_NAMES = { en: "English", ta: "Tamil", ml: "Malayalam", hi: "Hindi" };
     let currentLang = localStorage.getItem("kappa-lang") || "en";
 
@@ -187,16 +166,16 @@ const supabaseClient = window.supabase.createClient(
     }
 
     /* ---------- SCROLL PROGRESS + NAVBAR / MARQUEE REVEAL ---------- */
-    const progress  = document.getElementById("scrollProgress");
-    const navbar    = document.getElementById("navbar");
+    const progress = document.getElementById("scrollProgress");
+    const navbar = document.getElementById("navbar");
     let lastY = 0;
 
     window.addEventListener("scroll", () => {
-        const h        = document.documentElement;
+        const h = document.documentElement;
         const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
         if (progress) progress.style.width = scrolled + "%";
 
-        const y          = window.scrollY;
+        const y = window.scrollY;
 
         navbar.classList.toggle("scrolled", y > 40);
         lastY = y;
@@ -298,7 +277,7 @@ const supabaseClient = window.supabase.createClient(
 
     const arrivalsGrid = document.getElementById("arrivalsGrid");
     if (arrivalsGrid) arrivalsGrid.innerHTML = PRODUCTS.map(p => productCard(p, false)).join('');
-    
+
     const trendTrack = document.getElementById("trendTrack");
     if (trendTrack) {
         const trendItems = [...PRODUCTS, ...PRODUCTS];
@@ -391,7 +370,7 @@ const supabaseClient = window.supabase.createClient(
         const h = Math.floor(diff % 86400000 / 3600000);
         const m = Math.floor(diff % 3600000 / 60000);
         const s = Math.floor(diff % 60000 / 1000);
-        
+
         const cdD = document.getElementById("cdD");
         const cdH = document.getElementById("cdH");
         const cdM = document.getElementById("cdM");
@@ -435,9 +414,9 @@ const supabaseClient = window.supabase.createClient(
     document.getElementById("searchClose").addEventListener("click", () => closeOverlay(searchOverlay));
 
     const heroAccountBtn = document.getElementById("heroAccountBtn");
-    const profileBtn     = document.getElementById("profileBtn");
+    const profileBtn = document.getElementById("profileBtn");
     const mobileAccountLink = document.getElementById("mobileAccountLink");
-    const accountClose   = document.getElementById("accountClose");
+    const accountClose = document.getElementById("accountClose");
 
     if (heroAccountBtn) heroAccountBtn.addEventListener("click", () => openOverlay(accountOverlay));
     if (profileBtn) profileBtn.addEventListener("click", () => openOverlay(accountOverlay));
@@ -696,15 +675,15 @@ const supabaseClient = window.supabase.createClient(
     /* ---------- CATEGORIES TAB SWITCHING ---------- */
     const catTabBtns = document.querySelectorAll(".cat-tab-btn");
     const catGrids = document.querySelectorAll(".categories-grid");
-    
+
     catTabBtns.forEach(btn => {
         btn.addEventListener("click", () => {
             const targetTab = btn.dataset.tab;
-            
+
             // Update buttons active class
             catTabBtns.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            
+
             // Switch grids
             catGrids.forEach(grid => {
                 if (grid.id === `cat-grid-${targetTab}`) {
@@ -713,7 +692,7 @@ const supabaseClient = window.supabase.createClient(
                     grid.classList.remove("active");
                 }
             });
-            
+
             // Check scroll reveal for the new grid cards
             setTimeout(revealCheck, 50);
         });
@@ -733,7 +712,7 @@ const supabaseClient = window.supabase.createClient(
                 const profileBtn = document.getElementById('profileBtn');
                 if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
             }
-        } catch (_) {}
+        } catch (_) { }
     })();
 
     // Listen for auth state changes (covers Google OAuth redirect)
@@ -759,7 +738,7 @@ const supabaseClient = window.supabase.createClient(
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const email    = document.getElementById('login-email').value.trim();
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
 
             if (!email || !password) {
@@ -769,7 +748,7 @@ const supabaseClient = window.supabase.createClient(
 
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-           if (error) {
+            if (error) {
                 // Special case: account exists but email not confirmed yet
                 if (error.message.toLowerCase().includes('email not confirmed')) {
                     // Removed auto-resend to prevent hitting strict email rate limits
@@ -791,9 +770,9 @@ const supabaseClient = window.supabase.createClient(
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const fullName        = document.getElementById('su-name').value.trim();
-            const email           = document.getElementById('su-email').value.trim();
-            const password        = document.getElementById('su-password').value;
+            const fullName = document.getElementById('su-name').value.trim();
+            const email = document.getElementById('su-email').value.trim();
+            const password = document.getElementById('su-password').value;
             const confirmPassword = document.getElementById('su-confirm').value;
 
             if (!fullName || !email || !password) {
@@ -833,9 +812,9 @@ const supabaseClient = window.supabase.createClient(
                 // Switch back to the login panel so they know to sign in after confirming
                 setTimeout(() => {
                     const panelSignup = document.getElementById('panel-signup');
-                    const panelLogin  = document.getElementById('panel-login');
+                    const panelLogin = document.getElementById('panel-login');
                     if (panelSignup) panelSignup.classList.remove('active');
-                    if (panelLogin)  panelLogin.classList.add('active');
+                    if (panelLogin) panelLogin.classList.add('active');
                 }, 1500);
             }
         });
