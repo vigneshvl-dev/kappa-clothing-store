@@ -4269,9 +4269,10 @@ ul {
 /* ============ ACCOUNT OVERLAY & LOGIN/SIGNUP CARD ============ */
 #accountOverlay {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 20px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0;
     overflow-y: auto;
     background: var(--white);
     --bg-card: #ffffff;
@@ -4297,6 +4298,7 @@ ul {
     max-width: 440px;
     z-index: 1;
     margin: auto;
+    padding: 40px 20px;
 }
 
 #accountOverlay .logo-wrap {

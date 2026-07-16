@@ -686,7 +686,25 @@
 
         <!-- ACCOUNT OVERLAY -->
         <div class="overlay" id="accountOverlay">
-            <button class="overlay-close" id="accountClose" aria-label="Close overlay">✕</button>
+            <!-- Custom Navbar inside Overlay -->
+            <header class="navbar about-navbar account-overlay-navbar" style="border-bottom: 1px solid rgba(0,0,0,0.06); width: 100%; box-sizing: border-box;">
+                <div class="about-nav-left">
+                    <a href="#home" class="about-nav-link" onclick="document.getElementById('accountClose').click();">Home</a>
+                    <a href="about.html" class="about-nav-link">About</a>
+                    <a href="#footer" class="about-nav-link" onclick="document.getElementById('accountClose').click();">Contact</a>
+                </div>
+                <a href="#home" class="about-nav-logo" onclick="document.getElementById('accountClose').click();">KAPPA</a>
+                <div class="about-nav-right">
+                    <a href="#home" class="back-to-home-btn" onclick="document.getElementById('accountClose').click();">
+                        <span>Back to Home</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </a>
+                </div>
+            </header>
+            <button class="overlay-close" id="accountClose" aria-label="Close overlay" style="display: none;">✕</button>
             <div class="stage">
                 <div class="logo-wrap">
                     <div class="logo-mark">
