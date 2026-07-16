@@ -118,10 +118,10 @@ ul {
     justify-content: space-between;
     gap: 16px;
     background: var(--yellow);
-    border-bottom: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     z-index: 1000;
-    box-shadow: none;
-    transition: transform .4s ease, box-shadow .4s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    transition: transform .4s ease, background .4s ease, box-shadow .4s ease;
 }
 
 /* Hide on rapid scroll-down — keep a quick hide slide */
@@ -131,7 +131,19 @@ ul {
 }
 
 .navbar.scrolled {
-    box-shadow: 0 24px 60px -18px rgba(0, 0, 0, .6);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+/* Homepage-specific header overlay pattern */
+body.home-page .navbar {
+    background: transparent;
+    border-bottom: none;
+    box-shadow: none;
+}
+
+body.home-page .navbar.scrolled {
+    background: var(--yellow);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .nav-logo {
