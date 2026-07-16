@@ -3,6 +3,21 @@ const supabaseClient = window.supabase.createClient(
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
 );
 
+async function testDatabaseConnection() {
+    console.log("Testing connection to Supabase...");
+    
+    // Grabbing just the products to see if it works
+    const { data, error } = await supabaseClient.from('products').select('*');
+    
+    if (error) {
+        console.error("Connection failed:", error);
+    } else {
+        console.log("Connection successful! Here are your products from the database:", data);
+    }
+}
+
+testDatabaseConnection();
+
 /* ============================================================
    KAPPA — vanilla JS
    ============================================================ */
@@ -831,3 +846,92 @@ const supabaseClient = window.supabase.createClient(
         });
     });
 })();
+
+// --- STOREFRONT PRODUCT FETCHING ---
+async function loadStorefrontProducts() {
+    const MEN_CATEGORY_ID = 'd4df60bf-ae4c-4518-b528-7768abd89058';
+    const WOMEN_CATEGORY_ID = '749f948d-93f9-4d36-a12c-8d6c9389f49b';
+
+    const boysContainer = document.getElementById('boys-arrival-container');
+    const womensContainer = document.getElementById('womens-arrival-container');
+    
+    if (!boysContainer && !womensContainer) return; 
+
+    try {
+        const { data: products, error } = await supabaseClient
+            .from('products')
+            .select(`
+                *,
+                product_images(url, position),
+                categories(id, parent_id) 
+            `)
+            .eq('is_active', true);
+
+        if (error) throw error;
+
+        if (boysContainer) boysContainer.innerHTML = '';
+        if (womensContainer) womensContainer.innerHTML = '';
+
+        products.forEach(product => {
+            let imageUrl = 'assets/sleeping sis.png'; 
+            if (product.product_images && product.product_images.length > 0) {
+                product.product_images.sort((a, b) => a.position - b.position);
+                imageUrl = product.product_images[0].url;
+            }
+
+            const comparePriceHTML = product.compare_at_price ? `<span>₹${product.compare_at_price}</span>` : '';
+            const isMensCollection = product.category_id === MEN_CATEGORY_ID || (product.categories && product.categories.parent_id === MEN_CATEGORY_ID);
+            const isWomensCollection = product.category_id === WOMEN_CATEGORY_ID || (product.categories && product.categories.parent_id === WOMEN_CATEGORY_ID);
+
+            // 👉 4. BUILD THE PERFECT CARD (Passing product info into the button)
+            const perfectCardHTML = `
+                <div class="boys-card" style="max-width: 280px; width: 100%;">
+                    <span class="boys-badge">NEW</span>
+                    <div onclick="viewProduct('${product.slug}')" style="cursor: pointer;">
+                        <img src="${imageUrl}" alt="${product.name}" style="width: 100%; height: auto; object-fit: cover; aspect-ratio: 3/4; border-radius: 8px;">
+                        <h3 style="margin-top: 12px;">${product.name}</h3>
+                    </div>
+                    <p class="boys-price">₹${product.price} ${comparePriceHTML}</p>
+                    <button onclick="addToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${imageUrl}')">Add To Cart</button>
+                </div>
+            `;
+
+            if (isMensCollection && boysContainer) boysContainer.innerHTML += perfectCardHTML;
+            else if (isWomensCollection && womensContainer) womensContainer.innerHTML += perfectCardHTML;
+        });
+    } catch (err) {
+        console.error("Error loading products:", err.message);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadStorefrontProducts);
+
+function viewProduct(slug) {
+    window.location.href = `product.html?slug=${slug}`;
+}
+
+// --- CART FUNCTIONALITY ---
+function addToCart(productId, name, price, imageUrl) {
+    const cartItemsContainer = document.getElementById('cartItems');
+    const emptyMsg = cartItemsContainer.querySelector('.cart-empty');
+
+    // 1. Hide the "Your cart is empty" message
+    if (emptyMsg) emptyMsg.style.display = 'none';
+
+    // 2. Create the HTML for the new item
+    const newItemHTML = `
+        <div class="cart-item" style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <img src="${imageUrl}" style="width: 60px; height: 70px; object-fit: cover; border-radius: 4px;">
+            <div style="flex-grow: 1;">
+                <h4 style="margin: 0;">${name}</h4>
+                <p style="margin: 5px 0 0 0;">₹${price}</p>
+            </div>
+        </div>
+    `;
+
+    // 3. Append the new item
+    cartItemsContainer.innerHTML += newItemHTML;
+
+    // 4. Trigger the cart drawer to open
+    document.getElementById('cartBtn').click();
+}

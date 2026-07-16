@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kappa - Product Details</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Supabase Setup -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Super basic header so you can get back to the home page -->
+    <header style="padding: 20px; background-color: #FFD700; text-align: center;">
+        <a href="index.html" style="text-decoration: none; color: black; font-weight: bold; font-size: 24px;">KAPPA Fashion Store</a>
+    </header>
+
+    <!-- This is where our JavaScript will inject the product details -->
+    <main id="single-product-container" style="max-width: 1200px; margin: 50px auto; padding: 20px;">
+        <h2 style="text-align: center;">Loading product details...</h2>
+    </main>
+
+    <!-- Link your script at the bottom -->
+    <script src="script.js"></script>
+
+    <script>
+        // --- FETCH SINGLE PRODUCT ---
+        async function loadSingleProduct() {
+            // 1. Get the slug from the URL (e.g., ?slug=modern-top)
+            const urlParams = new URLSearchParams(window.location.search);
+            const slug = urlParams.get('slug');
+
+            if (!slug) {
+                document.getElementById('single-product-container').innerHTML = '<h2>Product not found!</h2>';
+                return;
+            }
+
+            try {
+                // 2. Ask Supabase for this exact product
+                const { data: product, error } = await supabaseClient
+                    .from('products')
+                    .select('*, product_images(url, position)')
+                    .eq('slug', slug)
+                    .single(); // We only want ONE product
+
+                if (error) throw error;
+
+                // 3. Get the main image
+                let imageUrl = 'assets/sleeping sis.png'; 
+                if (product.product_images && product.product_images.length > 0) {
+                    product.product_images.sort((a, b) => a.position - b.position);
+                    imageUrl = product.product_images[0].url;
+                }
+
+                // 4. Build the HTML for the product page
+                const productHTML = `
+                    <div style="display: flex; gap: 40px; flex-wrap: wrap;">
+                        <!-- Left Side: Image -->
+                        <div style="flex: 1; min-width: 300px;">
+                            <img src="${imageUrl}" alt="${product.name}" style="width: 100%; border-radius: 10px;">
+                        </div>
+                        
+                        <!-- Right Side: Details -->
+                        <div style="flex: 1; min-width: 300px;">
+                            <h1>${product.name}</h1>
+                            <h2 style="color: #555;">₹${product.price}</h2>
+                            <p style="margin-top: 20px; line-height: 1.6;">${product.description || 'No description available for this product.'}</p>
+                            
+                            <!-- We will wire this up later! -->
+                            <button style="margin-top: 30px; padding: 15px 30px; background-color: black; color: white; border: none; border-radius: 5px; font-size: 18px; cursor: pointer;">
+                                Add to Cart - ₹${product.price}
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('single-product-container').innerHTML = productHTML;
+
+            } catch (err) {
+                console.error("Error loading product:", err.message);
+                document.getElementById('single-product-container').innerHTML = '<h2>Error loading product details.</h2>';
+            }
+        }
+
+        // Run this specifically on the product page
+        document.addEventListener('DOMContentLoaded', loadSingleProduct);
+    </script>
+</body>
+</html>
