@@ -4273,6 +4273,7 @@ ul {
     justify-content: center;
     padding: 32px 20px;
     overflow-y: auto;
+    background: var(--white);
     --bg-card: #ffffff;
     --ink: #0a0a0a;
     --ink-soft: #6b6b6b;
@@ -4286,18 +4287,8 @@ ul {
     --ease: cubic-bezier(.22, .61, .36, 1);
 }
 
-/* ambient backdrop scoped to account overlay */
 #accountOverlay::before {
-    content: "";
-    position: absolute;
-    top: -20%;
-    left: 50%;
-    width: 900px;
-    height: 900px;
-    transform: translateX(-50%);
-    background: radial-gradient(circle, rgba(245, 197, 24, 0.10) 0%, rgba(245, 197, 24, 0) 65%);
-    pointer-events: none;
-    z-index: 0;
+    content: none;
 }
 
 #accountOverlay .stage {
