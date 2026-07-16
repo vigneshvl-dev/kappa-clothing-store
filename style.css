@@ -797,6 +797,7 @@ ul {
     text-align: center;
     padding: 60px 20px;
     font-family: 'Poppins', sans-serif;
+    overflow: hidden;
 }
 
 .testimonials h2 {
@@ -812,6 +813,7 @@ ul {
     gap: 40px;
     width: max-content;
     animation: scrollLoop 50s linear infinite;
+    will-change: transform;
 }
 
 @keyframes scrollLoop {
@@ -943,6 +945,7 @@ ul {
     text-align: center;
     padding: 60px 20px;
     font-family: 'Poppins', sans-serif;
+    overflow: hidden;
 }
 
 .testimonials h2 {
@@ -958,6 +961,7 @@ ul {
     gap: 40px;
     width: max-content;
     animation: scrollLoop 50s linear infinite;
+    will-change: transform;
 }
 
 @keyframes scrollLoop {
