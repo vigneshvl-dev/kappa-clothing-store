@@ -1,3 +1,14 @@
+// --- LANGUAGE DEFINITIONS ---
+const LANGS = {
+    "en": {
+        "nav_home": "Home",
+        "nav_shop": "Shop",
+        "nav_faq": "FaQ",
+        "nav_about": "About",
+        "nav_contact": "Contact",
+    }
+};
+
 const supabaseClient = window.supabase.createClient(
     'https://ugphxapfbzcrauchwlef.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
@@ -121,6 +132,18 @@ testDatabaseConnection();
     let cart = [];     // {id, size, qty}
     let wishlist = []; // [id]
     let discount = 0;
+
+    /* ---------- UTILITIES ---------- */
+// Fixes the "fmt is not defined" error
+function fmt(price) {
+    return "₹" + Number(price).toLocaleString('en-IN');
+}
+
+// Fixes the "stars is not defined" error (which is likely missing too!)
+function stars(rating) {
+    const r = Math.round(rating || 0);
+    return "★".repeat(r) + "☆".repeat(5 - r);
+}
 
     /* ---------- LOADER ---------- */
     function hideLoader() {
@@ -408,7 +431,7 @@ testDatabaseConnection();
         toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
     }
 
-    /* ---------- CART ---------- */
+/* ---------- CART ---------- */
     const cartOverlay = document.getElementById("cartOverlay");
     const wishOverlay = document.getElementById("wishOverlay");
     const searchOverlay = document.getElementById("searchOverlay");
@@ -418,20 +441,29 @@ testDatabaseConnection();
     function openOverlay(el) { if (el) { el.classList.add("open"); document.body.style.overflow = "hidden"; } }
     function closeOverlay(el) { if (el) { el.classList.remove("open"); document.body.style.overflow = ""; } }
 
-    document.getElementById("cartBtn").addEventListener("click", () => openOverlay(cartOverlay));
-    document.getElementById("bnavCart").addEventListener("click", () => openOverlay(cartOverlay));
-    document.getElementById("cartClose").addEventListener("click", () => closeOverlay(cartOverlay));
-    document.getElementById("wishBtn").addEventListener("click", () => openOverlay(wishOverlay));
-    document.getElementById("bnavWish").addEventListener("click", () => openOverlay(wishOverlay));
-    document.getElementById("wishClose").addEventListener("click", () => closeOverlay(wishOverlay));
-    document.getElementById("searchBtn").addEventListener("click", () => { openOverlay(searchOverlay); document.getElementById("searchInput").focus(); });
-    document.getElementById("bnavSearch").addEventListener("click", () => { openOverlay(searchOverlay); document.getElementById("searchInput").focus(); });
-    document.getElementById("searchClose").addEventListener("click", () => closeOverlay(searchOverlay));
+    // Helper to safely add event listeners so the script doesn't crash!
+    function safeAddListener(id, event, callback) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener(event, callback);
+    }
+
+    safeAddListener("cartBtn", "click", () => openOverlay(cartOverlay));
+    safeAddListener("bnavCart", "click", () => openOverlay(cartOverlay));
+    safeAddListener("cartClose", "click", () => closeOverlay(cartOverlay));
+    safeAddListener("wishBtn", "click", () => openOverlay(wishOverlay));
+    safeAddListener("bnavWish", "click", () => openOverlay(wishOverlay));
+    safeAddListener("wishClose", "click", () => closeOverlay(wishOverlay));
+    
+    safeAddListener("searchBtn", "click", () => { openOverlay(searchOverlay); const s = document.getElementById("searchInput"); if(s) s.focus(); });
+    safeAddListener("bnavSearch", "click", () => { openOverlay(searchOverlay); const s = document.getElementById("searchInput"); if(s) s.focus(); });
+    safeAddListener("searchClose", "click", () => closeOverlay(searchOverlay));
 
     const heroAccountBtn = document.getElementById("heroAccountBtn");
     const profileBtn = document.getElementById("profileBtn");
     const mobileAccountLink = document.getElementById("mobileAccountLink");
     const accountClose = document.getElementById("accountClose");
+    
+    // 👇 Duplicates removed from here! It will use the ones you defined earlier in the file.
 
     if (heroAccountBtn) heroAccountBtn.addEventListener("click", () => openOverlay(accountOverlay));
     if (profileBtn) profileBtn.addEventListener("click", () => openOverlay(accountOverlay));
@@ -849,6 +881,7 @@ testDatabaseConnection();
 
 // --- STOREFRONT PRODUCT FETCHING ---
 async function loadStorefrontProducts() {
+    // These IDs dictate where products go. Ensure they match your Supabase categories!
     const MEN_CATEGORY_ID = 'd4df60bf-ae4c-4518-b528-7768abd89058';
     const WOMEN_CATEGORY_ID = '749f948d-93f9-4d36-a12c-8d6c9389f49b';
 
@@ -883,7 +916,6 @@ async function loadStorefrontProducts() {
             const isMensCollection = product.category_id === MEN_CATEGORY_ID || (product.categories && product.categories.parent_id === MEN_CATEGORY_ID);
             const isWomensCollection = product.category_id === WOMEN_CATEGORY_ID || (product.categories && product.categories.parent_id === WOMEN_CATEGORY_ID);
 
-            // 👉 4. BUILD THE PERFECT CARD (Passing product info into the button)
             const perfectCardHTML = `
                 <div class="boys-card" style="max-width: 280px; width: 100%;">
                     <span class="boys-badge">NEW</span>
@@ -904,34 +936,31 @@ async function loadStorefrontProducts() {
     }
 }
 
+// Ensure products load when the page is ready
 document.addEventListener('DOMContentLoaded', loadStorefrontProducts);
 
+// --- NAVIGATION & CART ACTIONS ---
 function viewProduct(slug) {
     window.location.href = `product.html?slug=${slug}`;
 }
 
-// --- CART FUNCTIONALITY ---
 function addToCart(productId, name, price, imageUrl) {
     const cartItemsContainer = document.getElementById('cartItems');
-    const emptyMsg = cartItemsContainer.querySelector('.cart-empty');
+    if (cartItemsContainer) {
+        const emptyMsg = cartItemsContainer.querySelector('.cart-empty');
+        if (emptyMsg) emptyMsg.style.display = 'none';
 
-    // 1. Hide the "Your cart is empty" message
-    if (emptyMsg) emptyMsg.style.display = 'none';
-
-    // 2. Create the HTML for the new item
-    const newItemHTML = `
-        <div class="cart-item" style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-            <img src="${imageUrl}" style="width: 60px; height: 70px; object-fit: cover; border-radius: 4px;">
-            <div style="flex-grow: 1;">
-                <h4 style="margin: 0;">${name}</h4>
-                <p style="margin: 5px 0 0 0;">₹${price}</p>
+        const newItemHTML = `
+            <div class="cart-item" style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <img src="${imageUrl}" style="width: 60px; height: 70px; object-fit: cover; border-radius: 4px;">
+                <div style="flex-grow: 1;">
+                    <h4 style="margin: 0;">${name}</h4>
+                    <p style="margin: 5px 0 0 0;">₹${price}</p>
+                </div>
             </div>
-        </div>
-    `;
-
-    // 3. Append the new item
-    cartItemsContainer.innerHTML += newItemHTML;
-
-    // 4. Trigger the cart drawer to open
-    document.getElementById('cartBtn').click();
+        `;
+        cartItemsContainer.innerHTML += newItemHTML;
+    }
+    const cartBtn = document.getElementById('cartBtn');
+    if (cartBtn) cartBtn.click();
 }
