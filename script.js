@@ -1144,6 +1144,18 @@ function stars(rating) {
                         </div>
                     </div>
 
+                    <div id="dashAvatarPicker" class="dash-avatar-picker-panel" style="display:none; margin-bottom:18px; border-bottom:1px dashed rgba(0,0,0,0.06); padding-bottom:14px;">
+                        <span style="font-size:11px; font-weight:700; color:var(--grey-500); text-transform:uppercase; display:block; margin-bottom:10px; letter-spacing:0.5px;">Choose Avatar Option</span>
+                        <div class="dash-avatar-options" style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <div class="dash-avatar-option-item active" data-url="initials" style="font-family:var(--font-body); font-weight:700; background:var(--grey-300); color:var(--ink); display:flex; align-items:center; justify-content:center; font-size:13px; width:44px; height:44px; cursor:pointer; border:1px solid #ddd;" title="Reset to initials">U</div>
+                            <img class="dash-avatar-option-item" data-url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" style="width:44px; height:44px; object-fit:cover; cursor:pointer; border:1px solid #ddd;" />
+                            <img class="dash-avatar-option-item" data-url="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" style="width:44px; height:44px; object-fit:cover; cursor:pointer; border:1px solid #ddd;" />
+                            <img class="dash-avatar-option-item" data-url="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200&auto=format&fit=crop" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200&auto=format&fit=crop" style="width:44px; height:44px; object-fit:cover; cursor:pointer; border:1px solid #ddd;" />
+                            <img class="dash-avatar-option-item" data-url="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop" src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop" style="width:44px; height:44px; object-fit:cover; cursor:pointer; border:1px solid #ddd;" />
+                            <div class="dash-avatar-option-item" id="dashAvatarCustomBtn" style="font-size:11px; background:var(--ink); color:var(--white); display:flex; align-items:center; justify-content:center; text-align:center; font-weight:700; width:44px; height:44px; cursor:pointer;" title="Enter custom Image URL">URL</div>
+                        </div>
+                    </div>
+
                     <form id="dash-profile-form">
                         <div class="dash-profile-fields">
                            <div class="dash-field">
