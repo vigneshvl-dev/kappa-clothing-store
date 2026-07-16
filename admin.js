@@ -364,6 +364,41 @@ function initProductForm() {
                     await supabaseClient.from('product_variants').insert(variantsToInsert);
                 }
 
+             // --- UPLOAD IMAGES START ---
+const fileInput = document.getElementById('prod-images');
+if (fileInput && fileInput.files.length > 0) {
+    const imageRows = [];
+    const filesArray = Array.from(fileInput.files); 
+
+    for (const [index, file] of filesArray.entries()) {
+        // Generate a unique path for the storage bucket
+        const filePath = `${newProduct.id}/${Date.now()}_${file.name}`;
+        
+        // 1. Upload to Supabase Storage
+        const { error: uploadError } = await supabaseClient.storage
+            .from('product-images')
+            .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        // 2. Get Public URL
+        const { data: { publicUrl } } = supabaseClient.storage
+            .from('product-images')
+            .getPublicUrl(filePath);
+
+        // 3. Prepare data for insertion (including the position)
+        imageRows.push({
+            product_id: newProduct.id,
+            url: publicUrl,
+            position: index // 0 for the first image, 1 for the second, etc.
+        });
+    }
+
+    // 4. Insert into the database
+    await supabaseClient.from('product_images').insert(imageRows);
+}
+// --- UPLOAD IMAGES END ---
+
                 alert("Success!");
                 addProductForm.reset();
                 stockTableContainer.innerHTML = '';
