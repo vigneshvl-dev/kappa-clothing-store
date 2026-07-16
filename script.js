@@ -1253,7 +1253,17 @@ function stars(rating) {
             orders = JSON.stringify(DEFAULT_MOCK_ORDERS);
             localStorage.setItem(customOrdersKey, orders);
         }
-        return JSON.parse(orders);
+        try {
+            let parsed = JSON.parse(orders);
+            // Filter out old mock details if they exist in localStorage
+            const filtered = parsed.filter(o => o.id !== "KP-10294" && o.id !== "KP-18294" && o.id !== "OD402948194" && o.id !== "SP-883719");
+            if (filtered.length !== parsed.length) {
+                localStorage.setItem(customOrdersKey, JSON.stringify(filtered));
+            }
+            return filtered;
+        } catch (_) {
+            return [];
+        }
     }
 
     function trackOrder(orderId, userId) {
