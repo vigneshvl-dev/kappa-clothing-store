@@ -834,6 +834,7 @@ ul {
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 20px;
+    margin: 0 auto 20px;
 }
 
 .testimonial p {
