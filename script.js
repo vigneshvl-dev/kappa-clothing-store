@@ -1689,3 +1689,13 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.body.appendChild(whatsappBtn);
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const reelsInstaBar = document.getElementById('reelsInstaBar');
+    if (reelsInstaBar) {
+        reelsInstaBar.addEventListener('click', (e) => {
+            if (e.target.closest('.reels-insta-follow-btn')) return;
+            window.open('https://www.instagram.com/kappa_fashion_store', '_blank', 'noopener,noreferrer');
+        });
+    }
+});
