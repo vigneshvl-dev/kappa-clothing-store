@@ -5222,7 +5222,7 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 30px;
     width: 100%;
-    max-width: 1400px;
+    max-width: 1000px;
     align-items: stretch;
 }
 
