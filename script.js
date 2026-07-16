@@ -728,6 +728,309 @@ function stars(rating) {
     document.getElementById("year").textContent = new Date().getFullYear();
 
 
+    /* ---------- REELS AUTOPLAY, SLIDER & AUDIO CONTROL ---------- */
+    const reelsContainer = document.getElementById("reels");
+    if (reelsContainer) {
+        const wrapper  = reelsContainer.querySelector(".reels-wrapper");
+        const cards    = reelsContainer.querySelectorAll(".reel-card");
+        const prevBtn  = reelsContainer.querySelector(".reels-nav-btn.prev");
+        const nextBtn  = reelsContainer.querySelector(".reels-nav-btn.next");
+        const videos   = reelsContainer.querySelectorAll(".reel-video-element");
+
+        let currentIndex = 2; // Start with center card (Reel 3) active
+        let reelsInView = false;
+
+        /* ---- Helpers ---- */
+        function getVideo(idx) {
+            const actualIdx = (idx + cards.length) % cards.length;
+            return cards[actualIdx] ? cards[actualIdx].querySelector(".reel-video-element") : null;
+        }
+
+        // Control playback (play/pause/mute) based on current active card and viewport visibility
+        function updateVideosState() {
+            cards.forEach((card, i) => {
+                const v = card.querySelector(".reel-video-element");
+                const soundBtn = card.querySelector(".reel-sound-btn");
+                if (!v) return;
+
+                if (i === currentIndex && reelsInView) {
+                    // Play active video
+                    const promise = v.play();
+                    if (promise !== undefined) {
+                        promise.catch(() => {
+                            // Fallback to muted playback if audio is blocked by user gesture policy
+                            v.muted = true;
+                            v.volume = 0;
+                            v.play().catch(() => {});
+                            updateSoundButtonIcon(soundBtn, true);
+                        });
+                    }
+                } else {
+                    // Pause all other videos
+                    v.pause();
+                    v.muted = true;
+                    v.volume = 0;
+                    updateSoundButtonIcon(soundBtn, true);
+                }
+            });
+        }
+
+        function updateSoundButtonIcon(btn, isMuted) {
+            if (!btn) return;
+            const wavePath = btn.querySelector(".sound-waves");
+            if (isMuted) {
+                if (wavePath) wavePath.style.display = "none";
+            } else {
+                if (wavePath) wavePath.style.display = "block";
+            }
+        }
+
+        function playActiveWithAudio(idx) {
+            currentIndex = (idx + cards.length) % cards.length;
+            updateVideosState();
+        }
+
+        /* ---- Slider positioning ---- */
+        function updateSlider() {
+            if (!wrapper || !cards.length) return;
+            const container = reelsContainer.querySelector(".reels-slider-container");
+            if (!container) return;
+            const cw   = container.clientWidth;
+            const card = cards[currentIndex];
+            const tx   = (cw / 2) - (card.offsetLeft + card.clientWidth / 2);
+            wrapper.style.transform = `translateX(${tx}px)`;
+
+            cards.forEach((c, i) => {
+                c.classList.remove("active","prev","next","far-prev","far-next");
+                const d = i - currentIndex;
+                if      (d ===  0) c.classList.add("active");
+                else if (d === -1) c.classList.add("prev");
+                else if (d ===  1) c.classList.add("next");
+                else if (d  < -1) c.classList.add("far-prev");
+                else              c.classList.add("far-next");
+            });
+        }
+
+        /* ---- Navigate ---- */
+        function goTo(idx) {
+            currentIndex = (idx + cards.length) % cards.length;
+            updateSlider();
+            updateVideosState();
+        }
+
+        /* ---- Events ---- */
+        if (prevBtn) prevBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex - 1); });
+        if (nextBtn) nextBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex + 1); });
+
+        cards.forEach((card, idx) => {
+            card.addEventListener("click", (e) => {
+                // If they clicked the sound button, handle it separately
+                if (e.target.closest(".reel-sound-btn")) {
+                    e.stopPropagation();
+                    const v = card.querySelector(".reel-video-element");
+                    const soundBtn = e.target.closest(".reel-sound-btn");
+                    if (v) {
+                        v.muted = !v.muted;
+                        v.volume = v.muted ? 0 : 1;
+                        updateSoundButtonIcon(soundBtn, v.muted);
+                    }
+                    return;
+                }
+
+                if (idx !== currentIndex) {
+                    goTo(idx);
+                }
+            });
+        });
+
+        /* ---- Slider layout init ---- */
+        window.addEventListener("resize", updateSlider);
+        setTimeout(updateSlider, 100);
+        setTimeout(updateSlider, 500);
+        setTimeout(updateSlider, 1500);
+        window.addEventListener("load", updateSlider);
+
+        // Run updateVideosState once initially to load active poster frame
+        setTimeout(updateVideosState, 200);
+
+        /* ---- IntersectionObserver: auto-play on scroll into view ---- */
+        const reelsObserver = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting) {
+                reelsInView = true;
+                updateSlider();
+                updateVideosState();
+            } else {
+                reelsInView = false;
+                updateVideosState();
+            }
+        }, { threshold: 0.1 }); // Lowered threshold so videos load/play as soon as they enter screen
+        reelsObserver.observe(reelsContainer);
+    }
+
+
+    /* ---------- SEPARATE REELS PAGE GRID & LIGHTBOX LOGIC ---------- */
+    const reelsGrid = document.querySelector(".reels-grid");
+    if (reelsGrid) {
+        const gridCards = reelsGrid.querySelectorAll(".reels-grid-card");
+        const lightbox = document.getElementById("reelsLightbox");
+        const lightboxWrapper = document.getElementById("lightboxWrapper");
+        const closeBtn = document.getElementById("lightboxClose");
+        const prevBtn = document.getElementById("lightboxPrev");
+        const nextBtn = document.getElementById("lightboxNext");
+        const lightboxVideos = lightbox.querySelectorAll(".lightbox-video-element");
+
+        let activeLightboxIndex = 0;
+        let lightboxIsMuted = false; // Default to unmuted in lightbox for immersive feel
+
+        // Grid cards hover play/pause
+        gridCards.forEach(card => {
+            const video = card.querySelector(".reels-grid-video");
+            const soundBtn = card.querySelector(".reels-grid-sound-btn");
+
+            card.addEventListener("mouseenter", () => {
+                video.play().catch(() => {});
+            });
+
+            card.addEventListener("mouseleave", () => {
+                video.pause();
+                video.currentTime = 0; // Reset
+            });
+
+            // Grid card click to open lightbox
+            card.addEventListener("click", (e) => {
+                if (e.target.closest(".reels-grid-sound-btn")) {
+                    e.stopPropagation();
+                    video.muted = !video.muted;
+                    video.volume = video.muted ? 0 : 1;
+                    const wavePath = soundBtn.querySelector(".sound-waves");
+                    if (wavePath) wavePath.style.display = video.muted ? "none" : "block";
+                    return;
+                }
+
+                const index = parseInt(card.dataset.index, 10);
+                openLightbox(index);
+            });
+        });
+
+        // Open Lightbox
+        function openLightbox(index) {
+            activeLightboxIndex = index;
+            lightbox.classList.add("active");
+            document.body.style.overflow = "hidden"; // Disable scroll
+            
+            updateLightboxSlider(false); // don't animate transitions on open
+            playLightboxVideo();
+        }
+
+        // Close Lightbox
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                lightbox.classList.remove("active");
+                document.body.style.overflow = ""; // Enable scroll
+                
+                // Pause all lightbox videos
+                lightboxVideos.forEach(v => {
+                    v.pause();
+                    v.currentTime = 0;
+                });
+            });
+        }
+
+        // Update Slider Position
+        function updateLightboxSlider(animate = true) {
+            if (!lightboxWrapper) return;
+            lightboxWrapper.style.transition = animate ? "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)" : "none";
+            const tx = activeLightboxIndex * -100;
+            lightboxWrapper.style.transform = `translateX(${tx}vw)`;
+        }
+
+        // Play active lightbox video
+        function playLightboxVideo() {
+            lightboxVideos.forEach((v, i) => {
+                const soundBtn = v.closest(".lightbox-slide").querySelector(".lightbox-sound-btn");
+                if (i === activeLightboxIndex) {
+                    v.muted = lightboxIsMuted;
+                    v.volume = lightboxIsMuted ? 0 : 1;
+                    const wavePath = soundBtn.querySelector(".sound-waves");
+                    if (wavePath) wavePath.style.display = lightboxIsMuted ? "none" : "block";
+                    
+                    const promise = v.play();
+                    if (promise !== undefined) {
+                        promise.catch(() => {
+                            v.muted = true;
+                            v.volume = 0;
+                            v.play().catch(() => {});
+                            if (wavePath) wavePath.style.display = "none";
+                        });
+                    }
+                } else {
+                    v.pause();
+                    v.currentTime = 0;
+                }
+            });
+        }
+
+        // Navigate Lightbox
+        function nextLightbox() {
+            if (activeLightboxIndex < gridCards.length - 1) {
+                activeLightboxIndex++;
+                updateLightboxSlider();
+                playLightboxVideo();
+            }
+        }
+
+        function prevLightbox() {
+            if (activeLightboxIndex > 0) {
+                activeLightboxIndex--;
+                updateLightboxSlider();
+                playLightboxVideo();
+            }
+        }
+
+        if (nextBtn) nextBtn.addEventListener("click", nextLightbox);
+        if (prevBtn) prevBtn.addEventListener("click", prevLightbox);
+
+        // Sound buttons in lightbox
+        lightbox.querySelectorAll(".lightbox-sound-btn").forEach((btn, index) => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                lightboxIsMuted = !lightboxIsMuted;
+                playLightboxVideo(); // Update audio state on all
+            });
+        });
+
+        // Keydown events
+        document.addEventListener("keydown", (e) => {
+            if (!lightbox.classList.contains("active")) return;
+            if (e.key === "Escape") closeBtn.click();
+            else if (e.key === "ArrowRight") nextLightbox();
+            else if (e.key === "ArrowLeft") prevLightbox();
+        });
+
+        // Touch swipe support in lightbox
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        lightbox.addEventListener("touchstart", (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        lightbox.addEventListener("touchend", (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const threshold = 50;
+            if (touchStartX - touchEndX > threshold) {
+                nextLightbox(); // Swipe Left -> Next
+            } else if (touchEndX - touchStartX > threshold) {
+                prevLightbox(); // Swipe Right -> Prev
+            }
+        }
+    }
+
+
 
 
     /* ---------- CATEGORIES TAB SWITCHING ---------- */
