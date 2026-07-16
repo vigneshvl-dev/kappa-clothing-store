@@ -1133,26 +1133,22 @@ function stars(rating) {
                 <!-- PROFILE INFO -->
                 <div class="dash-profile-card">
                     <div class="dash-profile-top">
-                        <div class="dash-avatar-wrapper" id="dashAvatarBtn" title="Click to change avatar URL">
-                            <img src="" id="dashAvatarImg" class="dash-avatar-img" style="display:none;" />
-                            <div id="dashAvatarPlaceholder" class="dash-avatar-placeholder">U</div>
-                            <div class="dash-avatar-upload-overlay">Edit</div>
+                        <div style="position: relative; flex-shrink: 0;">
+                            <div class="dash-avatar-wrapper" id="dashAvatarBtn" title="Choose profile picture">
+                                <img src="" id="dashAvatarImg" class="dash-avatar-img" style="display:none;" />
+                                <div id="dashAvatarPlaceholder" class="dash-avatar-placeholder">U</div>
+                            </div>
+                            <button type="button" class="dash-avatar-camera-btn" id="dashAvatarCameraBtn" title="Choose profile picture">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </button>
+                            <input type="file" id="dashAvatarFileInput" accept="image/*" style="display:none;" />
                         </div>
                         <div class="dash-profile-meta">
                             <div class="dash-profile-name" id="dashProfileNameDisplay">User</div>
                             <div class="dash-profile-email" id="dashProfileEmailDisplay">user@example.com</div>
-                        </div>
-                    </div>
-
-                    <div id="dashAvatarPicker" class="dash-avatar-picker-panel" style="display:none; margin-bottom:18px; border-bottom:1px dashed rgba(0,0,0,0.06); padding-bottom:14px;">
-                        <span style="font-size:11px; font-weight:700; color:var(--grey-500); text-transform:uppercase; display:block; margin-bottom:10px; letter-spacing:0.5px;">Choose Avatar Option</span>
-                        <div class="dash-avatar-options" style="display:flex; gap:10px; flex-wrap:wrap;">
-                            <div class="dash-avatar-option-item active" data-url="initials" style="font-family:var(--font-body); font-weight:700; background:var(--grey-300); color:var(--ink); display:flex; align-items:center; justify-content:center; font-size:13px; width:44px; height:44px; cursor:pointer; border:1px solid #ddd;" title="Reset to initials">U</div>
-                            <img class="dash-avatar-option-item" data-url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" style="width:44px; height:44px; object-fit:cover; cursor:pointer; border:1px solid #ddd;" />
-                            <img class="dash-avatar-option-item" data-url="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" style="width:44px; height:44px; object-fit:cover; cursor:pointer; border:1px solid #ddd;" />
-                            <img class="dash-avatar-option-item" data-url="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200&auto=format&fit=crop" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200&auto=format&fit=crop" style="width:44px; height:44px; object-fit:cover; cursor:pointer; border:1px solid #ddd;" />
-                            <img class="dash-avatar-option-item" data-url="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop" src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop" style="width:44px; height:44px; object-fit:cover; cursor:pointer; border:1px solid #ddd;" />
-                            <div class="dash-avatar-option-item" id="dashAvatarCustomBtn" style="font-size:11px; background:var(--ink); color:var(--white); display:flex; align-items:center; justify-content:center; text-align:center; font-weight:700; width:44px; height:44px; cursor:pointer;" title="Enter custom Image URL">URL</div>
                         </div>
                     </div>
 
@@ -1217,27 +1213,46 @@ function stars(rating) {
         }
 
         const avatarBtn = document.getElementById('dashAvatarBtn');
-        if (avatarBtn) {
-            avatarBtn.addEventListener('click', () => {
-                const url = prompt("Enter Image URL for your avatar:");
-                if (url !== null) {
+        const cameraBtn = document.getElementById('dashAvatarCameraBtn');
+        const fileInput = document.getElementById('dashAvatarFileInput');
+
+        const triggerFileSelect = () => {
+            if (fileInput) fileInput.click();
+        };
+
+        if (avatarBtn) avatarBtn.addEventListener('click', triggerFileSelect);
+        if (cameraBtn) cameraBtn.addEventListener('click', triggerFileSelect);
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (!file.type.startsWith('image/')) {
+                    showToast('Please select a valid image file');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const dataUrl = reader.result;
                     supabaseClient.auth.getSession().then(({ data: { session } }) => {
                         const userId = session?.user?.id || "guest";
                         const avatarImg = document.getElementById('dashAvatarImg');
                         const avatarPlaceholder = document.getElementById('dashAvatarPlaceholder');
-                        if (url.trim() === "") {
-                            localStorage.removeItem(`kappa_avatar_${userId}`);
-                            avatarImg.style.display = 'none';
-                            avatarPlaceholder.style.display = 'flex';
-                        } else {
-                            localStorage.setItem(`kappa_avatar_${userId}`, url);
-                            avatarImg.src = url;
+
+                        localStorage.setItem(`kappa_avatar_${userId}`, dataUrl);
+                        if (avatarImg) {
+                            avatarImg.src = dataUrl;
                             avatarImg.style.display = 'block';
-                            avatarPlaceholder.style.display = 'none';
-                            showToast("Avatar image updated!");
                         }
+                        if (avatarPlaceholder) {
+                            avatarPlaceholder.style.display = 'none';
+                        }
+                        showToast("Profile picture updated!");
                     });
-                }
+                };
+                reader.readAsDataURL(file);
             });
         }
 
