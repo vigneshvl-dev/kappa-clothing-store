@@ -82,7 +82,13 @@ ul {
     }
 }
 
-/* ============ LOADER ============ */
+/* ============ icon ============ */
+.visit-store-icon img {
+  width: 20px;   /* adjust size */
+  height: 20px;  /* keep proportions */
+  display: inline-block;
+  vertical-align: middle;
+}
 
 
 /* ============ CURSOR ============ */
