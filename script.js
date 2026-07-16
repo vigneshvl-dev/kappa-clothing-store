@@ -174,12 +174,14 @@ function stars(rating) {
     let currentSlide = 0;
     function nextSlide() {
         if (heroSlides.length === 0) return;
+        heroSlides.forEach(slide => slide.classList.remove("previous"));
+        heroSlides[currentSlide].classList.add("previous");
         heroSlides[currentSlide].classList.remove("active");
         currentSlide = (currentSlide + 1) % heroSlides.length;
         heroSlides[currentSlide].classList.add("active");
     }
     if (heroSlides.length > 1) {
-        setInterval(nextSlide, 5000);
+        setInterval(nextSlide, 3000);
     }
     /* ---------- HAMBURGER / MOBILE MENU ---------- */
     const glow = document.getElementById("cursorGlow");
