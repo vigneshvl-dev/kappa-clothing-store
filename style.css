@@ -2500,6 +2500,34 @@ ul {
     min-height: 16px;
 }
 
+.crafted-in-india-bar {
+    background: #FAF5EC;
+    padding: 14px 6vw;
+    display: flex;
+    justify-content: flex-end; /* Align right on desktop */
+    align-items: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.crafted-in-india-bar span {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #3b3c54;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+@media (max-width: 768px) {
+    .crafted-in-india-bar {
+        justify-content: center; /* Center align on mobile */
+        padding: 12px 6vw;
+    }
+}
+
 /* ============ FOOTER ============ */
 .footer {
     background: var(--yellow);
