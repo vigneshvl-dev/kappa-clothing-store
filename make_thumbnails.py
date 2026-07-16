@@ -16,12 +16,12 @@ for i in range(1, 7):
         
     print(f"Generating thumbnail for {video_name}...")
     try:
-        # Extract frame at 0.1s
+        # Extract frame at 2.0s to avoid fade-in from black
         cmd = [
             FFMPEG_PATH,
             "-y",
             "-i", video_path,
-            "-ss", "00:00:00.100",
+            "-ss", "00:00:02.000",
             "-vframes", "1",
             thumb_path
         ]

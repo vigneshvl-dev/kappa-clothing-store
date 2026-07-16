@@ -80,7 +80,7 @@ const supabaseClient = window.supabase.createClient(
             acc_fullname: "Full Name", acc_confirm_password: "Confirm Password",
             acc_terms: 'I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a>',
             acc_create_btn: "Create Account", acc_has_account: "Already have an account?", acc_signin: "Sign In",
-            search_placeholder: "Search products, collections...",
+            search_placeholder: "Search for products...",
             cart_title: "Your Cart", cart_promo: "Promo code", cart_apply: "Apply",
             cart_shipping: "Shipping estimate", cart_subtotal: "Subtotal", cart_discount: "Discount",
             cart_total: "Total", cart_checkout: "Checkout",
@@ -278,8 +278,6 @@ const supabaseClient = window.supabase.createClient(
     /* ---------- SCROLL PROGRESS + NAVBAR / MARQUEE REVEAL ---------- */
     const progress  = document.getElementById("scrollProgress");
     const navbar    = document.getElementById("navbar");
-    const heroNav   = document.getElementById("heroNav");
-    const REVEAL_THRESHOLD = 1; // appears the instant user scrolls
     let lastY = 0;
 
     window.addEventListener("scroll", () => {
@@ -288,27 +286,11 @@ const supabaseClient = window.supabase.createClient(
         if (progress) progress.style.width = scrolled + "%";
 
         const y          = window.scrollY;
-        const isRevealed = y > REVEAL_THRESHOLD;
-
-        // Hero nav: visible at top, hidden on scroll
-        if (heroNav) heroNav.classList.toggle("hn-hidden", isRevealed);
-
-        // Pill navbar: hidden at top, revealed on scroll
-        navbar.classList.toggle("nav-revealed", isRevealed);
-
-        // Always keep navbar visible — never hide on scroll-down
-        navbar.classList.remove("hide-nav");
 
         navbar.classList.toggle("scrolled", y > 40);
         lastY = y;
         revealCheck();
     }, { passive: true });
-
-    // Wire hero nav search/cart buttons to the same overlays
-    const heroSearchInput = document.querySelector(".hn-search input");
-    const heroCartBtn   = document.getElementById("heroCartBtn");
-    if (heroSearchInput) heroSearchInput.addEventListener("focus", () => { openOverlay(searchOverlay); setTimeout(() => document.getElementById("searchInput")?.focus(), 100); });
-    if (heroCartBtn)   heroCartBtn.addEventListener("click",   () => openOverlay(cartOverlay));
 
     /* ---------- REVEAL ON SCROLL ---------- */
     function revealCheck() {
