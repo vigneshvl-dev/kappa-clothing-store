@@ -6507,47 +6507,67 @@ body.reels-page {
 }
 
 .loader-mark {
-    width: 200px;
-    height: 80px;
+    width: 320px;
+    height: 128px;
     background-image: url('https://cdn.corenexis.com/f/fRkaM2Pbrr7.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05)); /* Keep original black logo with subtle shadow */
-    animation: loaderPulse 2s infinite ease-in-out;
 }
 
-.loader-bar {
-    width: 250px;
-    height: 3px;
-    background: rgba(0, 0, 0, 0.1); /* Translucent dark container background */
-    border-radius: 4px;
-    overflow: hidden;
-    position: relative;
+/* From Uiverse.io by satyamchaudharydev */ 
+.loading {
+ --speed-of-animation: 0.9s;
+ --gap: 6px;
+ --first-color: var(--black);
+ --second-color: var(--black);
+ --third-color: var(--black);
+ --fourth-color: var(--black);
+ --fifth-color: var(--black);
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ width: 100px;
+ gap: var(--gap);
+ height: 100px;
 }
 
-#loaderFill {
-    display: block;
-    height: 100%;
-    width: 0%;
-    background: var(--black); /* Black fill progress bar on yellow screen */
-    border-radius: 4px;
-    transition: width 0.1s linear;
+.loading span {
+ width: 4px;
+ height: 50px;
+ background: var(--first-color);
+ animation: scale var(--speed-of-animation) ease-in-out infinite;
 }
 
-@keyframes loaderPulse {
-    0% {
-        transform: scale(0.95);
-        opacity: 0.8;
-    }
-    50% {
-        transform: scale(1.05);
-        opacity: 1;
-        filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
-    }
-    100% {
-        transform: scale(0.95);
-        opacity: 0.8;
-    }
+.loading span:nth-child(2) {
+ background: var(--second-color);
+ animation-delay: -0.8s;
 }
+
+.loading span:nth-child(3) {
+ background: var(--third-color);
+ animation-delay: -0.7s;
+}
+
+.loading span:nth-child(4) {
+ background: var(--fourth-color);
+ animation-delay: -0.6s;
+}
+
+.loading span:nth-child(5) {
+ background: var(--fifth-color);
+ animation-delay: -0.5s;
+}
+
+@keyframes scale {
+ 0%, 40%, 100% {
+  transform: scaleY(0.05);
+ }
+
+ 20% {
+  transform: scaleY(1);
+ }
+}
+
