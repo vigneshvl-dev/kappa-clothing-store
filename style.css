@@ -3939,6 +3939,8 @@ body.scrolled .marquee {
 }
 
 .boys-btn {
+    display: block;
+    width: fit-content;
     text-decoration: none;
     color: #111;
     border: 2px solid #111;
@@ -3946,10 +3948,14 @@ body.scrolled .marquee {
     font-weight: 700;
     letter-spacing: 1px;
     transition: .35s;
-    margin-left: 900px;
-    margin-top: 100px;
-    position: relative;
-    top: -60px;
+    text-align: center;
+    margin: 20px auto;
+}
+
+@media(min-width: 1024px) {
+    .boys-btn {
+        margin: 20px 6% 20px auto;
+    }
 }
 
 .boys-btn:hover {
@@ -4154,15 +4160,22 @@ body.scrolled .marquee {
 }
 
 .girls-btn {
+    display: block;
+    width: fit-content;
     padding: 12px 28px;
     border: 2px solid #111;
     color: #111;
     text-decoration: none;
     font-weight: 700;
     transition: .35s;
-    margin-left: 900px;
-    position: relative;
-    top: -60px;
+    text-align: center;
+    margin: 20px auto;
+}
+
+@media(min-width: 1024px) {
+    .girls-btn {
+        margin: 20px 6% 20px auto;
+    }
 }
 
 .girls-btn:hover {
