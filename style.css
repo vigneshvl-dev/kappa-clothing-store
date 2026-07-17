@@ -354,7 +354,7 @@ body.home-page .navbar.scrolled {
     transition: stroke .25s ease;
 }
 
-.badge {
+.cart-btn .badge {
     position: absolute;
     top: -2px;
     right: -2px;
@@ -372,6 +372,8 @@ body.home-page .navbar.scrolled {
     align-items: center;
     justify-content: center;
     font-family: var(--font-mono);
+    letter-spacing: normal;
+    box-sizing: border-box;
 }
 
 .icon-btn:hover {
@@ -1380,6 +1382,7 @@ body.home-page .navbar.scrolled {
 
     .hero {
         position: relative;
+        height: 60vh;
         min-height: 70vw;
         padding: 90px 20px 40px;
         display: flex;
@@ -1391,10 +1394,10 @@ body.home-page .navbar.scrolled {
 
     /* Show FULL background image */
     .hero-slide {
-        background-size: cover !important;
+        background-size: 100% auto !important;
         background-repeat: no-repeat;
-        background-position: center top;
-        background-color: #000;
+        background-position: center center;
+        background-color: var(--yellow);
     }
 
     /* Light overlay so image stays visible */
@@ -4318,7 +4321,11 @@ body.scrolled .marquee {
 /* Mobile: hamburger | centred logo | actions */
 @media (max-width: 768px) {
     .navbar {
-        position: relative;
+        position: fixed;
+        top: var(--marquee-h);
+        left: 0;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* Show hamburger */
@@ -4331,7 +4338,8 @@ body.scrolled .marquee {
     .navbar .nav-logo {
         position: absolute;
         left: 50%;
-        transform: translateX(-50%);
+        top: 50%;
+        transform: translate(-50%, -50%);
     }
 
     .navbar .nav-logo img {
@@ -4344,6 +4352,34 @@ body.scrolled .marquee {
         margin-left: auto;
         order: 3;
         gap: 2px;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-box {
+        width: 40px;
+        height: 40px;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: background .25s ease, transform .25s ease;
+    }
+
+    .search-box:hover {
+        background: rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .search-box input {
+        display: none;
+    }
+
+    .search-box svg {
+        position: static;
+        width: 20px;
+        height: 20px;
+        stroke: #3b3c54;
+        pointer-events: auto;
     }
 }
 
