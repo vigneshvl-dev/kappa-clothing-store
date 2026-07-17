@@ -146,6 +146,13 @@ function stars(rating) {
 }
 
     /* ---------- LOADER ---------- */
+    function initMarquee() {
+        const marquee = document.querySelector(".marquee");
+        if (marquee) {
+            marquee.classList.add("start-marquee");
+        }
+    }
+
     function hideLoader() {
         const loader = document.getElementById("loader");
         if (loader && !loader.classList.contains("hide")) {
@@ -153,6 +160,7 @@ function stars(rating) {
             document.body.style.overflow = "";
             revealCheck();
             startHeroSlideshow(); // Start slideshow transitions after loader is hidden
+            initMarquee(); // Start marquee animations after loader is hidden
         }
     }
     // Only run loader logic if the loader element exists on the page
@@ -170,6 +178,9 @@ function stars(rating) {
         });
         // Safety fallback: ensure loader closes after 3 seconds
         setTimeout(hideLoader, 3000);
+    } else {
+        // If no loader, start marquee immediately
+        initMarquee();
     }
 
     /* ---------- HERO SLIDESHOW ---------- */
@@ -216,17 +227,20 @@ function stars(rating) {
     const navbar = document.getElementById("navbar");
     let lastY = 0;
 
-    window.addEventListener("scroll", () => {
+    function handleScroll() {
         const h = document.documentElement;
         const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
         if (progress) progress.style.width = scrolled + "%";
-
         const y = window.scrollY;
-
-        navbar.classList.toggle("scrolled", y > 40);
+        const isScrolled = y > 40;
+        document.body.classList.toggle("scrolled", isScrolled);
+        if (navbar) navbar.classList.toggle("scrolled", isScrolled);
         lastY = y;
         revealCheck();
-    }, { passive: true });
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Run once initially to style page if scrolled on load
+    handleScroll();
 
     /* ---------- REVEAL ON SCROLL ---------- */
     function revealCheck() {

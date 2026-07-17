@@ -123,17 +123,21 @@ ul {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-    transition: transform .4s ease, background .4s ease, box-shadow .4s ease;
+    transition: transform .4s ease, background .4s ease, box-shadow .4s ease, top .3s ease;
 }
 
 /* Hide on rapid scroll-down — keep a quick hide slide */
 .navbar.hide-nav {
     transform: translateY(-110%);
-    transition: transform .4s var(--ease), box-shadow .4s ease;
+    transition: transform .4s var(--ease), box-shadow .4s ease, top .3s ease;
 }
 
 .navbar.scrolled {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+body.scrolled .navbar {
+    top: 0;
 }
 
 /* Homepage-specific header overlay pattern */
@@ -480,6 +484,10 @@ body.home-page .navbar.scrolled {
     .mobile-menu {
         top: calc(var(--marquee-h) + var(--nav-h) + 16px);
         z-index: 1002;
+    }
+
+    body.scrolled .mobile-menu {
+        top: calc(var(--nav-h) + 16px);
     }
 }
 
@@ -1501,6 +1509,7 @@ body.home-page .navbar.scrolled {
     border-bottom: 1px solid rgba(255, 255, 255, .08);
     /* Always visible + stable — no slide-in on scroll */
     transform: translateY(0);
+    transition: transform 0.3s ease;
 }
 
 /* (kept for backwards-compat; bar is always shown) */
@@ -1508,31 +1517,40 @@ body.home-page .navbar.scrolled {
     transform: translateY(0);
 }
 
+body.scrolled .marquee {
+    transform: translateY(-100%);
+}
 
 .marquee-static {
     position: absolute;
-    width: 100%;
-    text-align: center;
-    left: 0;
+    left: 50%;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translate(-50%, -50%);
     font-family: var(--font-mono);
     font-size: 14px;
     letter-spacing: 2px;
     white-space: nowrap;
     text-transform: uppercase;
-    animation: fadeOutStatic 0.5s ease forwards;
-    animation-delay: 3s;
     z-index: 2;
     pointer-events: none;
+    color: var(--white);
+    opacity: 1;
+}
+
+.marquee.start-marquee .marquee-static {
+    animation: fadeOutStatic 0.5s ease forwards;
+    animation-delay: 3s;
 }
 
 .marquee-track {
     display: flex;
     width: max-content;
+    opacity: 0;
+}
+
+.marquee.start-marquee .marquee-track {
     animation: marqueeScroll 22s linear infinite, fadeInTrack 0.5s ease forwards;
     animation-delay: 3.5s, 3.5s;
-    opacity: 0;
 }
 
 .marquee-track span {
