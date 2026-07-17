@@ -2777,7 +2777,7 @@ body.scrolled .marquee {
 
 .crafted-in-india-bar {
     background: #FAF5EC;
-    padding: 14px 6vw;
+       padding: 28px 6vw;
     display: flex;
     justify-content: center;
     /* Center align on all devices */
