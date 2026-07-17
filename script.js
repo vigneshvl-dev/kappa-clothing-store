@@ -152,6 +152,7 @@ function stars(rating) {
             loader.classList.add("hide");
             document.body.style.overflow = "";
             revealCheck();
+            startHeroSlideshow(); // Start slideshow transitions after loader is hidden
         }
     }
     document.addEventListener("DOMContentLoaded", () => {
@@ -171,6 +172,7 @@ function stars(rating) {
     /* ---------- HERO SLIDESHOW ---------- */
     const heroSlides = document.querySelectorAll(".hero-slide");
     let currentSlide = 0;
+    let heroSlideshowInterval = null;
     function nextSlide() {
         if (heroSlides.length === 0) return;
         heroSlides.forEach(slide => slide.classList.remove("previous"));
@@ -179,8 +181,10 @@ function stars(rating) {
         currentSlide = (currentSlide + 1) % heroSlides.length;
         heroSlides[currentSlide].classList.add("active");
     }
-    if (heroSlides.length > 1) {
-        setInterval(nextSlide, 3000);
+    function startHeroSlideshow() {
+        if (heroSlides.length > 1 && !heroSlideshowInterval) {
+            heroSlideshowInterval = setInterval(nextSlide, 3000);
+        }
     }
     /* ---------- HAMBURGER / MOBILE MENU ---------- */
     const glow = document.getElementById("cursorGlow");
