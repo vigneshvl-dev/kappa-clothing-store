@@ -158,15 +158,14 @@ function stars(rating) {
         const fill = document.getElementById("loaderFill");
         let p = 0;
         const iv = setInterval(() => {
-            p += Math.random() * 18;
+            p += 1;
             if (p >= 100) { p = 100; clearInterval(iv); }
             if (fill) fill.style.width = p + "%";
-        }, 110);
-        setTimeout(hideLoader, 1200);
+        }, 30); // 100 steps of 30ms = 3000ms (3 seconds)
+        setTimeout(hideLoader, 3000);
     });
-    // Safety fallback: never stay black for more than 2s
-    window.addEventListener("load", () => setTimeout(hideLoader, 200));
-    setTimeout(hideLoader, 2000);
+    // Safety fallback: ensure loader closes after 3 seconds
+    setTimeout(hideLoader, 3000);
     document.body.style.overflow = "hidden";
 
     /* ---------- HERO SLIDESHOW ---------- */
