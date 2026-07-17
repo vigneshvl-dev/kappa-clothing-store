@@ -2920,6 +2920,35 @@ body.scrolled .marquee {
 }
 
 /* ============ FOOTER MOBILE ============ */
+/* ===========================
+   MOBILE FOOTER FIX
+=========================== */
+
+@media (max-width:768px){
+
+html,
+body{
+    margin:0;
+    padding:0;
+    overflow-x:hidden;
+    background:var(--yellow);
+}
+
+footer{
+    margin:0;
+    padding-bottom:25px;
+}
+
+.footer-bottom{
+    margin-bottom:0;
+    padding-bottom:20px;
+}
+
+body > *:last-child{
+    margin-bottom:0 !important;
+}
+
+}
 @media (max-width: 860px) {
     .footer {
         min-height: 100vh;
