@@ -255,17 +255,25 @@ function stars(rating) {
     /* ---------- HAMBURGER / MOBILE MENU ---------- */
     const heroHamburger = document.getElementById("heroHamburger");
     const mobileMenu = document.getElementById("mobileMenu");
+    const mobileMenuClose = document.getElementById("mobileMenuClose");
 
     function toggleMenu() {
         const isOpen = mobileMenu.classList.toggle("open");
         if (heroHamburger) heroHamburger.classList.toggle("open", isOpen);
+        document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+
+    function closeMenu() {
+        mobileMenu.classList.remove("open");
+        if (heroHamburger) heroHamburger.classList.remove("open");
+        document.body.style.overflow = "";
     }
 
     if (heroHamburger) heroHamburger.addEventListener("click", toggleMenu);
+    if (mobileMenuClose) mobileMenuClose.addEventListener("click", closeMenu);
 
     mobileMenu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => {
-        if (heroHamburger) heroHamburger.classList.remove("open");
-        mobileMenu.classList.remove("open");
+        closeMenu();
     }));
 
     /* ---------- SMOOTH NAV LINKS ---------- */
