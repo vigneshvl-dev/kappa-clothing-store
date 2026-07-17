@@ -1509,10 +1509,30 @@ body.home-page .navbar.scrolled {
 }
 
 
+.marquee-static {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    animation: fadeOutStatic 0.5s ease forwards;
+    animation-delay: 3s;
+    z-index: 2;
+    pointer-events: none;
+}
+
 .marquee-track {
     display: flex;
     width: max-content;
-    animation: marqueeScroll 22s linear infinite;
+    animation: marqueeScroll 22s linear infinite, fadeInTrack 0.5s ease forwards;
+    animation-delay: 3.5s, 3.5s;
+    opacity: 0;
 }
 
 .marquee-track span {
@@ -1530,6 +1550,19 @@ body.home-page .navbar.scrolled {
 
     to {
         transform: translateX(-50%);
+    }
+}
+
+@keyframes fadeOutStatic {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+@keyframes fadeInTrack {
+    to {
+        opacity: 1;
     }
 }
 
