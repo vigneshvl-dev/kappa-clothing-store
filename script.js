@@ -155,19 +155,22 @@ function stars(rating) {
             startHeroSlideshow(); // Start slideshow transitions after loader is hidden
         }
     }
-    document.addEventListener("DOMContentLoaded", () => {
-        const fill = document.getElementById("loaderFill");
-        let p = 0;
-        const iv = setInterval(() => {
-            p += 1;
-            if (p >= 100) { p = 100; clearInterval(iv); }
-            if (fill) fill.style.width = p + "%";
-        }, 30); // 100 steps of 30ms = 3000ms (3 seconds)
+    // Only run loader logic if the loader element exists on the page
+    if (document.getElementById("loader")) {
+        document.body.style.overflow = "hidden";
+        document.addEventListener("DOMContentLoaded", () => {
+            const fill = document.getElementById("loaderFill");
+            let p = 0;
+            const iv = setInterval(() => {
+                p += 1;
+                if (p >= 100) { p = 100; clearInterval(iv); }
+                if (fill) fill.style.width = p + "%";
+            }, 30); // 100 steps of 30ms = 3000ms (3 seconds)
+            setTimeout(hideLoader, 3000);
+        });
+        // Safety fallback: ensure loader closes after 3 seconds
         setTimeout(hideLoader, 3000);
-    });
-    // Safety fallback: ensure loader closes after 3 seconds
-    setTimeout(hideLoader, 3000);
-    document.body.style.overflow = "hidden";
+    }
 
     /* ---------- HERO SLIDESHOW ---------- */
     const heroSlides = document.querySelectorAll(".hero-slide");
