@@ -2933,7 +2933,20 @@ body.scrolled .marquee {
 
     .footer-illustration img {
         width: min(100%, 760px);
+         position:absolute;
+        bottom:0;
+        left:50%;
+        transform:translateX(-50%);
     }
+}
+@media (max-width:768px){
+
+html,
+body{
+    margin:0;
+    padding:0;
+    overflow-x:hidden;
+    background:var(--yellow);
 }
 
 @media(max-width:520px) {
@@ -2962,7 +2975,7 @@ body.scrolled .marquee {
         align-items: center;
         text-align: center;
     }
-}
+}}
 
 /* ============ OVERLAYS ============ */
 .overlay {
