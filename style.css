@@ -3356,7 +3356,7 @@ body.home-page .navbar.scrolled {
 .reels-slider-container {
     position: relative;
     width: 100%;
-    overflow: visible;
+    overflow: hidden;
     padding: 60px 0 80px;
 }
 
