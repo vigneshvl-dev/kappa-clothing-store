@@ -1251,14 +1251,18 @@ body.home-page .navbar.scrolled {
 @media (max-width: 768px) {
     .hero-cta-wrap {
         bottom: 100px;
-        /* high enough so it doesn't collide with mobile bottom nav bar */
-        left: 5%;
+        left: 20px;
+        right: auto;
+        transform: none;
+        width: auto;
     }
 
     .hero-shop-btn {
-        padding: 12px 28px;
-        font-size: 13px;
-        gap: 8px;
+       padding: 8px 19px;
+        font-size: 10px;
+        gap: 10px;
+        max-width: calc(100% - 40px);
+        white-space: nowrap;
     }
 }
 
