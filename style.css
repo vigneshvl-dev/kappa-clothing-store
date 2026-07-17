@@ -222,6 +222,21 @@ body.home-page .navbar.scrolled {
     flex-shrink: 0;
 }
 
+@media (max-width: 768px) {
+    .nav-actions {
+        gap: 8px;
+    }
+    .search-box {
+        order: 2;
+    }
+    .cart-btn {
+        order: 1;
+    }
+    .profile-btn {
+        order: 3;
+    }
+}
+
 .lang-select {
     position: relative;
     display: flex;
@@ -5342,6 +5357,12 @@ body {
     width: 100%;
     max-width: 1000px;
     align-items: stretch;
+}
+
+@media (max-width: 768px) {
+    .editorial-grid-two {
+        grid-template-columns: 1fr;
+    }
 }
 
 .editorial-card {
