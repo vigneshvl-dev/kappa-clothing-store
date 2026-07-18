@@ -51,7 +51,7 @@
             cursor: pointer;
             transition: color 0.2s;
         }
-        .cat-parent:hover, .cat-parent.active { color: #FFD700; }
+        .cat-parent:hover, .cat-parent.active { color: #111; font-weight: 700; text-decoration: underline; }
         .cat-children {
             padding-left: 10px;
             margin-bottom: 15px;
@@ -65,7 +65,7 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        .cat-child:hover, .cat-child.active { color: #111; font-weight: 600; }
+        .cat-child:hover, .cat-child.active { color: #111; font-weight: 700; }
         .btn-view-all {
             font-size: 11px;
             font-weight: 700;
@@ -74,6 +74,7 @@
             margin-bottom: 20px;
             display: block;
         }
+        .btn-view-all.active { color: #111; text-decoration: underline; }
 
         /* --- PRODUCT GRID --- */
         .product-area { flex-grow: 1; }
@@ -91,25 +92,6 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 30px;
         }
-        .zara-card { cursor: pointer; transition: opacity 0.3s; }
-        .zara-card:hover { opacity: 0.8; }
-        .zara-card img {
-            width: 100%;
-            aspect-ratio: 3/4;
-            object-fit: cover;
-            background: #f9f9f9;
-            margin-bottom: 12px;
-            display: block;
-        }
-        .zara-card-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #111;
-        }
-        .zara-card-name { font-weight: 500; }
-        .zara-card-price { font-weight: 700; }
         .empty-state { grid-column: 1 / -1; text-align: center; padding: 50px; color: #777; font-size: 12px; text-transform: uppercase; }
 
         /* Responsive */
@@ -136,7 +118,7 @@
         <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="filter-title">COLLECTION</div>
-            <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS')">View All</div>
+            <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS', this)">View All</div>
             <div id="dynamic-categories">
                 <!-- Categories loaded via JS -->
                 <div style="font-size: 10px; color: #999;">Loading filters...</div>
@@ -157,7 +139,6 @@
 
     <!-- EXECUTION LOGIC SCRIPTS -->
     <script>
-        // REPLACE WITH YOUR ACTUAL SUPABASE KEYS
         const supabaseUrl = 'https://ugphxapfbzcrauchwlef.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38';
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -167,20 +148,20 @@
         async function initShop() {
             await fetchCategories();
             
-            // Check if user came from homepage with a specific filter (e.g., ?filter=men)
             const urlParams = new URLSearchParams(window.location.search);
             const filterParam = urlParams.get('filter');
             
             if (filterParam) {
-                // Try to find the category matching the filter param
                 const targetCat = allCategoriesData.find(c => c.slug.toLowerCase() === filterParam.toLowerCase() || c.name.toLowerCase() === filterParam.toLowerCase());
                 if (targetCat) {
-                    loadShopProducts(targetCat.id, targetCat.name);
+                    const elements = Array.from(document.querySelectorAll('.cat-parent'));
+                    const targetEl = elements.find(el => el.textContent.trim().toLowerCase() === targetCat.name.toLowerCase());
+                    loadShopProducts(targetCat.id, targetCat.name, targetEl);
                 } else {
-                    loadShopProducts(null, 'ALL PRODUCTS');
+                    loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'));
                 }
             } else {
-                loadShopProducts(null, 'ALL PRODUCTS'); // Load all by default
+                loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'));
             }
         }
 
@@ -193,21 +174,31 @@
             if (error || !data) return;
             allCategoriesData = data;
 
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterParam = urlParams.get('filter');
+
             const roots = data.filter(c => !c.parent_id);
             const children = data.filter(c => c.parent_id);
             const container = document.getElementById('dynamic-categories');
             let html = '';
 
             roots.forEach(root => {
+                const rootName = (root.name || '').toLowerCase();
+                const isMensRoot = rootName === 'men' || rootName === "men's" || rootName === 'boys';
+                const isWomensRoot = rootName === 'women' || rootName === "women's" || rootName === 'girls';
+                
+                if (filterParam === 'men' && !isMensRoot) return;
+                if (filterParam === 'women' && !isWomensRoot) return;
+
                 html += `
                     <div class="filter-group">
-                        <div class="cat-parent" onclick="loadShopProducts('${root.id}', '${root.name}')">${root.name}</div>
+                        <div class="cat-parent" onclick="loadShopProducts('${root.id}', '${root.name}', this)">${root.name}</div>
                         <ul class="cat-children">
                 `;
                 
                 const myChildren = children.filter(c => c.parent_id === root.id);
                 myChildren.forEach(child => {
-                    html += `<li class="cat-child" onclick="loadShopProducts('${child.id}', '${child.name}')">${child.name}</li>`;
+                    html += `<li class="cat-child" onclick="loadShopProducts('${child.id}', '${child.name}', this)">${child.name}</li>`;
                 });
                 
                 html += `</ul></div>`;
@@ -216,17 +207,19 @@
             container.innerHTML = html;
         }
 
-        async function loadShopProducts(categoryId, categoryName) {
-            // Update UI Titles
+        async function loadShopProducts(categoryId, categoryName, clickedElement) {
+            if (clickedElement) {
+                document.querySelectorAll('.cat-parent, .cat-child, .btn-view-all').forEach(el => el.classList.remove('active'));
+                clickedElement.classList.add('active');
+            }
+
             document.getElementById('current-category-title').innerText = categoryName.toUpperCase();
             document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading...</div>';
 
             let targetCategoryIds = [];
 
-            // Bulletproof parent/child family logic
             if (categoryId) {
                 targetCategoryIds.push(categoryId); 
-                // Find if this is a parent, and if so, grab all its children so they show up too
                 allCategoriesData.forEach(c => {
                     if (c.parent_id === categoryId && !targetCategoryIds.includes(c.id)) {
                         targetCategoryIds.push(c.id);
@@ -234,13 +227,11 @@
                 });
             }
 
-            // Query Supabase
             let query = supabaseClient
                 .from('products')
                 .select('*, product_images(url, position)')
                 .eq('is_active', true);
 
-            // Apply filter if a category was clicked
             if (targetCategoryIds.length > 0) {
                 query = query.in('category_id', targetCategoryIds);
             }
@@ -253,32 +244,101 @@
                 return;
             }
 
-            // Update product count
             document.getElementById('product-count').innerText = `${products.length} ITEM${products.length !== 1 ? 'S' : ''}`;
 
-            // Render Grid
             if (products.length === 0) {
                 document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">No products found in this category.</div>';
                 return;
             }
 
-            let html = products.map(item => {
-                let imgs = item.product_images || [];
-                imgs.sort((a, b) => a.position - b.position);
-                const imgUrl = imgs.length > 0 ? imgs[0].url : 'assets/sleeping sis.png';
+            let html = products.map(product => {
+                const uniqueColorImages = [];
+                const seenColors = new Set();
+                (product.product_images || []).forEach(img => {
+                    const parts = img.url.split('#');
+                    const cleanUrl = parts[0];
+                    const color = parts[1] || 'Default';
+                    if (!seenColors.has(color)) {
+                        seenColors.add(color);
+                        uniqueColorImages.push({ color, url: cleanUrl });
+                    }
+                });
+
+                let imageUrl = 'assets/sleeping sis.png';
+                if (uniqueColorImages.length > 0) {
+                    imageUrl = uniqueColorImages[0].url;
+                } else if (product.product_images && product.product_images.length > 0) {
+                    product.product_images.sort((a, b) => (a.position || 0) - (b.position || 0));
+                    imageUrl = product.product_images[0].url || imageUrl;
+                    uniqueColorImages.push({ color: 'Default', url: imageUrl });
+                } else {
+                    uniqueColorImages.push({ color: 'Default', url: imageUrl });
+                }
+
+                // Create thumbnails HTML
+                const maxThumbs = 4;
+                let thumbsHTML = '';
+                uniqueColorImages.slice(0, maxThumbs).forEach((item, idx) => {
+                    const isActive = idx === 0;
+                    thumbsHTML += `
+                        <img class="boys-card-thumb ${isActive ? 'active' : ''}" 
+                             src="${item.url}" 
+                             alt="${item.color}"
+                             title="${item.color}"
+                             onclick="event.preventDefault(); event.stopPropagation(); changeCardColor(this, '${item.color.replace(/'/g, "\\'")}', '${item.url}')">
+                    `;
+                });
+
+                if (uniqueColorImages.length > maxThumbs) {
+                    thumbsHTML += `
+                        <span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">
+                            +${uniqueColorImages.length - maxThumbs}
+                        </span>
+                    `;
+                }
+
+                const comparePriceHTML = product.compare_at_price ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>` : '';
+
                 return `
-                    <div class="zara-card" onclick="window.location.href='product.html?slug=${item.slug}'">
-                        <img src="${imgUrl}" alt="${item.name}">
-                        <div class="zara-card-info">
-                            <span class="zara-card-name">${item.name}</span>
-                            <span class="zara-card-price">₹${item.price}</span>
+                    <div class="boys-card" 
+                         style="position: relative;"
+                         onclick="window.location.href='product.html?slug=${product.slug || product.id}'">
+                        <span class="boys-badge">NEW</span>
+                        
+                        <img class="boys-card-img" src="${imageUrl}" alt="Product Image">
+                        
+                        <!-- Color Selector Thumbnails -->
+                        <div class="boys-card-thumbs">
+                            ${thumbsHTML}
                         </div>
+
+                        <h3>${product.name || 'Untitled Product'}</h3>
+                        <p class="boys-price">₹${product.price || 0} ${comparePriceHTML}</p>
                     </div>
                 `;
             }).join('');
 
             document.getElementById('shop-product-grid').innerHTML = html;
         }
+
+        // --- COLOR SWITCHER ACTION ---
+        window.changeCardColor = function(thumbElement, colorName, imageUrl) {
+            const card = thumbElement.closest('.boys-card');
+            if (!card) return;
+
+            // Update main image URL
+            const mainImg = card.querySelector('.boys-card-img');
+            if (mainImg) mainImg.src = imageUrl;
+
+            // Remove active styling from all sibling thumbnails, and add to current one
+            const thumbs = card.querySelectorAll('.boys-card-thumb');
+            thumbs.forEach(t => {
+                t.style.border = '1px solid #ddd';
+                t.classList.remove('active');
+            });
+            thumbElement.style.border = '2px solid #111';
+            thumbElement.classList.add('active');
+        };
 
         // Boot up the page
         document.addEventListener('DOMContentLoaded', initShop);
