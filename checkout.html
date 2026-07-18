@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - KAPPA</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .checkout-layout {
+            max-width: 1200px;
+            margin: 45px auto;
+            padding: 0 40px;
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 50px;
+        }
+        .checkout-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            border: 1px solid #eee;
+        }
+        .checkout-section h2 {
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 25px;
+            color: #111;
+            border-bottom: 2px solid #FFD700;
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .checkout-layout { grid-template-columns: 1fr; padding: 0 20px; }
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .form-group input, .form-group select {
+            padding: 12px;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #111;
+            outline: none;
+        }
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .payment-method {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .payment-method.active {
+            border-color: #111;
+            background: #fafafa;
+        }
+        .payment-method input[type="radio"] {
+            accent-color: #111;
+        }
+        .card-details {
+            display: none;
+            margin-top: 15px;
+            padding-left: 15px;
+            border-left: 2px solid #111;
+        }
+        .order-summary-sidebar {
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 30px;
+            height: fit-content;
+        }
+        .summary-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            color: #111;
+        }
+        .summary-items {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .summary-item img {
+            width: 50px;
+            height: 65px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #fff;
+            border: 1px solid #eee;
+        }
+        .item-info {
+            flex-grow: 1;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 4px;
+        }
+        .item-meta {
+            font-size: 11px;
+            color: #777;
+        }
+        .item-price {
+            font-weight: 700;
+            color: #111;
+        }
+        .promo-block {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        .promo-block input {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .promo-block button {
+            padding: 10px 20px;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+        .summary-line.total {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+        .btn-order {
+            width: 100%;
+            padding: 15px;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 20px;
+        }
+        .btn-order:hover {
+            background: #333;
+        }
+        /* Success Screen Overlay */
+        .success-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #fff;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 40px;
+        }
+        .success-box {
+            max-width: 500px;
+        }
+        .success-box h1 {
+            font-size: 32px;
+            font-weight: 800;
+            color: #111;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .success-box p {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .success-icon {
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER (Kappa Yellow) -->
+    <header style="background-color: #FFD700; border-bottom: 1px solid #e0c200;">
+        <div style="max-width: 1400px; margin: 0 auto; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;">
+            <nav style="font-size: 12px; font-weight: 500; display: flex; gap: 20px;">
+                <a href="index.html" style="text-decoration: none; color: black; font-weight: 600;">Home</a>
+                <a href="about.html" style="text-decoration: none; color: black; font-weight: 600;">About</a>
+                <a href="shop.html" style="text-decoration: none; color: black; font-weight: 600;">Shop</a>
+                <a href="contact.html" style="text-decoration: none; color: black; font-weight: 600;">Contact</a>
+            </nav>
+            <a href="index.html" style="text-decoration: none; color: black; font-weight: 800; font-size: 20px; letter-spacing: 2px; text-transform: uppercase;">KAPPA</a>
+            <div style="font-size: 12px; font-weight: 500; color: black;">🛒 Checkout</div>
+        </div>
+    </header>
+
+    <div class="checkout-layout">
+        <!-- Billing Details Form -->
+        <div class="checkout-section">
+            <h2>Shipping &amp; Billing Details</h2>
+            <form id="shipping-form" onsubmit="handlePlaceOrder(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bill-name">Full Name *</label>
+                        <input type="text" id="bill-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bill-email">Email Address *</label>
+                        <input type="email" id="bill-email" placeholder="john@example.com" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bill-phone">Phone Number *</label>
+                        <input type="tel" id="bill-phone" placeholder="10-digit mobile number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bill-address">Shipping Address *</label>
+                        <input type="text" id="bill-address" placeholder="Apartment, suite, unit, street address" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bill-state">State *</label>
+                        <select id="bill-state" required>
+                            <option value="">Select State</option>
+                            <option value="Kerala">Kerala</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Delhi">Delhi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bill-zip">Postal / ZIP Code *</label>
+                        <input type="text" id="bill-zip" placeholder="695001" required>
+                    </div>
+                </div>
+
+                <h2 style="margin-top:35px;">Payment Method</h2>
+                <div class="payment-methods">
+                    <div class="payment-method active" onclick="selectPayment('cod')">
+                        <input type="radio" id="pay-cod" name="payment" checked>
+                        <div>
+                            <strong style="display:block; font-size:13px; color:#111;">Cash on Delivery (COD)</strong>
+                            <span style="font-size:11px; color:#666;">Pay with cash upon delivery of items.</span>
+                        </div>
+                    </div>
+
+                    <div class="payment-method" onclick="selectPayment('card')">
+                        <input type="radio" id="pay-card" name="payment">
+                        <div>
+                            <strong style="display:block; font-size:13px; color:#111;">Credit or Debit Card</strong>
+                            <span style="font-size:11px; color:#666;">All major Indian cards supported. Secured via mock gateway.</span>
+                        </div>
+                    </div>
+
+                    <!-- Online Card Input Fields -->
+                    <div class="card-details" id="card-details-panel">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label for="card-num">Card Number</label>
+                            <input type="text" id="card-num" placeholder="4111 2222 3333 4444" pattern="\d{16}" title="16-digit card number">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="card-expiry">Expiry Date</label>
+                                <input type="text" id="card-expiry" placeholder="MM/YY">
+                            </div>
+                            <div class="form-group">
+                                <label for="card-cvv">CVV</label>
+                                <input type="password" id="card-cvv" placeholder="123" maxlength="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-order">Place Order</button>
+            </form>
+        </div>
+
+        <!-- Order Summary Sidebar -->
+        <div class="order-summary-sidebar">
+            <h2 class="summary-title">Order Summary</h2>
+            <div class="summary-items" id="summary-items-list">
+                <!-- Loaded from localStorage -->
+            </div>
+
+            <div class="promo-block">
+                <input type="text" id="promo-input" placeholder="Promo code">
+                <button type="button" onclick="applyPromo()">Apply</button>
+            </div>
+            <p id="promo-status" style="font-size:11px; margin-bottom:15px; font-weight:600;"></p>
+
+            <div class="summary-line">
+                <span>Subtotal</span>
+                <span id="sum-subtotal">₹0</span>
+            </div>
+            <div class="summary-line">
+                <span>Discount</span>
+                <span id="sum-discount">− ₹0</span>
+            </div>
+            <div class="summary-line">
+                <span>Shipping</span>
+                <span id="sum-shipping">₹0</span>
+            </div>
+            <div class="summary-line total">
+                <span>Total</span>
+                <span id="sum-total">₹0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Screen Overlay -->
+    <div class="success-overlay" id="success-overlay">
+        <div class="success-box">
+            <div class="success-icon">✓</div>
+            <h1>Order Placed!</h1>
+            <p>Thank you for shopping with KAPPA. Your order has been successfully placed and registered under Order ID: <strong id="success-order-id"></strong>.</p>
+            <p style="font-size:13px; color:#888;">You can track this order inside your account profile dashboard at any time.</p>
+            <button class="btn-order" onclick="window.location.href='index.html'" style="display:inline-block; width:auto; padding: 12px 30px;">Continue Shopping</button>
+        </div>
+    </div>
+
+    <footer style="margin: 60px auto 30px; text-align: center; font-size: 12px; color: #a7a7a7; max-width: 1400px; border-top: 1px solid #eee; padding-top: 20px;">
+        <p>© 2026 KAPPA. All rights reserved. Designed by Hyna Studio</p>
+    </footer>
+
+    <script>
+        const supabaseUrl = 'https://ugphxapfbzcrauchwlef.supabase.co'; 
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let cartItems = [];
+        let shippingCost = 0;
+        let discountPercent = 0;
+
+        function loadCheckoutDetails() {
+            try {
+                cartItems = JSON.parse(localStorage.getItem("kappa_checkout_cart") || "[]");
+                if (cartItems.length === 0) {
+                    // Fallback to active cart if checkout cart is missing
+                    cartItems = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
+                }
+                shippingCost = Number(localStorage.getItem("kappa_checkout_shipping") || 0);
+                discountPercent = Number(localStorage.getItem("kappa_checkout_discount") || 0);
+            } catch (e) {
+                cartItems = [];
+            }
+
+            renderSummary();
+        }
+
+        function renderSummary() {
+            const list = document.getElementById("summary-items-list");
+            if (cartItems.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding:20px; font-size:12px; color:#888;">Your cart is empty.</div>`;
+                return;
+            }
+
+            list.innerHTML = cartItems.map(item => `
+                <div class="summary-item">
+                    <img src="${item.img}" alt="${item.name}">
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-meta">Size: ${item.size} &nbsp;|&nbsp; Qty: ${item.qty}</div>
+                    </div>
+                    <div class="item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
+                </div>
+            `).join('');
+
+            const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            const discountAmt = Math.round(subtotal * discountPercent);
+            const total = Math.max(subtotal - discountAmt + shippingCost, 0);
+
+            document.getElementById("sum-subtotal").textContent = "₹" + subtotal.toLocaleString('en-IN');
+            document.getElementById("sum-discount").textContent = "− ₹" + discountAmt.toLocaleString('en-IN');
+            document.getElementById("sum-shipping").textContent = "₹" + shippingCost.toLocaleString('en-IN');
+            document.getElementById("sum-total").textContent = "₹" + total.toLocaleString('en-IN');
+        }
+
+        function applyPromo() {
+            const code = document.getElementById("promo-input").value.trim().toUpperCase();
+            const status = document.getElementById("promo-status");
+
+            if (code === "KAPPA10") {
+                discountPercent = 0.10;
+                status.textContent = "10% OFF APPLIED ✓";
+                status.style.color = "green";
+            } else if (code === "KAPPA20") {
+                discountPercent = 0.20;
+                status.textContent = "20% OFF APPLIED ✓";
+                status.style.color = "green";
+            } else {
+                discountPercent = 0;
+                status.textContent = "INVALID PROMO CODE";
+                status.style.color = "red";
+            }
+
+            renderSummary();
+        }
+
+        function selectPayment(mode) {
+            const codRadio = document.getElementById("pay-cod");
+            const cardRadio = document.getElementById("pay-card");
+            const cardPanel = document.getElementById("card-details-panel");
+            const methods = document.querySelectorAll(".payment-method");
+
+            if (mode === 'cod') {
+                codRadio.checked = true;
+                cardRadio.checked = false;
+                cardPanel.style.display = "none";
+                methods[0].classList.add("active");
+                methods[1].classList.remove("active");
+                document.getElementById("card-num").required = false;
+            } else {
+                codRadio.checked = false;
+                cardRadio.checked = true;
+                cardPanel.style.display = "block";
+                methods[0].classList.remove("active");
+                methods[1].classList.add("active");
+                document.getElementById("card-num").required = true;
+            }
+        }
+
+        async function handlePlaceOrder(event) {
+            event.preventDefault();
+
+            if (cartItems.length === 0) {
+                alert("Your cart is empty!");
+                return;
+            }
+
+            const orderId = "KP-" + Math.floor(100000 + Math.random() * 900000);
+
+            // Fetch session status to bind order to correct account
+            let userId = "guest";
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session && session.user) {
+                    userId = session.user.id;
+                }
+            } catch (_) {}
+
+            const itemsLabel = cartItems.map(c => `${c.name} (${c.size}) x${c.qty}`).join(', ');
+
+            // Order Payload matching script.js orders structure
+            const newOrder = {
+                id: orderId,
+                platform: "Kappa Store",
+                platformClass: "kappa",
+                date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                items: itemsLabel,
+                status: "Processing",
+                statusDesc: "Order received. Preparing items.",
+                progress: 25,
+                steps: ["Ordered", "Shipped", "Out for Delivery", "Delivered"],
+                activeStepIndex: 0
+            };
+
+            // Save to profile orders
+            const customOrdersKey = `kappa_orders_${userId}`;
+            let orders = [];
+            try {
+                orders = JSON.parse(localStorage.getItem(customOrdersKey) || "[]");
+            } catch (_) {}
+            
+            orders.unshift(newOrder);
+            localStorage.setItem(customOrdersKey, JSON.stringify(orders));
+
+            // Clear Active Cart
+            localStorage.removeItem("kappa_cart");
+
+            // Display Success Screen
+            document.getElementById("success-order-id").textContent = orderId;
+            document.getElementById("success-overlay").style.display = "flex";
+        }
+
+        window.onload = loadCheckoutDetails;
+    </script>
+</body>
+</html>

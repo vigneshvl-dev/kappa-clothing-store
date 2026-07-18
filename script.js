@@ -92,7 +92,7 @@ testDatabaseConnection();
     applyLanguage(currentLang);
 
     /* ---------- STATE ---------- */
-    let cart = [];     // {id, size, qty}
+    let cart = JSON.parse(localStorage.getItem("kappa_cart") || "[]");     // {id, size, qty}
     let wishlist = []; // [id]
     let discount = 0;
 
@@ -505,6 +505,33 @@ testDatabaseConnection();
         if (e.key === "Escape") [cartOverlay, wishOverlay, searchOverlay, qvOverlay, accountOverlay].forEach(o => { if (o) closeOverlay(o); });
     });
 
+    const checkoutBtn = cartOverlay ? cartOverlay.querySelector(".btn.btn-primary.full.magnetic") : null;
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener("click", () => {
+            if (cart.length === 0) {
+                showToast("Your cart is empty!");
+                return;
+            }
+            const cartDetails = cart.map(c => {
+                const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
+                return {
+                    id: c.id,
+                    name: p ? p.name : 'Product',
+                    price: p ? p.price : 0,
+                    size: c.size,
+                    qty: c.qty,
+                    img: c.customImg || (p ? p.img : 'assets/sleeping sis.png')
+                };
+            });
+            const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
+            const discPercent = discount || 0;
+            localStorage.setItem("kappa_checkout_cart", JSON.stringify(cartDetails));
+            localStorage.setItem("kappa_checkout_shipping", shipCost);
+            localStorage.setItem("kappa_checkout_discount", discPercent);
+            window.location.href = "checkout.html";
+        });
+    }
+
     /* ---------- ACCOUNT FORM PANELS & INTERACTIVITY ---------- */
     if (accountOverlay) {
         const panelLogin = document.getElementById('panel-login');
@@ -569,6 +596,7 @@ testDatabaseConnection();
     window.addToCart = addToCart;
 
     function renderCart() {
+        localStorage.setItem("kappa_cart", JSON.stringify(cart));
         const wrap = document.getElementById("cartItems");
         const cartTotal = cart.reduce((a, c) => a + c.qty, 0);
         const cartCountEl = document.getElementById("cartCount");
@@ -1616,6 +1644,9 @@ testDatabaseConnection();
             if (error) showToast('Google sign-in failed: ' + error.message);
         });
     });
+
+    // Run renderCart initially to load the cart from localStorage
+    setTimeout(renderCart, 100);
 })();
 
 // --- AUTO-RUNNING CATEGORY SEPARATED INJECTION (STRICT 4-LIMIT) ---
