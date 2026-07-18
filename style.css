@@ -423,7 +423,7 @@ body.home-page .navbar.scrolled {
 .hamburger span {
     width: 20px;
     height: 2px;
-    background: var(--white);
+    background: var(--black);
     border-radius: 2px;
     transition: transform .35s var(--ease), opacity .3s ease;
 }
