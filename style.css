@@ -2772,6 +2772,113 @@ body.scrolled .marquee {
     min-height: 16px;
 }
 
+/* ============ PAYMENT PARTNERS BAR ============ */
+.payment-partners-bar {
+    background: #ffffff;
+    padding: 30px 6vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.payment-partners-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    width: 100%;
+}
+
+.payment-razorpay-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.payment-processing-label {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 14px;
+    font-style: italic;
+    color: #444;
+}
+
+.payment-razorpay-logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.payment-razorpay-logo-wrap img.razorpay-glyph {
+    height: 32px;
+    width: auto;
+    display: block;
+}
+
+.razorpay-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #0b2545;
+    letter-spacing: -0.5px;
+}
+
+.payment-divider {
+    width: 1px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.payment-methods-block {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pm-logo {
+    height: 32px;
+    width: auto;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease;
+}
+
+.pm-logo:hover {
+    transform: translateY(-2px);
+}
+
+.pm-upi {
+    width: 80px;
+    height: auto;
+}
+
+.pm-rupay {
+    width: 80px;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .payment-partners-bar {
+        padding: 24px 4vw;
+    }
+    .payment-partners-inner {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .payment-razorpay-block {
+        align-items: center;
+    }
+    .payment-divider {
+        display: none;
+    }
+}
+
 .crafted-in-india-bar {
     background: #FAF5EC;
        padding: 28px 6vw;
@@ -4656,6 +4763,9 @@ body > *:last-child{
     padding: 0;
     overflow-y: auto;
     background: var(--white);
+    /* Ensure it is truly hidden when not open — fixes footer link blocking */
+    opacity: 0;
+    pointer-events: none;
     --bg-card: #ffffff;
     --ink: #0a0a0a;
     --ink-soft: #6b6b6b;
@@ -4667,6 +4777,11 @@ body > *:last-child{
     --shadow-lg: 0 24px 60px rgba(10, 10, 10, 0.12);
     --radius: 16px;
     --ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+#accountOverlay.open {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 #accountOverlay::before {
