@@ -1614,40 +1614,38 @@ testDatabaseConnection();
     });
 })();
 
-// --- AUTO-RUNNING CATEGORY SEPARATED INJECTION ---
+// --- AUTO-RUNNING CATEGORY SEPARATED INJECTION (STRICT 4-LIMIT) ---
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("🚀 Script started: Fetching strictly separated categories...");
 
     const boysContainer = document.getElementById('boys-arrival-container');
     const womensContainer = document.getElementById('womens-arrival-container');
 
-    // Stop if containers don't exist
-    if (!boysContainer && !womensContainer) return;
+    // Stop if containers don't exist on this page
+    if (!boysContainer && !womensContainer) return; 
 
     try {
-        // 1. FETCH CATEGORIES FIRST to map the Parent/Child relationships
+        // 1. FETCH CATEGORIES FIRST (To map Parent/Child relationships)
         const { data: categories, error: catError } = await supabaseClient
             .from('categories')
             .select('*');
-
+            
         if (catError) throw catError;
 
         let menCategoryIds = [];
         let womenCategoryIds = [];
 
         if (categories) {
-            // Find Root Categories dynamically (handles "Men", "Men's", "Women", "Women's")
             const womenRoot = categories.find(c => {
                 const name = (c.name || '').toLowerCase();
                 return name === 'women' || name === "women's" || name === 'girls';
             });
-
+            
             const menRoot = categories.find(c => {
                 const name = (c.name || '').toLowerCase();
                 return name === 'men' || name === "men's" || name === 'boys';
             });
 
-            // If roots are found, grab their ID PLUS all subcategory IDs that share their parent_id
             if (womenRoot) {
                 womenCategoryIds = [womenRoot.id, ...categories.filter(c => c.parent_id === womenRoot.id).map(c => c.id)];
             }
@@ -1661,11 +1659,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             .from('products')
             .select('*, product_images(url, position)')
             .eq('is_active', true)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false }); 
 
         if (prodError) throw prodError;
 
-        // Clear containers before drawing
+        // Clear containers to ensure no duplicates
         if (boysContainer) boysContainer.innerHTML = '';
         if (womensContainer) womensContainer.innerHTML = '';
 
@@ -1674,91 +1672,57 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 3. STRICT SEPARATION AND INJECTION
         (products || []).forEach(product => {
-            // Check the product's actual category against our mapped ID lists
             const isMens = menCategoryIds.includes(product.category_id);
             const isWomens = womenCategoryIds.includes(product.category_id);
 
-            // If it doesn't strictly belong to Men or Women, ignore it completely. No blind mixing!
-            if (!isMens && !isWomens) return;
+            // Determine if we are allowed to inject this product (Enforces the 4-limit cap)
+            const injectMens = isMens && mensCount < 4;
+            const injectWomens = isWomens && womensCount < 4;
 
-            // Handle Image
-            let imageUrl = 'assets/sleeping sis.png';
+            // If it doesn't belong to a category, OR if that category is already full, completely skip it!
+            if (!injectMens && !injectWomens) return;
+
+            // Handle Image safely
+            let imageUrl = 'assets/sleeping sis.png'; 
             if (product.product_images && product.product_images.length > 0) {
                 product.product_images.sort((a, b) => (a.position || 0) - (b.position || 0));
                 imageUrl = product.product_images[0].url || imageUrl;
             }
 
-            const comparePriceHTML = product.compare_at_price ? `<span>₹${product.compare_at_price}</span>` : '';
+            // Sanitize text to prevent HTML errors
+            const safeName = (product.name || 'Untitled').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const safeImage = imageUrl.replace(/'/g, "\\'");
+            const comparePriceHTML = product.compare_at_price ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>` : '';
+            
+            // Build the card
+            const cardHTML = `
+                <div class="boys-card" style="max-width: 280px; width: 100%; position: relative;">
+                    <span class="boys-badge" style="background:#111; color:#fff; padding:4px 8px; font-size:10px; font-weight:bold; position:absolute; top:10px; left:10px; z-index:2;">NEW</span>
+                    
+                    <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block;">
+                        <img src="${imageUrl}" alt="Product Image" style="width: 100%; height: auto; object-fit: cover; aspect-ratio: 3/4; border-radius: 8px; transition: transform 0.3s ease;">
+                        <h3 style="margin-top: 12px; font-size: 16px;">${product.name || 'Untitled Product'}</h3>
+                    </a>
 
-            const perfectCardHTML = `
-                <div class="boys-card" style="max-width: 280px; width: 100%;">
-                    <span class="boys-badge">NEW</span>
-                    <div onclick="viewProduct('${product.slug}')" style="cursor: pointer;">
-                        <img src="${imageUrl}" alt="${product.name}" style="width: 100%; height: auto; object-fit: cover; aspect-ratio: 3/4; border-radius: 8px;">
-                        <h3 style="margin-top: 12px;">${product.name}</h3>
-                    </div>
-                    <p class="boys-price">₹${product.price} ${comparePriceHTML}</p>
-                    <button onclick="addToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${imageUrl}')">Add To Cart</button>
+                    <p class="boys-price" style="font-weight:bold; margin-top:5px;">₹${product.price || 0} ${comparePriceHTML}</p>
+                    
+                    <button type="button" class="btn-secondary" style="width:100%; margin-top:10px; padding:10px; border:none; background:#111; color:#fff; cursor:pointer; font-weight:bold; position:relative; z-index:10;" onclick="event.preventDefault(); event.stopPropagation(); addToCart('${product.id}', '${safeName}', ${product.price || 0}, '${safeImage}')">Add To Cart</button>
                 </div>
             `;
 
-            if (isMens && boysContainer) boysContainer.innerHTML += perfectCardHTML;
-            else if (isWomens && womensContainer) womensContainer.innerHTML += perfectCardHTML;
+            // Draw to screen
+            if (injectMens && boysContainer) {
+                boysContainer.innerHTML += cardHTML;
+                mensCount++;
+            } else if (injectWomens && womensContainer) {
+                womensContainer.innerHTML += cardHTML;
+                womensCount++;
+            }
         });
+
+        console.log(`🎨 Render Complete! Men's items: ${mensCount}/4 | Women's items: ${womensCount}/4`);
+
     } catch (err) {
-        console.error("Error loading products:", err.message);
-    }
-});
-
-// --- NAVIGATION & CART ACTIONS ---
-function viewProduct(slug) {
-    window.location.href = `product.html?slug=${slug}`;
-}
-
-function addToCart(productId, name, price, imageUrl) {
-    const cartItemsContainer = document.getElementById('cartItems');
-    if (cartItemsContainer) {
-        const emptyMsg = cartItemsContainer.querySelector('.cart-empty');
-        if (emptyMsg) emptyMsg.style.display = 'none';
-
-        const newItemHTML = `
-            <div class="cart-item" style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                <img src="${imageUrl}" style="width: 60px; height: 70px; object-fit: cover; border-radius: 4px;">
-                <div style="flex-grow: 1;">
-                    <h4 style="margin: 0;">${name}</h4>
-                    <p style="margin: 5px 0 0 0;">₹${price}</p>
-                </div>
-            </div>
-        `;
-        cartItemsContainer.innerHTML += newItemHTML;
-    }
-    const cartBtn = document.getElementById('cartBtn');
-    if (cartBtn) cartBtn.click();
-}
-// --- FLOATING WHATSAPP BUTTON ---
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.querySelector('.floating-whatsapp-btn')) return;
-
-    const whatsappBtn = document.createElement('a');
-    whatsappBtn.href = 'https://wa.me/916238616662';
-    whatsappBtn.target = '_blank';
-    whatsappBtn.rel = 'noopener noreferrer';
-    whatsappBtn.className = 'floating-whatsapp-btn';
-    whatsappBtn.title = 'Chat on WhatsApp';
-    whatsappBtn.innerHTML = `
-        <svg viewBox="0 0 16 16" fill="currentColor">
-            <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-        </svg>
-    `;
-    document.body.appendChild(whatsappBtn);
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const reelsInstaBar = document.getElementById('reelsInstaBar');
-    if (reelsInstaBar) {
-        reelsInstaBar.addEventListener('click', (e) => {
-            if (e.target.closest('.reels-insta-follow-btn')) return;
-            window.open('https://www.instagram.com/kappa_fashion_store', '_blank', 'noopener,noreferrer');
-        });
+        console.error("🔥 Error:", err);
     }
 });
