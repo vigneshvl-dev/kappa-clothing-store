@@ -105,13 +105,15 @@
 <body>
 
     <!-- HEADER (Kappa Yellow) -->
-    <header style="padding: 15px 40px; background-color: #FFD700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0c200;">
-        <nav style="font-size: 12px; font-weight: 500; display: flex; gap: 20px;">
-            <a href="index.html">Home</a>
-            <a href="#">About</a>
-        </nav>
-        <a href="index.html" style="text-decoration: none; color: black; font-weight: 800; font-size: 20px; letter-spacing: 2px; text-transform: uppercase;">KAPPA</a>
-        <div style="font-size: 12px; font-weight: 500;">🛒 Cart (0)</div>
+    <header style="background-color: #FFD700; border-bottom: 1px solid #e0c200;">
+        <div style="max-width: 1400px; margin: 0 auto; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;">
+            <nav style="font-size: 12px; font-weight: 500; display: flex; gap: 20px;">
+                <a href="index.html">Home</a>
+                <a href="#">About</a>
+            </nav>
+            <a href="index.html" style="text-decoration: none; color: black; font-weight: 800; font-size: 20px; letter-spacing: 2px; text-transform: uppercase;">KAPPA</a>
+            <div style="font-size: 12px; font-weight: 500;">🛒 Cart (0)</div>
+        </div>
     </header>
 
     <div class="shop-layout">
@@ -119,9 +121,41 @@
         <aside class="sidebar">
             <div class="filter-title">COLLECTION</div>
             <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS', this)">View All</div>
-            <div id="dynamic-categories">
+            <div id="dynamic-categories" style="margin-bottom: 30px;">
                 <!-- Categories loaded via JS -->
                 <div style="font-size: 10px; color: #999;">Loading filters...</div>
+            </div>
+
+            <!-- Sizes Filter -->
+            <div class="filter-group" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                <div class="filter-subtitle" style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">Sizes Available</div>
+                <div style="display: flex; flex-direction: column; gap: 10px; padding-left: 10px; border-left: 1px solid #eee;">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" class="size-filter-checkbox" value="S" style="accent-color: #111;"> S
+                    </label>
+                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" class="size-filter-checkbox" value="M" style="accent-color: #111;"> M
+                    </label>
+                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" class="size-filter-checkbox" value="L" style="accent-color: #111;"> L
+                    </label>
+                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" class="size-filter-checkbox" value="XL" style="accent-color: #111;"> XL
+                    </label>
+                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" class="size-filter-checkbox" value="XXL" style="accent-color: #111;"> XXL
+                    </label>
+                </div>
+            </div>
+
+            <!-- Price Filter -->
+            <div class="filter-group" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                <div class="filter-subtitle" style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">Prices</div>
+                <div style="display: flex; gap: 10px; align-items: center; padding-left: 10px; border-left: 1px solid #eee;">
+                    <input type="number" id="price-min" placeholder="Min" style="width: 70px; padding: 6px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px;">
+                    <span style="font-size: 11px; color: #777;">to</span>
+                    <input type="number" id="price-max" placeholder="Max" style="width: 70px; padding: 6px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
             </div>
         </aside>
 
@@ -144,6 +178,7 @@
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let allCategoriesData = [];
+        let currentProductsLoaded = [];
 
         async function initShop() {
             await fetchCategories();
@@ -162,6 +197,19 @@
                 }
             } else {
                 loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'));
+            }
+            
+            // Set up input and change event listeners to trigger filters
+            document.querySelectorAll('.size-filter-checkbox').forEach(cb => {
+                cb.addEventListener('change', filterCurrentProducts);
+            });
+            const minPriceInput = document.getElementById('price-min');
+            const maxPriceInput = document.getElementById('price-max');
+            if (minPriceInput) {
+                minPriceInput.addEventListener('input', filterCurrentProducts);
+            }
+            if (maxPriceInput) {
+                maxPriceInput.addEventListener('input', filterCurrentProducts);
             }
         }
 
@@ -229,7 +277,7 @@
 
             let query = supabaseClient
                 .from('products')
-                .select('*, product_images(url, position)')
+                .select('*, product_images(url, position), product_variants(size, stock_quantity)')
                 .eq('is_active', true);
 
             if (targetCategoryIds.length > 0) {
@@ -244,14 +292,36 @@
                 return;
             }
 
-            document.getElementById('product-count').innerText = `${products.length} ITEM${products.length !== 1 ? 'S' : ''}`;
+            currentProductsLoaded = products || [];
+            filterCurrentProducts();
+        }
 
-            if (products.length === 0) {
-                document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">No products found in this category.</div>';
+        function filterCurrentProducts() {
+            const activeSizes = Array.from(document.querySelectorAll('.size-filter-checkbox:checked')).map(cb => cb.value);
+            const minPrice = parseFloat(document.getElementById('price-min').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('price-max').value) || Infinity;
+
+            const filtered = currentProductsLoaded.filter(product => {
+                if (product.price < minPrice || product.price > maxPrice) return false;
+
+                if (activeSizes.length > 0) {
+                    const hasSize = (product.product_variants || []).some(v => 
+                        activeSizes.includes(v.size) && (v.stock_quantity || 0) > 0
+                    );
+                    if (!hasSize) return false;
+                }
+
+                return true;
+            });
+
+            document.getElementById('product-count').innerText = `${filtered.length} ITEM${filtered.length !== 1 ? 'S' : ''}`;
+
+            if (filtered.length === 0) {
+                document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">No products match your filters.</div>';
                 return;
             }
 
-            let html = products.map(product => {
+            let html = filtered.map(product => {
                 const uniqueColorImages = [];
                 const seenColors = new Set();
                 (product.product_images || []).forEach(img => {
@@ -275,7 +345,6 @@
                     uniqueColorImages.push({ color: 'Default', url: imageUrl });
                 }
 
-                // Create thumbnails HTML
                 const maxThumbs = 4;
                 let thumbsHTML = '';
                 uniqueColorImages.slice(0, maxThumbs).forEach((item, idx) => {
@@ -321,16 +390,13 @@
             document.getElementById('shop-product-grid').innerHTML = html;
         }
 
-        // --- COLOR SWITCHER ACTION ---
         window.changeCardColor = function(thumbElement, colorName, imageUrl) {
             const card = thumbElement.closest('.boys-card');
             if (!card) return;
 
-            // Update main image URL
             const mainImg = card.querySelector('.boys-card-img');
             if (mainImg) mainImg.src = imageUrl;
 
-            // Remove active styling from all sibling thumbnails, and add to current one
             const thumbs = card.querySelectorAll('.boys-card-thumb');
             thumbs.forEach(t => {
                 t.style.border = '1px solid #ddd';
@@ -340,7 +406,6 @@
             thumbElement.classList.add('active');
         };
 
-        // Boot up the page
         document.addEventListener('DOMContentLoaded', initShop);
     </script>
 </body>
