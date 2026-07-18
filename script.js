@@ -95,6 +95,7 @@ testDatabaseConnection();
     let cart = JSON.parse(localStorage.getItem("kappa_cart") || "[]");     // {id, size, qty}
     let wishlist = []; // [id]
     let discount = 0;
+    let PRODUCTS = []; // Will be populated by storefront loader
 
     /* ---------- UTILITIES ---------- */
     // Fixes the "fmt is not defined" error
@@ -617,28 +618,30 @@ testDatabaseConnection();
     function addToCart(id, size, price, img) {
         let p = PRODUCTS.find(x => x.id === id || x.id == id);
         if (!p) {
+            // Product comes from Supabase — build a temporary object from passed args.
+            // When called from storefront cards: addToCart(id, name, price, img)
+            // So `size` is actually the product name here.
+            const productName = (typeof size === 'string' && price !== undefined)
+                ? size
+                : 'Product';
             p = {
                 id: id,
-                name: typeof size === 'string' && size.includes(' - ') ? size.split(' - ')[0] : (size || 'Product'),
+                name: productName,
                 price: price || 0,
                 img: img || 'assets/sleeping sis.png',
                 sizes: ['Default']
             };
             PRODUCTS.push(p);
         }
-        
-        let actualSize = 'Default';
-        if (typeof size === 'string' && !size.includes('₹') && size !== p.name) {
-            actualSize = size;
-        } else if (p.sizes && p.sizes.length > 0) {
-            actualSize = p.sizes[0];
-        }
+
+        // For Supabase cards the call is addToCart(id, name, price, img) so use Default size
+        const actualSize = 'Default';
 
         const existing = cart.find(c => c.id === id && c.size === actualSize);
         if (existing) {
             existing.qty++;
         } else {
-            cart.push({ id, size: actualSize, qty: 1, customImg: img });
+            cart.push({ id, size: actualSize, qty: 1, name: p.name, price: p.price, customImg: img || p.img });
         }
         renderCart();
         showToast(`${p.name} added to cart`);
@@ -660,9 +663,9 @@ testDatabaseConnection();
         } else {
             wrap.innerHTML = cart.map((c, idx) => {
                 const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
-                const name = p ? p.name : 'Product';
-                const img = c.customImg || (p ? p.img : 'assets/sleeping sis.png');
-                const price = p ? p.price : 0;
+                const name = (p ? p.name : null) || c.name || 'Product';
+                const img = c.customImg || (p ? p.img : null) || 'assets/sleeping sis.png';
+                const price = (p ? p.price : null) ?? c.price ?? 0;
                 return `
       <div class="cart-item">
         <img src="${img}" alt="${name}">
@@ -693,7 +696,8 @@ testDatabaseConnection();
     function updateSummary() {
         const subtotal = cart.reduce((a, c) => {
             const p = PRODUCTS.find(x => x.id === c.id);
-            return a + p.price * c.qty;
+            const price = (p ? p.price : null) ?? c.price ?? 0;
+            return a + price * c.qty;
         }, 0);
         const shipCost = Number(document.getElementById("shipSelect").value);
         const discAmt = Math.round(subtotal * discount);
