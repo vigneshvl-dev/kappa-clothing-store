@@ -4181,17 +4181,18 @@ body > *:last-child{
 }
 
 .boys-btn {
-    display: block;
+   display: block;
     width: fit-content;
-    text-decoration: none;
-    color: #111;
+    padding: 12px 28px;
     border: 2px solid #111;
-    padding: 14px 32px;
+    color: #111;
+    text-decoration: none;
     font-weight: 700;
-    letter-spacing: 1px;
     transition: .35s;
     text-align: center;
     margin: 20px auto;
+    position: relative;
+    top: -35px;
 }
 
 @media(min-width: 1024px) {
@@ -4412,6 +4413,8 @@ body > *:last-child{
     transition: .35s;
     text-align: center;
     margin: 20px auto;
+    position: relative;
+    top: -35px;
 }
 
 @media(min-width: 1024px) {
