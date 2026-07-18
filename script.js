@@ -163,6 +163,23 @@ testDatabaseConnection();
             heroSlideshowInterval = setInterval(nextSlide, 3000);
         }
     }
+
+    /* ---------- HERO MOBILE BACKGROUND SWAP ---------- */
+    const MOBILE_BP = 768;
+    function applyHeroMobileBg() {
+        heroSlides.forEach(slide => {
+            const mobileBg = slide.getAttribute("data-mobile-bg");
+            if (!mobileBg) return;
+            if (window.innerWidth <= MOBILE_BP) {
+                slide.style.backgroundImage = `url('${mobileBg}')`;
+            } else {
+                const desktopBg = slide.getAttribute("style")?.match(/background-image:url\('([^']+)'\)/)?.[1];
+                if (desktopBg) slide.style.backgroundImage = `url('${desktopBg}')`;
+            }
+        });
+    }
+    window.addEventListener("resize", applyHeroMobileBg);
+    applyHeroMobileBg();
     /* ---------- HAMBURGER / MOBILE MENU ---------- */
     const glow = document.getElementById("cursorGlow");
     const dot = document.getElementById("cursorDot");
