@@ -3475,6 +3475,76 @@ body > *:last-child{
     margin-top: 16px;
 }
 
+/* ============ CART BADGES & PARTNERS ============ */
+.cart-badges-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 20px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.1);
+    padding-top: 15px;
+}
+
+.cart-badge-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 6px;
+}
+
+.cart-badge-item svg {
+    color: #444;
+    width: 22px;
+    height: 22px;
+}
+
+.cart-badge-item span {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    color: #3b3c54;
+    letter-spacing: -0.2px;
+}
+
+.cart-payment-partner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding-top: 12px;
+}
+
+.cpp-label {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 11px;
+    font-style: italic;
+    color: #666;
+}
+
+.cpp-logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cpp-glyph {
+    height: 20px;
+    width: auto;
+}
+
+.cpp-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0b2545;
+    letter-spacing: -0.3px;
+}
+
 .qv-panel {
     margin: auto;
     width: min(860px, 92vw);
