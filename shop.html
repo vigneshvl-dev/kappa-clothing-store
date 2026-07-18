@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kappa - Shop All</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase Setup -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* --- ARCHITECTURAL RESETS --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #111; line-height: 1.4; background: #fff; }
+        a { text-decoration: none; color: inherit; cursor: pointer; }
+        ul { list-style: none; }
+
+        /* --- SHOP LAYOUT --- */
+        .shop-layout {
+            display: flex;
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 40px;
+            gap: 50px;
+            min-height: 80vh;
+        }
+
+        /* --- SIDEBAR FILTERS (ZARA STYLE) --- */
+        .sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 40px;
+            height: max-content;
+        }
+        .filter-title {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #111;
+            padding-bottom: 10px;
+        }
+        .filter-group { margin-bottom: 25px; }
+        .cat-parent {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .cat-parent:hover, .cat-parent.active { color: #FFD700; }
+        .cat-children {
+            padding-left: 10px;
+            margin-bottom: 15px;
+            border-left: 1px solid #eee;
+        }
+        .cat-child {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #555;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .cat-child:hover, .cat-child.active { color: #111; font-weight: 600; }
+        .btn-view-all {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        /* --- PRODUCT GRID --- */
+        .product-area { flex-grow: 1; }
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        .zara-card { cursor: pointer; transition: opacity 0.3s; }
+        .zara-card:hover { opacity: 0.8; }
+        .zara-card img {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            background: #f9f9f9;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .zara-card-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #111;
+        }
+        .zara-card-name { font-weight: 500; }
+        .zara-card-price { font-weight: 700; }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 50px; color: #777; font-size: 12px; text-transform: uppercase; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .shop-layout { flex-direction: column; padding: 20px; }
+            .sidebar { width: 100%; position: relative; top: 0; border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+            .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER (Kappa Yellow) -->
+    <header style="padding: 15px 40px; background-color: #FFD700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0c200;">
+        <nav style="font-size: 12px; font-weight: 500; display: flex; gap: 20px;">
+            <a href="index.html">Home</a>
+            <a href="#">About</a>
+        </nav>
+        <a href="index.html" style="text-decoration: none; color: black; font-weight: 800; font-size: 20px; letter-spacing: 2px; text-transform: uppercase;">KAPPA</a>
+        <div style="font-size: 12px; font-weight: 500;">🛒 Cart (0)</div>
+    </header>
+
+    <div class="shop-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="filter-title">COLLECTION</div>
+            <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS')">View All</div>
+            <div id="dynamic-categories">
+                <!-- Categories loaded via JS -->
+                <div style="font-size: 10px; color: #999;">Loading filters...</div>
+            </div>
+        </aside>
+
+        <!-- MAIN PRODUCT GRID -->
+        <main class="product-area">
+            <div class="grid-header">
+                <span id="current-category-title">ALL PRODUCTS</span>
+                <span id="product-count" style="color: #777;">0 ITEMS</span>
+            </div>
+            <div class="shop-grid" id="shop-product-grid">
+                <!-- Products loaded via JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- EXECUTION LOGIC SCRIPTS -->
+    <script>
+        // REPLACE WITH YOUR ACTUAL SUPABASE KEYS
+        const supabaseUrl = 'https://ugphxapfbzcrauchwlef.supabase.co'; 
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let allCategoriesData = [];
+
+        async function initShop() {
+            await fetchCategories();
+            
+            // Check if user came from homepage with a specific filter (e.g., ?filter=men)
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterParam = urlParams.get('filter');
+            
+            if (filterParam) {
+                // Try to find the category matching the filter param
+                const targetCat = allCategoriesData.find(c => c.slug.toLowerCase() === filterParam.toLowerCase() || c.name.toLowerCase() === filterParam.toLowerCase());
+                if (targetCat) {
+                    loadShopProducts(targetCat.id, targetCat.name);
+                } else {
+                    loadShopProducts(null, 'ALL PRODUCTS');
+                }
+            } else {
+                loadShopProducts(null, 'ALL PRODUCTS'); // Load all by default
+            }
+        }
+
+        async function fetchCategories() {
+            const { data, error } = await supabaseClient
+                .from('categories')
+                .select('*')
+                .order('name', { ascending: true });
+
+            if (error || !data) return;
+            allCategoriesData = data;
+
+            const roots = data.filter(c => !c.parent_id);
+            const children = data.filter(c => c.parent_id);
+            const container = document.getElementById('dynamic-categories');
+            let html = '';
+
+            roots.forEach(root => {
+                html += `
+                    <div class="filter-group">
+                        <div class="cat-parent" onclick="loadShopProducts('${root.id}', '${root.name}')">${root.name}</div>
+                        <ul class="cat-children">
+                `;
+                
+                const myChildren = children.filter(c => c.parent_id === root.id);
+                myChildren.forEach(child => {
+                    html += `<li class="cat-child" onclick="loadShopProducts('${child.id}', '${child.name}')">${child.name}</li>`;
+                });
+                
+                html += `</ul></div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function loadShopProducts(categoryId, categoryName) {
+            // Update UI Titles
+            document.getElementById('current-category-title').innerText = categoryName.toUpperCase();
+            document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading...</div>';
+
+            let targetCategoryIds = [];
+
+            // Bulletproof parent/child family logic
+            if (categoryId) {
+                targetCategoryIds.push(categoryId); 
+                // Find if this is a parent, and if so, grab all its children so they show up too
+                allCategoriesData.forEach(c => {
+                    if (c.parent_id === categoryId && !targetCategoryIds.includes(c.id)) {
+                        targetCategoryIds.push(c.id);
+                    }
+                });
+            }
+
+            // Query Supabase
+            let query = supabaseClient
+                .from('products')
+                .select('*, product_images(url, position)')
+                .eq('is_active', true);
+
+            // Apply filter if a category was clicked
+            if (targetCategoryIds.length > 0) {
+                query = query.in('category_id', targetCategoryIds);
+            }
+
+            const { data: products, error } = await query;
+
+            if (error) {
+                console.error("Error loading products:", error);
+                document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Error loading products.</div>';
+                return;
+            }
+
+            // Update product count
+            document.getElementById('product-count').innerText = `${products.length} ITEM${products.length !== 1 ? 'S' : ''}`;
+
+            // Render Grid
+            if (products.length === 0) {
+                document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">No products found in this category.</div>';
+                return;
+            }
+
+            let html = products.map(item => {
+                let imgs = item.product_images || [];
+                imgs.sort((a, b) => a.position - b.position);
+                const imgUrl = imgs.length > 0 ? imgs[0].url : 'assets/sleeping sis.png';
+                return `
+                    <div class="zara-card" onclick="window.location.href='product.html?slug=${item.slug}'">
+                        <img src="${imgUrl}" alt="${item.name}">
+                        <div class="zara-card-info">
+                            <span class="zara-card-name">${item.name}</span>
+                            <span class="zara-card-price">₹${item.price}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('shop-product-grid').innerHTML = html;
+        }
+
+        // Boot up the page
+        document.addEventListener('DOMContentLoaded', initShop);
+    </script>
+</body>
+</html>
