@@ -243,6 +243,36 @@ testDatabaseConnection();
     const mobileMenu = document.getElementById("mobileMenu");
     const mobileMenuClose = document.getElementById("mobileMenuClose");
 
+    const mobileMenuLinks = {
+        "Home": "index.html#home",
+        "About": "about.html",
+        "Contact": "contact.html",
+        "Shop": "shop.html",
+        "Hot Sale": "shop.html?filter=sale",
+        "Best Selling": "shop.html",
+        "All products": "shop.html",
+        "Reels": "reels.html",
+        "Privacy Policy": "privacy.html",
+        "Terms & Conditions": "terms.html",
+        "Shipping Policy": "shipping.html",
+        "Returns & Refunds": "refund.html"
+    };
+
+    if (mobileMenu) {
+        mobileMenu.querySelectorAll(".mnav-link").forEach(link => {
+            if (link.id === "mobileOrdersLink" || link.id === "mobileWishLink" || link.id === "mobileAccountLink") {
+                return;
+            }
+
+            const label = link.textContent.replace(/\s+/g, " ").trim();
+            const targetHref = mobileMenuLinks[label];
+
+            if (targetHref) {
+                link.setAttribute("href", targetHref);
+            }
+        });
+    }
+
     function toggleMenu() {
         const isOpen = mobileMenu.classList.toggle("open");
         if (heroHamburger) heroHamburger.classList.toggle("open", isOpen);

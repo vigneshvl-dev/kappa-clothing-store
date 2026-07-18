@@ -98,8 +98,14 @@
         @media (max-width: 900px) {
             .shop-layout { flex-direction: column; padding: 20px; }
             .sidebar { width: 100%; position: relative; top: 0; border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
-            .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+
+            /* Show hamburger, hide inline nav & cart text on mobile */
+            #shopHamburger { display: flex !important; order: 1; }
+            header > div > nav { display: none !important; }
+            header > div > div:last-child { order: 3; margin-left: auto; }
+            header > div > a[href="index.html"] { order: 2; position: absolute; left: 50%; transform: translateX(-50%); }
         }
+
     </style>
 </head>
 <body>
@@ -107,6 +113,9 @@
     <!-- HEADER (Kappa Yellow) -->
     <header style="background-color: #FFD700; border-bottom: 1px solid #e0c200;">
         <div style="max-width: 1400px; margin: 0 auto; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;">
+            <button class="hn-hamburger" id="shopHamburger" aria-label="Menu" style="display:none;">
+                <span></span><span></span><span></span>
+            </button>
             <nav style="font-size: 12px; font-weight: 500; display: flex; gap: 20px;">
                 <a href="index.html">Home</a>
                 <a href="#">About</a>
@@ -115,6 +124,23 @@
             <div style="font-size: 12px; font-weight: 500;">🛒 Cart (0)</div>
         </div>
     </header>
+
+    <!-- MOBILE MENU -->
+    <div class="mobile-menu" id="shopMobileMenu">
+        <div class="mobile-menu-header">
+            <span class="mobile-menu-title">Menu</span>
+            <button class="mobile-menu-close-btn" id="shopMobileMenuClose" aria-label="Close menu">✕</button>
+        </div>
+        <div class="mobile-menu-body">
+            <a href="index.html" class="mnav-link">Home</a>
+            <a href="shop.html" class="mnav-link">Shop</a>
+            <a href="shop.html?filter=men" class="mnav-link">Men</a>
+            <a href="shop.html?filter=women" class="mnav-link">Women</a>
+            <a href="reels.html" class="mnav-link">Reels</a>
+            <a href="about.html" class="mnav-link">About</a>
+            <a href="contact.html" class="mnav-link">Contact</a>
+        </div>
+    </div>
 
     <div class="shop-layout">
         <!-- SIDEBAR -->
@@ -426,6 +452,28 @@
         };
 
         document.addEventListener('DOMContentLoaded', initShop);
+
+        /* ---------- MOBILE MENU TOGGLE ---------- */
+        const shopHamburger = document.getElementById('shopHamburger');
+        const shopMobileMenu = document.getElementById('shopMobileMenu');
+        const shopMobileMenuClose = document.getElementById('shopMobileMenuClose');
+
+        function openShopMenu() {
+            if (shopMobileMenu) shopMobileMenu.classList.add('open');
+            if (shopHamburger) shopHamburger.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeShopMenu() {
+            if (shopMobileMenu) shopMobileMenu.classList.remove('open');
+            if (shopHamburger) shopHamburger.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        if (shopHamburger) shopHamburger.addEventListener('click', () => {
+            if (shopMobileMenu.classList.contains('open')) closeShopMenu();
+            else openShopMenu();
+        });
+        if (shopMobileMenuClose) shopMobileMenuClose.addEventListener('click', closeShopMenu);
+        if (shopMobileMenu) shopMobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeShopMenu));
     </script>
 </body>
 </html>

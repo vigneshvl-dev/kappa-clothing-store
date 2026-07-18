@@ -4539,6 +4539,9 @@ body > *:last-child{
     background: none;
     border: none;
     cursor: pointer;
+    position: relative;
+    z-index: 1004;
+    touch-action: manipulation;
 }
 
 .hn-hamburger span {
@@ -4591,6 +4594,7 @@ body > *:last-child{
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
+        z-index: 1;
     }
 
     .navbar .nav-logo img {
@@ -4605,6 +4609,8 @@ body > *:last-child{
         gap: 2px;
         display: flex;
         align-items: center;
+        position: relative;
+        z-index: 2;
     }
 
     .search-box {
