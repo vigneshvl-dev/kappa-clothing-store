@@ -241,7 +241,6 @@ testDatabaseConnection();
     /* ---------- HAMBURGER / MOBILE MENU ---------- */
     const heroHamburger = document.getElementById("heroHamburger");
     const mobileMenu = document.getElementById("mobileMenu");
-    const mobileMenuClose = document.getElementById("mobileMenuClose");
 
     const mobileMenuLinks = {
         "Home": "index.html#home",
@@ -286,6 +285,8 @@ testDatabaseConnection();
     }
 
     if (heroHamburger) heroHamburger.addEventListener("click", toggleMenu);
+
+    const mobileMenuClose = document.getElementById("mobileMenuClose");
     if (mobileMenuClose) mobileMenuClose.addEventListener("click", closeMenu);
 
     mobileMenu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => {
