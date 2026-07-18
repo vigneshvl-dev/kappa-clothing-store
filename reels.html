@@ -34,7 +34,7 @@
         <nav class="nav-links">
             <a href="index.html#home" class="nav-link" data-i18n="nav_home">Home</a>
             <a href="about.html" class="nav-link">About</a>
-            <a href="#footer" class="nav-link" data-i18n="nav_contact">Contact</a>
+            <a href="index.html#footer" class="nav-link" data-i18n="nav_contact">Contact</a>
         </nav>
 
         <a href="index.html#home" class="nav-logo"><img src="https://cdn.corenexis.com/f/fRkaM2Pbrr7.png"
@@ -294,10 +294,9 @@
 
                 <h4 class="footer-heading">Office Address</h4>
                 <p class="footer-text">
-                    Innopay Technologies Pvt Ltd<br>
-                    #460, 17th Cross, 4th Sector<br>
-                    CS Towers, 3rd Floor, HSR Layout<br>
-                    Bangalore-560102
+                    Mahatma Gandhi Rd, opposite Hotel Azad,<br>
+                    Overbridge, Nalumukku, Pazhavangadi,<br>
+                    Thiruvananthapuram, Kerala 695023, India
                 </p>
 
                 <h4 class="footer-heading" style="margin-top: 10px;">Contact Support</h4>
@@ -508,7 +507,7 @@
             <div class="about-nav-left">
                 <a href="index.html#home" class="about-nav-link">Home</a>
                 <a href="about.html" class="about-nav-link">About</a>
-                <a href="index.html#footer" class="about-nav-link">Contact</a>
+                <a href="index.html#footer" class="about-nav-link" onclick="document.getElementById('accountClose').click();">Contact</a>
             </div>
             <a href="index.html#home" class="about-nav-logo"><img src="https://cdn.corenexis.com/f/fRkaM2Pbrr7.png"
                     alt="KAPPA"></a>
@@ -583,7 +582,86 @@
                     </form>
                     <p class="switch-line">
                         <span data-i18n="acc_no_account">Don't have an account?</span> <a href="#" class="link"
-                            id="go-signup" data-i18n="acc_create_btn">Create Account</a>
+                            id="go-signup" data-i18n="acc_create">Create Account</a>
+                    </p>
+                </section>
+
+                <!-- SIGNUP PANEL -->
+                <section class="panel" id="panel-signup">
+                    <h1 class="headline" data-i18n="acc_create_title">Create Account</h1>
+                    <p class="subline" data-i18n="acc_create_sub">Create your account to start shopping</p>
+                    <form id="signup-form">
+
+                        <div class="field">
+                            <label for="su-name" data-i18n="acc_fullname">Full Name</label>
+                            <div class="input-shell">
+                                <input type="text" id="su-name" placeholder="Name" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="su-email" data-i18n="acc_email">Email Address</label>
+                            <div class="input-shell">
+                                <input type="email" id="su-email" placeholder="you@example.com" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="su-password" data-i18n="acc_password">Password</label>
+                            <div class="input-shell">
+                                <input type="password" id="su-password" class="has-toggle"
+                                    placeholder="Create a password" autocomplete="off">
+                                <button type="button" class="toggle-eye" data-target="su-password"
+                                    aria-label="Show password">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="su-confirm" data-i18n="acc_confirm_password">Confirm Password</label>
+                            <div class="input-shell">
+                                <input type="password" id="su-confirm" class="has-toggle"
+                                    placeholder="Re-enter your password" autocomplete="off">
+                                <button type="button" class="toggle-eye" data-target="su-confirm"
+                                    aria-label="Show password">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row-between" style="margin-bottom:22px;">
+                            <label class="checkbox-line terms-text">
+                                <input type="checkbox">
+                                <span data-i18n="acc_terms">I agree to the <a href="#">Terms &amp;
+                                        Conditions</a>
+                                    and <a href="#">Privacy Policy</a></span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary" data-i18n="acc_create_btn">Create
+                            Account</button>
+                        <div class="divider">OR</div>
+                        <button type="button" class="btn-google">
+                            <svg viewBox="0 0 48 48">
+                                <path fill="#FFC107"
+                                    d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z" />
+                                <path fill="#FF3D00"
+                                    d="M6.3 14.7l6.6 4.8C14.5 16 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+                                <path fill="#4CAF50"
+                                    d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.4C29.6 35.4 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.6 39.6 16.2 44 24 44z" />
+                                <path fill="#1976D2"
+                                    d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.6 35.6 44 30.2 44 24c0-1.2-.1-2.4-.4-3.5z" />
+                            </svg>
+                            <span data-i18n="acc_google">Continue with Google</span>
+                        </button>
+                    </form>
+                    <p class="switch-line">
+                        <span data-i18n="acc_has_account">Already have an account?</span> <a href="#" class="link"
+                            id="go-login" data-i18n="acc_signin">Sign In</a>
                     </p>
                 </section>
             </div>
