@@ -126,35 +126,18 @@
                 <div style="font-size: 10px; color: #999;">Loading filters...</div>
             </div>
 
-            <!-- Sizes Filter -->
+            <!-- Availability Filter -->
             <div class="filter-group" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-                <div class="filter-subtitle" style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">Sizes Available</div>
+                <div class="filter-subtitle" style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Availability</span>
+                </div>
                 <div style="display: flex; flex-direction: column; gap: 10px; padding-left: 10px; border-left: 1px solid #eee;">
                     <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" class="size-filter-checkbox" value="S" style="accent-color: #111;"> S
+                        <input type="checkbox" class="stock-filter-checkbox" value="in-stock" style="accent-color: #111;"> In stock
                     </label>
                     <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" class="size-filter-checkbox" value="M" style="accent-color: #111;"> M
+                        <input type="checkbox" class="stock-filter-checkbox" value="out-of-stock" style="accent-color: #111;"> Out of stock
                     </label>
-                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" class="size-filter-checkbox" value="L" style="accent-color: #111;"> L
-                    </label>
-                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" class="size-filter-checkbox" value="XL" style="accent-color: #111;"> XL
-                    </label>
-                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" class="size-filter-checkbox" value="XXL" style="accent-color: #111;"> XXL
-                    </label>
-                </div>
-            </div>
-
-            <!-- Price Filter -->
-            <div class="filter-group" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-                <div class="filter-subtitle" style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">Prices</div>
-                <div style="display: flex; gap: 10px; align-items: center; padding-left: 10px; border-left: 1px solid #eee;">
-                    <input type="number" id="price-min" placeholder="Min" style="width: 70px; padding: 6px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px;">
-                    <span style="font-size: 11px; color: #777;">to</span>
-                    <input type="number" id="price-max" placeholder="Max" style="width: 70px; padding: 6px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px;">
                 </div>
             </div>
         </aside>
@@ -200,17 +183,9 @@
             }
             
             // Set up input and change event listeners to trigger filters
-            document.querySelectorAll('.size-filter-checkbox').forEach(cb => {
+            document.querySelectorAll('.stock-filter-checkbox').forEach(cb => {
                 cb.addEventListener('change', filterCurrentProducts);
             });
-            const minPriceInput = document.getElementById('price-min');
-            const maxPriceInput = document.getElementById('price-max');
-            if (minPriceInput) {
-                minPriceInput.addEventListener('input', filterCurrentProducts);
-            }
-            if (maxPriceInput) {
-                maxPriceInput.addEventListener('input', filterCurrentProducts);
-            }
         }
 
         async function fetchCategories() {
@@ -297,20 +272,19 @@
         }
 
         function filterCurrentProducts() {
-            const activeSizes = Array.from(document.querySelectorAll('.size-filter-checkbox:checked')).map(cb => cb.value);
-            const minPrice = parseFloat(document.getElementById('price-min').value) || 0;
-            const maxPrice = parseFloat(document.getElementById('price-max').value) || Infinity;
+            const inStockChecked = document.querySelector('.stock-filter-checkbox[value="in-stock"]').checked;
+            const outOfStockChecked = document.querySelector('.stock-filter-checkbox[value="out-of-stock"]').checked;
 
             const filtered = currentProductsLoaded.filter(product => {
-                if (product.price < minPrice || product.price > maxPrice) return false;
+                const hasProductStock = (product.stock_quantity || 0) > 0;
+                const hasVariantStock = (product.product_variants || []).some(v => (v.stock_quantity || 0) > 0);
+                const isInStock = hasProductStock || hasVariantStock;
 
-                if (activeSizes.length > 0) {
-                    const hasSize = (product.product_variants || []).some(v => 
-                        activeSizes.includes(v.size) && (v.stock_quantity || 0) > 0
-                    );
-                    if (!hasSize) return false;
-                }
-
+                if (inStockChecked && outOfStockChecked) return true;
+                if (!inStockChecked && !outOfStockChecked) return true;
+                
+                if (inStockChecked) return isInStock;
+                if (outOfStockChecked) return !isInStock;
                 return true;
             });
 
