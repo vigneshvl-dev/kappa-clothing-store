@@ -549,6 +549,9 @@ testDatabaseConnection();
     });
     if (accountClose) accountClose.addEventListener("click", () => closeOverlay(accountOverlay));
 
+    const accountNavToggle = document.getElementById("accountNavToggle");
+    if (accountNavToggle) accountNavToggle.addEventListener("click", () => closeOverlay(accountOverlay));
+
     [cartOverlay, wishOverlay, searchOverlay, qvOverlay, accountOverlay].forEach(o => {
         if (o) {
             o.addEventListener("click", e => { if (e.target === o) closeOverlay(o); });
