@@ -1689,8 +1689,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const comparePriceHTML = product.compare_at_price ? `<span>₹${product.compare_at_price}</span>` : '';
-            const isMensCollection = product.category_id === MEN_CATEGORY_ID || (product.categories && product.categories.parent_id === MEN_CATEGORY_ID);
-            const isWomensCollection = product.category_id === WOMEN_CATEGORY_ID || (product.categories && product.categories.parent_id === WOMEN_CATEGORY_ID);
 
             const perfectCardHTML = `
                 <div class="boys-card" style="max-width: 280px; width: 100%;">
@@ -1704,16 +1702,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             `;
 
-            if (isMensCollection && boysContainer) boysContainer.innerHTML += perfectCardHTML;
-            else if (isWomensCollection && womensContainer) womensContainer.innerHTML += perfectCardHTML;
+            if (isMens && boysContainer) boysContainer.innerHTML += perfectCardHTML;
+            else if (isWomens && womensContainer) womensContainer.innerHTML += perfectCardHTML;
         });
     } catch (err) {
         console.error("Error loading products:", err.message);
     }
-}
-
-// Ensure products load when the page is ready
-document.addEventListener('DOMContentLoaded', loadStorefrontProducts);
+});
 
 // --- NAVIGATION & CART ACTIONS ---
 function viewProduct(slug) {
