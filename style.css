@@ -4288,27 +4288,14 @@ body > *:last-child{
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
-    opacity: 0;
-    transform: translateY(8px);
+    transition: background-color 0.3s ease;
     border-radius: 6px;
-    margin-top: 5px;
-}
-
-.boys-card:hover button {
-    opacity: 1;
-    transform: translateY(0);
+    margin-top: 15px;
+    display: block;
 }
 
 .boys-card button:hover {
     background: #333;
-}
-
-@media (hover: none) or (max-width: 1023px) {
-    .boys-card button {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* ==========================
