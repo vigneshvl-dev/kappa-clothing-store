@@ -16,10 +16,10 @@ const supabaseClient = window.supabase.createClient(
 
 async function testDatabaseConnection() {
     console.log("Testing connection to Supabase...");
-    
+
     // Grabbing just the products to see if it works
     const { data, error } = await supabaseClient.from('products').select('*');
-    
+
     if (error) {
         console.error("Connection failed:", error);
     } else {
@@ -134,16 +134,16 @@ testDatabaseConnection();
     let discount = 0;
 
     /* ---------- UTILITIES ---------- */
-// Fixes the "fmt is not defined" error
-function fmt(price) {
-    return "₹" + Number(price).toLocaleString('en-IN');
-}
+    // Fixes the "fmt is not defined" error
+    function fmt(price) {
+        return "₹" + Number(price).toLocaleString('en-IN');
+    }
 
-// Fixes the "stars is not defined" error (which is likely missing too!)
-function stars(rating) {
-    const r = Math.round(rating || 0);
-    return "★".repeat(r) + "☆".repeat(5 - r);
-}
+    // Fixes the "stars is not defined" error (which is likely missing too!)
+    function stars(rating) {
+        const r = Math.round(rating || 0);
+        return "★".repeat(r) + "☆".repeat(5 - r);
+    }
 
     /* ---------- LOADER ---------- */
     function initMarquee() {
@@ -472,7 +472,7 @@ function stars(rating) {
         toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
     }
 
-/* ---------- CART ---------- */
+    /* ---------- CART ---------- */
     const cartOverlay = document.getElementById("cartOverlay");
     const wishOverlay = document.getElementById("wishOverlay");
     const searchOverlay = document.getElementById("searchOverlay");
@@ -494,16 +494,16 @@ function stars(rating) {
     safeAddListener("wishBtn", "click", () => openOverlay(wishOverlay));
     safeAddListener("bnavWish", "click", () => openOverlay(wishOverlay));
     safeAddListener("wishClose", "click", () => closeOverlay(wishOverlay));
-    
-    safeAddListener("searchBtn", "click", () => { openOverlay(searchOverlay); const s = document.getElementById("searchInput"); if(s) s.focus(); });
-    safeAddListener("bnavSearch", "click", () => { openOverlay(searchOverlay); const s = document.getElementById("searchInput"); if(s) s.focus(); });
+
+    safeAddListener("searchBtn", "click", () => { openOverlay(searchOverlay); const s = document.getElementById("searchInput"); if (s) s.focus(); });
+    safeAddListener("bnavSearch", "click", () => { openOverlay(searchOverlay); const s = document.getElementById("searchInput"); if (s) s.focus(); });
     safeAddListener("searchClose", "click", () => closeOverlay(searchOverlay));
 
     const heroAccountBtn = document.getElementById("heroAccountBtn");
     const profileBtn = document.getElementById("profileBtn");
     const mobileAccountLink = document.getElementById("mobileAccountLink");
     const accountClose = document.getElementById("accountClose");
-    
+
     // 👇 Duplicates removed from here! It will use the ones you defined earlier in the file.
 
     if (heroAccountBtn) heroAccountBtn.addEventListener("click", () => openOverlay(accountOverlay));
@@ -761,11 +761,11 @@ function stars(rating) {
     /* ---------- REELS AUTOPLAY, SLIDER & AUDIO CONTROL ---------- */
     const reelsContainer = document.getElementById("reels");
     if (reelsContainer) {
-        const wrapper  = reelsContainer.querySelector(".reels-wrapper");
-        const cards    = reelsContainer.querySelectorAll(".reel-card");
-        const prevBtn  = reelsContainer.querySelector(".reels-nav-btn.prev");
-        const nextBtn  = reelsContainer.querySelector(".reels-nav-btn.next");
-        const videos   = reelsContainer.querySelectorAll(".reel-video-element");
+        const wrapper = reelsContainer.querySelector(".reels-wrapper");
+        const cards = reelsContainer.querySelectorAll(".reel-card");
+        const prevBtn = reelsContainer.querySelector(".reels-nav-btn.prev");
+        const nextBtn = reelsContainer.querySelector(".reels-nav-btn.next");
+        const videos = reelsContainer.querySelectorAll(".reel-video-element");
 
         let currentIndex = 2; // Start with center card (Reel 3) active
         let reelsInView = false;
@@ -795,7 +795,7 @@ function stars(rating) {
                             // Fallback to muted playback if audio is blocked by user gesture policy
                             v.muted = true;
                             v.volume = 0;
-                            v.play().catch(() => {});
+                            v.play().catch(() => { });
                             updateSoundButtonIcon(soundBtn, true);
                         });
                     }
@@ -829,19 +829,19 @@ function stars(rating) {
             if (!wrapper || !cards.length) return;
             const container = reelsContainer.querySelector(".reels-slider-container");
             if (!container) return;
-            const cw   = container.clientWidth;
+            const cw = container.clientWidth;
             const card = cards[currentIndex];
-            const tx   = (cw / 2) - (card.offsetLeft + card.clientWidth / 2);
+            const tx = (cw / 2) - (card.offsetLeft + card.clientWidth / 2);
             wrapper.style.transform = `translateX(${tx}px)`;
 
             cards.forEach((c, i) => {
-                c.classList.remove("active","prev","next","far-prev","far-next");
+                c.classList.remove("active", "prev", "next", "far-prev", "far-next");
                 const d = i - currentIndex;
-                if      (d ===  0) c.classList.add("active");
+                if (d === 0) c.classList.add("active");
                 else if (d === -1) c.classList.add("prev");
-                else if (d ===  1) c.classList.add("next");
-                else if (d  < -1) c.classList.add("far-prev");
-                else              c.classList.add("far-next");
+                else if (d === 1) c.classList.add("next");
+                else if (d < -1) c.classList.add("far-prev");
+                else c.classList.add("far-next");
             });
         }
 
@@ -922,7 +922,7 @@ function stars(rating) {
             const soundBtn = card.querySelector(".reels-grid-sound-btn");
 
             card.addEventListener("mouseenter", () => {
-                video.play().catch(() => {});
+                video.play().catch(() => { });
             });
 
             card.addEventListener("mouseleave", () => {
@@ -951,7 +951,7 @@ function stars(rating) {
             activeLightboxIndex = index;
             lightbox.classList.add("active");
             document.body.style.overflow = "hidden"; // Disable scroll
-            
+
             updateLightboxSlider(false); // don't animate transitions on open
             playLightboxVideo();
         }
@@ -961,7 +961,7 @@ function stars(rating) {
             closeBtn.addEventListener("click", () => {
                 lightbox.classList.remove("active");
                 document.body.style.overflow = ""; // Enable scroll
-                
+
                 // Pause all lightbox videos
                 lightboxVideos.forEach(v => {
                     v.pause();
@@ -987,13 +987,13 @@ function stars(rating) {
                     v.volume = lightboxIsMuted ? 0 : 1;
                     const wavePath = soundBtn.querySelector(".sound-waves");
                     if (wavePath) wavePath.style.display = lightboxIsMuted ? "none" : "block";
-                    
+
                     const promise = v.play();
                     if (promise !== undefined) {
                         promise.catch(() => {
                             v.muted = true;
                             v.volume = 0;
-                            v.play().catch(() => {});
+                            v.play().catch(() => { });
                             if (wavePath) wavePath.style.display = "none";
                         });
                     }
@@ -1044,7 +1044,7 @@ function stars(rating) {
         // Touch swipe support in lightbox
         let touchStartX = 0;
         let touchEndX = 0;
-        
+
         lightbox.addEventListener("touchstart", (e) => {
             touchStartX = e.changedTouches[0].screenX;
         }, { passive: true });
@@ -1109,7 +1109,7 @@ function stars(rating) {
                 if (parsed.name && parsed.name.trim() !== "") {
                     return parsed.name.trim();
                 }
-            } catch (_) {}
+            } catch (_) { }
         }
         // 2. Try user metadata full name
         if (user.user_metadata && user.user_metadata.full_name) {
@@ -1130,19 +1130,19 @@ function stars(rating) {
         if (session && session.user) {
             if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
             if (event === 'SIGNED_IN') showToast('Welcome back, ' + getUserDisplayName(session.user) + '!');
-            
+
             injectDashboardPanel();
-            
+
             // Adjust overlay class
             const accountOverlay = document.getElementById('accountOverlay');
             if (accountOverlay) accountOverlay.classList.add('dashboard-active');
-            
+
             // Load user data
             const userId = session.user.id;
             const email = session.user.email;
             const name = session.user.user_metadata?.full_name || email.split('@')[0];
             loadProfile(userId, email, name);
-            
+
             // Activate the dashboard panel
             const panelDashboard = document.getElementById('panel-dashboard');
             const panelLogin = document.getElementById('panel-login');
@@ -1152,11 +1152,11 @@ function stars(rating) {
             if (panelDashboard) panelDashboard.classList.add('active');
         } else {
             if (profileBtn) profileBtn.style.color = '';
-            
+
             // Remove dashboard active class from overlay
             const accountOverlay = document.getElementById('accountOverlay');
             if (accountOverlay) accountOverlay.classList.remove('dashboard-active');
-            
+
             // If logged out, show the login panel and hide the dashboard
             const panelDashboard = document.getElementById('panel-dashboard');
             const panelLogin = document.getElementById('panel-login');
@@ -1417,14 +1417,14 @@ function stars(rating) {
         let name = defaultName || "User";
         let phone = "";
         let address = "";
-        
+
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
                 name = parsed.name || name;
                 phone = parsed.phone || "";
                 address = parsed.address || "";
-            } catch (_) {}
+            } catch (_) { }
         }
 
         const nameInput = document.getElementById('dash-name');
@@ -1487,14 +1487,14 @@ function stars(rating) {
                     <div class="dash-order-track-steps" style="margin-bottom: 20px;">
                         <div class="dash-order-track-progress-bar" style="width: ${stepWidth}%"></div>
                         ${order.steps.map((step, idx) => {
-                            const isActive = idx <= order.activeStepIndex ? 'active' : '';
-                            return `
+                const isActive = idx <= order.activeStepIndex ? 'active' : '';
+                return `
                                 <div class="dash-order-step-node ${isActive}">
                                     <div class="dash-order-step-dot"></div>
                                     <span class="dash-order-step-label">${step}</span>
                                 </div>
                             `;
-                        }).join('')}
+            }).join('')}
                     </div>
                     
                     <div class="dash-order-status-desc">
@@ -1622,14 +1622,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const womensContainer = document.getElementById('womens-arrival-container');
 
     // Stop if containers don't exist
-    if (!boysContainer && !womensContainer) return; 
+    if (!boysContainer && !womensContainer) return;
 
     try {
         // 1. FETCH CATEGORIES FIRST to map the Parent/Child relationships
         const { data: categories, error: catError } = await supabaseClient
             .from('categories')
             .select('*');
-            
+
         if (catError) throw catError;
 
         let menCategoryIds = [];
@@ -1641,7 +1641,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const name = (c.name || '').toLowerCase();
                 return name === 'women' || name === "women's" || name === 'girls';
             });
-            
+
             const menRoot = categories.find(c => {
                 const name = (c.name || '').toLowerCase();
                 return name === 'men' || name === "men's" || name === 'boys';
@@ -1661,7 +1661,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             .from('products')
             .select('*, product_images(url, position)')
             .eq('is_active', true)
-            .order('created_at', { ascending: false }); 
+            .order('created_at', { ascending: false });
 
         if (prodError) throw prodError;
 
@@ -1682,7 +1682,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!isMens && !isWomens) return;
 
             // Handle Image
-            let imageUrl = 'assets/sleeping sis.png'; 
+            let imageUrl = 'assets/sleeping sis.png';
             if (product.product_images && product.product_images.length > 0) {
                 product.product_images.sort((a, b) => (a.position || 0) - (b.position || 0));
                 imageUrl = product.product_images[0].url || imageUrl;
@@ -1735,3 +1735,30 @@ function addToCart(productId, name, price, imageUrl) {
     const cartBtn = document.getElementById('cartBtn');
     if (cartBtn) cartBtn.click();
 }
+// --- FLOATING WHATSAPP BUTTON ---
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.querySelector('.floating-whatsapp-btn')) return;
+
+    const whatsappBtn = document.createElement('a');
+    whatsappBtn.href = 'https://wa.me/916238616662';
+    whatsappBtn.target = '_blank';
+    whatsappBtn.rel = 'noopener noreferrer';
+    whatsappBtn.className = 'floating-whatsapp-btn';
+    whatsappBtn.title = 'Chat on WhatsApp';
+    whatsappBtn.innerHTML = `
+        <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+        </svg>
+    `;
+    document.body.appendChild(whatsappBtn);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const reelsInstaBar = document.getElementById('reelsInstaBar');
+    if (reelsInstaBar) {
+        reelsInstaBar.addEventListener('click', (e) => {
+            if (e.target.closest('.reels-insta-follow-btn')) return;
+            window.open('https://www.instagram.com/kappa_fashion_store', '_blank', 'noopener,noreferrer');
+        });
+    }
+});
