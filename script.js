@@ -520,15 +520,36 @@ testDatabaseConnection();
     }
 
 
-    function addToCart(id, size) {
-        const p = PRODUCTS.find(x => x.id === id);
-        size = size || p.sizes[0];
-        const existing = cart.find(c => c.id === id && c.size === size);
-        if (existing) existing.qty++;
-        else cart.push({ id, size, qty: 1 });
+    function addToCart(id, size, price, img) {
+        let p = PRODUCTS.find(x => x.id === id || x.id == id);
+        if (!p) {
+            p = {
+                id: id,
+                name: typeof size === 'string' && size.includes(' - ') ? size.split(' - ')[0] : (size || 'Product'),
+                price: price || 0,
+                img: img || 'assets/sleeping sis.png',
+                sizes: ['Default']
+            };
+            PRODUCTS.push(p);
+        }
+        
+        let actualSize = 'Default';
+        if (typeof size === 'string' && !size.includes('₹') && size !== p.name) {
+            actualSize = size;
+        } else if (p.sizes && p.sizes.length > 0) {
+            actualSize = p.sizes[0];
+        }
+
+        const existing = cart.find(c => c.id === id && c.size === actualSize);
+        if (existing) {
+            existing.qty++;
+        } else {
+            cart.push({ id, size: actualSize, qty: 1, customImg: img });
+        }
         renderCart();
         showToast(`${p.name} added to cart`);
     }
+    window.addToCart = addToCart;
 
     function renderCart() {
         const wrap = document.getElementById("cartItems");
@@ -543,13 +564,16 @@ testDatabaseConnection();
             wrap.innerHTML = `<div class="cart-empty">Your cart is empty.<br>Start adding icons.</div>`;
         } else {
             wrap.innerHTML = cart.map((c, idx) => {
-                const p = PRODUCTS.find(x => x.id === c.id);
+                const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
+                const name = p ? p.name : 'Product';
+                const img = c.customImg || (p ? p.img : 'assets/sleeping sis.png');
+                const price = p ? p.price : 0;
                 return `
       <div class="cart-item">
-        <img src="${p.img}" alt="${p.name}">
+        <img src="${img}" alt="${name}">
         <div class="ci-info">
-          <div class="ci-name">${p.name}</div>
-          <div class="ci-meta">Size ${c.size}</div>
+          <div class="ci-name">${name}</div>
+          <div class="ci-meta">${c.size}</div>
           <div class="ci-qty">
             <button data-dec="${idx}">−</button>
             <span>${c.qty}</span>
@@ -557,7 +581,7 @@ testDatabaseConnection();
           </div>
           <span class="ci-remove" data-remove="${idx}">Remove</span>
         </div>
-        <div class="ci-price">${fmt(p.price * c.qty)}</div>
+        <div class="ci-price">${fmt(price * c.qty)}</div>
       </div>`;
             }).join('');
         }
@@ -1578,17 +1602,17 @@ testDatabaseConnection();
 })();
 
 // --- AUTO-RUNNING CATEGORY SEPARATED INJECTION (STRICT 4-LIMIT) ---
-document.addEventListener('DOMContentLoaded', async () => {
+async function initStorefront() {
     console.log("🚀 Script started: Fetching strictly separated categories...");
 
     const boysContainer = document.getElementById('boys-arrival-container');
     const womensContainer = document.getElementById('womens-arrival-container');
 
-    // Stop if containers don't exist on this page
+    // Stop if containers don't exist
     if (!boysContainer && !womensContainer) return; 
 
     try {
-        // 1. FETCH CATEGORIES FIRST (To map Parent/Child relationships)
+        // 1. FETCH CATEGORIES FIRST to map the Parent/Child relationships
         const { data: categories, error: catError } = await supabaseClient
             .from('categories')
             .select('*');
@@ -1599,6 +1623,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let womenCategoryIds = [];
 
         if (categories) {
+            // Find Root Categories dynamically (handles "Men", "Men's", "Women", "Women's")
             const womenRoot = categories.find(c => {
                 const name = (c.name || '').toLowerCase();
                 return name === 'women' || name === "women's" || name === 'girls';
@@ -1645,11 +1670,51 @@ document.addEventListener('DOMContentLoaded', async () => {
             // If it doesn't belong to a category, OR if that category is already full, completely skip it!
             if (!injectMens && !injectWomens) return;
 
+            // Extract unique color images from product.product_images
+            const uniqueColorImages = [];
+            const seenColors = new Set();
+            (product.product_images || []).forEach(img => {
+                const parts = img.url.split('#');
+                const cleanUrl = parts[0];
+                const color = parts[1] || 'Default';
+                if (!seenColors.has(color)) {
+                    seenColors.add(color);
+                    uniqueColorImages.push({ color, url: cleanUrl });
+                }
+            });
+
             // Handle Image safely
             let imageUrl = 'assets/sleeping sis.png'; 
-            if (product.product_images && product.product_images.length > 0) {
+            if (uniqueColorImages.length > 0) {
+                imageUrl = uniqueColorImages[0].url;
+            } else if (product.product_images && product.product_images.length > 0) {
                 product.product_images.sort((a, b) => (a.position || 0) - (b.position || 0));
                 imageUrl = product.product_images[0].url || imageUrl;
+                uniqueColorImages.push({ color: 'Default', url: imageUrl });
+            } else {
+                uniqueColorImages.push({ color: 'Default', url: imageUrl });
+            }
+
+            // Create thumbnails HTML
+            const maxThumbs = 4;
+            let thumbsHTML = '';
+            uniqueColorImages.slice(0, maxThumbs).forEach((item, idx) => {
+                const isActive = idx === 0;
+                thumbsHTML += `
+                    <img class="boys-card-thumb ${isActive ? 'active' : ''}" 
+                         src="${item.url}" 
+                         alt="${item.color}"
+                         title="${item.color}"
+                         onclick="event.preventDefault(); event.stopPropagation(); changeCardColor(this, '${item.color.replace(/'/g, "\\'")}', '${item.url}')">
+                `;
+            });
+
+            if (uniqueColorImages.length > maxThumbs) {
+                thumbsHTML += `
+                    <span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">
+                        +${uniqueColorImages.length - maxThumbs}
+                    </span>
+                `;
             }
 
             // Sanitize text to prevent HTML errors
@@ -1659,17 +1724,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Build the card
             const cardHTML = `
-                <div class="boys-card" style="max-width: 280px; width: 100%; position: relative;">
-                    <span class="boys-badge" style="background:#111; color:#fff; padding:4px 8px; font-size:10px; font-weight:bold; position:absolute; top:10px; left:10px; z-index:2;">NEW</span>
+                <div class="boys-card" 
+                     data-product-id="${product.id}" 
+                     data-product-name="${safeName}" 
+                     data-product-price="${product.price || 0}" 
+                     style="max-width: 280px; width: 100%; position: relative;">
+                    <span class="boys-badge">NEW</span>
                     
                     <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block;">
-                        <img src="${imageUrl}" alt="Product Image" style="width: 100%; height: auto; object-fit: cover; aspect-ratio: 3/4; border-radius: 8px; transition: transform 0.3s ease;">
-                        <h3 style="margin-top: 12px; font-size: 16px;">${product.name || 'Untitled Product'}</h3>
+                        <img class="boys-card-img" src="${imageUrl}" alt="Product Image">
+                        <h3>${product.name || 'Untitled Product'}</h3>
                     </a>
 
-                    <p class="boys-price" style="font-weight:bold; margin-top:5px;">₹${product.price || 0} ${comparePriceHTML}</p>
+                    <!-- Color Selector Thumbnails -->
+                    <div class="boys-card-thumbs">
+                        ${thumbsHTML}
+                    </div>
+
+                    <p class="boys-price">₹${product.price || 0} ${comparePriceHTML}</p>
                     
-                    <button type="button" class="btn-secondary" style="width:100%; margin-top:10px; padding:10px; border:none; background:#111; color:#fff; cursor:pointer; font-weight:bold; position:relative; z-index:10;" onclick="event.preventDefault(); event.stopPropagation(); addToCart('${product.id}', '${safeName}', ${product.price || 0}, '${safeImage}')">Add To Cart</button>
+                    <button type="button" class="boys-card-add-btn btn-secondary" onclick="event.preventDefault(); event.stopPropagation(); addToCart('${product.id}', '${safeName}', ${product.price || 0}, '${safeImage}')">Add To Cart</button>
                 </div>
             `;
 
@@ -1688,4 +1762,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) {
         console.error("🔥 Error:", err);
     }
-});
+}
+
+// --- COLOR SWITCHER ACTION ---
+window.changeCardColor = function(thumbElement, colorName, imageUrl) {
+    const card = thumbElement.closest('.boys-card');
+    if (!card) return;
+
+    // Update main image URL
+    const mainImg = card.querySelector('.boys-card-img');
+    if (mainImg) mainImg.src = imageUrl;
+
+    // Remove active styling from all sibling thumbnails, and add to current one
+    const thumbs = card.querySelectorAll('.boys-card-thumb');
+    thumbs.forEach(t => {
+        t.style.border = '1px solid #ddd';
+        t.classList.remove('active');
+    });
+    thumbElement.style.border = '2px solid #111';
+    thumbElement.classList.add('active');
+
+    // Update the Add To Cart button action and parameters
+    const addBtn = card.querySelector('.boys-card-add-btn');
+    if (addBtn) {
+        const prodId = card.getAttribute('data-product-id');
+        const prodName = card.getAttribute('data-product-name');
+        const prodPrice = card.getAttribute('data-product-price');
+        
+        let cartName = prodName;
+        if (colorName && colorName !== 'Default' && colorName !== 'None') {
+            cartName += ` - ${colorName}`;
+        }
+        
+        // Escape quotes safely
+        const escapedCartName = cartName.replace(/'/g, "\\'");
+        const escapedImageUrl = imageUrl.replace(/'/g, "\\'");
+        addBtn.setAttribute('onclick', `event.preventDefault(); event.stopPropagation(); addToCart('${prodId}', '${escapedCartName}', ${prodPrice}, '${escapedImageUrl}')`);
+    }
+};
+
+if (document.readyState === "interactive" || document.readyState === "complete") {
+    initStorefront();
+} else {
+    document.addEventListener('DOMContentLoaded', initStorefront);
+}

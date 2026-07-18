@@ -4213,77 +4213,102 @@ body > *:last-child{
 }
 
 .boys-card {
-    background: #f7f7f7;
+    background: transparent;
     overflow: hidden;
     position: relative;
-    transition: .4s;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    border-radius: 8px;
+    padding: 0;
 }
 
 .boys-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, .12);
 }
 
 .boys-badge {
     position: absolute;
-    top: 18px;
-    left: 18px;
+    top: 12px;
+    left: 12px;
     background: #111;
     color: #fff;
-    padding: 8px 16px;
-    font-size: 11px;
+    padding: 6px 12px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
     z-index: 5;
+    border-radius: 4px;
 }
 
-.boys-card img {
+.boys-card img.boys-card-img {
     width: 100%;
-    aspect-ratio: 4/5;
+    aspect-ratio: 3/4;
     object-fit: cover;
-    transition: .5s;
+    transition: transform 0.5s ease;
+    border-radius: 8px;
 }
 
-.boys-card:hover img {
-    transform: scale(1.08);
+.boys-card:hover img.boys-card-img {
+    transform: scale(1.04);
 }
 
 .boys-card h3 {
-    margin: 22px 20px 10px;
-    font-size: 18px;
+    margin: 12px 0px 4px 0px;
+    font-size: 16px;
     color: #111;
-    font-weight: 700;
+    font-weight: 600;
+    line-height: 1.4;
+    transition: color 0.3s ease;
+}
+
+.boys-card:hover h3 {
+    color: #555;
 }
 
 .boys-price {
-    margin: 0 20px 20px;
-    font-size: 20px;
+    margin: 0px 0px 12px 0px;
+    font-size: 16px;
     font-weight: 700;
     color: #111;
 }
 
 .boys-price span {
-    margin-left: 10px;
+    margin-left: 8px;
     color: #999;
-    font-size: 16px;
+    font-size: 13px;
     text-decoration: line-through;
+    font-weight: 400;
 }
 
 .boys-card button {
-    width: calc(100% - 40px);
-    margin: 0 20px 20px;
-    height: 50px;
+    width: 100%;
+    height: 44px;
     border: none;
     background: #111;
     color: #fff;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: .3s;
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+    opacity: 0;
+    transform: translateY(8px);
+    border-radius: 6px;
+    margin-top: 5px;
+}
+
+.boys-card:hover button {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .boys-card button:hover {
     background: #333;
+}
+
+@media (hover: none) or (max-width: 1023px) {
+    .boys-card button {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ==========================
@@ -6919,5 +6944,31 @@ body.reels-page {
  20% {
   transform: scaleY(1);
  }
+}
+
+/* Color Thumbnails on Product Cards */
+.boys-card-thumbs {
+    display: flex;
+    gap: 6px;
+    margin: 8px 0px 4px 0px; /* Align to the left edge cleanly */
+    flex-wrap: wrap;
+}
+
+.boys-card-thumb {
+    width: 34px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.boys-card-thumb:hover {
+    transform: scale(1.05);
+}
+
+.boys-card-thumb.active {
+    border: 2px solid #111;
 }
 
