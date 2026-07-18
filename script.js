@@ -482,6 +482,8 @@ testDatabaseConnection();
     const heroAccountBtn = document.getElementById("heroAccountBtn");
     const profileBtn = document.getElementById("profileBtn");
     const mobileAccountLink = document.getElementById("mobileAccountLink");
+    const mobileOrdersLink = document.getElementById("mobileOrdersLink");
+    const mobileWishLink = document.getElementById("mobileWishLink");
     const accountClose = document.getElementById("accountClose");
 
     // 👇 Duplicates removed from here! It will use the ones you defined earlier in the file.
@@ -493,6 +495,18 @@ testDatabaseConnection();
         if (heroHamburger) heroHamburger.classList.remove("open");
         if (mobileMenu) mobileMenu.classList.remove("open");
         openOverlay(accountOverlay);
+    });
+    if (mobileOrdersLink) mobileOrdersLink.addEventListener("click", e => {
+        e.preventDefault();
+        if (heroHamburger) heroHamburger.classList.remove("open");
+        if (mobileMenu) mobileMenu.classList.remove("open");
+        openOverlay(accountOverlay);
+    });
+    if (mobileWishLink) mobileWishLink.addEventListener("click", e => {
+        e.preventDefault();
+        if (heroHamburger) heroHamburger.classList.remove("open");
+        if (mobileMenu) mobileMenu.classList.remove("open");
+        openOverlay(wishOverlay);
     });
     if (accountClose) accountClose.addEventListener("click", () => closeOverlay(accountOverlay));
 
