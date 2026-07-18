@@ -6474,6 +6474,18 @@ body {
     transform: translateX(4px);
 }
 
+/* Back to Home button inside the main navbar (top-right) */
+.nav-actions .nav-home-btn {
+    margin-left: 10px;
+    padding: 8px 16px;
+}
+
+@media (max-width: 1023px) {
+    .nav-actions .nav-home-btn {
+        display: none;
+    }
+}
+
 /* Responsive adjustment for about navbar */
 @media (max-width: 768px) {
     .about-navbar {
