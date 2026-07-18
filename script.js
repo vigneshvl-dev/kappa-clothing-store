@@ -35,44 +35,7 @@ testDatabaseConnection();
 (() => {
     "use strict";
 
-    /* ---------- DATA ---------- */
-    const PRODUCTS = [
-        { id: 1, cat: "Hoodies", name: "Blackout Hoodie", price: 2999, old: 3999, rating: 4.8, reviews: 132, sizes: ["S", "M", "L", "XL"], colors: ["#111", "#8a887f"], img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=700&auto=format&fit=crop", tag: "NEW" },
-        { id: 2, cat: "T-Shirts", name: "Sunfade Tee", price: 1299, old: null, rating: 4.6, reviews: 88, sizes: ["S", "M", "L", "XL", "XXL"], colors: ["#FFE066", "#fdfdfb"], img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=700&auto=format&fit=crop", tag: null },
-        { id: 3, cat: "Oversized", name: "Concrete Tee", price: 1799, old: 2199, rating: 4.7, reviews: 64, sizes: ["M", "L", "XL"], colors: ["#111", "#FBCE07"], img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=700&auto=format&fit=crop", tag: "SALE" },
-        { id: 4, cat: "Jackets", name: "Nightrunner Jacket", price: 5499, old: null, rating: 4.9, reviews: 41, sizes: ["S", "M", "L"], colors: ["#111"], img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=700&auto=format&fit=crop", tag: "NEW" },
-        { id: 5, cat: "Sneakers", name: "Vortex Sneakers", price: 4299, old: 5299, rating: 4.5, reviews: 210, sizes: ["7", "8", "9", "10"], colors: ["#fdfdfb", "#111"], img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=700&auto=format&fit=crop", tag: "SALE" },
-        { id: 6, cat: "Hoodies", name: "Ashfield Hoodie", price: 3199, old: null, rating: 4.4, reviews: 57, sizes: ["S", "M", "L", "XL"], colors: ["#8a887f"], img: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=700&auto=format&fit=crop", tag: null },
-        { id: 7, cat: "Accessories", name: "Icon Cap", price: 899, old: null, rating: 4.3, reviews: 22, sizes: ["One Size"], colors: ["#111", "#FBCE07"], img: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=700&auto=format&fit=crop", tag: null },
-        { id: 8, cat: "T-Shirts", name: "Skyline Tee", price: 1399, old: 1699, rating: 4.6, reviews: 73, sizes: ["S", "M", "L", "XL"], colors: ["#fdfdfb"], img: "https://images.unsplash.com/photo-1503341504253-dff4815485f1?q=80&w=700&auto=format&fit=crop", tag: "SALE" },
-    ];
-
-    const CATEGORIES = [
-        { name: "Men", img: "https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=400&auto=format&fit=crop" },
-        { name: "Women", img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=400&auto=format&fit=crop" },
-        { name: "Oversized", img: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=400&auto=format&fit=crop" },
-        { name: "Hoodies", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=400&auto=format&fit=crop" },
-        { name: "T-Shirts", img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=400&auto=format&fit=crop" },
-        { name: "Accessories", img: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=400&auto=format&fit=crop" },
-        { name: "Sneakers", img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=400&auto=format&fit=crop" },
-    ];
-
-    const LOOKBOOK = [
-        { img: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=600&auto=format&fit=crop", cap: "Street Edit" },
-        { img: "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?q=80&w=600&auto=format&fit=crop", cap: "Sunfade" },
-        { img: "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?q=80&w=600&auto=format&fit=crop", cap: "Blackout" },
-        { img: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=600&auto=format&fit=crop", cap: "Concrete Wave" },
-        { img: "https://images.unsplash.com/photo-1512327646107-d5b74d5b1c5b?q=80&w=600&auto=format&fit=crop", cap: "Icon Series" },
-        { img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=600&auto=format&fit=crop", cap: "Nightrunner" },
-    ];
-
-    const REVIEWS = [
-        { name: "Aarav S.", loc: "Mumbai, IN", text: "Fit is incredible and the fabric feels genuinely premium. KAPPA nailed the oversized cut.", stars: 5 },
-        { name: "Meera K.", loc: "Bengaluru, IN", text: "Fast delivery, easy returns, and the hoodie is on constant rotation. Worth every rupee.", stars: 5 },
-        { name: "Devan R.", loc: "Kochi, IN", text: "Streetwear that doesn't feel generic. The Concrete Wave drop is my new favorite.", stars: 4 },
-        { name: "Naomi P.", loc: "Delhi, IN", text: "Quality control is on point, stitching held up after months of wear.", stars: 5 },
-        { name: "Kabir T.", loc: "Chennai, IN", text: "Checkout was smooth and sizing chart was spot on. Will shop again.", stars: 4 },
-    ];
+    
 
     const INSTA = [
         "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=400&auto=format&fit=crop",
