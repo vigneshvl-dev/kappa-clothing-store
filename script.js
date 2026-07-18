@@ -170,11 +170,17 @@ testDatabaseConnection();
         heroSlides.forEach(slide => {
             const mobileBg = slide.getAttribute("data-mobile-bg");
             if (!mobileBg) return;
+            if (!slide.dataset.desktopBg) {
+                const styleAttr = slide.getAttribute("style") || "";
+                const match = styleAttr.match(/background-image\s*:\s*url\(['"]?([^'")]+)['"]?\)/);
+                slide.dataset.desktopBg = match ? match[1] : "";
+            }
             if (window.innerWidth <= MOBILE_BP) {
                 slide.style.backgroundImage = `url('${mobileBg}')`;
             } else {
-                const desktopBg = slide.getAttribute("style")?.match(/background-image:url\('([^']+)'\)/)?.[1];
-                if (desktopBg) slide.style.backgroundImage = `url('${desktopBg}')`;
+                if (slide.dataset.desktopBg) {
+                    slide.style.backgroundImage = `url('${slide.dataset.desktopBg}')`;
+                }
             }
         });
     }

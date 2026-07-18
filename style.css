@@ -485,7 +485,7 @@ body.home-page .navbar.scrolled {
     }
 
     .nav-actions {
-        gap: 2px;
+        gap: 8px; /* Slightly increase gap for tap targets */
     }
 
     .lang-select {
@@ -493,9 +493,12 @@ body.home-page .navbar.scrolled {
         padding: 4px 6px;
     }
 
-    .search-box input {
-        width: 100px;
-        font-size: 12px;
+    .search-box {
+        display: none !important;
+    }
+
+    .profile-btn {
+        display: flex !important;
     }
 
     .mobile-menu {
@@ -1124,7 +1127,7 @@ body.home-page .navbar.scrolled {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: var(--black);
+    background: var(--yellow);
     color: var(--white);
     overflow: hidden;
     padding: 0;
@@ -1148,6 +1151,21 @@ body.home-page .navbar.scrolled {
     transition: opacity 0.8s ease-in-out;
     will-change: opacity;
     transform: translateZ(0);
+    background-color: var(--yellow);
+}
+
+@media (max-width: 768px) {
+    body.home-page .navbar {
+        background: var(--yellow) !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .hero {
+        margin-top: calc(var(--marquee-h) + var(--nav-h)) !important;
+        height: calc(100vh - var(--marquee-h) - var(--nav-h)) !important;
+    }
+    .hero-slide {
+        background-position: center top !important;
+    }
 }
 
 .hero-slide.previous {
