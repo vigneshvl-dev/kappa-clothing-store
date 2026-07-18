@@ -20,7 +20,8 @@
             <ul class="sidebar-menu" id="sidebar-nav">
                 <li data-target="dashboard" class="active">Dashboard</li>
                 <li data-target="orders">Orders</li>
-                <li data-target="products">Products</li> 
+                <li data-target="inventory">Inventory</li>
+                <li data-target="products">Add Product</li> 
                 <li data-target="customers">Customers</li>
                 <li data-target="categories">Categories</li>
                 <li data-target="reviews">Reviews</li>
@@ -68,7 +69,28 @@
                 </div>
             </div>
 
-            <!-- VIEW: PRODUCTS -->
+            <!-- VIEW: INVENTORY -->
+            <div id="view-inventory" class="view-section">
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div style="padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <h2 style="margin: 0;">Published Products</h2>
+                        
+                        <!-- NEW: Category Filter Dropdown -->
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label for="inventory-filter" style="font-size: 14px; color: #666; font-weight: bold;">Filter:</label>
+                            <select id="inventory-filter" class="admin-input" style="width: 250px; margin: 0; padding: 8px;" onchange="filterInventory()">
+                                <option value="all">All Categories</option>
+                                <!-- Injected dynamically by JS -->
+                            </select>
+                        </div>
+                    </div>
+                    <div id="inventory-list-container" style="padding: 20px;">
+                        <p>Loading inventory...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: PRODUCTS (Add/Edit) -->
             <div id="view-products" class="view-section">
                 <form id="add-product-form">
                     <section class="card">
@@ -123,11 +145,14 @@
                             <label>Upload Images (Select multiple files) *</label>
                             <div class="file-upload-wrapper">
                                 <input type="file" id="prod-images" accept="image/png, image/jpeg, image/webp" multiple required>
+                                <div id="existing-images-preview" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;"></div>
+                                <div id="new-images-preview" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;"></div>
                             </div>
                         </div>
                     </section>
 
-                    <button type="submit" class="submit-btn">Publish Product to Storefront</button>
+                    <input type="hidden" id="editing-product-id" value="">
+                    <button type="submit" class="submit-btn" id="btn-submit-product">Publish Product to Storefront</button>
                 </form>
             </div>
 
