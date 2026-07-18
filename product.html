@@ -131,11 +131,11 @@
         /* Social Icons */
         .share-icons {
             margin-top: 15px;
-            font-size: 11px;
+            font-size: 14px;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 5px;
             color: #111;
         }
 
@@ -321,6 +321,20 @@
             text-align: center;
             color: #111;
         }
+        /*------- social icon-----*/
+        .share-icons .icon {
+  width: 32px;   /* same size for all */
+  height: 32px;
+  object-fit: contain;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.share-icons .icon:hover {
+  transform: scale(1.1);
+}
+
 
         /* Layout Strata Layout Grids */
         .zara-grid-4 {
@@ -573,23 +587,19 @@
                 <img id="main-product-image" src="" alt="Product Image">
 
                 <!-- SVG Icons for Sharing -->
-                <div class="share-icons">
-                    SHARE:
-                    <!-- Instagram Icon -->
-                    <svg title="Share to Instagram" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor"
-                        stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                    </svg>
-                    <!-- WhatsApp Icon -->
-                    <svg title="Share to WhatsApp" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor"
-                        stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path
-                            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
-                        </path>
-                    </svg>
-                </div>
+               <div class="share-icons">
+  SHARE:
+  <!-- Instagram Icon -->
+  <a href="https://www.instagram.com/kappa_fashion_store/?__pwa=1#" target="_blank" title="Share to Instagram">
+    <img src="https://static.vecteezy.com/system/resources/thumbnails/022/102/064/small_2x/instagram-icon-outline-style-isolated-on-white-background-free-vector.jpg" alt="Instagram" class="icon">
+  </a>
+
+  <!-- WhatsApp Icon -->
+  <a href="https://wa.me/916238616662" target="_blank" title="Share to WhatsApp">
+    <img src="data:image/webp;base64,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" alt="WhatsApp" class="icon">
+  </a>
+</div>
+
             </div>
         </div>
 
