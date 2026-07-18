@@ -283,6 +283,7 @@ testDatabaseConnection();
         mobileMenu.classList.remove("open");
         if (heroHamburger) heroHamburger.classList.remove("open");
         document.body.style.overflow = "";
+        void mobileMenu.offsetHeight;
     }
 
     if (heroHamburger) heroHamburger.addEventListener("click", toggleMenu);

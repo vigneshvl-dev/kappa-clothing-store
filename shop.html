@@ -467,6 +467,7 @@
             if (shopMobileMenu) shopMobileMenu.classList.remove('open');
             if (shopHamburger) shopHamburger.classList.remove('open');
             document.body.style.overflow = '';
+            if (shopMobileMenu) void shopMobileMenu.offsetHeight;
         }
         if (shopHamburger) shopHamburger.addEventListener('click', () => {
             if (shopMobileMenu.classList.contains('open')) closeShopMenu();
