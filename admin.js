@@ -259,7 +259,7 @@ async function loadOrders() {
                  <td><span class="badge ${statusClass}">${(order.status || 'pending').toUpperCase()}</span></td>
                  <td>₹${order.total_amount}</td>
                  <td>
-                    <button class="btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="alert('Details for: ${order.id}')">View</button>
+                    <button class="btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="showOrderDetails('${order.id}')">View</button>
                     <select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)" style="font-size: 11px; margin-left: 5px;">
                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
                         <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
@@ -803,4 +803,35 @@ window.editProduct = async function(id) {
 
     document.getElementById('btn-submit-product').textContent = "Save Changes";
     window.scrollTo(0, 0);
+}
+
+window.showOrderDetails = async function(orderId) {
+    const overlay = document.getElementById('orderDetailsOverlay');
+    const content = document.getElementById('orderDetailsContent');
+    
+    // Show modal
+    overlay.style.display = 'flex';
+    content.innerHTML = "Loading...";
+
+    // Fetch order details
+    const { data, error } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single();
+
+    if (error || !data) {
+        content.innerHTML = "Error loading order.";
+        return;
+    }
+
+    // Display the details (You can add more fields here!)
+    content.innerHTML = `
+        <p><strong>Order ID:</strong> ${data.id}</p>
+        <p><strong>Status:</strong> ${data.status}</p>
+        <p><strong>Total:</strong> ₹${data.total_amount}</p>
+        <p><strong>Created At:</strong> ${new Date(data.created_at).toLocaleString()}</p>
+        <hr>
+        <p><em>Additional customer fields (like shipping address/email) will appear here as you add them to your DB.</em></p>
+    `;
 }
