@@ -214,7 +214,6 @@ window.deleteCategory = async function(id) {
 async function loadOrders() {
     const container = document.querySelector('#view-orders .card');
     
-    // We select created_at now as well
     const { data, error } = await supabaseClient
         .from('orders')
         .select('*')
@@ -245,11 +244,8 @@ async function loadOrders() {
                     <tbody>`;
     
     data.forEach(order => {
-        // Format the date nicely
         const dateObj = new Date(order.created_at);
         const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        // Define Status colors
         const statusClass = `status-${order.status || 'pending'}`;
         
         html += `<tr>
@@ -825,13 +821,24 @@ window.showOrderDetails = async function(orderId) {
         return;
     }
 
-    // Display the details (You can add more fields here!)
+    // Extract JSONB data safely
+    const cust = data.customer_details || {};
+    const addr = data.shipping_address || {};
+
+    // Display the details
     content.innerHTML = `
-        <p><strong>Order ID:</strong> ${data.id}</p>
+        <p><strong>Order ID:</strong> ${data.id.toString().substring(0, 8)}</p>
         <p><strong>Status:</strong> ${data.status}</p>
         <p><strong>Total:</strong> ₹${data.total_amount}</p>
         <p><strong>Created At:</strong> ${new Date(data.created_at).toLocaleString()}</p>
         <hr>
-        <p><em>Additional customer fields (like shipping address/email) will appear here as you add them to your DB.</em></p>
+        <h4>Customer Information</h4>
+        <p><strong>Name:</strong> ${cust.name || 'N/A'}</p>
+        <p><strong>Email:</strong> ${cust.email || 'N/A'}</p>
+        <p><strong>Phone:</strong> ${cust.phone || 'N/A'}</p>
+        <h4>Shipping Details</h4>
+        <p><strong>Address:</strong> ${addr.address || 'N/A'}</p>
+        <p><strong>State:</strong> ${addr.state || 'N/A'}</p>
+        <p><strong>Zip Code:</strong> ${addr.zip || 'N/A'}</p>
     `;
 }
