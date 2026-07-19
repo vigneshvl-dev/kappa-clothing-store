@@ -659,8 +659,9 @@
             .insert(orderItemsToInsert);
 
         if (itemsError) {
-            console.error("Database Error (Order Items):", itemsError);
-        }
+        console.error("Database Error (Order Items):", itemsError);
+        alert("Error saving items: " + itemsError.message); // <--- This will force a popup if it fails
+    }
 
         // 4. Finalize
         localStorage.setItem('kappa_active_order_id', newOrderId);
