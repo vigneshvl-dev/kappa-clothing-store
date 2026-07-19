@@ -832,7 +832,7 @@ testDatabaseConnection();
             const price = (p ? p.price : null) ?? c.price ?? 0;
             return a + price * c.qty;
         }, 0);
-        const shipCost = Number(document.getElementById("shipSelect").value);
+        const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
         const discAmt = Math.round(subtotal * discount);
         const total = Math.max(subtotal - discAmt + (subtotal > 0 ? shipCost : 0), 0);
         document.getElementById("cartSubtotal").textContent = fmt(subtotal);
