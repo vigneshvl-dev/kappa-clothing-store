@@ -17,6 +17,8 @@
     
     <!-- Supabase Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <style>
         @media (max-width: 768px) {
@@ -537,31 +539,42 @@
 
         function handleProceedToPayment(event) {
             event.preventDefault();
+            payNow();
+        }
 
-            if (cartItems.length === 0) {
-                alert("Your cart is empty!");
-                return;
-            }
+        async function payNow() {
 
-            // 1. Gather all data from the form fields
-            const customerDetails = {
-                name: document.getElementById('bill-name').value,
-                email: document.getElementById('bill-email').value,
-                phone: document.getElementById('bill-phone').value
+            const response = await fetch("/api/create-order", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            const order = await response.json();
+
+            var options = {
+                key: "YOUR_RAZORPAY_TEST_KEY_ID",
+
+                amount: order.amount,
+                currency: order.currency,
+                order_id: order.id,
+
+                name: "Kappa Fashion Store",
+                description: "Test Payment",
+
+                handler: function (response) {
+                    alert("Payment Successful!");
+                    console.log(response);
+                },
+
+                theme: {
+                    color: "#000000"
+                }
             };
 
-            const shippingAddress = {
-                address: document.getElementById('bill-address').value,
-                state: document.getElementById('bill-state').value,
-                zip: document.getElementById('bill-zip').value
-            };
-
-            // 2. Save details so the developer's new payment file can access them
-            localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
-            localStorage.setItem('kappa_shipping_address', JSON.stringify(shippingAddress));
-
-            // 3. Redirect to the new payment page (Replace 'payment.html' with the actual filename the dev makes)
-            window.location.href = 'payment.html'; 
+            var rzp = new Razorpay(options);
+            rzp.open();
         }
 
         window.onload = loadCheckoutDetails;
