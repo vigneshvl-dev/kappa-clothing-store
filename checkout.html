@@ -646,6 +646,23 @@
                         contact: document.getElementById("bill-phone") ? document.getElementById("bill-phone").value : ""
                     },
                     theme: { color: "#111111" },
+                    config: {
+                        display: {
+                            blocks: {
+                                preferred: {
+                                    name: "UPI / Cards",
+                                    instruments: [
+                                        { method: "upi" },
+                                        { method: "card" }
+                                    ]
+                                }
+                            },
+                            sequence: ["block.preferred", "block.other"],
+                            preferences: {
+                                show_default_blocks: true
+                            }
+                        }
+                    },
                     modal: {
                         ondismiss: function () {
                             console.log("Razorpay modal closed");
