@@ -213,20 +213,62 @@ window.deleteCategory = async function(id) {
 
 async function loadOrders() {
     const container = document.querySelector('#view-orders .card');
-    const { data } = await supabaseClient.from('orders').select('id, status, total_amount, profiles(full_name)').order('created_at', { ascending: false });
-    if(!data || data.length === 0) { container.innerHTML = `<h2>Orders</h2><p>No orders found.</p>`; return; }
+    
+    // We select created_at now as well
+    const { data, error } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    let html = `<h2>Orders</h2><table class="stock-table"><thead><tr><th>User</th><th>Status</th><th>Total</th><th>Action</th></tr></thead><tbody>`;
+    if (error) { 
+        console.error(error);
+        return; 
+    }
+
+    if (!data || data.length === 0) { 
+        container.innerHTML = `<h2>Orders</h2><p>No orders found.</p>`; 
+        return; 
+    }
+
+    let html = `<h2>Orders</h2>
+                <table class="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+    
     data.forEach(order => {
-        html += `<tr><td>${order.profiles?.full_name || 'Guest'}</td>
-                 <td><span class="badge status-${order.status}">${order.status}</span></td>
+        // Format the date nicely
+        const dateObj = new Date(order.created_at);
+        const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        // Define Status colors
+        const statusClass = `status-${order.status || 'pending'}`;
+        
+        html += `<tr>
+                 <td><small>${formattedDate}</small></td>
+                 <td><strong>#${order.id.toString().substring(0, 8)}</strong></td>
+                 <td>${order.user_id ? "Registered" : "Guest"}</td>
+                 <td><span class="badge ${statusClass}">${(order.status || 'pending').toUpperCase()}</span></td>
                  <td>₹${order.total_amount}</td>
-                 <td><select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)">
+                 <td>
+                    <button class="btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="alert('Details for: ${order.id}')">View</button>
+                    <select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)" style="font-size: 11px; margin-left: 5px;">
                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
                         <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
                         <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
-                    </select></td></tr>`;
+                    </select>
+                 </td>
+                 </tr>`;
     });
+    
     html += `</tbody></table>`;
     container.innerHTML = html;
 }
