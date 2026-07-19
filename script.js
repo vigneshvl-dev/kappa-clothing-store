@@ -840,7 +840,7 @@ testDatabaseConnection();
     document.getElementById("cartDiscount").textContent = "- ₹ " + fmt(discAmt);
     document.getElementById("cartShipping").textContent = subtotal > 0 ? fmt(shipCost) : fmt(0);
     document.getElementById("cartTotal").textContent = fmt(total);
-}
+}}
     if (document.getElementById("shipSelect")) {
         document.getElementById("shipSelect").addEventListener("change", updateSummary);
     }
