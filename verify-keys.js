@@ -1,6 +1,4 @@
 const Razorpay = require("razorpay");
-
-// Replace these with your new keys to verify
 const KEY_ID = "rzp_test_TFOxCSs3iPI2pU";
 const KEY_SECRET = "bb6nZdz3nr7lytEq9eaubKgG";
 
@@ -15,11 +13,11 @@ rzp.orders.create({
     currency: "INR",
     receipt: "test_receipt"
 })
-.then(order => {
-    console.log("✅ SUCCESS! Your keys are valid.");
-    console.log("Order ID created:", order.id);
-})
-.catch(err => {
-    console.error("❌ FAILED! Authentication or request failed.");
-    console.error("Details:", err.error || err);
-});
+    .then(order => {
+        console.log("✅ SUCCESS! Your keys are valid.");
+        console.log("Order ID created:", order.id);
+    })
+    .catch(err => {
+        console.error("❌ FAILED! Authentication or request failed.");
+        console.error("Details:", err.error || err);
+    });
