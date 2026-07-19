@@ -254,25 +254,236 @@
         }
 
         /* CTA Interfaces */
-        .btn-primary {
+        .pdp-btn-atc {
             width: 100%;
             background: #111;
             color: #fff;
-            padding: 14px;
-            font-size: 10px;
+            padding: 15px;
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             border: none;
             cursor: pointer;
-            margin-top: 25px;
-            margin-bottom: 25px;
             text-transform: uppercase;
-            transition: 0.3s;
+            transition: background 0.25s, color 0.25s;
+            border-radius: 2px;
         }
 
-        .btn-primary:hover {
-            background: #FFD700;
+        .pdp-btn-atc:hover {
+            background: #333;
+        }
+
+        .pdp-btn-buy {
+            width: 100%;
+            background: #fff;
             color: #111;
+            padding: 15px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            border: 1.5px solid #111;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.25s, color 0.25s;
+            border-radius: 2px;
+            margin-top: 10px;
+        }
+
+        .pdp-btn-buy:hover {
+            background: #f5f5f5;
+        }
+
+        /* Urgency Badge */
+        .pdp-sold-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            color: #bf7800;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+        }
+
+        .pdp-sold-badge::before {
+            content: '🔥';
+            font-size: 13px;
+        }
+
+        /* Price Block */
+        .pdp-price-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .pdp-price-current {
+            font-size: 20px;
+            font-weight: 800;
+            color: #cc0000;
+        }
+
+        .pdp-price-old {
+            font-size: 13px;
+            color: #888;
+            text-decoration: line-through;
+        }
+
+        .pdp-discount-badge {
+            background: #cc0000;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        /* WhatsApp Help Bar */
+        .pdp-help-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            font-size: 12px;
+            color: #333;
+            gap: 10px;
+        }
+
+        .pdp-help-bar .wa-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #25D366;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 7px 14px;
+            border-radius: 4px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .pdp-help-bar .wa-btn:hover {
+            background: #1da851;
+        }
+
+        .pdp-help-bar .wa-btn svg {
+            flex-shrink: 0;
+        }
+
+        /* Quantity Selector */
+        .pdp-qty-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .pdp-qty-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #555;
+            min-width: 60px;
+        }
+
+        .pdp-qty-ctrl {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid #ddd;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .pdp-qty-ctrl button {
+            width: 36px;
+            height: 36px;
+            background: #f5f5f5;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+            line-height: 1;
+        }
+
+        .pdp-qty-ctrl button:hover {
+            background: #e8e8e8;
+        }
+
+        .pdp-qty-ctrl span {
+            min-width: 44px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        /* Offer Banner Cards */
+        .pdp-offer-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 18px;
+            margin-bottom: 18px;
+        }
+
+        .pdp-offer-card {
+            background: #e8edf5;
+            border-radius: 6px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pdp-offer-card .offer-left,
+        .pdp-offer-card .offer-right {
+            text-align: center;
+            flex: 1;
+        }
+
+        .pdp-offer-card .offer-tag {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #4a5568;
+            margin-bottom: 2px;
+        }
+
+        .pdp-offer-card .offer-pct {
+            font-size: 26px;
+            font-weight: 900;
+            color: #2d3748;
+            line-height: 1;
+        }
+
+        .pdp-offer-card .offer-sub {
+            font-size: 8.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #4a5568;
+            margin-top: 2px;
+        }
+
+        .pdp-offer-card .offer-plus {
+            font-size: 22px;
+            font-weight: 300;
+            color: #4a5568;
+            flex-shrink: 0;
         }
 
         /* Technical Typography Blocks */
@@ -293,6 +504,27 @@
             color: #555;
             line-height: 1.6;
             white-space: pre-wrap;
+        }
+
+        .pdp-spec-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .pdp-spec-list li {
+            font-size: 12px;
+            color: #555;
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            gap: 6px;
+        }
+
+        .pdp-spec-list li::before {
+            content: '•';
+            color: #111;
+            font-weight: 900;
         }
 
         /* --- ROW WRAPPERS --- */
@@ -321,19 +553,21 @@
             text-align: center;
             color: #111;
         }
+
         /*------- social icon-----*/
         .share-icons .icon {
-  width: 32px;   /* same size for all */
-  height: 32px;
-  object-fit: contain;
-  margin-left: 8px;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
+            width: 32px;
+            /* same size for all */
+            height: 32px;
+            object-fit: contain;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
 
-.share-icons .icon:hover {
-  transform: scale(1.1);
-}
+        .share-icons .icon:hover {
+            transform: scale(1.1);
+        }
 
 
         /* Layout Strata Layout Grids */
@@ -485,7 +719,8 @@
 
             <a href="index.html#home" class="back-to-home-btn nav-home-btn">
                 <span>Back to Home</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                    stroke-linejoin="round" width="16" height="16">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                 </svg>
@@ -506,13 +741,17 @@
             <a href="shop.html" class="mnav-link">Best Selling</a>
             <a href="shop.html" class="mnav-link">All products</a>
             <a href="#" class="mnav-link" id="mobileWishLink">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
+                    <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                    </path>
                 </svg>
                 <span>Wishlist</span>
             </a>
             <a href="#" class="mnav-link" id="mobileAccountLink">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
                     <circle cx="12" cy="8" r="4"></circle>
                     <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
                 </svg>
@@ -586,21 +825,26 @@
                 <!-- Inner items loaded via DOM parser -->
             </div>
             <div class="hero-main-img">
-                <img id="main-product-image" src="" alt="Product Image">
+                <img id="main-product-image" src="assets/sleeping sis.png" alt="Product Image"
+                    style="background:#f5f5f5;"
+                    onerror="this.src='assets/sleeping sis.png'">
 
                 <!-- SVG Icons for Sharing -->
-               <div class="share-icons">
-  SHARE:
-  <!-- Instagram Icon -->
-  <a href="https://www.instagram.com/kappa_fashion_store/?__pwa=1#" target="_blank" title="Share to Instagram">
-    <img src="https://static.vecteezy.com/system/resources/thumbnails/022/102/064/small_2x/instagram-icon-outline-style-isolated-on-white-background-free-vector.jpg" alt="Instagram" class="icon">
-  </a>
+                <div class="share-icons">
+                    SHARE:
+                    <!-- Instagram Icon -->
+                    <a href="https://www.instagram.com/kappa_fashion_store/?__pwa=1#" target="_blank"
+                        title="Share to Instagram">
+                        <img src="https://static.vecteezy.com/system/resources/thumbnails/022/102/064/small_2x/instagram-icon-outline-style-isolated-on-white-background-free-vector.jpg"
+                            alt="Instagram" class="icon">
+                    </a>
 
-  <!-- WhatsApp Icon -->
-  <a href="https://wa.me/916238616662" target="_blank" title="Share to WhatsApp">
-    <img src="data:image/webp;base64,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" alt="WhatsApp" class="icon">
-  </a>
-</div>
+                    <!-- WhatsApp Icon -->
+                    <a href="https://wa.me/916238616662" target="_blank" title="Share to WhatsApp">
+                        <img src="data:image/webp;base64,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"
+                            alt="WhatsApp" class="icon">
+                    </a>
+                </div>
 
             </div>
         </div>
@@ -609,34 +853,96 @@
         <div class="hero-right">
             <h1 class="hero-title" id="pdp-title">Loading...</h1>
 
-            <div class="hero-price">
-                <span class="hero-price-old" id="pdp-compare-price" style="display:none;"></span>
-                <span id="pdp-price" style="font-weight:700;"></span>
+            <!-- Urgency badge -->
+
+            <!-- Price block -->
+            <div class="pdp-price-block">
+                <span class="pdp-price-current" id="pdp-price"></span>
+                <span class="pdp-price-old" id="pdp-compare-price" style="display:none;"></span>
+                <span class="pdp-discount-badge" id="pdp-discount-pct" style="display:none;"></span>
             </div>
 
-            <!-- Size Options Block -->
+            <!-- Size selector -->
             <div id="size-section" style="display:none;">
                 <div class="selector-header">
-                    <span>SIZE</span> <span class="link-dark">FIND YOUR SIZE</span>
+                    <span>SIZE / RS</span>
+                    <span class="link-dark" onclick="openSizeGuide()">SIZE GUIDE</span>
                 </div>
                 <div class="size-grid" id="pdp-sizes"></div>
             </div>
 
-            <!-- Color Options Block -->
+            <!-- Color selector -->
             <div id="color-section" style="display:none;">
                 <div class="selector-header"><span>COLOUR</span></div>
                 <div class="color-grid" id="pdp-colors"></div>
             </div>
 
-            <!-- Actions Interfaces -->
-            <button onclick="handleAddToCart()" class="btn-primary">ADD TO CART</button>
+            <!-- WhatsApp Help Bar -->
+            <div class="pdp-help-bar" style="margin-top:16px;">
+                <span>🟢 &nbsp;Need help?</span>
+                <a href="https://wa.me/916238616662" target="_blank" class="wa-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                    </svg>
+                    Chat With Us
+                </a>
+            </div>
 
-            <!-- Specification Layers -->
+            <!-- Quantity + Add to Cart + Buy Now -->
+            <div class="pdp-qty-row">
+                <span class="pdp-qty-label">Quantity</span>
+                <div class="pdp-qty-ctrl">
+                    <button id="pdp-qty-dec" onclick="changeQty(-1)">−</button>
+                    <span id="pdp-qty">1</span>
+                    <button id="pdp-qty-inc" onclick="changeQty(1)">+</button>
+                </div>
+            </div>
+
+            <button onclick="handleAddToCart()" class="pdp-btn-atc">Add to Cart</button>
+            <button onclick="handleBuyNow()" class="pdp-btn-buy">Buy Now</button>
+
+            <!-- Offer Banners -->
+            <div class="pdp-offer-cards">
+                <div class="pdp-offer-card">
+                    <div class="offer-left">
+                        <div class="offer-tag">— FLAT —</div>
+                        <div class="offer-pct">15% OFF</div>
+                        <div class="offer-sub">ON ALL PRODUCTS</div>
+                    </div>
+                    <div class="offer-plus">+</div>
+                    <div class="offer-right">
+                        <div class="offer-tag">— ADDITIONAL —</div>
+                        <div class="offer-pct">15% OFF</div>
+                        <div class="offer-sub">ABOVE ₹3000</div>
+                    </div>
+                </div>
+                <div class="pdp-offer-card">
+                    <div class="offer-left">
+                        <div class="offer-tag">— FLAT —</div>
+                        <div class="offer-pct">15% OFF</div>
+                        <div class="offer-sub">ON ALL PRODUCTS</div>
+                    </div>
+                    <div class="offer-plus">+</div>
+                    <div class="offer-right">
+                        <div class="offer-tag">— ADDITIONAL —</div>
+                        <div class="offer-pct">20% OFF</div>
+                        <div class="offer-sub">ABOVE ₹5000</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
             <div class="desc-block">
-                <div class="desc-title">PRODUCT DETAILS</div>
+                <div class="desc-title">Description</div>
                 <div class="desc-text" id="pdp-description">Loading description...</div>
             </div>
 
+            <!-- Specification -->
+            <div class="desc-block" id="spec-block" style="display:none;">
+                <div class="desc-title">Specification</div>
+                <ul class="pdp-spec-list" id="pdp-spec-list"></ul>
+            </div>
         </div>
     </main>
 
@@ -942,6 +1248,63 @@
         <div class="qv-panel" id="qvPanel"></div>
     </div>
 
+    <!-- SIZE GUIDE MODAL -->
+    <div class="overlay" id="sizeGuideOverlay" style="align-items: center; justify-content: center; display: flex;">
+        <div class="size-guide-panel" style="background: #fff; width: min(520px, 90%); padding: 30px; border-radius: 8px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #eee;">
+            <button class="size-guide-close" onclick="closeSizeGuide()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: #888; transition: color 0.2s;">✕</button>
+            <h3 style="font-size: 16px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 1px; color: #111; border-bottom: 1.5px solid #111; padding-bottom: 10px; font-family: 'Inter', sans-serif;">Size Guide</h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 16px; line-height: 1.5; font-family: 'Inter', sans-serif;">All measurements are in inches. Standard regular/relaxed streetwear fit.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; font-family: 'Inter', sans-serif;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #111; text-transform: uppercase; font-weight: 700; color: #111;">
+                        <th style="padding: 10px 5px;">Size</th>
+                        <th style="padding: 10px 5px;">Chest (in)</th>
+                        <th style="padding: 10px 5px;">Length (in)</th>
+                        <th style="padding: 10px 5px;">Shoulder (in)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px 5px; font-weight: 700;">S</td>
+                        <td style="padding: 12px 5px;">38 - 40</td>
+                        <td style="padding: 12px 5px;">27</td>
+                        <td style="padding: 12px 5px;">17.5</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px 5px; font-weight: 700;">M</td>
+                        <td style="padding: 12px 5px;">40 - 42</td>
+                        <td style="padding: 12px 5px;">28</td>
+                        <td style="padding: 12px 5px;">18</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px 5px; font-weight: 700;">L</td>
+                        <td style="padding: 12px 5px;">42 - 44</td>
+                        <td style="padding: 12px 5px;">29</td>
+                        <td style="padding: 12px 5px;">19</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px 5px; font-weight: 700;">XL</td>
+                        <td style="padding: 12px 5px;">44 - 46</td>
+                        <td style="padding: 12px 5px;">30</td>
+                        <td style="padding: 12px 5px;">20</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px 5px; font-weight: 700;">XXL</td>
+                        <td style="padding: 12px 5px;">46 - 48</td>
+                        <td style="padding: 12px 5px;">31</td>
+                        <td style="padding: 12px 5px;">21</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px; background: #f9f9f9; padding: 12px; border-radius: 4px; border-left: 3px solid #111; font-family: 'Inter', sans-serif;">
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #111; display: block; margin-bottom: 3px;">How to measure</span>
+                <span style="font-size: 11px; color: #666; line-height: 1.4; display: block;">Measure around the fullest part of your chest, keeping the tape horizontal. Fit might vary depending on the product construction/materials.</span>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
@@ -953,6 +1316,41 @@
         let selectedColor = null;
         let currentProductData = null;
         let currentMainImageUrl = '';
+        let currentQty = 1;
+
+        function openSizeGuide() {
+            const overlay = document.getElementById('sizeGuideOverlay');
+            if (overlay) overlay.classList.add('open');
+        }
+
+        function closeSizeGuide() {
+            const overlay = document.getElementById('sizeGuideOverlay');
+            if (overlay) overlay.classList.remove('open');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sizeOverlay = document.getElementById('sizeGuideOverlay');
+            if (sizeOverlay) {
+                sizeOverlay.addEventListener('click', (e) => {
+                    if (e.target === sizeOverlay) {
+                        closeSizeGuide();
+                    }
+                });
+            }
+        });
+
+
+        function changeQty(delta) {
+            currentQty = Math.max(1, currentQty + delta);
+            document.getElementById('pdp-qty').textContent = currentQty;
+        }
+
+        function handleBuyNow() {
+            handleAddToCart();
+            // Open cart after adding
+            const cartOverlay = document.getElementById('cartOverlay');
+            if (cartOverlay) cartOverlay.classList.add('open');
+        }
 
         function parseArrayData(data) {
             if (!data) return [];
@@ -977,38 +1375,104 @@
             }
 
             try {
-                const { data: product, error } = await supabaseClient
+                let product = null;
+
+                // Try matching by slug first
+                const { data: bySlug, error: slugErr } = await supabaseClient
                     .from('products')
                     .select('*, product_images(url, position), product_variants(size, color, stock_quantity)')
                     .eq('slug', slug)
-                    .single();
+                    .maybeSingle();
 
-                if (error) throw error;
+                if (bySlug) {
+                    product = bySlug;
+                } else {
+                    // Fallback: try matching by id (for products without a slug)
+                    const { data: byId, error: idErr } = await supabaseClient
+                        .from('products')
+                        .select('*, product_images(url, position), product_variants(size, color, stock_quantity)')
+                        .eq('id', slug)
+                        .maybeSingle();
+                    if (byId) product = byId;
+                }
+
+                if (!product) {
+                    const titleEl = document.getElementById('pdp-title');
+                    if (titleEl) titleEl.innerText = 'Product Not Found';
+                    const descEl = document.getElementById('pdp-description');
+                    if (descEl) descEl.innerText = 'This product could not be loaded. Please go back and try again.';
+                    return;
+                }
+
                 currentProductData = product;
 
-                document.getElementById('pdp-title').innerText = product.name;
+                const titleEl = document.getElementById('pdp-title');
+                if (titleEl) titleEl.innerText = product.name;
+
                 const bcTitle = document.getElementById('bc-title');
                 if (bcTitle) bcTitle.innerText = product.name;
-                document.getElementById('pdp-description').innerText = product.description || 'Details unavailable.';
-                document.getElementById('pdp-price').innerText = `₹${product.price}`;
+
+                const descEl = document.getElementById('pdp-description');
+                if (descEl) descEl.innerText = product.description || 'Details unavailable.';
+
+                const priceEl = document.getElementById('pdp-price');
+                if (priceEl) priceEl.innerText = `Rs. ${Number(product.price).toLocaleString('en-IN')}`;
 
                 if (product.compare_at_price) {
                     const compPrice = document.getElementById('pdp-compare-price');
-                    compPrice.innerText = `₹${product.compare_at_price}`;
-                    compPrice.style.display = 'inline-block';
+                    if (compPrice) {
+                        compPrice.innerText = `Rs. ${Number(product.compare_at_price).toLocaleString('en-IN')}`;
+                        compPrice.style.display = 'inline-block';
+                    }
+
+                    // Auto-compute and show discount badge
+                    const discPct = Math.round((1 - product.price / product.compare_at_price) * 100);
+                    if (discPct > 0) {
+                        const badge = document.getElementById('pdp-discount-pct');
+                        if (badge) {
+                            badge.innerText = discPct + '% OFF';
+                            badge.style.display = 'inline-block';
+                        }
+                    }
+                }
+
+                // Show urgency badge (always visible for now if it exists)
+                const soldBadge = document.getElementById('pdp-sold-badge');
+                if (soldBadge) {
+                    soldBadge.style.display = 'inline-flex';
+                }
+
+                // Build specification list from product metadata
+                const specItems = [];
+                if (product.style) specItems.push(`Style: ${product.style}`);
+                if (product.neckline) specItems.push(`Neckline: ${product.neckline}`);
+                if (product.fabric) specItems.push(`Fabric: ${product.fabric}`);
+                if (product.fit) specItems.push(`Fit: ${product.fit}`);
+                if (product.sleeve) specItems.push(`Sleeve: ${product.sleeve}`);
+                if (product.gsm) specItems.push(`GSM: ${product.gsm}`);
+                if (product.wash_care) specItems.push(`Wash Care: ${product.wash_care}`);
+                if (product.country_of_origin) specItems.push(`Origin: ${product.country_of_origin}`);
+
+                if (specItems.length > 0) {
+                    const specList = document.getElementById('pdp-spec-list');
+                    if (specList) specList.innerHTML = specItems.map(s => `<li>${s}</li>`).join('');
+                    const specBlock = document.getElementById('spec-block');
+                    if (specBlock) specBlock.style.display = 'block';
                 }
 
                 let images = product.product_images || [];
                 images.sort((a, b) => a.position - b.position);
                 currentMainImageUrl = images.length > 0 ? images[0].url : 'assets/sleeping sis.png';
-                document.getElementById('main-product-image').src = currentMainImageUrl;
+                const mainImg = document.getElementById('main-product-image');
+                if (mainImg) mainImg.src = currentMainImageUrl;
 
                 let thumbnailsHTML = '';
                 images.forEach((img, index) => {
                     const activeClass = index === 0 ? 'active' : '';
                     thumbnailsHTML += `<img src="${img.url}" class="thumb-img ${activeClass}" onclick="swapImage('${img.url}', this)" alt="Thumb">`;
                 });
-                document.getElementById('pdp-thumbnails').innerHTML = thumbnailsHTML;
+                const thumbsContainer = document.getElementById('pdp-thumbnails');
+                if (thumbsContainer) thumbsContainer.innerHTML = thumbnailsHTML;
 
                 let availableSizes = new Set();
                 let availableColors = new Set();
@@ -1024,17 +1488,25 @@
                 const colors = Array.from(availableColors);
 
                 if (sizes.length > 0) {
-                    document.getElementById('pdp-sizes').innerHTML = sizes.map(size =>
-                        `<div class="size-box" onclick="selectSize(this, '${size}')">${size}</div>`
-                    ).join('');
-                    document.getElementById('size-section').style.display = 'block';
+                    const pdpSizes = document.getElementById('pdp-sizes');
+                    if (pdpSizes) {
+                        pdpSizes.innerHTML = sizes.map(size =>
+                            `<div class="size-box" onclick="selectSize(this, '${size}')">${size}</div>`
+                        ).join('');
+                    }
+                    const sizeSec = document.getElementById('size-section');
+                    if (sizeSec) sizeSec.style.display = 'block';
                 }
 
                 if (colors.length > 0) {
-                    document.getElementById('pdp-colors').innerHTML = colors.map(color =>
-                        `<div class="color-box" style="background-color: ${color.toLowerCase()};" title="${color}" onclick="selectColor(this, '${color}')"></div>`
-                    ).join('');
-                    document.getElementById('color-section').style.display = 'block';
+                    const pdpColors = document.getElementById('pdp-colors');
+                    if (pdpColors) {
+                        pdpColors.innerHTML = colors.map(color =>
+                            `<div class="color-box" style="background-color: ${color.toLowerCase()};" title="${color}" onclick="selectColor(this, '${color}')"></div>`
+                        ).join('');
+                    }
+                    const colorSec = document.getElementById('color-section');
+                    if (colorSec) colorSec.style.display = 'block';
                 }
 
                 // Trigger strict family matching
@@ -1162,7 +1634,10 @@
             if (selectedSize) cartName += ` - ${selectedSize}`;
             if (selectedColor) cartName += ` (${selectedColor})`;
 
-            addToCart(currentProductData.id, cartName, currentProductData.price, currentMainImageUrl);
+            const qty = currentQty || 1;
+            for (let i = 0; i < qty; i++) {
+                addToCart(currentProductData.id, cartName, currentProductData.price, currentMainImageUrl);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', loadSingleProduct);
