@@ -1,0 +1,24 @@
+{
+  "name": "kappa-clothing-store",
+  "version": "1.0.0",
+  "description": "",
+  "main": "admin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vigneshvl-dev/kappa-clothing-store.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/vigneshvl-dev/kappa-clothing-store/issues"
+  },
+  "homepage": "https://github.com/vigneshvl-dev/kappa-clothing-store#readme",
+  "dependencies": {
+    "razorpay": "^2.9.8"
+  }
+}
