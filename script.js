@@ -96,6 +96,7 @@ testDatabaseConnection();
     let wishlist = []; // [id]
     let discount = 0;
     let PRODUCTS = []; // Will be populated by storefront loader
+    let currentUserSession = null;
 
     /* ---------- UTILITIES ---------- */
     // Fixes the "fmt is not defined" error
@@ -528,7 +529,134 @@ testDatabaseConnection();
     // 👇 Duplicates removed from here! It will use the ones you defined earlier in the file.
 
     if (heroAccountBtn) heroAccountBtn.addEventListener("click", () => openOverlay(accountOverlay));
-    if (profileBtn) profileBtn.addEventListener("click", () => openOverlay(accountOverlay));
+    if (profileBtn) {
+        profileBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (currentUserSession && currentUserSession.user) {
+                const profilePopup = document.getElementById("profilePopup");
+                if (profilePopup) {
+                    profilePopup.classList.toggle("open");
+                }
+            } else {
+                openOverlay(accountOverlay);
+            }
+        });
+    }
+
+    // Close profile dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+        const profilePopup = document.getElementById("profilePopup");
+        if (profilePopup && profilePopup.classList.contains("open")) {
+            if (!profilePopup.contains(e.target) && (!profileBtn || !profileBtn.contains(e.target))) {
+                profilePopup.classList.remove("open");
+            }
+        }
+    });
+
+    // Wire up profile popup quick action events
+    const profilePopupLink = document.getElementById('profilePopupLink');
+    if (profilePopupLink) {
+        profilePopupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const profilePopup = document.getElementById('profilePopup');
+            if (profilePopup) profilePopup.classList.remove('open');
+            openOverlay(accountOverlay);
+        });
+    }
+
+    const popupMyOrders = document.getElementById('popupMyOrders');
+    if (popupMyOrders) {
+        popupMyOrders.addEventListener('click', (e) => {
+            e.preventDefault();
+            const profilePopup = document.getElementById('profilePopup');
+            if (profilePopup) profilePopup.classList.remove('open');
+            openOverlay(accountOverlay);
+            setTimeout(() => {
+                const trackingTitle = document.querySelector('.dash-tracking-title');
+                if (trackingTitle) trackingTitle.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        });
+    }
+
+    const popupMyThreads = document.getElementById('popupMyThreads');
+    if (popupMyThreads) {
+        popupMyThreads.addEventListener('click', (e) => {
+            e.preventDefault();
+            const profilePopup = document.getElementById('profilePopup');
+            if (profilePopup) profilePopup.classList.remove('open');
+            openOverlay(wishOverlay);
+        });
+    }
+
+    const popupTrackOrder = document.getElementById('popupTrackOrder');
+    if (popupTrackOrder) {
+        popupTrackOrder.addEventListener('click', (e) => {
+            e.preventDefault();
+            const profilePopup = document.getElementById('profilePopup');
+            if (profilePopup) profilePopup.classList.remove('open');
+            openOverlay(accountOverlay);
+            setTimeout(() => {
+                const searchInput = document.getElementById('dashTrackSearchInput');
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
+        });
+    }
+
+    const popupSavedAddress = document.getElementById('popupSavedAddress');
+    if (popupSavedAddress) {
+        popupSavedAddress.addEventListener('click', (e) => {
+            e.preventDefault();
+            const profilePopup = document.getElementById('profilePopup');
+            if (profilePopup) profilePopup.classList.remove('open');
+            openOverlay(accountOverlay);
+            setTimeout(() => {
+                const addressInput = document.getElementById('dash-address');
+                if (addressInput) {
+                    addressInput.focus();
+                    addressInput.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
+        });
+    }
+
+    const popupMyReviews = document.getElementById('popupMyReviews');
+    if (popupMyReviews) {
+        popupMyReviews.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast("My Reviews coming soon!");
+        });
+    }
+
+    const popupMyNotifications = document.getElementById('popupMyNotifications');
+    if (popupMyNotifications) {
+        popupMyNotifications.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast("No new notifications");
+        });
+    }
+
+    const popupMyCoupons = document.getElementById('popupMyCoupons');
+    if (popupMyCoupons) {
+        popupMyCoupons.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast("You have 3 active coupons!");
+        });
+    }
+
+    const popupLogout = document.getElementById('popupLogout');
+    if (popupLogout) {
+        popupLogout.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const profilePopup = document.getElementById('profilePopup');
+            if (profilePopup) profilePopup.classList.remove('open');
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) showToast('Logout failed: ' + error.message);
+            else showToast('Logged out successfully');
+        });
+    }
     if (mobileAccountLink) mobileAccountLink.addEventListener("click", e => {
         e.preventDefault();
         if (heroHamburger) heroHamburger.classList.remove("open");
@@ -1221,7 +1349,9 @@ testDatabaseConnection();
 
     // Listen for auth state changes (covers Google OAuth redirect)
     supabaseClient.auth.onAuthStateChange((event, session) => {
+        currentUserSession = session;
         const profileBtn = document.getElementById('profileBtn');
+        const profilePopup = document.getElementById('profilePopup');
         if (session && session.user) {
             if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
             if (event === 'SIGNED_IN') showToast('Welcome back, ' + getUserDisplayName(session.user) + '!');
@@ -1235,8 +1365,29 @@ testDatabaseConnection();
             // Load user data
             const userId = session.user.id;
             const email = session.user.email;
-            const name = session.user.user_metadata?.full_name || email.split('@')[0];
+            const name = getUserDisplayName(session.user);
             loadProfile(userId, email, name);
+
+            // Update dropdown profile popup
+            const popupName = document.getElementById('profilePopupName');
+            if (popupName) popupName.textContent = name;
+
+            const popupAvatarPlaceholder = document.getElementById('profilePopupAvatarPlaceholder');
+            const popupAvatarImg = document.getElementById('profilePopupAvatarImg');
+            const avatarKey = `kappa_avatar_${userId}`;
+            const avatarSrc = localStorage.getItem(avatarKey);
+
+            if (popupAvatarImg && popupAvatarPlaceholder) {
+                if (avatarSrc) {
+                    popupAvatarImg.src = avatarSrc;
+                    popupAvatarImg.style.display = 'block';
+                    popupAvatarPlaceholder.style.display = 'none';
+                } else {
+                    popupAvatarImg.style.display = 'none';
+                    popupAvatarPlaceholder.style.display = 'flex';
+                    popupAvatarPlaceholder.textContent = (name ? name.charAt(0).toUpperCase() : "U");
+                }
+            }
 
             // Activate the dashboard panel
             const panelDashboard = document.getElementById('panel-dashboard');
@@ -1247,6 +1398,7 @@ testDatabaseConnection();
             if (panelDashboard) panelDashboard.classList.add('active');
         } else {
             if (profileBtn) profileBtn.style.color = '';
+            if (profilePopup) profilePopup.classList.remove('open');
 
             // Remove dashboard active class from overlay
             const accountOverlay = document.getElementById('accountOverlay');
@@ -1397,6 +1549,18 @@ testDatabaseConnection();
                         if (avatarPlaceholder) {
                             avatarPlaceholder.style.display = 'none';
                         }
+
+                        // Sync to profile dropdown popup
+                        const popupAvatarPlaceholder = document.getElementById('profilePopupAvatarPlaceholder');
+                        const popupAvatarImg = document.getElementById('profilePopupAvatarImg');
+                        if (popupAvatarImg) {
+                            popupAvatarImg.src = dataUrl;
+                            popupAvatarImg.style.display = 'block';
+                        }
+                        if (popupAvatarPlaceholder) {
+                            popupAvatarPlaceholder.style.display = 'none';
+                        }
+
                         showToast("Profile picture updated!");
                     });
                 };
@@ -1504,6 +1668,14 @@ testDatabaseConnection();
         showToast("Profile details updated!");
         const nameDisplay = document.getElementById('dashProfileNameDisplay');
         if (nameDisplay) nameDisplay.textContent = name || "User";
+
+        // Sync to profile dropdown popup
+        const popupName = document.getElementById('profilePopupName');
+        if (popupName) popupName.textContent = name || "User";
+        const popupAvatarPlaceholder = document.getElementById('profilePopupAvatarPlaceholder');
+        if (popupAvatarPlaceholder && (!localStorage.getItem(`kappa_avatar_${userId}`))) {
+            popupAvatarPlaceholder.textContent = (name ? name.charAt(0).toUpperCase() : "U");
+        }
     }
 
     function loadProfile(userId, defaultEmail, defaultName) {
@@ -1548,6 +1720,24 @@ testDatabaseConnection();
                 avatarImg.style.display = 'none';
                 avatarPlaceholder.style.display = 'flex';
                 avatarPlaceholder.textContent = (name ? name.charAt(0).toUpperCase() : "U");
+            }
+        }
+
+        // Sync to profile dropdown popup
+        const popupName = document.getElementById('profilePopupName');
+        if (popupName) popupName.textContent = name;
+
+        const popupAvatarImg = document.getElementById('profilePopupAvatarImg');
+        const popupAvatarPlaceholder = document.getElementById('profilePopupAvatarPlaceholder');
+        if (popupAvatarImg && popupAvatarPlaceholder) {
+            if (avatarSrc) {
+                popupAvatarImg.src = avatarSrc;
+                popupAvatarImg.style.display = 'block';
+                popupAvatarPlaceholder.style.display = 'none';
+            } else {
+                popupAvatarImg.style.display = 'none';
+                popupAvatarPlaceholder.style.display = 'flex';
+                popupAvatarPlaceholder.textContent = (name ? name.charAt(0).toUpperCase() : "U");
             }
         }
 
