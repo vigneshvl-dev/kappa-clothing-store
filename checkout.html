@@ -530,7 +530,6 @@
     <script src="script.js"></script>
 
     <script>
-
         let cartItems = [];
         let shippingCost = 0;
         let discountPercent = 0;
@@ -599,8 +598,56 @@
             renderSummary();
         }
 
-        function handleProceedToPayment(event) {
+        async function handleProceedToPayment(event) {
             event.preventDefault();
+
+            if (cartItems.length === 0) {
+                alert("Your cart is empty!");
+                return;
+            }
+
+            // 1. Gather all data from the form fields
+            const customerDetails = {
+                name: document.getElementById('bill-name').value,
+                email: document.getElementById('bill-email').value,
+                phone: document.getElementById('bill-phone').value
+            };
+
+            const shippingAddress = {
+                address: document.getElementById('bill-address').value,
+                state: document.getElementById('bill-state').value,
+                zip: document.getElementById('bill-zip').value
+            };
+
+            // Calculate totals to save in the order record
+            const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            const discountAmt = Math.round(subtotal * discountPercent);
+            const totalAmount = Math.max(subtotal - discountAmt + shippingCost, 0);
+            const orderId = "KP-" + Math.floor(100000 + Math.random() * 900000);
+
+            // 2. Save to Supabase Backend
+            const { error } = await supabaseClient
+                .from('orders')
+                .insert([{
+                    razorpay_order_id: orderId,
+                    total_amount: totalAmount,
+                    status: 'pending',
+                    shipping_address: shippingAddress,
+                    customer_details: customerDetails,
+                    items: cartItems
+                }]);
+
+            if (error) {
+                console.error("Database Error:", error);
+                alert("Could not save order. Please try again.");
+                return; // Stops the payment process if saving fails
+            }
+
+            // 3. Save orderId to localStorage just in case it's needed
+            localStorage.setItem('kappa_active_order_id', orderId);
+            localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
+
+            // 4. Trigger the existing Razorpay flow without redirecting
             payNow();
         }
 
@@ -643,7 +690,8 @@
                     prefill: {
                         name: document.getElementById("bill-name") ? document.getElementById("bill-name").value : "",
                         email: document.getElementById("bill-email") ? document.getElementById("bill-email").value : "",
-                        contact: document.getElementById("bill-phone") ? document.getElementById("bill-phone").value : ""
+                        contact: document.getElementById("bill-phone") ? document.getElementById("bill-phone").value : "",
+                        method: "upi"
                     },
                     theme: { color: "#111111" },
                     config: {

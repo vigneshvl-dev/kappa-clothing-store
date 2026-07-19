@@ -700,8 +700,8 @@ testDatabaseConnection();
                 const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
                 return {
                     id: c.id,
-                    name: p ? p.name : 'Product',
-                    price: p ? p.price : 0,
+                    name: p ? p.name : (c.name || 'Product'),
+                    price: p ? p.price : (c.price || 0),
                     size: c.size,
                     qty: c.qty,
                     img: c.customImg || (p ? p.img : 'assets/sleeping sis.png')
