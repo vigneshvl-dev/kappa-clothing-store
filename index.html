@@ -77,6 +77,117 @@
                 </svg>
             </button>
 
+            <!-- PROFILE DROPDOWN POPUP -->
+            <div class="profile-popup" id="profilePopup">
+                <div class="profile-popup-header">
+                    <div class="profile-avatar-circle">
+                        <img src="" id="profilePopupAvatarImg" class="profile-avatar-img" style="display:none;" />
+                        <div id="profilePopupAvatarPlaceholder" class="profile-avatar-placeholder">U</div>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="profilePopupName">User</div>
+                        <a href="#" class="profile-link" id="profilePopupLink">My Profile</a>
+                    </div>
+                </div>
+                <div class="profile-divider"></div>
+                <ul class="profile-popup-menu">
+                    <li>
+                        <a href="#" id="popupMyOrders">
+                            <span class="menu-icon-wrap" style="background-color: #ffeef2;">
+                                <svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                </svg>
+                            </span>
+                            <span class="menu-label">My Orders</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="popupMyThreads">
+                            <span class="menu-icon-wrap" style="background-color: #ffebe9;">
+                                <svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                                </svg>
+                            </span>
+                            <span class="menu-label">My Threads</span>
+                            <span class="menu-badge" id="popupThreadsBadge">50</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="popupTrackOrder">
+                            <span class="menu-icon-wrap" style="background-color: #e8f5e9;">
+                                <svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="1" y="3" width="15" height="13"></rect>
+                                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                    <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                    <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                </svg>
+                            </span>
+                            <span class="menu-label">Track Order</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="popupSavedAddress">
+                            <span class="menu-icon-wrap" style="background-color: #f3e5f5;">
+                                <svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                            </span>
+                            <span class="menu-label">Saved Address</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="popupMyReviews">
+                            <span class="menu-icon-wrap" style="background-color: #fff9c4;">
+                                <svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </span>
+                            <span class="menu-label">My Reviews</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="popupMyNotifications">
+                            <span class="menu-icon-wrap" style="background-color: #f3e8ff;">
+                                <svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                </svg>
+                            </span>
+                            <span class="menu-label">My Notifications</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="popupMyCoupons">
+                            <span class="menu-icon-wrap" style="background-color: #ffeedb;">
+                                <svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M8 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path>
+                                    <path d="M20 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path>
+                                    <rect x="4" y="6" width="16" height="12" rx="2"></rect>
+                                    <line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="4"></line>
+                                </svg>
+                            </span>
+                            <span class="menu-label">My Coupons</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="popupLogout">
+                            <span class="menu-icon-wrap" style="background-color: #ffebee;">
+                                <svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                            </span>
+                            <span class="menu-label">Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
         </div>
     </header>
 
