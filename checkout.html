@@ -604,39 +604,43 @@
             payNow();
         }
 
-        async function payNow() {
-
-            alert("payNow started");
-
-            const response = await fetch("/api/create-order", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
-
-            alert("API called");
-
-            const order = await response.json();
-
-            console.log(order);
-
-            alert("Opening Razorpay");
+        function payNow() {
+            // Read the cart total from the order summary
+            const totalText = document.getElementById("sum-total").textContent;
+            const totalINR = parseInt(totalText.replace(/[^\d]/g, "")) || 500;
+            const totalPaise = totalINR * 100; // Razorpay uses paise
 
             var options = {
                 key: "rzp_test_TFGK0UTin09QQd",
-                amount: order.amount,
-                currency: order.currency,
-                order_id: order.id,
+                amount: totalPaise,
+                currency: "INR",
                 name: "Kappa Fashion Store",
                 description: "Test Payment",
+                image: "https://cdn.corenexis.com/f/fRkaM2Pbrr7.png",
                 handler: function (response) {
-                    alert("Payment Successful");
+                    alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
+                    console.log("Payment response:", response);
+                },
+                prefill: {
+                    name: document.getElementById("bill-name") ? document.getElementById("bill-name").value : "",
+                    email: document.getElementById("bill-email") ? document.getElementById("bill-email").value : "",
+                    contact: document.getElementById("bill-phone") ? document.getElementById("bill-phone").value : ""
+                },
+                theme: {
+                    color: "#111111"
+                },
+                modal: {
+                    ondismiss: function () {
+                        console.log("Razorpay modal closed");
+                    }
                 }
             };
 
             var rzp = new Razorpay(options);
-
+            rzp.on("payment.failed", function (response) {
+                alert("❌ Payment failed: " + response.error.description);
+                console.error("Payment failed:", response.error);
+            });
             rzp.open();
         }
 
