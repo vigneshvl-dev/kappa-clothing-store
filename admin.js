@@ -259,7 +259,7 @@ async function loadOrders() {
                  <td><span class="badge ${statusClass}">${(order.status || 'pending').toUpperCase()}</span></td>
                  <td>₹${order.total_amount}</td>
                  <td>
-                    <button class="btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="alert('Details for: ${order.id}')">View</button>
+                    <button class="btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="showOrderDetails('${order.id}')">View</button>
                     <select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)" style="font-size: 11px; margin-left: 5px;">
                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
                         <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
