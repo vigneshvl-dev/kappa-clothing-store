@@ -712,16 +712,20 @@ testDatabaseConnection();
         document.getElementById("cartShipping").textContent = subtotal > 0 ? fmt(shipCost) : fmt(0);
         document.getElementById("cartTotal").textContent = fmt(total);
     }
-    document.getElementById("shipSelect").addEventListener("change", updateSummary);
+    if (document.getElementById("shipSelect")) {
+        document.getElementById("shipSelect").addEventListener("change", updateSummary);
+    }
 
-    document.getElementById("promoApply").addEventListener("click", () => {
-        const code = document.getElementById("promoInput").value.trim().toUpperCase();
-        const msg = document.getElementById("promoMsg");
-        if (code === "KAPPA10") { discount = 0.10; msg.textContent = "10% off applied ✓"; }
-        else if (code === "KAPPA20") { discount = 0.20; msg.textContent = "20% off applied ✓"; }
-        else { discount = 0; msg.textContent = code ? "Invalid code" : ""; }
-        updateSummary();
-    });
+    if (document.getElementById("promoApply")) {
+        document.getElementById("promoApply").addEventListener("click", () => {
+            const code = document.getElementById("promoInput").value.trim().toUpperCase();
+            const msg = document.getElementById("promoMsg");
+            if (code === "KAPPA10") { discount = 0.10; msg.textContent = "10% off applied ✓"; }
+            else if (code === "KAPPA20") { discount = 0.20; msg.textContent = "20% off applied ✓"; }
+            else { discount = 0; msg.textContent = code ? "Invalid code" : ""; }
+            updateSummary();
+        });
+    }
 
     /* ---------- WISHLIST ---------- */
     function toggleWishlist(id) {
