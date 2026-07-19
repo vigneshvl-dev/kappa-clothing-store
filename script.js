@@ -835,11 +835,12 @@ testDatabaseConnection();
         const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
         const discAmt = Math.round(subtotal * discount);
         const total = Math.max(subtotal - discAmt + (subtotal > 0 ? shipCost : 0), 0);
-        document.getElementById("cartSubtotal").textContent = fmt(subtotal);
-        document.getElementById("cartDiscount").textContent = "− " + fmt(discAmt);
-        document.getElementById("cartShipping").textContent = subtotal > 0 ? fmt(shipCost) : fmt(0);
-        document.getElementById("cartTotal").textContent = fmt(total);
-    }
+        if (document.getElementById("cartSubtotal")) {
+    document.getElementById("cartSubtotal").textContent = fmt(subtotal);
+    document.getElementById("cartDiscount").textContent = "- ₹ " + fmt(discAmt);
+    document.getElementById("cartShipping").textContent = subtotal > 0 ? fmt(shipCost) : fmt(0);
+    document.getElementById("cartTotal").textContent = fmt(total);
+}
     if (document.getElementById("shipSelect")) {
         document.getElementById("shipSelect").addEventListener("change", updateSummary);
     }
