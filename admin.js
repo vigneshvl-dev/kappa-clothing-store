@@ -213,13 +213,38 @@ window.deleteCategory = async function(id) {
 
 async function loadOrders() {
     const container = document.querySelector('#view-orders .card');
-    const { data } = await supabaseClient.from('orders').select('id, status, total_amount, profiles(full_name)').order('created_at', { ascending: false });
-    if(!data || data.length === 0) { container.innerHTML = `<h2>Orders</h2><p>No orders found.</p>`; return; }
+    
+    // 1. Fetch ALL orders safely without forcing a profile join
+    const { data, error } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    let html = `<h2>Orders</h2><table class="stock-table"><thead><tr><th>User</th><th>Status</th><th>Total</th><th>Action</th></tr></thead><tbody>`;
+    // 2. Add error logging just in case!
+    if (error) {
+        console.error("Supabase Error loading orders:", error);
+        container.innerHTML = `<h2>Orders</h2><p>Error loading orders. Check console.</p>`;
+        return;
+    }
+
+    if (!data || data.length === 0) { 
+        container.innerHTML = `<h2>Orders</h2><p>No orders found.</p>`; 
+        return; 
+    }
+
+    // 3. Render the table
+    let html = `<h2>Orders</h2><table class="stock-table"><thead><tr><th>Order ID</th><th>Customer</th><th>Status</th><th>Total</th><th>Action</th></tr></thead><tbody>`;
+    
     data.forEach(order => {
-        html += `<tr><td>${order.profiles?.full_name || 'Guest'}</td>
-                 <td><span class="badge status-${order.status}">${order.status}</span></td>
+        // Fallback for guest vs registered users
+        const customerName = order.user_id ? "Registered User" : "Guest";
+        // Slice the long UUID so it looks clean on the dashboard
+        const shortId = order.id.toString().substring(0, 8); 
+        
+        html += `<tr>
+                 <td><strong>#${shortId}</strong></td>
+                 <td>${customerName}</td>
+                 <td><span class="badge status-${order.status || 'pending'}">${(order.status || 'pending').toUpperCase()}</span></td>
                  <td>₹${order.total_amount}</td>
                  <td><select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)">
                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
@@ -227,6 +252,7 @@ async function loadOrders() {
                         <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
                     </select></td></tr>`;
     });
+    
     html += `</tbody></table>`;
     container.innerHTML = html;
 }
