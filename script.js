@@ -324,16 +324,16 @@ testDatabaseConnection();
             btn.addEventListener("mouseleave", () => { btn.style.transform = "translate(0,0)"; });
         }
         btn.addEventListener("click", e => {
-            if (!isFull) btn.style.transform = "translate(0,0)";
+            if (isFull) return; // Skip ripple on full-width buttons to prevent visual distortion/size bugs
+            btn.style.transform = "translate(0,0)";
             const r = btn.getBoundingClientRect();
             const ripple = document.createElement("span");
             ripple.className = "ripple";
-            const offsetX = e.clientX - r.left;
-            const offsetY = e.clientY - r.top;
             const size = Math.max(r.width, r.height);
-            ripple.style.cssText = `width:${size}px;height:${size}px;left:0;top:0;transform:translate(${offsetX - size / 2}px,${offsetY - size / 2}px) scale(0);`;
+            ripple.style.width = ripple.style.height = size + "px";
+            ripple.style.left = (e.clientX - r.left - size / 2) + "px";
+            ripple.style.top = (e.clientY - r.top - size / 2) + "px";
             btn.appendChild(ripple);
-            requestAnimationFrame(() => { ripple.style.animation = "rippleAnim .6s ease-out forwards"; });
             setTimeout(() => ripple.remove(), 650);
         });
     });

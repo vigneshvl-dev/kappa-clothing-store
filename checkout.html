@@ -238,12 +238,16 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.1s ease;
             margin-top: 20px;
         }
 
         .btn-order:hover {
             background: #333;
+        }
+
+        .btn-order:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
