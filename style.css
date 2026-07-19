@@ -1413,6 +1413,11 @@ body.home-page .navbar.scrolled {
     box-shadow: 0 18px 34px -12px rgba(251, 206, 7, .55);
 }
 
+.btn-primary:active {
+    transform: scale(0.97) translateY(0);
+    box-shadow: none;
+}
+
 .btn-ghost {
     background: transparent;
     color: var(--white);
@@ -3508,6 +3513,22 @@ body > *:last-child{
 
 .side-panel .btn {
     margin-top: 16px;
+}
+
+/* Cart checkout button — solid black on white panel */
+.side-panel .btn-primary {
+    background: var(--black);
+    color: var(--white);
+}
+
+.side-panel .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.4);
+}
+
+.side-panel .btn-primary:active {
+    transform: scale(0.97) translateY(0);
+    box-shadow: none;
 }
 
 /* ============ CART BADGES & PARTNERS ============ */

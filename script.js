@@ -313,22 +313,27 @@ testDatabaseConnection();
 
     /* ---------- MAGNETIC BUTTONS + RIPPLE ---------- */
     document.querySelectorAll(".magnetic:not(.hero .magnetic)").forEach(btn => {
-        btn.addEventListener("mousemove", e => {
-            const r = btn.getBoundingClientRect();
-            const x = e.clientX - r.left - r.width / 2;
-            const y = e.clientY - r.top - r.height / 2;
-            btn.style.transform = `translate(${x * 0.25}px, ${y * 0.35}px)`;
-        });
-        btn.addEventListener("mouseleave", () => { btn.style.transform = "translate(0,0)"; });
+        const isFull = btn.classList.contains("full");
+        if (!isFull) {
+            btn.addEventListener("mousemove", e => {
+                const r = btn.getBoundingClientRect();
+                const x = e.clientX - r.left - r.width / 2;
+                const y = e.clientY - r.top - r.height / 2;
+                btn.style.transform = `translate(${x * 0.25}px, ${y * 0.35}px)`;
+            });
+            btn.addEventListener("mouseleave", () => { btn.style.transform = "translate(0,0)"; });
+        }
         btn.addEventListener("click", e => {
+            if (!isFull) btn.style.transform = "translate(0,0)";
             const r = btn.getBoundingClientRect();
             const ripple = document.createElement("span");
             ripple.className = "ripple";
-            ripple.style.left = (e.clientX - r.left) + "px";
-            ripple.style.top = (e.clientY - r.top) + "px";
-            ripple.style.width = ripple.style.height = Math.max(r.width, r.height) + "px";
-            ripple.style.marginLeft = ripple.style.marginTop = -Math.max(r.width, r.height) / 2 + "px";
+            const offsetX = e.clientX - r.left;
+            const offsetY = e.clientY - r.top;
+            const size = Math.max(r.width, r.height);
+            ripple.style.cssText = `width:${size}px;height:${size}px;left:0;top:0;transform:translate(${offsetX - size / 2}px,${offsetY - size / 2}px) scale(0);`;
             btn.appendChild(ripple);
+            requestAnimationFrame(() => { ripple.style.animation = "rippleAnim .6s ease-out forwards"; });
             setTimeout(() => ripple.remove(), 650);
         });
     });
