@@ -4403,12 +4403,13 @@ body > *:last-child{
 
 .boys-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 45px;
 }
 
 .boys-header h2 {
+    font-family: 'Playfair Display', serif;
     font-size: 42px;
     font-weight: 800;
     color: #111;
@@ -4638,7 +4639,7 @@ body > *:last-child{
 
 .girls-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 45px;
 }
@@ -5942,11 +5943,11 @@ body {
 }
 
 .editorial-heading {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 38px;
-    font-weight: 300;
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     color: #111;
     margin-bottom: 18px;
 }
