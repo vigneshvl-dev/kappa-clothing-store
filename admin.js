@@ -809,10 +809,19 @@ window.showOrderDetails = async function(orderId) {
     overlay.style.display = 'flex';
     content.innerHTML = "Loading...";
 
-    // Fetch order details
+    // UPDATED: Fetch order details, PLUS the connected order_items and product names
     const { data, error } = await supabaseClient
         .from('orders')
-        .select('*')
+        .select(`
+            *,
+            order_items (
+                quantity,
+                price_at_purchase,
+                products (
+                    name
+                )
+            )
+        `)
         .eq('id', orderId)
         .single();
 
@@ -825,8 +834,8 @@ window.showOrderDetails = async function(orderId) {
     const cust = data.customer_details || {};
     const addr = data.shipping_address || {};
 
-    // Display the details
-    content.innerHTML = `
+    // Build the base HTML for customer and shipping info
+    let htmlContent = `
         <p><strong>Order ID:</strong> ${data.id.toString().substring(0, 8)}</p>
         <p><strong>Status:</strong> ${data.status}</p>
         <p><strong>Total:</strong> ₹${data.total_amount}</p>
@@ -840,5 +849,31 @@ window.showOrderDetails = async function(orderId) {
         <p><strong>Address:</strong> ${addr.address || 'N/A'}</p>
         <p><strong>State:</strong> ${addr.state || 'N/A'}</p>
         <p><strong>Zip Code:</strong> ${addr.zip || 'N/A'}</p>
+        <hr>
+        <h4>Products Ordered</h4>
+        <ul style="list-style-type: none; padding-left: 0; margin-top: 5px;">
     `;
+
+    // Loop through the fetched order items and add them to the list
+    if (data.order_items && data.order_items.length > 0) {
+        data.order_items.forEach(item => {
+            const productName = item.products ? item.products.name : 'Unknown Product';
+            const price = item.price_at_purchase || 0;
+            const qty = item.quantity || 1;
+            
+            htmlContent += `
+                <li style="border-bottom: 1px solid #eee; padding: 5px 0;">
+                    <span style="font-weight: 500;">${productName}</span> 
+                    <span style="color: #666; font-size: 0.9em;">(Qty: ${qty})</span>
+                    <span style="float: right;">₹${price * qty}</span>
+                </li>
+            `;
+        });
+    } else {
+        htmlContent += '<li style="color: red;">No products found for this order.</li>';
+    }
+
+    // Close the list and inject it all into the modal
+    htmlContent += `</ul>`;
+    content.innerHTML = htmlContent;
 }
