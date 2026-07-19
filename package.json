@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/vigneshvl-dev/kappa-clothing-store#readme",
   "dependencies": {
+    "express": "^5.2.1",
     "razorpay": "^2.9.8"
   }
 }

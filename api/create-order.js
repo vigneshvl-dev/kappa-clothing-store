@@ -11,8 +11,9 @@ module.exports = async (req, res) => {
     }
 
     try {
+        const amountINR = (req.body && req.body.amount) ? parseInt(req.body.amount) : 500;
         const options = {
-            amount: 50000, // ₹500 in paise
+            amount: amountINR * 100, // convert INR to paise
             currency: "INR",
             receipt: "receipt_" + Date.now(),
         };

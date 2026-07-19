@@ -604,44 +604,66 @@
             payNow();
         }
 
-        function payNow() {
-            // Read the cart total from the order summary
-            const totalText = document.getElementById("sum-total").textContent;
-            const totalINR = parseInt(totalText.replace(/[^\d]/g, "")) || 500;
-            const totalPaise = totalINR * 100; // Razorpay uses paise
+        async function payNow() {
+            try {
+                // Read cart total from DOM
+                const totalText = document.getElementById("sum-total").textContent;
+                const totalINR = parseInt(totalText.replace(/[^\d]/g, "")) || 500;
 
-            var options = {
-                key: "rzp_test_TFGK0UTin09QQd",
-                amount: totalPaise,
-                currency: "INR",
-                name: "Kappa Fashion Store",
-                description: "Test Payment",
-                image: "https://cdn.corenexis.com/f/fRkaM2Pbrr7.png",
-                handler: function (response) {
-                    alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
-                    console.log("Payment response:", response);
-                },
-                prefill: {
-                    name: document.getElementById("bill-name") ? document.getElementById("bill-name").value : "",
-                    email: document.getElementById("bill-email") ? document.getElementById("bill-email").value : "",
-                    contact: document.getElementById("bill-phone") ? document.getElementById("bill-phone").value : ""
-                },
-                theme: {
-                    color: "#111111"
-                },
-                modal: {
-                    ondismiss: function () {
-                        console.log("Razorpay modal closed");
-                    }
+                // Call backend to create a Razorpay order (required for order_id)
+                const response = await fetch("/api/create-order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ amount: totalINR })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Backend error: " + response.status);
                 }
-            };
 
-            var rzp = new Razorpay(options);
-            rzp.on("payment.failed", function (response) {
-                alert("❌ Payment failed: " + response.error.description);
-                console.error("Payment failed:", response.error);
-            });
-            rzp.open();
+                const order = await response.json();
+                console.log("Order created:", order);
+
+                if (!order.id) {
+                    throw new Error("No order ID returned from server");
+                }
+
+                var options = {
+                    key: "rzp_test_TFGK0UTin09QQd",
+                    amount: order.amount,
+                    currency: order.currency,
+                    order_id: order.id,
+                    name: "Kappa Fashion Store",
+                    description: "Test Payment",
+                    image: "https://cdn.corenexis.com/f/fRkaM2Pbrr7.png",
+                    handler: function (response) {
+                        alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
+                        console.log("Payment response:", response);
+                    },
+                    prefill: {
+                        name: document.getElementById("bill-name") ? document.getElementById("bill-name").value : "",
+                        email: document.getElementById("bill-email") ? document.getElementById("bill-email").value : "",
+                        contact: document.getElementById("bill-phone") ? document.getElementById("bill-phone").value : ""
+                    },
+                    theme: { color: "#111111" },
+                    modal: {
+                        ondismiss: function () {
+                            console.log("Razorpay modal closed");
+                        }
+                    }
+                };
+
+                var rzp = new Razorpay(options);
+                rzp.on("payment.failed", function (resp) {
+                    alert("❌ Payment failed: " + resp.error.description);
+                    console.error("Payment failed:", resp.error);
+                });
+                rzp.open();
+
+            } catch (err) {
+                console.error("payNow error:", err);
+                alert("❌ Could not start payment.\n\nReason: " + err.message);
+            }
         }
 
         window.onload = loadCheckoutDetails;
