@@ -467,7 +467,7 @@
     <script>
         const supabaseUrl = 'https://ugphxapfbzcrauchwlef.supabase.co'; 
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38';
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
 
         let cartItems = [];
         let shippingCost = 0;
@@ -544,6 +544,8 @@
 
         async function payNow() {
 
+            alert("payNow started");
+
             const response = await fetch("/api/create-order", {
                 method: "POST",
                 headers: {
@@ -551,29 +553,28 @@
                 }
             });
 
+            alert("API called");
+
             const order = await response.json();
+
+            console.log(order);
+
+            alert("Opening Razorpay");
 
             var options = {
                 key: "rzp_test_TFGK0UTin09QQd",
-
                 amount: order.amount,
                 currency: order.currency,
                 order_id: order.id,
-
                 name: "Kappa Fashion Store",
                 description: "Test Payment",
-
-                handler: function (response) {
-                    alert("Payment Successful!");
-                    console.log(response);
-                },
-
-                theme: {
-                    color: "#000000"
+                handler: function(response) {
+                    alert("Payment Successful");
                 }
             };
 
             var rzp = new Razorpay(options);
+
             rzp.open();
         }
 
