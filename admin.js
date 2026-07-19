@@ -214,17 +214,15 @@ window.deleteCategory = async function(id) {
 async function loadOrders() {
     const container = document.querySelector('#view-orders .card');
     
-    // 1. Fetch ALL orders safely without forcing a profile join
+    // We select created_at now as well
     const { data, error } = await supabaseClient
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
 
-    // 2. Add error logging just in case!
-    if (error) {
-        console.error("Supabase Error loading orders:", error);
-        container.innerHTML = `<h2>Orders</h2><p>Error loading orders. Check console.</p>`;
-        return;
+    if (error) { 
+        console.error(error);
+        return; 
     }
 
     if (!data || data.length === 0) { 
@@ -232,25 +230,43 @@ async function loadOrders() {
         return; 
     }
 
-    // 3. Render the table
-    let html = `<h2>Orders</h2><table class="stock-table"><thead><tr><th>Order ID</th><th>Customer</th><th>Status</th><th>Total</th><th>Action</th></tr></thead><tbody>`;
+    let html = `<h2>Orders</h2>
+                <table class="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
     
     data.forEach(order => {
-        // Fallback for guest vs registered users
-        const customerName = order.user_id ? "Registered User" : "Guest";
-        // Slice the long UUID so it looks clean on the dashboard
-        const shortId = order.id.toString().substring(0, 8); 
+        // Format the date nicely
+        const dateObj = new Date(order.created_at);
+        const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        // Define Status colors
+        const statusClass = `status-${order.status || 'pending'}`;
         
         html += `<tr>
-                 <td><strong>#${shortId}</strong></td>
-                 <td>${customerName}</td>
-                 <td><span class="badge status-${order.status || 'pending'}">${(order.status || 'pending').toUpperCase()}</span></td>
+                 <td><small>${formattedDate}</small></td>
+                 <td><strong>#${order.id.toString().substring(0, 8)}</strong></td>
+                 <td>${order.user_id ? "Registered" : "Guest"}</td>
+                 <td><span class="badge ${statusClass}">${(order.status || 'pending').toUpperCase()}</span></td>
                  <td>₹${order.total_amount}</td>
-                 <td><select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)">
+                 <td>
+                    <button class="btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="alert('Details for: ${order.id}')">View</button>
+                    <select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)" style="font-size: 11px; margin-left: 5px;">
                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
                         <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
                         <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
-                    </select></td></tr>`;
+                    </select>
+                 </td>
+                 </tr>`;
     });
     
     html += `</tbody></table>`;
