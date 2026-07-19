@@ -19,6 +19,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
+        @media (max-width: 768px) {
+            .marquee {
+                display: none !important;
+            }
+            body {
+                padding-top: var(--nav-h) !important;
+            }
+            .navbar {
+                top: 0 !important;
+            }
+        }
         body {
             padding-top: calc(var(--marquee-h) + var(--nav-h));
         }

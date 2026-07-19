@@ -16,6 +16,17 @@
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
+        @media (max-width: 768px) {
+            .marquee {
+                display: none !important;
+            }
+            body {
+                padding-top: var(--nav-h) !important;
+            }
+            .navbar {
+                top: 0 !important;
+            }
+        }
         body {
             padding-top: calc(var(--marquee-h) + var(--nav-h));
         }
