@@ -664,20 +664,16 @@
             const amountInPaise = Math.round(secureTotal * 100);
 
             // 2. Call backend to create a Razorpay order securely
-            const response = await fetch("http://127.0.0.1:54321/functions/v1/create-order", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
+            const { data: order, error: funcError } = await supabaseClient.functions.invoke('create-order', {
+                body: { 
                     amount: amountInPaise,
-                    receipt_id: dbOrderId // Link Razorpay order to Supabase order
-                })
+                    receipt_id: dbOrderId 
+                }
             });
 
-            if (!response.ok) {
-                throw new Error("Backend error: " + response.status);
+            if (funcError) {
+                throw new Error("Edge Function Error: " + funcError.message);
             }
-
-            const order = await response.json();
             console.log("Razorpay Order created:", order);
 
             if (!order.id) {
