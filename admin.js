@@ -833,23 +833,61 @@ window.showOrderDetails = async function(orderId) {
     const cust = data.customer_details || {};
     const addr = data.shipping_address || {};
 
+    // Create a color mapping for the status badge
+    const statusColors = {
+        pending: '#f39c12', // Orange
+        processing: '#3498db', // Blue
+        shipped: '#9b59b6', // Purple
+        delivered: '#2ecc71', // Green
+        cancelled: '#e74c3c' // Red
+    };
+    const badgeColor = statusColors[data.status?.toLowerCase()] || '#95a5a6';
+
     let htmlContent = `
-        <p><strong>Order ID:</strong> ${data.id.toString().substring(0, 8)}</p>
-        <p><strong>Status:</strong> ${data.status}</p>
-        <p><strong>Total:</strong> ₹${data.total_amount}</p>
-        <p><strong>Created At:</strong> ${new Date(data.created_at).toLocaleString()}</p>
-        <hr>
-        <h4>Customer Information</h4>
-        <p><strong>Name:</strong> ${cust.name || 'N/A'}</p>
-        <p><strong>Email:</strong> ${cust.email || 'N/A'}</p>
-        <p><strong>Phone:</strong> ${cust.phone || 'N/A'}</p>
-        <h4>Shipping Details</h4>
-        <p><strong>Address:</strong> ${addr.address || 'N/A'}</p>
-        <p><strong>State:</strong> ${addr.state || 'N/A'}</p>
-        <p><strong>Zip Code:</strong> ${addr.zip || 'N/A'}</p>
-        <hr>
-        <h4>Products Ordered</h4>
-        <ul style="list-style-type: none; padding-left: 0; margin-top: 5px;">
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333;">
+            
+            <!-- 1. Header Section -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                <div>
+                    <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #111;">Order #${data.id.toString().substring(0, 8)}</div>
+                    <div style="font-size: 13px; color: #777;">${new Date(data.created_at).toLocaleString()}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 22px; font-weight: 800; color: #111; margin-bottom: 4px;">₹${data.total_amount}</div>
+                    <span style="display: inline-block; padding: 4px 10px; background-color: ${badgeColor}; color: white; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                        ${data.status}
+                    </span>
+                </div>
+            </div>
+
+            <!-- 2. Customer & Shipping Info (Side-by-Side Grid) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                
+                <!-- Customer Card -->
+                <div style="background: #f8f9fa; border: 1px solid #eaeaea; border-radius: 8px; padding: 15px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Customer Info</h4>
+                    <div style="font-size: 14px; line-height: 1.6;">
+                        <div style="font-weight: 600; color: #222;">${cust.name || 'N/A'}</div>
+                        <div><a href="mailto:${cust.email}" style="color: #3498db; text-decoration: none;">${cust.email || 'N/A'}</a></div>
+                        <div style="color: #555;">📞 ${cust.phone || 'N/A'}</div>
+                    </div>
+                </div>
+
+                <!-- Shipping Card -->
+                <div style="background: #f8f9fa; border: 1px solid #eaeaea; border-radius: 8px; padding: 15px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Shipping Details</h4>
+                    <div style="font-size: 14px; line-height: 1.6;">
+                        <div style="font-weight: 600; color: #222;">${addr.address || 'N/A'}</div>
+                        <div style="color: #555;">${addr.state || 'N/A'}</div>
+                        <div style="color: #555;">Zip: ${addr.zip || 'N/A'}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Products Ordered List -->
+            <h4 style="margin: 0 0 10px 0; font-size: 15px; color: #222; border-bottom: 2px solid #eee; padding-bottom: 8px;">Order Items</h4>
+            
+            <ul style="list-style-type: none; padding-left: 0; margin: 0; max-height: 260px; overflow-y: auto; padding-right: 5px;">
     `;
 
     if (data.order_items && data.order_items.length > 0) {
@@ -858,36 +896,35 @@ window.showOrderDetails = async function(orderId) {
             const price = item.price_at_purchase || 0;
             const qty = item.quantity || 1;
             
-            // 2. UPDATED: Safely grab the image_url directly from the item
-            let imgHtml = '<div style="width: 55px; height: 55px; background: #eee; border-radius: 4px; display: inline-block; margin-right: 12px; flex-shrink: 0;"></div>';
+            let imgHtml = '<div style="width: 55px; height: 55px; background: #e0e0e0; border-radius: 6px; display: inline-block; margin-right: 15px; flex-shrink: 0;"></div>';
             if (item.image_url) {
-                imgHtml = `<img src="${item.image_url}" style="width: 55px; height: 55px; object-fit: cover; border-radius: 4px; display: inline-block; margin-right: 12px; flex-shrink: 0;">`;
+                imgHtml = `<img src="${item.image_url}" style="width: 55px; height: 55px; object-fit: cover; border-radius: 6px; display: inline-block; margin-right: 15px; flex-shrink: 0; border: 1px solid #eee;">`;
             }
 
-            // 3. UPDATED: Inject Size and Color into the HTML UI
-            // Using a ternary operator to hide them if they just say "Default"
-            const sizeText = item.size && item.size !== 'Default' ? `Size: <strong>${item.size}</strong>` : '';
-            const colorText = item.color && item.color !== 'Default' ? `Color: <strong>${item.color}</strong>` : '';
-            const variantDivider = (sizeText && colorText) ? ' | ' : '';
+            const sizeText = item.size && item.size !== 'Default' ? `Size: <strong style="color:#222;">${item.size}</strong>` : '';
+            const colorText = item.color && item.color !== 'Default' ? `Color: <strong style="color:#222;">${item.color}</strong>` : '';
+            const variantDivider = (sizeText && colorText) ? ' <span style="color:#ccc; margin: 0 4px;">|</span> ' : '';
 
             htmlContent += `
-                <li style="border-bottom: 1px solid #eee; padding: 12px 0; display: flex; align-items: center;">
+                <li style="border-bottom: 1px solid #f0f0f0; padding: 12px 0; display: flex; align-items: center;">
                     ${imgHtml}
                     <div style="flex-grow: 1;">
-                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${productName}</div>
-                        
-                        ${(sizeText || colorText) ? `<div style="color: #444; font-size: 12px; margin-bottom: 2px;">${sizeText}${variantDivider}${colorText}</div>` : ''}
-                        
-                        <div style="color: #666; font-size: 12px;">Qty: ${qty}</div>
+                        <div style="font-weight: 600; font-size: 14px; color: #222; margin-bottom: 4px;">${productName}</div>
+                        ${(sizeText || colorText) ? `<div style="color: #666; font-size: 12px; margin-bottom: 4px;">${sizeText}${variantDivider}${colorText}</div>` : ''}
+                        <div style="color: #888; font-size: 12px;">Qty: <strong style="color:#222;">${qty}</strong></div>
                     </div>
-                    <div style="font-weight: bold; font-size: 14px;">₹${price * qty}</div>
+                    <div style="font-weight: 700; font-size: 15px; color: #111;">₹${price * qty}</div>
                 </li>
             `;
         });
     } else {
-        htmlContent += '<li style="color: red;">No products found for this order.</li>';
+        htmlContent += '<li style="color: #e74c3c; padding: 10px 0;">No products found for this order.</li>';
     }
 
-    htmlContent += `</ul>`;
+    htmlContent += `
+            </ul>
+        </div>
+    `;
+    
     content.innerHTML = htmlContent;
 }
