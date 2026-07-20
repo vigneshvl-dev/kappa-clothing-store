@@ -1,5 +1,6 @@
-// deno-lint-ignore-file no-import-prefix
+// deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,10 +13,34 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, receipt_id } = await req.json()
+    const body = await req.json()
+    const { receipt_id } = body
 
-    const keyId = Deno.env.get('RAZORPAY_KEY_ID');
-    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+    if (!receipt_id) {
+      throw new Error('Missing receipt_id (order ID) in request body.')
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Fetch the verified order total directly from your database orders table
+    const { data: orderRecord, error } = await supabaseAdmin
+      .from('orders') 
+      .select('total_amount')
+      .eq('id', receipt_id)
+      .single()
+
+    if (error || !orderRecord) {
+      throw new Error(`Order not found in database for ID: ${receipt_id}`)
+    }
+
+    // Convert total amount to paise for Razorpay
+    const officialPriceInPaise = Math.round(Number(orderRecord.total_amount) * 100)
+
+    const keyId = Deno.env.get('RAZORPAY_KEY_ID')
+    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')
 
     const razorpayRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
@@ -24,34 +49,24 @@ serve(async (req) => {
         'Authorization': 'Basic ' + btoa(`${keyId}:${keySecret}`)
       },
       body: JSON.stringify({
-        amount: amount,
+        amount: officialPriceInPaise, 
         currency: 'INR',
-        receipt: receipt_id ? String(receipt_id).substring(0, 40) : 'receipt_' + Date.now()
+        receipt: receipt_id
       })
     })
 
-    const orderData = await razorpayRes.json()
+    const order = await razorpayRes.json()
 
-    if (!razorpayRes.ok) {
-      console.error("Razorpay rejection details:", orderData)
-      return new Response(JSON.stringify({ 
-        error: orderData.error?.description || "Razorpay API error",
-        details: orderData 
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      })
+    if (!order.id) {
+      throw new Error(order.error?.description || 'Failed to create Razorpay order')
     }
 
-    return new Response(JSON.stringify(orderData), {
+    return new Response(JSON.stringify(order), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
-
-  } catch (error: unknown) {
-    const errorMessage = (error as Error).message
-    console.error("Edge function error:", errorMessage)
-    return new Response(JSON.stringify({ error: errorMessage }), {
+  } catch (err) {
+    return new Response(JSON.stringify({ error: (err as Error).message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     })
