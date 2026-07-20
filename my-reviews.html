@@ -124,9 +124,14 @@
                 </div>
                 <nav class="sidebar-nav">
                     <a href="my-orders.html" class="sidebar-nav-item"><span class="sidebar-nav-icon" style="background:#ffeef2;"><svg viewBox="0 0 24 24" fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span>My Orders</a>
-                    <a href="track-order.html" class="sidebar-nav-item"><span class="sidebar-nav-icon" style="background:#e8f5e9;"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></span>Track Order</a>
+                    <a href="track-order.html" class="sidebar-nav-item"><span class="sidebar-nav-icon" style="background:#e8f5e9;"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></span>Track Order</a>
                     <a href="saved-address.html" class="sidebar-nav-item"><span class="sidebar-nav-icon" style="background:#f3e5f5;"><svg viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span>Saved Address</a>
                     <a href="my-reviews.html" class="sidebar-nav-item active"><span class="sidebar-nav-icon" style="background:#fff9c4;"><svg viewBox="0 0 24 24" fill="none" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>My Reviews</a>
+                    <a href="my-notifications.html" class="sidebar-nav-item"><span class="sidebar-nav-icon" style="background:#f3e8ff;"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span>My Notifications</a>
+                    <a href="my-coupons.html" class="sidebar-nav-item"><span class="sidebar-nav-icon" style="background:#ffeedb;"><svg viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><path d="M20 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><rect x="4" y="6" width="16" height="12" rx="2"></rect><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="4"></line></svg></span>My Coupons</a>
+                    <div style="border-top:1px solid #f0f0ee; margin-top:6px; padding-top:6px;">
+                        <a href="#" class="sidebar-nav-item" id="sidebarLogout"><span class="sidebar-nav-icon" style="background:#ffebee;"><svg viewBox="0 0 24 24" fill="none" stroke="#d32f2f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></span>Logout</a>
+                    </div>
                 </nav>
             </aside>
 
@@ -199,6 +204,13 @@
         });
 
         document.getElementById('popupLogout').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) showToast('Logout failed: ' + error.message);
+            else { showToast('Logged out successfully'); setTimeout(() => window.location.href = 'index.html', 1000); }
+        });
+
+        document.getElementById('sidebarLogout').addEventListener('click', async (e) => {
             e.preventDefault();
             const { error } = await supabaseClient.auth.signOut();
             if (error) showToast('Logout failed: ' + error.message);
