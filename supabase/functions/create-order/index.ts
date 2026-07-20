@@ -14,8 +14,8 @@ serve(async (req) => {
   try {
     const { amount, receipt_id } = await req.json()
 
-    const keyId = 'rzp_test_TFOxCSs3iPI2pU';
-    const keySecret = 'bb6nZdz3nr7lytEq9eaubKgG';
+    const keyId = Deno.env.get('RAZORPAY_KEY_ID');
+    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
 
     const razorpayRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
