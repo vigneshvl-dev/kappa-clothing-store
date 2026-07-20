@@ -30,136 +30,32 @@
         .panel-header { padding: 24px 28px 20px; border-bottom: 1px solid #f0f0ee; }
         .panel-title { font-size: 15px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #111; }
 
-        /* ── Coupon Cards ── */
-        .coupons-list {
-            padding: 24px 28px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 40px; text-align: center; }
+        .empty-state-illustration { width: 160px; height: 160px; border-radius: 50%; background: linear-gradient(135deg, #fdf5e6, #faebd7); display: flex; align-items: center; justify-content: center; margin-bottom: 28px; font-size: 64px; }
+        .empty-state-title { font-size: 18px; font-weight: 700; color: #111; margin-bottom: 8px; }
+        .empty-state-sub { font-size: 14px; color: #999; margin-bottom: 28px; max-width: 300px; line-height: 1.6; }
 
-        .coupon-card {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 18px 20px;
-            border: 1.5px solid #f0f0ee;
-            border-radius: 12px;
-            background: #fff;
-            transition: box-shadow 0.18s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .coupon-card::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 5px;
-            background: linear-gradient(180deg, #f5c518, #f57c00);
-            border-radius: 0;
-        }
-
-        .coupon-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-
-        .coupon-icon-wrap {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #fff3cd, #ffe082);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 22px;
-        }
-
-        .coupon-info { flex: 1; }
-
-        .coupon-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #111;
-            margin-bottom: 3px;
-            letter-spacing: 0.02em;
-        }
-
-        .coupon-desc {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 8px;
-        }
-
-        .coupon-code-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .coupon-code-label {
-            font-size: 12px;
-            color: #666;
-            font-weight: 500;
-        }
-
-        .coupon-code-chip {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            border: 1.5px dashed #e0e0de;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #333;
-            letter-spacing: 0.06em;
-            background: #fafaf8;
-            cursor: pointer;
-            transition: background 0.16s, border-color 0.16s;
-        }
-
-        .coupon-code-chip:hover { background: #f0f0ee; border-color: #bbb; }
-
-        .coupon-code-chip svg { width: 13px; height: 13px; }
-
-        .coupon-shop-btn {
-            padding: 10px 24px;
+        .btn-shop-now {
+            display: inline-block;
+            padding: 13px 36px;
             background: #111;
             color: #fff;
-            border: none;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
-            cursor: pointer;
+            letter-spacing: 0.04em;
             text-decoration: none;
-            display: inline-block;
-            transition: background 0.18s;
-            font-family: 'Inter', sans-serif;
-            flex-shrink: 0;
+            transition: background 0.2s, transform 0.18s;
         }
 
-        .coupon-shop-btn:hover { background: #333; }
-
-        /* Dashed divider between coupon icon and edge  */
-        .coupon-divider {
-            width: 1px;
-            height: 60px;
-            border-left: 2px dashed #f0f0ee;
-            margin: 0 10px;
-        }
+        .btn-shop-now:hover { background: #333; transform: translateY(-1px); }
 
         @media (max-width: 768px) {
             .profile-content-area { grid-template-columns: 1fr; padding: 20px 16px 60px; gap: 16px; }
             .profile-sidebar { position: static; }
             .panel-header { padding: 18px 20px 14px; }
-            .coupons-list { padding: 16px; }
-            .coupon-card { flex-wrap: wrap; gap: 14px; }
-            .coupon-shop-btn { width: 100%; text-align: center; }
         }
     </style>
-</head>
 <body class="profile-page">
 
     <header class="navbar" id="navbar">
@@ -245,60 +141,11 @@
                     <div class="panel-title">Coupons</div>
                 </div>
 
-                <div class="coupons-list">
-                    <!-- Coupon 1 -->
-                    <div class="coupon-card" id="coupon1">
-                        <div class="coupon-icon-wrap">🏷️</div>
-                        <div class="coupon-info">
-                            <div class="coupon-title">FIRSTBUY 200 OFF</div>
-                            <div class="coupon-desc">FLAT ₹200 off</div>
-                            <div class="coupon-code-row">
-                                <span class="coupon-code-label">Code:</span>
-                                <button class="coupon-code-chip" onclick="copyCoupon('FIRSTBUY200', this)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                    FIRSTBUY200
-                                </button>
-                            </div>
-                        </div>
-                        <div class="coupon-divider"></div>
-                        <a href="index.html" class="coupon-shop-btn">Shop Now</a>
-                    </div>
-
-                    <!-- Coupon 2 -->
-                    <div class="coupon-card" id="coupon2">
-                        <div class="coupon-icon-wrap">🎉</div>
-                        <div class="coupon-info">
-                            <div class="coupon-title">SAVE10</div>
-                            <div class="coupon-desc">10% off on orders above ₹999</div>
-                            <div class="coupon-code-row">
-                                <span class="coupon-code-label">Code:</span>
-                                <button class="coupon-code-chip" onclick="copyCoupon('SAVE10', this)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                    SAVE10
-                                </button>
-                            </div>
-                        </div>
-                        <div class="coupon-divider"></div>
-                        <a href="index.html" class="coupon-shop-btn">Shop Now</a>
-                    </div>
-
-                    <!-- Coupon 3 -->
-                    <div class="coupon-card" id="coupon3">
-                        <div class="coupon-icon-wrap">⚡</div>
-                        <div class="coupon-info">
-                            <div class="coupon-title">FLASH50</div>
-                            <div class="coupon-desc">₹50 off on your next purchase</div>
-                            <div class="coupon-code-row">
-                                <span class="coupon-code-label">Code:</span>
-                                <button class="coupon-code-chip" onclick="copyCoupon('FLASH50', this)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                    FLASH50
-                                </button>
-                            </div>
-                        </div>
-                        <div class="coupon-divider"></div>
-                        <a href="index.html" class="coupon-shop-btn">Shop Now</a>
-                    </div>
+                <div class="empty-state" id="couponsEmptyState">
+                    <div class="empty-state-illustration">🏷️</div>
+                    <div class="empty-state-title">No Coupons Available</div>
+                    <div class="empty-state-sub">Check back later for exciting offers and discounts.</div>
+                    <a href="index.html" class="btn-shop-now" style="margin-top:8px;">Shop Now</a>
                 </div>
             </main>
 
@@ -319,20 +166,6 @@
             t.textContent = msg;
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 3000);
-        }
-
-        function copyCoupon(code, btn) {
-            navigator.clipboard.writeText(code).then(() => {
-                const original = btn.innerHTML;
-                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
-                btn.style.borderColor = '#4caf50';
-                btn.style.color = '#2e7d32';
-                setTimeout(() => {
-                    btn.innerHTML = original;
-                    btn.style.borderColor = '';
-                    btn.style.color = '';
-                }, 2000);
-            }).catch(() => showToast('Code: ' + code));
         }
 
         const profileBtn = document.getElementById('profileBtn');
