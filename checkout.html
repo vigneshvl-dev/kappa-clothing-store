@@ -632,8 +632,10 @@
             p_shipping_address: shippingAddress,
             p_customer_details: customerDetails,
             p_items: cartItems.map(item => ({
-                variant_id: item.id,  // <-- Change this from item.variant_id to item.id
-                quantity: item.qty
+                product_id: item.id,       // Changed from variant_id
+                quantity: item.qty,
+                size: item.size || 'N/A',  // Send size directly from cart
+                color: item.color || 'N/A' // Send color directly from cart
             }))
         };
 
