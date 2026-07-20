@@ -623,107 +623,64 @@
             zip: document.getElementById('bill-zip').value
         };
 
-        const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
-        const discountAmt = Math.round(subtotal * discountPercent);
-        const totalAmount = Math.max(subtotal - discountAmt + shippingCost, 0);
-
         // Get the currently logged-in user right before inserting
         const { data: { user } } = await supabaseClient.auth.getUser();
 
-        // 2. Save to Supabase 'orders' table
-        const { data: orderData, error: orderError } = await supabaseClient
-            .from('orders')
-            .insert([{
-                user_id: user ? user.id : null,
-                total_amount: totalAmount,
-                status: 'pending',
-                shipping_address: shippingAddress,
-                customer_details: customerDetails
-            }])
-            .select(); // Returns the created record
+        // 2. Prepare order payload (Notice: NO PRICES are sent from client!)
+        const orderPayload = {
+            p_user_id: user ? user.id : null,
+            p_shipping_address: shippingAddress,
+            p_customer_details: customerDetails,
+            p_items: cartItems.map(item => ({
+                variant_id: item.variant_id,
+                quantity: item.qty
+            }))
+        };
+
+        // 3. Invoke secure server-side RPC function
+        const { data: result, error: orderError } = await supabaseClient.rpc('create_secure_order', orderPayload);
 
         if (orderError) {
-            console.error("Database Error (Orders):", orderError);
-            alert("Could not save order. Please try again.");
+            console.error("Database Error (Secure Order):", orderError);
+            alert("Could not process order securely. Please try again.");
             return;
         }
 
-        const newOrderId = orderData[0].id;
-
-        // 3. Save each product to 'order_items'
-        const orderItemsToInsert = cartItems.map(item => {
-            let itemColor = 'Default';
-            let itemSize = item.size;
-
-            // Check if the name has an appended variant (e.g., "Name - S (Red)")
-            if (item.name && item.name.includes(' - ')) {
-                const parts = item.name.split(' - ');
-                const variantString = parts[parts.length - 1].trim(); // Gets "S (Red)"
-
-                // Check if it matches the "Size (Color)" format using regex
-                const match = variantString.match(/^([a-zA-Z0-9]+)\s*\((.+)\)$/);
-
-                if (match) {
-                    itemSize = match[1];  // Extracts the "S"
-                    itemColor = match[2]; // Extracts the "Red"
-                } else {
-                    itemColor = variantString; // Fallback if it's just a simple color like "Black"
-                }
-            }
-
-            return {
-                order_id: newOrderId,
-                product_id: item.id,
-                quantity: item.qty,
-                price_at_purchase: item.price,
-                
-                // The updated and new columns:
-                size: itemSize,
-                color: itemColor,
-                variant_id: item.variant_id || null,
-                image_url: item.img // This saves the product image URL!
-            };
-        });
-
-        const { error: itemsError } = await supabaseClient
-            .from('order_items')
-            .insert(orderItemsToInsert);
-
-        if (itemsError) {
-        console.error("Database Error (Order Items):", itemsError);
-        alert("Error saving items: " + itemsError.message); // <--- This will force a popup if it fails
-    }
+        const newOrderId = result.order_id;
+        const verifiedTotal = result.total_amount; // The true, untamperable total from the database
 
         // 4. Finalize
         localStorage.setItem('kappa_active_order_id', newOrderId);
         localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
 
-        payNow();
+        payNow(verifiedTotal, newOrderId);
     }
 
-        async function payNow() {
-            try {
-                // Read cart total from DOM
-                const totalText = document.getElementById("sum-total").textContent;
-                const totalINR = parseInt(totalText.replace(/[^\d]/g, "")) || 500;
+        async function payNow(secureTotal, dbOrderId) {
+        try {
+            // 1. Convert secure total to paise (Razorpay expects smallest currency unit)
+            const amountInPaise = Math.round(secureTotal * 100);
 
-                // Call backend to create a Razorpay order (required for order_id)
-                const response = await fetch("/api/create-order", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount: totalINR })
-                });
+            // 2. Call backend to create a Razorpay order securely
+            const response = await fetch("/api/create-order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    amount: amountInPaise,
+                    receipt_id: dbOrderId // Link Razorpay order to Supabase order
+                })
+            });
 
-                if (!response.ok) {
-                    throw new Error("Backend error: " + response.status);
-                }
+            if (!response.ok) {
+                throw new Error("Backend error: " + response.status);
+            }
 
-                const order = await response.json();
-                console.log("Order created:", order);
+            const order = await response.json();
+            console.log("Razorpay Order created:", order);
 
-                if (!order.id) {
-                    throw new Error("No order ID returned from server");
-                }
+            if (!order.id) {
+                throw new Error("No order ID returned from server");
+            }
 
                 var options = {
                     key: "rzp_test_TFOxCSs3iPI2pU",
