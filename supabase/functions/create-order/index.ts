@@ -15,7 +15,7 @@ serve(async (req) => {
     const { amount, receipt_id } = await req.json()
 
     const keyId = 'rzp_test_TFOxCSs3iPI2pU';
-    const keySecret = 'bb6nZdz3nr7lytEq9eaubKg6';
+    const keySecret = 'bb6nZdz3nr7lytEq9eaubKgG';
 
     const razorpayRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
