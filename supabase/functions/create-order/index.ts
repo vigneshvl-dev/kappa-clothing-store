@@ -1,21 +1,30 @@
-// deno-lint-ignore-file no-import-prefix
+// deno-lint-ignore-file
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-
   try {
-    const { amount, receipt_id } = await req.json()
+    const { productId } = await req.json()
 
-    const keyId = Deno.env.get('RAZORPAY_KEY_ID');
-    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const { data: product, error } = await supabaseAdmin
+      .from('products') 
+      .select('price')
+      .eq('id', productId)
+      .single()
+
+    if (error || !product) {
+      throw new Error('Invalid product or price not found.')
+    }
+
+    const officialPrice = product.price * 100 
+
+    const keyId = Deno.env.get('RAZORPAY_KEY_ID')
+    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')
 
     const razorpayRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
@@ -24,35 +33,21 @@ serve(async (req) => {
         'Authorization': 'Basic ' + btoa(`${keyId}:${keySecret}`)
       },
       body: JSON.stringify({
-        amount: amount,
+        amount: officialPrice, 
         currency: 'INR',
-        receipt: receipt_id ? String(receipt_id).substring(0, 40) : 'receipt_' + Date.now()
+        receipt: 'receipt_' + Math.random().toString(36).substring(7)
       })
     })
 
-    const orderData = await razorpayRes.json()
+    const order = await razorpayRes.json()
 
-    if (!razorpayRes.ok) {
-      console.error("Razorpay rejection details:", orderData)
-      return new Response(JSON.stringify({ 
-        error: orderData.error?.description || "Razorpay API error",
-        details: orderData 
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      })
-    }
-
-    return new Response(JSON.stringify(orderData), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify(order), {
+      headers: { 'Content-Type': 'application/json' },
       status: 200,
     })
-
-  } catch (error: unknown) {
-    const errorMessage = (error as Error).message
-    console.error("Edge function error:", errorMessage)
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  } catch (err) {
+    return new Response(JSON.stringify({ error: (err as Error).message }), {
+      headers: { 'Content-Type': 'application/json' },
       status: 400,
     })
   }
