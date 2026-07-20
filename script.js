@@ -933,11 +933,16 @@ window.addToCart = addToCart;
 
     /* ---------- GLOBAL CLICK DELEGATION (product cards) ---------- */
     document.addEventListener("click", e => {
-        const addId = e.target.dataset.add;
-        const viewId = e.target.dataset.view;
-        if (addId) addToCart(Number(addId));
-        if (viewId) openQuickView(Number(viewId));
-    });
+    const addId = e.target.dataset.add;
+    const viewId = e.target.dataset.view;
+    if (addId) {
+        const p = PRODUCTS.find(x => x.id === Number(addId) || x.id == addId);
+        const defaultSize = (p && p.sizes && p.sizes.length > 0) ? p.sizes[0] : 'Default';
+        const defaultColor = (p && p.colors && p.colors.length > 0) ? p.colors[0] : 'N/A';
+        addToCart(Number(addId), defaultSize, defaultColor);
+    }
+    if (viewId) openQuickView(Number(viewId));
+});
 
     /* ---------- SEARCH ---------- */
     const searchInput = document.getElementById("searchInput");
