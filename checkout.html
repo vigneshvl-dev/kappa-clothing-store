@@ -648,7 +648,7 @@
             return;
         }
 
-        const newOrderId = result.order_id;
+        const newOrderId = result.order_id || result.id;
         const verifiedTotal = result.total_amount; // The true, untamperable total from the database
 
         // 4. Finalize
@@ -677,8 +677,9 @@
             console.log("Razorpay Order created:", order);
 
             if (!order.id) {
-                throw new Error("No order ID returned from server");
-            }
+    console.error("Razorpay Error Response:", order);
+    throw new Error(order.error?.description || "No order ID returned from server");
+}
 
                 var options = {
                     key: "rzp_test_TFOxCSs3iPI2pU",
