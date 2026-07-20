@@ -26,11 +26,19 @@ serve(async (req) => {
       body: JSON.stringify({
         amount: amount,
         currency: 'INR',
-        receipt: receipt_id
+        receipt: receipt_id || 'receipt_' + Date.now()
       })
     })
 
     const order = await razorpayRes.json()
+
+    if (!razorpayRes.ok) {
+      console.error("Razorpay rejection:", order)
+      return new Response(JSON.stringify({ error: order.error?.description || "Razorpay API error" }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      })
+    }
 
     return new Response(JSON.stringify(order), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
