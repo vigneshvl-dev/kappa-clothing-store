@@ -735,38 +735,44 @@ testDatabaseConnection();
     }
 
 
-    function addToCart(id, size, price, img) {
-        let p = PRODUCTS.find(x => x.id === id || x.id == id);
-        if (!p) {
-            // Product comes from Supabase — build a temporary object from passed args.
-            // When called from storefront cards: addToCart(id, name, price, img)
-            // So `size` is actually the product name here.
-            const productName = (typeof size === 'string' && price !== undefined)
-                ? size
-                : 'Product';
-            p = {
-                id: id,
-                name: productName,
-                price: price || 0,
-                img: img || 'assets/sleeping sis.png',
-                sizes: ['Default']
-            };
-            PRODUCTS.push(p);
-        }
-
-        // For Supabase cards the call is addToCart(id, name, price, img) so use Default size
-        const actualSize = 'Default';
-
-        const existing = cart.find(c => c.id === id && c.size === actualSize);
-        if (existing) {
-            existing.qty++;
-        } else {
-            cart.push({ id, size: actualSize, qty: 1, name: p.name, price: p.price, customImg: img || p.img });
-        }
-        renderCart();
-        showToast(`${p.name} added to cart`);
+   function addToCart(id, size = 'Default', color = 'N/A', price, img) {
+    let p = PRODUCTS.find(x => x.id === id || x.id == id);
+    if (!p) {
+        const productName = (typeof size === 'string' && price !== undefined && size !== 'Default')
+            ? size
+            : 'Product';
+        p = {
+            id: id,
+            name: productName,
+            price: price || 0,
+            img: img || 'assets/sleeping sis.png',
+            sizes: ['Default'],
+            colors: ['N/A']
+        };
+        PRODUCTS.push(p);
     }
-    window.addToCart = addToCart;
+
+    const actualSize = size || 'Default';
+    const actualColor = color || 'N/A';
+
+    const existing = cart.find(c => c.id === id && c.size === actualSize && c.color === actualColor);
+    if (existing) {
+        existing.qty++;
+    } else {
+        cart.push({ 
+            id, 
+            size: actualSize, 
+            color: actualColor, 
+            qty: 1, 
+            name: p.name, 
+            price: p.price, 
+            customImg: img || p.img 
+        });
+    }
+    renderCart();
+    showToast(`${p.name} added to cart`);
+}
+window.addToCart = addToCart;
 
     function renderCart() {
         localStorage.setItem("kappa_cart", JSON.stringify(cart));
@@ -791,7 +797,7 @@ testDatabaseConnection();
         <img src="${img}" alt="${name}">
         <div class="ci-info">
           <div class="ci-name">${name}</div>
-          <div class="ci-meta">${c.size}</div>
+          <div class="ci-meta">Size: ${c.size} | Color: ${c.color}</div>
           <div class="ci-qty">
             <button data-dec="${idx}">−</button>
             <span>${c.qty}</span>
@@ -883,45 +889,47 @@ testDatabaseConnection();
 
     /* ---------- QUICK VIEW ---------- */
     function openQuickView(id) {
-        const p = PRODUCTS.find(x => x.id === id);
-        const panel = document.getElementById("qvPanel");
-        panel.innerHTML = `
-    <button class="overlay-close" id="qvClose">✕</button>
-    <div class="qv-img" style="background-image:url('${p.img}')"></div>
-    <div class="qv-body">
-      <span class="qv-cat">${p.cat}</span>
-      <h2 class="qv-name">${p.name}</h2>
-      <div class="qv-price">${fmt(p.price)} ${p.old ? `<span class="pc-old">${fmt(p.old)}</span>` : ''}</div>
-      <p class="qv-desc">Engineered fabric, oversized silhouette, and a fit built for everyday movement. Part of the KAPPA icon lineup.</p>
-      <div class="qv-label">Size</div>
-      <div class="qv-sizes">${p.sizes.map((s, i) => `<div class="qv-size ${i === 0 ? 'active' : ''}" data-size="${s}">${s}</div>`).join('')}</div>
-      <div class="qv-label">Color</div>
-      <div class="qv-colors">${p.colors.map((c, i) => `<div class="qv-color ${i === 0 ? 'active' : ''}" style="background:${c}" data-color="${c}"></div>`).join('')}</div>
-      <div class="qv-label">Quantity</div>
-      <div class="qv-qty">
-        <button id="qvDec">−</button><span id="qvQty">1</span><button id="qvInc">+</button>
-      </div>
-      <button class="btn btn-primary full magnetic" id="qvAdd"><span>Add to Cart</span></button>
-    </div>
-  `;
-        let qty = 1, size = p.sizes[0];
-        panel.querySelectorAll(".qv-size").forEach(el => el.addEventListener("click", () => {
-            panel.querySelectorAll(".qv-size").forEach(x => x.classList.remove("active"));
-            el.classList.add("active"); size = el.dataset.size;
-        }));
-        panel.querySelectorAll(".qv-color").forEach(el => el.addEventListener("click", () => {
-            panel.querySelectorAll(".qv-color").forEach(x => x.classList.remove("active"));
-            el.classList.add("active");
-        }));
-        panel.querySelector("#qvInc").addEventListener("click", () => { qty++; panel.querySelector("#qvQty").textContent = qty; });
-        panel.querySelector("#qvDec").addEventListener("click", () => { qty = Math.max(1, qty - 1); panel.querySelector("#qvQty").textContent = qty; });
-        panel.querySelector("#qvAdd").addEventListener("click", () => {
-            for (let i = 0; i < qty; i++) addToCart(id, size);
-            closeOverlay(qvOverlay);
-        });
-        panel.querySelector("#qvClose").addEventListener("click", () => closeOverlay(qvOverlay));
-        openOverlay(qvOverlay);
-    }
+    const p = PRODUCTS.find(x => x.id === id);
+    const panel = document.getElementById("qvPanel");
+    panel.innerHTML = `
+<button class="overlay-close" id="qvClose">✕</button>
+<div class="qv-img" style="background-image:url('${p.img}')"></div>
+<div class="qv-body">
+  <span class="qv-cat">${p.cat || ''}</span>
+  <h2 class="qv-name">${p.name}</h2>
+  <div class="qv-price">${fmt(p.price)} ${p.old ? `<span class="pc-old">${fmt(p.old)}</span>` : ''}</div>
+  <p class="qv-desc">Engineered fabric, oversized silhouette, and a fit built for everyday movement. Part of the KAPPA icon lineup.</p>
+  <div class="qv-label">Size</div>
+  <div class="qv-sizes">${(p.sizes || ['Default']).map((s, i) => `<div class="qv-size ${i === 0 ? 'active' : ''}" data-size="${s}">${s}</div>`).join('')}</div>
+  <div class="qv-label">Color</div>
+  <div class="qv-colors">${(p.colors || ['N/A']).map((c, i) => `<div class="qv-color ${i === 0 ? 'active' : ''}" style="background:${c}; width:25px; height:25px; border-radius:50%; display:inline-block; cursor:pointer;" data-color="${c}"></div>`).join('')}</div>
+  <div class="qv-label">Quantity</div>
+  <div class="qv-qty">
+    <button id="qvDec">−</button><span id="qvQty">1</span><button id="qvInc">+</button>
+  </div>
+  <button class="btn btn-primary full magnetic" id="qvAdd"><span>Add to Cart</span></button>
+</div>
+`;
+    let qty = 1, selectedSize = p.sizes ? p.sizes[0] : 'Default', selectedColor = p.colors ? p.colors[0] : 'N/A';
+    
+    panel.querySelectorAll(".qv-size").forEach(el => el.addEventListener("click", () => {
+        panel.querySelectorAll(".qv-size").forEach(x => x.classList.remove("active"));
+        el.classList.add("active"); selectedSize = el.dataset.size;
+    }));
+    panel.querySelectorAll(".qv-color").forEach(el => el.addEventListener("click", () => {
+        panel.querySelectorAll(".qv-color").forEach(x => x.classList.remove("active"));
+        el.classList.add("active"); selectedColor = el.dataset.color;
+    }));
+    panel.querySelector("#qvInc").addEventListener("click", () => { qty++; panel.querySelector("#qvQty").textContent = qty; });
+    panel.querySelector("#qvDec").addEventListener("click", () => { qty = Math.max(1, qty - 1); panel.querySelector("#qvQty").textContent = qty; });
+    
+    panel.querySelector("#qvAdd").addEventListener("click", () => {
+        for (let i = 0; i < qty; i++) addToCart(id, selectedSize, selectedColor);
+        closeOverlay(qvOverlay);
+    });
+    panel.querySelector("#qvClose").addEventListener("click", () => closeOverlay(qvOverlay));
+    openOverlay(qvOverlay);
+}
 
     /* ---------- GLOBAL CLICK DELEGATION (product cards) ---------- */
     document.addEventListener("click", e => {
