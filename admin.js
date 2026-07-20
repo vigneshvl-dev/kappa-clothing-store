@@ -808,7 +808,7 @@ window.showOrderDetails = async function(orderId) {
     overlay.style.display = 'flex';
     content.innerHTML = "Loading...";
 
-    // UPDATED: Now fetching product_images(url)
+    // 1. UPDATED: Fetch size, color, and image_url directly from order_items
     const { data, error } = await supabaseClient
         .from('orders')
         .select(`
@@ -816,10 +816,10 @@ window.showOrderDetails = async function(orderId) {
             order_items (
                 quantity,
                 price_at_purchase,
-                products (
-                    name,
-                    product_images (url)
-                )
+                size,
+                color,
+                image_url,
+                products ( name )
             )
         `)
         .eq('id', orderId)
@@ -858,17 +858,26 @@ window.showOrderDetails = async function(orderId) {
             const price = item.price_at_purchase || 0;
             const qty = item.quantity || 1;
             
-            // Safely grab the first image if it exists
-            let imgHtml = '<div style="width: 45px; height: 45px; background: #eee; border-radius: 4px; display: inline-block; margin-right: 12px; flex-shrink: 0;"></div>';
-            if (item.products && item.products.product_images && item.products.product_images.length > 0) {
-                imgHtml = `<img src="${item.products.product_images[0].url}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px; display: inline-block; margin-right: 12px; flex-shrink: 0;">`;
+            // 2. UPDATED: Safely grab the image_url directly from the item
+            let imgHtml = '<div style="width: 55px; height: 55px; background: #eee; border-radius: 4px; display: inline-block; margin-right: 12px; flex-shrink: 0;"></div>';
+            if (item.image_url) {
+                imgHtml = `<img src="${item.image_url}" style="width: 55px; height: 55px; object-fit: cover; border-radius: 4px; display: inline-block; margin-right: 12px; flex-shrink: 0;">`;
             }
 
+            // 3. UPDATED: Inject Size and Color into the HTML UI
+            // Using a ternary operator to hide them if they just say "Default"
+            const sizeText = item.size && item.size !== 'Default' ? `Size: <strong>${item.size}</strong>` : '';
+            const colorText = item.color && item.color !== 'Default' ? `Color: <strong>${item.color}</strong>` : '';
+            const variantDivider = (sizeText && colorText) ? ' | ' : '';
+
             htmlContent += `
-                <li style="border-bottom: 1px solid #eee; padding: 10px 0; display: flex; align-items: center;">
+                <li style="border-bottom: 1px solid #eee; padding: 12px 0; display: flex; align-items: center;">
                     ${imgHtml}
                     <div style="flex-grow: 1;">
-                        <div style="font-weight: 500; font-size: 14px;">${productName}</div>
+                        <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${productName}</div>
+                        
+                        ${(sizeText || colorText) ? `<div style="color: #444; font-size: 12px; margin-bottom: 2px;">${sizeText}${variantDivider}${colorText}</div>` : ''}
+                        
                         <div style="color: #666; font-size: 12px;">Qty: ${qty}</div>
                     </div>
                     <div style="font-weight: bold; font-size: 14px;">₹${price * qty}</div>
@@ -876,7 +885,7 @@ window.showOrderDetails = async function(orderId) {
             `;
         });
     } else {
-        htmlContent += '<li style="color: red;">No products found. (Did you add the SELECT policy to order_items?)</li>';
+        htmlContent += '<li style="color: red;">No products found for this order.</li>';
     }
 
     htmlContent += `</ul>`;
