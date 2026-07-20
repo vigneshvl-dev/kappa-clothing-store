@@ -2,37 +2,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-// Standard CORS headers allowing requests from anywhere (including local development)
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { productId } = await req.json()
+    const body = await req.json()
+    const { receipt_id } = body
+
+    if (!receipt_id) {
+      throw new Error('Missing receipt_id (order ID) in request body.')
+    }
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { data: product, error } = await supabaseAdmin
-      .from('products') 
-      .select('price')
-      .eq('id', productId)
+    // Fetch the verified order total directly from your database orders table
+    const { data: orderRecord, error } = await supabaseAdmin
+      .from('orders') 
+      .select('total_amount')
+      .eq('id', receipt_id)
       .single()
 
-    if (error || !product) {
-      throw new Error('Invalid product or price not found.')
+    if (error || !orderRecord) {
+      throw new Error(`Order not found in database for ID: ${receipt_id}`)
     }
 
-    const officialPrice = product.price * 100 
+    // Convert total amount to paise for Razorpay
+    const officialPriceInPaise = Math.round(Number(orderRecord.total_amount) * 100)
 
     const keyId = Deno.env.get('RAZORPAY_KEY_ID')
     const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')
@@ -44,13 +49,17 @@ serve(async (req) => {
         'Authorization': 'Basic ' + btoa(`${keyId}:${keySecret}`)
       },
       body: JSON.stringify({
-        amount: officialPrice, 
+        amount: officialPriceInPaise, 
         currency: 'INR',
-        receipt: 'receipt_' + Math.random().toString(36).substring(7)
+        receipt: receipt_id
       })
     })
 
     const order = await razorpayRes.json()
+
+    if (!order.id) {
+      throw new Error(order.error?.description || 'Failed to create Razorpay order')
+    }
 
     return new Response(JSON.stringify(order), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
