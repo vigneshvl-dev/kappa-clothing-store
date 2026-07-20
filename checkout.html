@@ -647,12 +647,26 @@
         const newOrderId = orderData[0].id;
 
         // 3. Save each product to 'order_items'
-        const orderItemsToInsert = cartItems.map(item => ({
-            order_id: newOrderId,
-            product_id: item.id,
-            quantity: item.qty,
-            price_at_purchase: item.price
-        }));
+        const orderItemsToInsert = cartItems.map(item => {
+            // In script.js, you appended the color to the name (e.g., "T-Shirt - Red")
+            // This safely extracts the color back out, defaulting to 'Default' if none exists.
+            let itemColor = 'Default';
+            if (item.name && item.name.includes(' - ')) {
+                itemColor = item.name.split(' - ')[1];
+            }
+
+            return {
+                order_id: newOrderId,
+                product_id: item.id,
+                quantity: item.qty,
+                price_at_purchase: item.price,
+                
+                // --- THE MISSING LINES ---
+                size: item.size,
+                color: itemColor,
+                variant_id: item.variant_id || null 
+            };
+        });
 
         const { error: itemsError } = await supabaseClient
             .from('order_items')

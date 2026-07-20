@@ -805,11 +805,10 @@ window.showOrderDetails = async function(orderId) {
     const overlay = document.getElementById('orderDetailsOverlay');
     const content = document.getElementById('orderDetailsContent');
     
-    // Show modal
     overlay.style.display = 'flex';
     content.innerHTML = "Loading...";
 
-    // UPDATED: Fetch order details, PLUS the connected order_items and product names
+    // UPDATED: Now fetching product_images(url)
     const { data, error } = await supabaseClient
         .from('orders')
         .select(`
@@ -818,7 +817,8 @@ window.showOrderDetails = async function(orderId) {
                 quantity,
                 price_at_purchase,
                 products (
-                    name
+                    name,
+                    product_images (url)
                 )
             )
         `)
@@ -830,11 +830,9 @@ window.showOrderDetails = async function(orderId) {
         return;
     }
 
-    // Extract JSONB data safely
     const cust = data.customer_details || {};
     const addr = data.shipping_address || {};
 
-    // Build the base HTML for customer and shipping info
     let htmlContent = `
         <p><strong>Order ID:</strong> ${data.id.toString().substring(0, 8)}</p>
         <p><strong>Status:</strong> ${data.status}</p>
@@ -854,26 +852,33 @@ window.showOrderDetails = async function(orderId) {
         <ul style="list-style-type: none; padding-left: 0; margin-top: 5px;">
     `;
 
-    // Loop through the fetched order items and add them to the list
     if (data.order_items && data.order_items.length > 0) {
         data.order_items.forEach(item => {
             const productName = item.products ? item.products.name : 'Unknown Product';
             const price = item.price_at_purchase || 0;
             const qty = item.quantity || 1;
             
+            // Safely grab the first image if it exists
+            let imgHtml = '<div style="width: 45px; height: 45px; background: #eee; border-radius: 4px; display: inline-block; margin-right: 12px; flex-shrink: 0;"></div>';
+            if (item.products && item.products.product_images && item.products.product_images.length > 0) {
+                imgHtml = `<img src="${item.products.product_images[0].url}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px; display: inline-block; margin-right: 12px; flex-shrink: 0;">`;
+            }
+
             htmlContent += `
-                <li style="border-bottom: 1px solid #eee; padding: 5px 0;">
-                    <span style="font-weight: 500;">${productName}</span> 
-                    <span style="color: #666; font-size: 0.9em;">(Qty: ${qty})</span>
-                    <span style="float: right;">₹${price * qty}</span>
+                <li style="border-bottom: 1px solid #eee; padding: 10px 0; display: flex; align-items: center;">
+                    ${imgHtml}
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: 500; font-size: 14px;">${productName}</div>
+                        <div style="color: #666; font-size: 12px;">Qty: ${qty}</div>
+                    </div>
+                    <div style="font-weight: bold; font-size: 14px;">₹${price * qty}</div>
                 </li>
             `;
         });
     } else {
-        htmlContent += '<li style="color: red;">No products found for this order.</li>';
+        htmlContent += '<li style="color: red;">No products found. (Did you add the SELECT policy to order_items?)</li>';
     }
 
-    // Close the list and inject it all into the modal
     htmlContent += `</ul>`;
     content.innerHTML = htmlContent;
 }
