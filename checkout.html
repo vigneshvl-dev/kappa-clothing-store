@@ -627,6 +627,9 @@
         const discountAmt = Math.round(subtotal * discountPercent);
         const totalAmount = Math.max(subtotal - discountAmt + shippingCost, 0);
 
+        // Get the currently logged-in user right before inserting
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
         // 2. Save to Supabase 'orders' table
         const { data: orderData, error: orderError } = await supabaseClient
             .from('orders')
