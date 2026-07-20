@@ -1,56 +1,46 @@
+// deno-lint-ignore-file no-import-prefix
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-Deno.serve(async (req: Request) => {
-  // 1. Handle CORS preflight requests (required for browser fetch)
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // 2. Read the frontend JSON body (amount and dbOrderId)
     const { amount, receipt_id } = await req.json()
 
-    // 3. Fetch Razorpay API keys from Supabase Environment Variables securely
-    const keyId = Deno.env.get('RAZORPAY_KEY_ID')
-    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')
+    const keyId = 'rzp_test_TFOxCSs3iPI2pU'
+    const keySecret = 'bb6nZdz3nr7lytEq9eaubKg6'
 
-    if (!keyId || !keySecret) {
-      throw new Error("Server configuration error: Missing API keys")
-    }
-
-    // 4. Securely ask the Razorpay API to generate an order
-    const response = await fetch('https://api.razorpay.com/v1/orders', {
+    const razorpayRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Convert keys to Base64 for Basic Auth as required by Razorpay
-        'Authorization': `Basic ${btoa(`${keyId}:${keySecret}`)}`
+        'Authorization': 'Basic ' + btoa(`${keyId}:${keySecret}`)
       },
       body: JSON.stringify({
-        amount: amount,      // Secure amount in paise
+        amount: amount,
         currency: 'INR',
-        receipt: receipt_id  // Linking Supabase DB order ID to Razorpay
+        receipt: receipt_id
       })
     })
 
-    const razorpayOrder = await response.json()
-    
-    // 5. Send the created order back to the frontend checkout!
-    return new Response(JSON.stringify(razorpayOrder), {
+    const order = await razorpayRes.json()
+
+    return new Response(JSON.stringify(order), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: response.ok ? 200 : 400
+      status: 200,
     })
 
-  } catch (error) {
-    // Safely extract the error message without using 'any'
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    
-    return new Response(JSON.stringify({ error: errorMessage }), {
+  } catch (error: unknown) {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400
+      status: 400,
     })
   }
 })
