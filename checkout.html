@@ -634,6 +634,7 @@
         const { data: orderData, error: orderError } = await supabaseClient
             .from('orders')
             .insert([{
+                user_id: user ? user.id : null,
                 total_amount: totalAmount,
                 status: 'pending',
                 shipping_address: shippingAddress,
