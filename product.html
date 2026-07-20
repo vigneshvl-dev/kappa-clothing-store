@@ -1786,13 +1786,15 @@
             if (hasSizes && !selectedSize) { alert("PLEASE SELECT A SIZE"); return; }
             if (hasColors && !selectedColor) { alert("PLEASE SELECT A COLOUR"); return; }
 
-            let cartName = currentProductData.name;
-            if (selectedSize) cartName += ` - ${selectedSize}`;
-            if (selectedColor) cartName += ` (${selectedColor})`;
-
             const qty = currentQty || 1;
             for (let i = 0; i < qty; i++) {
-                addToCart(currentProductData.id, cartName, currentProductData.price, currentMainImageUrl);
+                addToCart(
+                    currentProductData.id, 
+                    selectedSize || 'Default', 
+                    selectedColor || 'N/A', 
+                    currentProductData.price, 
+                    currentMainImageUrl
+                );
             }
         }
 
