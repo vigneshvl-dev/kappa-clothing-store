@@ -672,8 +672,20 @@
             });
 
             if (funcError) {
-                throw new Error("Edge Function Error: " + funcError.message);
+            console.error("Full Function Error Object:", funcError);
+            let detailedMsg = funcError.message;
+            
+            try {
+                if (funcError.context && typeof funcError.context.json === 'function') {
+                    const errJson = await funcError.context.json();
+                    detailedMsg = errJson.error || detailedMsg;
+                }
+            } catch (e) {
+                // Ignore parsing fallback error
             }
+
+            throw new Error(detailedMsg);
+        }
             console.log("Razorpay Order created:", order);
 
             if (!order.id) {

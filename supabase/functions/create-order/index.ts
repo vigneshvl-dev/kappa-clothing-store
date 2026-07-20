@@ -14,8 +14,12 @@ serve(async (req) => {
   try {
     const { amount, receipt_id } = await req.json()
 
-    const keyId = 'rzp_test_TFOxCSs3iPI2pU'
-    const keySecret = 'bb6nZdz3nr7lytEq9eaubKg6'
+    const keyId = Deno.env.get('RAZORPAY_KEY_ID')
+    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')
+
+    if (!keyId || !keySecret) {
+      throw new Error("Razorpay environment keys are missing on the server.")
+    }
 
     const razorpayRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
@@ -26,27 +30,32 @@ serve(async (req) => {
       body: JSON.stringify({
         amount: amount,
         currency: 'INR',
-        receipt: receipt_id || 'receipt_' + Date.now()
+        receipt: receipt_id ? String(receipt_id).substring(0, 40) : 'receipt_' + Date.now()
       })
     })
 
-    const order = await razorpayRes.json()
+    const orderData = await razorpayRes.json()
 
     if (!razorpayRes.ok) {
-      console.error("Razorpay rejection:", order)
-      return new Response(JSON.stringify({ error: order.error?.description || "Razorpay API error" }), {
+      console.error("Razorpay rejection details:", orderData)
+      return new Response(JSON.stringify({ 
+        error: orderData.error?.description || "Razorpay API error",
+        details: orderData 
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       })
     }
 
-    return new Response(JSON.stringify(order), {
+    return new Response(JSON.stringify(orderData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
 
   } catch (error: unknown) {
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    const errorMessage = (error as Error).message
+    console.error("Edge function error:", errorMessage)
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     })
