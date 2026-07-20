@@ -632,7 +632,7 @@
             p_shipping_address: shippingAddress,
             p_customer_details: customerDetails,
             p_items: cartItems.map(item => ({
-                variant_id: item.variant_id,
+                variant_id: item.id,  // <-- Change this from item.variant_id to item.id
                 quantity: item.qty
             }))
         };
