@@ -124,6 +124,7 @@ ul {
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
     transition: transform .4s ease, background .4s ease, box-shadow .4s ease, top .3s ease;
+    overflow: visible; /* allow profile dropdown to extend below navbar */
 }
 
 /* Hide on rapid scroll-down — keep a quick hide slide */
@@ -7358,15 +7359,15 @@ body.reels-page {
 }
 
 .profile-popup {
-    position: absolute;
-    top: calc(100% + 12px);
-    right: 0;
+    position: fixed;
+    top: var(--popup-top, 80px);
+    right: 20px;
     width: 290px;
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.14), 0 1px 3px rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(0, 0, 0, 0.06);
-    z-index: 1010;
+    z-index: 9999;
     opacity: 0;
     transform: translateY(-10px);
     pointer-events: none;
@@ -7374,6 +7375,9 @@ body.reels-page {
     padding: 18px 0 12px 0;
     box-sizing: border-box;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .profile-popup.open {
@@ -7507,4 +7511,21 @@ body.reels-page {
     border-radius: 10px;
     line-height: 1.2;
 }
+/* ============ PROFILE PAGES ============ */
+/* Profile pages have no marquee, so navbar sits at top:0 */
+body.profile-page .navbar {
+    top: 0;
+    background: var(--yellow);
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
 
+body.profile-page .navbar.scrolled {
+    background: var(--yellow);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Give profile page wrapper correct top padding (no marquee) */
+body.profile-page .profile-page-wrapper {
+    padding-top: var(--nav-h, 84px);
+}

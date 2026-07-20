@@ -572,14 +572,9 @@ testDatabaseConnection();
     const popupMyOrders = document.getElementById('popupMyOrders');
     if (popupMyOrders) {
         popupMyOrders.addEventListener('click', (e) => {
-            e.preventDefault();
             const profilePopup = document.getElementById('profilePopup');
             if (profilePopup) profilePopup.classList.remove('open');
-            openOverlay(accountOverlay);
-            setTimeout(() => {
-                const trackingTitle = document.querySelector('.dash-tracking-title');
-                if (trackingTitle) trackingTitle.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
+            // Navigate handled by href="my-orders.html"
         });
     }
 
@@ -596,58 +591,45 @@ testDatabaseConnection();
     const popupTrackOrder = document.getElementById('popupTrackOrder');
     if (popupTrackOrder) {
         popupTrackOrder.addEventListener('click', (e) => {
-            e.preventDefault();
             const profilePopup = document.getElementById('profilePopup');
             if (profilePopup) profilePopup.classList.remove('open');
-            openOverlay(accountOverlay);
-            setTimeout(() => {
-                const searchInput = document.getElementById('dashTrackSearchInput');
-                if (searchInput) {
-                    searchInput.focus();
-                    searchInput.scrollIntoView({ behavior: 'smooth' });
-                }
-            }, 100);
+            // Navigate handled by href="track-order.html"
         });
     }
 
     const popupSavedAddress = document.getElementById('popupSavedAddress');
     if (popupSavedAddress) {
         popupSavedAddress.addEventListener('click', (e) => {
-            e.preventDefault();
             const profilePopup = document.getElementById('profilePopup');
             if (profilePopup) profilePopup.classList.remove('open');
-            openOverlay(accountOverlay);
-            setTimeout(() => {
-                const addressInput = document.getElementById('dash-address');
-                if (addressInput) {
-                    addressInput.focus();
-                    addressInput.scrollIntoView({ behavior: 'smooth' });
-                }
-            }, 100);
+            // Navigate handled by href="saved-address.html"
         });
     }
 
     const popupMyReviews = document.getElementById('popupMyReviews');
     if (popupMyReviews) {
         popupMyReviews.addEventListener('click', (e) => {
-            e.preventDefault();
-            showToast("My Reviews coming soon!");
+            const profilePopup = document.getElementById('profilePopup');
+            if (profilePopup) profilePopup.classList.remove('open');
+            // Navigate handled by href="my-reviews.html"
         });
     }
 
     const popupMyNotifications = document.getElementById('popupMyNotifications');
     if (popupMyNotifications) {
         popupMyNotifications.addEventListener('click', (e) => {
-            e.preventDefault();
-            showToast("No new notifications");
+            const profilePopup = document.getElementById('profilePopup');
+            if (profilePopup) profilePopup.classList.remove('open');
+            // Navigate handled by href="my-notifications.html"
         });
     }
 
     const popupMyCoupons = document.getElementById('popupMyCoupons');
     if (popupMyCoupons) {
         popupMyCoupons.addEventListener('click', (e) => {
-            e.preventDefault();
-            showToast("You have 3 active coupons!");
+            const profilePopup = document.getElementById('profilePopup');
+            if (profilePopup) profilePopup.classList.remove('open');
+            // Navigate handled by href="my-coupons.html"
         });
     }
 

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reviews — KAPPA</title>
+    <link rel="icon" type="image/png" href="assets/kappalogo_favion.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-page-wrapper { min-height: 100vh; background: #f8f8f5; padding-top: var(--nav-h, 84px); }
+        .profile-content-area { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: start; }
+        .profile-sidebar { background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); overflow: hidden; position: sticky; top: 104px; }
+        .sidebar-user-card { display: flex; align-items: center; gap: 14px; padding: 20px 20px 18px; border-bottom: 1px solid #f0f0ee; }
+        .sidebar-avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #111 0%, #444 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+        .sidebar-user-name { font-weight: 700; font-size: 15px; color: #111; line-height: 1.2; }
+        .sidebar-user-sub { font-size: 12px; color: #999; margin-top: 2px; }
+        .sidebar-nav { padding: 8px 0; }
+        .sidebar-nav-item { display: flex; align-items: center; gap: 12px; padding: 13px 20px; font-size: 14px; font-weight: 500; color: #444; cursor: pointer; transition: background 0.18s, color 0.18s; text-decoration: none; border-left: 3px solid transparent; }
+        .sidebar-nav-item:hover { background: #f8f8f5; color: #111; }
+        .sidebar-nav-item.active { background: #f0f0ee; color: #111; font-weight: 600; border-left-color: #111; }
+        .sidebar-nav-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .sidebar-nav-icon svg { width: 16px; height: 16px; }
+        .profile-main-panel { background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); overflow: hidden; }
+        .panel-header { padding: 24px 28px 20px; border-bottom: 1px solid #f0f0ee; }
+        .panel-title { font-size: 15px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #111; }
+
+        /* My Reviews */
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 40px; text-align: center; }
+
+        .empty-state-illustration {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff9e6, #fff3c4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 28px;
+            font-size: 64px;
+        }
+
+        .empty-state-title { font-size: 18px; font-weight: 700; color: #111; margin-bottom: 8px; }
+        .empty-state-sub { font-size: 14px; color: #999; margin-bottom: 28px; max-width: 300px; line-height: 1.6; }
+
+        .btn-start-shopping {
+            display: inline-block;
+            padding: 13px 36px;
+            background: #111;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.18s;
+        }
+
+        .btn-start-shopping:hover { background: #333; transform: translateY(-1px); }
+
+        /* Stars rating preview */
+        .stars-display {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+        }
+
+        .stars-display svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-content-area { grid-template-columns: 1fr; padding: 20px 16px 60px; gap: 16px; }
+            .profile-sidebar { position: static; }
+            .panel-header { padding: 18px 20px 14px; }
+        }
+    </style>
+</head>
+<body class="profile-page">
+
+    <header class="navbar" id="navbar">
+        <button class="hamburger hamburger-left" id="heroHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+        <nav class="nav-links">
+            <a href="index.html#home" class="nav-link">Home</a>
+            <a href="about.html" class="nav-link">About</a>
+            <a href="index.html#footer" class="nav-link">Contact</a>
+        </nav>
+        <a href="index.html#home" class="nav-logo"><img src="https://cdn.corenexis.com/f/fRkaM2Pbrr7.png" alt="KAPPA Fashion Store"></a>
+        <div class="nav-actions">
+            <div class="search-box" id="searchBtn"><input type="text" placeholder="Search for products..." /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
+            <button class="icon-btn cart-btn" id="cartBtn"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg></button>
+            <button class="icon-btn profile-btn" id="profileBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg></button>
+            <div class="profile-popup" id="profilePopup">
+                <div class="profile-popup-header">
+                    <div class="profile-avatar-circle"><img src="" id="profilePopupAvatarImg" class="profile-avatar-img" style="display:none;" /><div id="profilePopupAvatarPlaceholder" class="profile-avatar-placeholder">U</div></div>
+                    <div class="profile-info"><div class="profile-name" id="profilePopupName">User</div><a href="#" class="profile-link" id="profilePopupLink">My Profile</a></div>
+                </div>
+                <div class="profile-divider"></div>
+                <ul class="profile-popup-menu">
+                    <li><a href="my-orders.html"><span class="menu-icon-wrap" style="background-color:#ffeef2;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span><span class="menu-label">My Orders</span></a></li>
+                    <li><a href="track-order.html"><span class="menu-icon-wrap" style="background-color:#e8f5e9;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></span><span class="menu-label">Track Order</span></a></li>
+                    <li><a href="saved-address.html"><span class="menu-icon-wrap" style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span><span class="menu-label">Saved Address</span></a></li>
+                    <li><a href="my-reviews.html"><span class="menu-icon-wrap" style="background-color:#fff9c4;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span><span class="menu-label">My Reviews</span></a></li>
+                    <li><a href="#" id="popupLogout"><span class="menu-icon-wrap" style="background-color:#ffebee;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></span><span class="menu-label">Logout</span></a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="profile-page-wrapper">
+        <div class="profile-content-area">
+
+            <aside class="profile-sidebar">
+                <div class="sidebar-user-card">
+                    <div class="sidebar-avatar" id="sidebarAvatar">U</div>
+                    <div>
+                        <div class="sidebar-user-name" id="sidebarUserName">Loading...</div>
+                        <div class="sidebar-user-sub">My Profile</div>
+                    </div>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="my-orders.html" class="sidebar-nav-item"><span class="sidebar-nav-icon" style="background:#ffeef2;"><svg viewBox="0 0 24 24" fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span>My Orders</a>
+                    <a href="track-order.html" class="sidebar-nav-item"><span class="sidebar-nav-icon" style="background:#e8f5e9;"><svg viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></span>Track Order</a>
+                    <a href="saved-address.html" class="sidebar-nav-item"><span class="sidebar-nav-icon" style="background:#f3e5f5;"><svg viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span>Saved Address</a>
+                    <a href="my-reviews.html" class="sidebar-nav-item active"><span class="sidebar-nav-icon" style="background:#fff9c4;"><svg viewBox="0 0 24 24" fill="none" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>My Reviews</a>
+                </nav>
+            </aside>
+
+            <main class="profile-main-panel">
+                <div class="panel-header">
+                    <div class="panel-title">My Reviews</div>
+                </div>
+
+                <div class="empty-state">
+                    <div class="stars-display">
+                        <svg viewBox="0 0 24 24" fill="#fbc02d" stroke="#fbc02d" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <svg viewBox="0 0 24 24" fill="#fbc02d" stroke="#fbc02d" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <svg viewBox="0 0 24 24" fill="#fbc02d" stroke="#fbc02d" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <svg viewBox="0 0 24 24" fill="#fbc02d" stroke="#fbc02d" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#fbc02d" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    </div>
+                    <div class="empty-state-illustration">⭐</div>
+                    <div class="empty-state-title">No Reviews yet</div>
+                    <div class="empty-state-sub">Review your products to help us serve you better.</div>
+                    <a href="index.html" class="btn-start-shopping">Start Shopping</a>
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const supabaseClient = window.supabase.createClient(
+            'https://ugphxapfbzcrauchwlef.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
+        );
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        const profileBtn = document.getElementById('profileBtn');
+        const profilePopup = document.getElementById('profilePopup');
+        let currentUser = null;
+
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (!session) { window.location.href = 'index.html'; return; }
+            currentUser = session.user;
+            const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
+            const initial = name.charAt(0).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initial;
+            document.getElementById('sidebarUserName').textContent = name;
+            document.getElementById('profilePopupName').textContent = name;
+            document.getElementById('profilePopupAvatarPlaceholder').textContent = initial;
+        });
+
+        if (profileBtn) {
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (currentUser) profilePopup.classList.toggle('open');
+                else window.location.href = 'index.html';
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (profilePopup && profilePopup.classList.contains('open')) {
+                if (!profilePopup.contains(e.target) && !profileBtn.contains(e.target)) profilePopup.classList.remove('open');
+            }
+        });
+
+        document.getElementById('popupLogout').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) showToast('Logout failed: ' + error.message);
+            else { showToast('Logged out successfully'); setTimeout(() => window.location.href = 'index.html', 1000); }
+        });
+
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => { if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20); });
+    </script>
+</body>
+</html>
