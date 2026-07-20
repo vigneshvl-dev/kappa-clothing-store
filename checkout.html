@@ -648,11 +648,23 @@
 
         // 3. Save each product to 'order_items'
         const orderItemsToInsert = cartItems.map(item => {
-            // In script.js, you appended the color to the name (e.g., "T-Shirt - Red")
-            // This safely extracts the color back out, defaulting to 'Default' if none exists.
             let itemColor = 'Default';
+            let itemSize = item.size;
+
+            // Check if the name has an appended variant (e.g., "Name - S (Red)")
             if (item.name && item.name.includes(' - ')) {
-                itemColor = item.name.split(' - ')[1];
+                const parts = item.name.split(' - ');
+                const variantString = parts[parts.length - 1].trim(); // Gets "S (Red)"
+
+                // Check if it matches the "Size (Color)" format using regex
+                const match = variantString.match(/^([a-zA-Z0-9]+)\s*\((.+)\)$/);
+
+                if (match) {
+                    itemSize = match[1];  // Extracts the "S"
+                    itemColor = match[2]; // Extracts the "Red"
+                } else {
+                    itemColor = variantString; // Fallback if it's just a simple color like "Black"
+                }
             }
 
             return {
@@ -661,10 +673,11 @@
                 quantity: item.qty,
                 price_at_purchase: item.price,
                 
-                // --- THE MISSING LINES ---
-                size: item.size,
+                // The updated and new columns:
+                size: itemSize,
                 color: itemColor,
-                variant_id: item.variant_id || null 
+                variant_id: item.variant_id || null,
+                image_url: item.img // This saves the product image URL!
             };
         });
 
