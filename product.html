@@ -1358,6 +1358,12 @@
     <script src="script.js"></script>
 
     <script>
+        // Dedicated Supabase client for this page — avoids the window.supabase (raw library) pitfall
+        const _pdp = window.supabase.createClient(
+            'https://ugphxapfbzcrauchwlef.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
+        );
+
         let selectedSize = null;
         let selectedColor = null;
         let currentProductData = null;
@@ -1479,7 +1485,7 @@
 
     try {
         let product = null;
-        const client = window.supabaseClient || window.supabase || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        const client = _pdp;
         
         if (!client) {
             console.error("❌ Supabase client is not available!");
@@ -1685,7 +1691,7 @@
 async function loadZaraGrids(categoryId, currentProductId) {
     try {
         let targetCategoryIds = [];
-        const client = window.supabaseClient || window.supabase || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        const client = _pdp;
         if (!client) return;
 
         if (categoryId) {
@@ -1833,3 +1839,6 @@ if (document.readyState === 'loading') {
 } else {
     loadSingleProduct();
 }
+</script>
+</body>
+</html>
