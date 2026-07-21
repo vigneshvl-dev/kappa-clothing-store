@@ -1744,61 +1744,76 @@
         }
 
         function swapImage(url, element) {
-        document.getElementById('main-product-image').src = url;
-        document.querySelectorAll('.thumb-img').forEach(el => el.classList.remove('active'));
-        element.classList.add('active');
-    }
-
-    function selectSize(element, size) {
-        document.querySelectorAll('.size-box').forEach(el => el.classList.remove('selected'));
-        element.classList.add('selected');
-        selectedSize = size;
-    }
-
-    function selectColor(element, color, imgUrl) {
-        // Deselect all swatches (both types)
-        document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.classList.remove('selected'));
-        element.classList.add('selected');
-        selectedColor = color;
-        // Swap main image if an image URL was provided for this color
-        if (imgUrl) {
-            currentMainImageUrl = imgUrl;
             const mainImg = document.getElementById('main-product-image');
-            if (mainImg) mainImg.src = imgUrl;
-            // Also highlight the matching thumbnail
-            document.querySelectorAll('.thumb-img').forEach(t => {
-                t.classList.toggle('active', t.src.includes(imgUrl.split('/').pop().split('?')[0]));
-            });
-        }
-    }
-
-    function handleAddToCart() {
-        if (!currentProductData) return;
-
-        let hasSizes = false; let hasColors = false;
-        if (currentProductData.product_variants && currentProductData.product_variants.length > 0) {
-            currentProductData.product_variants.forEach(v => {
-                if (v.size) hasSizes = true;
-                if (v.color) hasColors = true;
-            });
+            if (mainImg) mainImg.src = url;
+            document.querySelectorAll('.thumb-img').forEach(el => el.classList.remove('active'));
+            if (element) element.classList.add('active');
         }
 
-        if (hasSizes && !selectedSize) { alert("PLEASE SELECT A SIZE"); return; }
-        if (hasColors && !selectedColor) { alert("PLEASE SELECT A COLOUR"); return; }
-
-        // Safely check for currentQty to prevent reference errors
-        const qty = (typeof currentQty !== 'undefined') ? currentQty : 1;
-        
-        for (let i = 0; i < qty; i++) {
-            addToCart(
-                currentProductData.id, 
-                selectedSize || 'Default', 
-                selectedColor || 'N/A', 
-                currentProductData.price, 
-                currentMainImageUrl,
-                currentProductData.name
-            );
+        function selectSize(element, size) {
+            document.querySelectorAll('.size-box').forEach(el => el.classList.remove('selected'));
+            if (element) element.classList.add('selected');
+            window.selectedSize = size; 
         }
-    }
 
-    document.addEventListener('DOMContentLoaded', loadSingleProduct);
+        function selectColor(element, color, imgUrl) {
+            document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.classList.remove('selected'));
+            if (element) element.classList.add('selected');
+            window.selectedColor = color; 
+            
+            if (imgUrl) {
+                window.currentMainImageUrl = imgUrl; 
+                const mainImg = document.getElementById('main-product-image');
+                if (mainImg) mainImg.src = imgUrl;
+                document.querySelectorAll('.thumb-img').forEach(t => {
+                    t.classList.toggle('active', t.src.includes(imgUrl.split('/').pop().split('?')[0]));
+                });
+            }
+        }
+
+        function handleAddToCart() {
+            if (typeof currentProductData === 'undefined' || !currentProductData) return;
+
+            let hasSizes = false; let hasColors = false;
+            if (currentProductData.product_variants && currentProductData.product_variants.length > 0) {
+                currentProductData.product_variants.forEach(v => {
+                    if (v.size) hasSizes = true;
+                    if (v.color) hasColors = true;
+                });
+            }
+
+            const sSize = typeof selectedSize !== 'undefined' ? selectedSize : null;
+            const sColor = typeof selectedColor !== 'undefined' ? selectedColor : null;
+
+            if (hasSizes && !sSize) { alert("PLEASE SELECT A SIZE"); return; }
+            if (hasColors && !sColor) { alert("PLEASE SELECT A COLOUR"); return; }
+
+            const qty = (typeof currentQty !== 'undefined') ? currentQty : 1;
+            
+            // Safely grab the image without crashing
+            let img = 'assets/sleeping sis.png';
+            if (typeof currentMainImageUrl !== 'undefined' && currentMainImageUrl) {
+                img = currentMainImageUrl;
+            } else if (currentProductData.product_images && currentProductData.product_images.length > 0) {
+                img = currentProductData.product_images[0].url;
+            }
+
+            for (let i = 0; i < qty; i++) {
+                addToCart(
+                    currentProductData.id, 
+                    sSize || 'Default', 
+                    sColor || 'N/A', 
+                    currentProductData.price, 
+                    img,
+                    currentProductData.name
+                );
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof loadSingleProduct === 'function') {
+                loadSingleProduct();
+            } else {
+                console.error("CRITICAL: loadSingleProduct function is missing!");
+            }
+        });
