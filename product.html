@@ -1807,10 +1807,8 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof loadSingleProduct === 'function') {
-                loadSingleProduct();
-            } else {
-                console.error("CRITICAL: loadSingleProduct function is missing!");
-            }
-        });
+        if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadSingleProduct);
+} else {
+    loadSingleProduct();
+}
