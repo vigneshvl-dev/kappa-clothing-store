@@ -345,7 +345,7 @@ testDatabaseConnection();
         return `
   <div class="product-card ${small ? 'trend-card' : ''} ${isOut ? 'is-out-of-stock' : ''}" data-id="${p.id}">
     <div class="pc-media" style="position:relative;">
-      ${isOut ? `<span class="pc-tag sale" style="background:#d32f2f; color:#fff; font-weight:800; z-index:5;">OUT OF STOCK</span>` : (p.tag ? `<span class="pc-tag ${p.tag === 'SALE' ? 'sale' : ''}">${p.tag}</span>` : '')}
+      ${(p.tag && !isOut) ? `<span class="pc-tag ${p.tag === 'SALE' ? 'sale' : ''}">${p.tag}</span>` : ''}
       <img src="${p.img}" alt="${p.name}" loading="lazy">
       ${isOut ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
       ${!small && !isOut ? `
@@ -2061,7 +2061,7 @@ async function initStorefront() {
                      data-product-name="${safeName}" 
                      data-product-price="${product.price || 0}" 
                      style="max-width: 280px; width: 100%; position: relative;">
-                    ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
+                    ${isOutOfStock ? '' : `<span class="boys-badge">NEW</span>`}
                     
                     <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                         <img class="boys-card-img" src="${imageUrl}" alt="Product Image">
