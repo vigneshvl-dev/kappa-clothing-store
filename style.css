@@ -4575,6 +4575,12 @@ body > *:last-child{
     .boys-grid {
         grid-template-columns: 1fr;
         gap: 25px;
+        justify-items: center;
+    }
+
+    .boys-card {
+        max-width: 340px;
+        width: 100%;
     }
 
     .boys-btn {
@@ -4761,13 +4767,35 @@ body > *:last-child{
 
 @media(max-width:768px) {
 
+    .girls-collection {
+        padding: 70px 20px;
+    }
+
     .girls-header {
         flex-direction: column;
         gap: 18px;
+        text-align: center;
     }
 
     .girls-header h2 {
         font-size: 32px;
+        top: 0;
+    }
+
+    .girls-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+        justify-items: center;
+    }
+
+    .girls-card {
+        max-width: 340px;
+        width: 100%;
+    }
+
+    .girls-btn {
+        padding: 12px 26px;
+        top: 0;
     }
 
 }
