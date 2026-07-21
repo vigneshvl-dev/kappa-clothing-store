@@ -1478,12 +1478,14 @@
         let product = null;
         const client = window.supabaseClient || supabaseClient;
 
-        // Try matching by slug first
+        // Try matching by slug first (using product_variants(*) to prevent column mismatch crashes)
         const { data: bySlug, error: slugErr } = await client
             .from('products')
-            .select('*, product_images(url, position), product_variants(size, color, stock_quantity)')
+            .select('*, product_images(url, position), product_variants(*)')
             .eq('slug', slug)
             .maybeSingle();
+
+        if (slugErr) console.error("Slug query error:", slugErr);
 
         if (bySlug) {
             product = bySlug;
@@ -1491,9 +1493,11 @@
             // Fallback: try matching by id (for products without a slug)
             const { data: byId, error: idErr } = await client
                 .from('products')
-                .select('*, product_images(url, position), product_variants(size, color, stock_quantity)')
+                .select('*, product_images(url, position), product_variants(*)')
                 .eq('id', slug)
                 .maybeSingle();
+            
+            if (idErr) console.error("ID query error:", idErr);
             if (byId) product = byId;
         }
 
@@ -1655,6 +1659,8 @@
 
     } catch (err) {
         console.error("Error loading product:", err);
+        const titleEl = document.getElementById('pdp-title');
+        if (titleEl) titleEl.innerText = 'Error Loading Product';
     }
 }
 
