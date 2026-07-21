@@ -532,10 +532,20 @@
 
         function loadCheckoutDetails() {
             try {
-                cartItems = JSON.parse(localStorage.getItem("kappa_checkout_cart") || "[]");
-                if (cartItems.length === 0) {
-                    cartItems = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
-                }
+                // Always read from the main cart (kappa_cart) — single source of truth
+                cartItems = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
+                // Merge qty: kappa_cart stores each entry as qty:1, group by id+size+color
+                const merged = [];
+                cartItems.forEach(item => {
+                    const key = `${item.id}|${item.size}|${item.color}`;
+                    const existing = merged.find(m => `${m.id}|${m.size}|${m.color}` === key);
+                    if (existing) {
+                        existing.qty = (existing.qty || 1) + (item.qty || 1);
+                    } else {
+                        merged.push({ ...item, qty: item.qty || 1 });
+                    }
+                });
+                cartItems = merged;
                 shippingCost = Number(localStorage.getItem("kappa_checkout_shipping") || 0);
                 discountPercent = Number(localStorage.getItem("kappa_checkout_discount") || 0);
             } catch (e) {
@@ -544,25 +554,58 @@
             renderSummary();
         }
 
+        function removeSummaryItem(idx) {
+            const removed = cartItems[idx];
+            cartItems.splice(idx, 1);
+
+            // Sync removal back to kappa_cart
+            try {
+                let raw = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
+                // Remove all matching entries (there may be multiple qty:1 entries)
+                let removedCount = removed.qty || 1;
+                raw = raw.filter(item => {
+                    if (removedCount > 0 && item.id == removed.id && item.size === removed.size && item.color === removed.color) {
+                        removedCount--;
+                        return false;
+                    }
+                    return true;
+                });
+                localStorage.setItem("kappa_cart", JSON.stringify(raw));
+            } catch(e) {}
+
+            renderSummary();
+        }
+
         function renderSummary() {
             const list = document.getElementById("summary-items-list");
             if (cartItems.length === 0) {
                 list.innerHTML = `<div style="text-align:center; padding:20px; font-size:12px; color:#888;">Your cart is empty.</div>`;
+                document.getElementById("sum-subtotal").textContent = "₹0";
+                document.getElementById("sum-discount").textContent = "− ₹0";
+                document.getElementById("sum-shipping").textContent = "₹0";
+                document.getElementById("sum-total").textContent = "₹0";
                 return;
             }
 
-            list.innerHTML = cartItems.map(item => `
-                <div class="summary-item">
-                    <img src="${item.img}" alt="${item.name}">
+            list.innerHTML = cartItems.map((item, idx) => `
+                <div class="summary-item" style="position:relative; padding-right:20px;">
+                    <img src="${item.img || item.customImg || 'https://placehold.co/50x65/eaeaea/999?text=?'}" alt="${item.name}" onerror="this.src='https://placehold.co/50x65/eaeaea/999?text=?'">
                     <div class="item-info">
                         <div class="item-name">${item.name}</div>
-                        <div class="item-meta">Size: ${item.size} &nbsp;|&nbsp; Color: ${item.color || 'N/A'} &nbsp;|&nbsp; Qty: ${item.qty}</div>
+                        <div class="item-meta">
+                            <span style="background:#f0f0f0; padding:1px 6px; border-radius:3px; font-size:10px;">Size: ${item.size || 'Default'}</span>
+                            &nbsp;
+                            <span style="background:#f0f0f0; padding:1px 6px; border-radius:3px; font-size:10px;">Color: ${item.color || 'N/A'}</span>
+                            &nbsp;
+                            <span style="font-size:10px; color:#555;">Qty: ${item.qty || 1}</span>
+                        </div>
                     </div>
-                    <div class="item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
+                    <div class="item-price">₹${((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</div>
+                    <button onclick="removeSummaryItem(${idx})" title="Remove" style="position:absolute; top:0; right:0; background:none; border:none; cursor:pointer; font-size:14px; color:#999; line-height:1; padding:2px 4px;" onmouseover="this.style.color='#e00'" onmouseout="this.style.color='#999'">✕</button>
                 </div>
             `).join('');
 
-            const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * (item.qty || 1)), 0);
             const discountAmt = Math.round(subtotal * discountPercent);
             const total = Math.max(subtotal - discountAmt + shippingCost, 0);
 

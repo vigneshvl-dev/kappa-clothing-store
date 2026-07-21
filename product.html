@@ -1379,11 +1379,12 @@
             return null;
         })();
 
-        let selectedSize = null;
-        let selectedColor = null;
-        let currentProductData = null;
-        let currentMainImageUrl = '';
-        let currentQty = 1;
+        // All shared state on window so every script block + onclick handler can access it
+        window.selectedSize = null;
+        window.selectedColor = null;
+        window.currentProductData = null;
+        window.currentMainImageUrl = '';
+        window.currentQty = 1;
 
         function openSizeGuide() {
             const overlay = document.getElementById('sizeGuideOverlay');
@@ -1461,8 +1462,8 @@
 
 
         function changeQty(delta) {
-            currentQty = Math.max(1, currentQty + delta);
-            document.getElementById('pdp-qty').textContent = currentQty;
+            window.currentQty = Math.max(1, window.currentQty + delta);
+            document.getElementById('pdp-qty').textContent = window.currentQty;
         }
 
         function showSelectionError(hasSizes, hasColors) {
@@ -1501,22 +1502,20 @@
         }
 
         function handleBuyNow() {
-            if (typeof currentProductData === 'undefined' || !currentProductData) return;
+            if (!window.currentProductData) return;
 
             let hasSizes = false, hasColors = false;
-            if (currentProductData.product_variants && currentProductData.product_variants.length > 0) {
-                currentProductData.product_variants.forEach(v => {
+            if (window.currentProductData.product_variants && window.currentProductData.product_variants.length > 0) {
+                window.currentProductData.product_variants.forEach(v => {
                     if (v.size) hasSizes = true;
                     if (v.color) hasColors = true;
                 });
             }
 
-            if (showSelectionError(hasSizes, hasColors)) return; // stop if missing
+            if (showSelectionError(hasSizes, hasColors)) return;
 
             // Add to cart then go directly to checkout
-            if (typeof window.handleAddToCart === 'function') {
-                window.handleAddToCart();
-            }
+            window.handleAddToCart();
             window.location.href = 'checkout.html';
         }
 
@@ -1839,15 +1838,21 @@ window.swapImage = function swapImage(url, element) {
 }
 
 window.selectSize = function selectSize(element, size) {
-    document.querySelectorAll('.size-box').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.size-box').forEach(el => { el.classList.remove('selected'); el.style.borderColor = ''; });
     if (element) element.classList.add('selected');
-    window.selectedSize = size; 
+    window.selectedSize = size;
+    // Clear error message
+    const sizeErr = document.getElementById('size-error-msg');
+    if (sizeErr) sizeErr.style.display = 'none';
 }
 
 window.selectColor = function selectColor(element, color, imgUrl) {
-    document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => { el.classList.remove('selected'); el.style.outline = ''; });
     if (element) element.classList.add('selected');
-    window.selectedColor = color; 
+    window.selectedColor = color;
+    // Clear error message
+    const colorErr = document.getElementById('color-error-msg');
+    if (colorErr) colorErr.style.display = 'none';
     
     if (imgUrl) {
         window.currentMainImageUrl = imgUrl; 
@@ -1860,48 +1865,42 @@ window.selectColor = function selectColor(element, color, imgUrl) {
 }
 
 window.handleAddToCart = function handleAddToCart() {
-    if (typeof currentProductData === 'undefined' || !currentProductData) return;
+    const pd = window.currentProductData;
+    if (!pd) { console.warn('handleAddToCart: no product data'); return; }
 
-    let hasSizes = false; let hasColors = false;
-    if (currentProductData.product_variants && currentProductData.product_variants.length > 0) {
-        currentProductData.product_variants.forEach(v => {
+    let hasSizes = false, hasColors = false;
+    if (pd.product_variants && pd.product_variants.length > 0) {
+        pd.product_variants.forEach(v => {
             if (v.size) hasSizes = true;
             if (v.color) hasColors = true;
         });
     }
 
-    // Show red visual errors instead of alert boxes
-    if (showSelectionError(hasSizes, hasColors)) return;
+    // Use showSelectionError for inline red-highlight validation
+    if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
-    // Clear any previous errors on successful selection
-    const sizeErr = document.getElementById('size-error-msg');
-    const colorErr = document.getElementById('color-error-msg');
-    if (sizeErr) sizeErr.style.display = 'none';
-    if (colorErr) colorErr.style.display = 'none';
-    document.querySelectorAll('.size-box').forEach(el => el.style.borderColor = '');
-    document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.style.outline = '');
+    const sSize = window.selectedSize || 'Default';
+    const sColor = window.selectedColor || 'N/A';
+    const qty = window.currentQty || 1;
 
-    const sSize = typeof selectedSize !== 'undefined' ? selectedSize : null;
-    const sColor = typeof selectedColor !== 'undefined' ? selectedColor : null;
-    const qty = (typeof currentQty !== 'undefined') ? currentQty : 1;
-    
     let img = 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
-    if (typeof currentMainImageUrl !== 'undefined' && currentMainImageUrl) {
-        img = currentMainImageUrl;
-    } else if (currentProductData.product_images && currentProductData.product_images.length > 0) {
-        img = currentProductData.product_images[0].url;
+    if (window.currentMainImageUrl) {
+        img = window.currentMainImageUrl;
+    } else if (pd.product_images && pd.product_images.length > 0) {
+        img = pd.product_images[0].url;
     }
 
     for (let i = 0; i < qty; i++) {
-        addToCart(
-            currentProductData.id, 
-            sSize || 'Default', 
-            sColor || 'N/A', 
-            currentProductData.price, 
+        window.addToCart(
+            pd.id,
+            sSize,
+            sColor,
+            pd.price,
             img,
-            currentProductData.name
+            pd.name
         );
     }
+    console.log('Added to cart:', pd.name, 'size:', sSize, 'color:', sColor, 'qty:', qty);
 }
 
 if (document.readyState === 'loading') {
