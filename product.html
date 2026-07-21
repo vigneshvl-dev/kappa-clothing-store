@@ -1467,8 +1467,8 @@
         }
 
         function showSelectionError(hasSizes, hasColors) {
-            const sSize = typeof selectedSize !== 'undefined' ? selectedSize : null;
-            const sColor = typeof selectedColor !== 'undefined' ? selectedColor : null;
+            const sSize = window.selectedSize || null;
+            const sColor = window.selectedColor || null;
             let hasError = false;
 
             const sizeErr = document.getElementById('size-error-msg');
