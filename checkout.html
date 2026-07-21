@@ -702,6 +702,61 @@
             }))
         };
 
+        async function reduceStockForCart(items) {
+            if (!items || items.length === 0) return;
+            console.log("📦 Deducting backend stock for items:", items);
+
+            for (const item of items) {
+                const prodId = item.id;
+                const qty = item.qty || 1;
+                const size = item.size || null;
+
+                try {
+                    // 1. Reduce variant stock quantity in product_variants table
+                    if (prodId && size && size !== 'Default' && size !== 'N/A') {
+                        const { data: variants } = await supabaseClient
+                            .from('product_variants')
+                            .select('id, stock_quantity')
+                            .eq('product_id', prodId)
+                            .eq('size', size);
+
+                        if (variants && variants.length > 0) {
+                            for (const v of variants) {
+                                const currentStock = Number(v.stock_quantity || 0);
+                                const newStock = Math.max(0, currentStock - qty);
+                                await supabaseClient
+                                    .from('product_variants')
+                                    .update({ stock_quantity: newStock })
+                                    .eq('id', v.id);
+                                console.log(`✅ Reduced variant ${v.id} stock from ${currentStock} to ${newStock}`);
+                            }
+                        }
+                    }
+
+                    // 2. Reduce total product stock quantity in products table
+                    if (prodId) {
+                        const { data: prod } = await supabaseClient
+                            .from('products')
+                            .select('id, stock_quantity')
+                            .eq('id', prodId)
+                            .maybeSingle();
+
+                        if (prod && prod.stock_quantity !== undefined && prod.stock_quantity !== null) {
+                            const currentProdStock = Number(prod.stock_quantity || 0);
+                            const newProdStock = Math.max(0, currentProdStock - qty);
+                            await supabaseClient
+                                .from('products')
+                                .update({ stock_quantity: newProdStock })
+                                .eq('id', prodId);
+                            console.log(`✅ Reduced product ${prodId} total stock from ${currentProdStock} to ${newProdStock}`);
+                        }
+                    }
+                } catch (err) {
+                    console.error(`⚠️ Error updating stock for product ${prodId}:`, err);
+                }
+            }
+        }
+
         // 3. Invoke secure server-side RPC function
         const { data: result, error: orderError } = await supabaseClient.rpc('create_secure_order', orderPayload);
 
@@ -710,6 +765,9 @@
             alert("Could not process order securely. Please try again.");
             return;
         }
+
+        // Automatically reduce stock in backend DB & Admin panel upon order creation
+        await reduceStockForCart(cartItems);
 
         const newOrderId = result.order_id || result.id;
         const verifiedTotal = result.total_amount; // The true, untamperable total from the database
@@ -764,9 +822,13 @@
                     name: "Kappa Fashion Store",
                     description: "Test Payment",
                     image: "https://cdn.corenexis.com/f/fRkaM2Pbrr7.png",
-                    handler: function (response) {
+                    handler: async function (response) {
+                        await reduceStockForCart(cartItems);
+                        localStorage.removeItem('kappa_cart');
+                        localStorage.removeItem('kappa_checkout_cart');
                         alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
                         console.log("Payment response:", response);
+                        window.location.href = 'index.html';
                     },
                     prefill: {
                         name: document.getElementById("bill-name") ? document.getElementById("bill-name").value : "",

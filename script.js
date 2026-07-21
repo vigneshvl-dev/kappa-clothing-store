@@ -341,12 +341,14 @@ testDatabaseConnection();
     /* ---------- RENDER: PRODUCT CARDS ---------- */
     function productCard(p, small) {
         const discountPct = p.old ? Math.round((1 - p.price / p.old) * 100) : null;
+        const isOut = p.stock_quantity === 0 || p.isOutOfStock || p.stock === 0;
         return `
-  <div class="product-card ${small ? 'trend-card' : ''}" data-id="${p.id}">
-    <div class="pc-media">
-      ${p.tag ? `<span class="pc-tag ${p.tag === 'SALE' ? 'sale' : ''}">${p.tag}</span>` : ''}
+  <div class="product-card ${small ? 'trend-card' : ''} ${isOut ? 'is-out-of-stock' : ''}" data-id="${p.id}">
+    <div class="pc-media" style="position:relative;">
+      ${isOut ? `<span class="pc-tag sale" style="background:#d32f2f; color:#fff; font-weight:800; z-index:5;">OUT OF STOCK</span>` : (p.tag ? `<span class="pc-tag ${p.tag === 'SALE' ? 'sale' : ''}">${p.tag}</span>` : '')}
       <img src="${p.img}" alt="${p.name}" loading="lazy">
-      ${!small ? `
+      ${isOut ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
+      ${!small && !isOut ? `
       <div class="pc-quick">
         <button class="pc-btn view" data-view="${p.id}">Quick View</button>
       </div>` : ''}
@@ -1963,7 +1965,7 @@ async function initStorefront() {
         // 2. FETCH LATEST PRODUCTS
         const { data: products, error: prodError } = await supabaseClient
             .from('products')
-            .select('*, product_images(url, position)')
+            .select('*, product_images(url, position), product_variants(stock_quantity)')
             .eq('is_active', true)
             .order('created_at', { ascending: false }); 
 
@@ -1987,6 +1989,18 @@ async function initStorefront() {
 
             // If it doesn't belong to a category, OR if that category is already full, completely skip it!
             if (!injectMens && !injectWomens) return;
+
+            // Determine Out of Stock status
+            let isOutOfStock = false;
+            if (product.stock_quantity !== undefined && product.stock_quantity !== null && Number(product.stock_quantity) === 0) {
+                isOutOfStock = true;
+            }
+            if (product.product_variants && product.product_variants.length > 0) {
+                const totalVariantStock = product.product_variants.reduce((sum, v) => sum + (Number(v.stock_quantity) || 0), 0);
+                if (totalVariantStock === 0) {
+                    isOutOfStock = true;
+                }
+            }
 
             // Extract unique color images from product.product_images
             const uniqueColorImages = [];
@@ -2040,17 +2054,18 @@ async function initStorefront() {
             const safeImage = imageUrl.replace(/'/g, "\\'");
             const comparePriceHTML = product.compare_at_price ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>` : '';
             
-            // Build the card
+            // Build the card with Out of Stock overlay & badge
             const cardHTML = `
-                <div class="boys-card" 
+                <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
                      data-product-id="${product.id}" 
                      data-product-name="${safeName}" 
                      data-product-price="${product.price || 0}" 
                      style="max-width: 280px; width: 100%; position: relative;">
-                    <span class="boys-badge">NEW</span>
+                    ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
                     
-                    <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block;">
+                    <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                         <img class="boys-card-img" src="${imageUrl}" alt="Product Image">
+                        ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
                         <h3>${product.name || 'Untitled Product'}</h3>
                     </a>
 
@@ -2060,8 +2075,6 @@ async function initStorefront() {
                     </div>
 
                     <p class="boys-price">₹${product.price || 0} ${comparePriceHTML}</p>
-                    
-
                 </div>
             `;
 
