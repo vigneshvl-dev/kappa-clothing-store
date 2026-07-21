@@ -1502,11 +1502,12 @@
         }
 
         function handleBuyNow() {
-            if (!window.currentProductData) return;
+            const pd = window.currentProductData;
+            if (!pd) return;
 
             let hasSizes = false, hasColors = false;
-            if (window.currentProductData.product_variants && window.currentProductData.product_variants.length > 0) {
-                window.currentProductData.product_variants.forEach(v => {
+            if (pd.product_variants && pd.product_variants.length > 0) {
+                pd.product_variants.forEach(v => {
                     if (v.size) hasSizes = true;
                     if (v.color) hasColors = true;
                 });
@@ -1514,8 +1515,53 @@
 
             if (showSelectionError(hasSizes, hasColors)) return;
 
-            // Add to cart then go directly to checkout
-            window.handleAddToCart();
+            const sSize = window.selectedSize || 'Default';
+            const sColor = window.selectedColor || 'N/A';
+            const qty = window.currentQty || 1;
+
+            let img = '';
+            if (window.currentMainImageUrl) {
+                img = window.currentMainImageUrl;
+            } else if (pd.product_images && pd.product_images.length > 0) {
+                img = pd.product_images[0].url;
+            }
+
+            // Build the new cart item
+            const newItem = {
+                id: pd.id,
+                name: pd.name,
+                price: pd.price,
+                size: sSize,
+                color: sColor,
+                qty: qty,
+                img: img,
+                customImg: img
+            };
+
+            // Write directly to kappa_cart localStorage (reliable — no IIFE dependency)
+            try {
+                let existingCart = JSON.parse(localStorage.getItem('kappa_cart') || '[]');
+                // Merge: if same product+size+color exists, increase qty
+                const found = existingCart.find(c =>
+                    c.id == pd.id && c.size === sSize && c.color === sColor
+                );
+                if (found) {
+                    found.qty = (found.qty || 1) + qty;
+                } else {
+                    existingCart.push(newItem);
+                }
+                localStorage.setItem('kappa_cart', JSON.stringify(existingCart));
+                console.log('✅ Buy Now: saved to kappa_cart', newItem);
+            } catch (e) {
+                console.error('Failed to save cart:', e);
+            }
+
+            // Also sync via window.addToCart so badge/overlay stays updated
+            if (typeof window.addToCart === 'function') {
+                window.addToCart(pd.id, sSize, sColor, pd.price, img, pd.name);
+            }
+
+            // Navigate to checkout
             window.location.href = 'checkout.html';
         }
 
@@ -1876,31 +1922,54 @@ window.handleAddToCart = function handleAddToCart() {
         });
     }
 
-    // Use showSelectionError for inline red-highlight validation
+    // Inline red-highlight validation
     if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
     const sSize = window.selectedSize || 'Default';
     const sColor = window.selectedColor || 'N/A';
     const qty = window.currentQty || 1;
 
-    let img = 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
+    let img = '';
     if (window.currentMainImageUrl) {
         img = window.currentMainImageUrl;
     } else if (pd.product_images && pd.product_images.length > 0) {
         img = pd.product_images[0].url;
     }
 
-    for (let i = 0; i < qty; i++) {
-        window.addToCart(
-            pd.id,
-            sSize,
-            sColor,
-            pd.price,
-            img,
-            pd.name
+    const newItem = {
+        id: pd.id,
+        name: pd.name,
+        price: pd.price,
+        size: sSize,
+        color: sColor,
+        qty: qty,
+        img: img,
+        customImg: img
+    };
+
+    // Directly write to localStorage — reliable, no IIFE dependency
+    try {
+        let existingCart = JSON.parse(localStorage.getItem('kappa_cart') || '[]');
+        const found = existingCart.find(c =>
+            c.id == pd.id && c.size === sSize && c.color === sColor
         );
+        if (found) {
+            found.qty = (found.qty || 1) + qty;
+        } else {
+            existingCart.push(newItem);
+        }
+        localStorage.setItem('kappa_cart', JSON.stringify(existingCart));
+        console.log('✅ Added to cart:', pd.name, 'size:', sSize, 'color:', sColor, 'qty:', qty);
+    } catch (e) {
+        console.error('Failed to save cart:', e);
     }
-    console.log('Added to cart:', pd.name, 'size:', sSize, 'color:', sColor, 'qty:', qty);
+
+    // Also call window.addToCart to keep cart badge/overlay UI in sync
+    if (typeof window.addToCart === 'function') {
+        for (let i = 0; i < qty; i++) {
+            window.addToCart(pd.id, sSize, sColor, pd.price, img, pd.name);
+        }
+    }
 }
 
 if (document.readyState === 'loading') {
