@@ -123,6 +123,7 @@ testDatabaseConnection();
         if (loader && !loader.classList.contains("hide")) {
             loader.classList.add("hide");
             document.body.style.overflow = "";
+            setTimeout(() => { if (loader) loader.style.display = "none"; }, 400);
             revealCheck();
             startHeroSlideshow(); // Start slideshow transitions after loader is hidden
             initMarquee(); // Start marquee animations after loader is hidden
@@ -131,18 +132,16 @@ testDatabaseConnection();
     // Only run loader logic if the loader element exists on the page
     if (document.getElementById("loader")) {
         document.body.style.overflow = "hidden";
+        let loaderTimer = setTimeout(hideLoader, 350);
+        window.addEventListener("load", () => {
+            clearTimeout(loaderTimer);
+            hideLoader();
+        });
         document.addEventListener("DOMContentLoaded", () => {
             const fill = document.getElementById("loaderFill");
-            let p = 0;
-            const iv = setInterval(() => {
-                p += 1;
-                if (p >= 100) { p = 100; clearInterval(iv); }
-                if (fill) fill.style.width = p + "%";
-            }, 30); // 100 steps of 30ms = 3000ms (3 seconds)
-            setTimeout(hideLoader, 3000);
+            if (fill) fill.style.width = "100%";
+            setTimeout(hideLoader, 200);
         });
-        // Safety fallback: ensure loader closes after 3 seconds
-        setTimeout(hideLoader, 3000);
     } else {
         // If no loader, start marquee immediately
         initMarquee();
@@ -152,6 +151,23 @@ testDatabaseConnection();
     const heroSlides = document.querySelectorAll(".hero-slide");
     let currentSlide = 0;
     let heroSlideshowInterval = null;
+
+    function preloadSlideImage(slide) {
+        if (!slide) return;
+        const isMobile = window.innerWidth <= 768;
+        const mobileBg = slide.getAttribute("data-mobile-bg");
+        let bgUrl = (isMobile && mobileBg) ? mobileBg : slide.dataset.desktopBg;
+        if (!bgUrl) {
+            const styleAttr = slide.getAttribute("style") || "";
+            const match = styleAttr.match(/background-image\s*:\s*url\(['"]?([^'")]+)['"]?\)/);
+            if (match) bgUrl = match[1];
+        }
+        if (bgUrl) {
+            const img = new Image();
+            img.src = bgUrl;
+        }
+    }
+
     function nextSlide() {
         if (heroSlides.length === 0) return;
         heroSlides.forEach(slide => slide.classList.remove("previous"));
@@ -159,10 +175,15 @@ testDatabaseConnection();
         heroSlides[currentSlide].classList.remove("active");
         currentSlide = (currentSlide + 1) % heroSlides.length;
         heroSlides[currentSlide].classList.add("active");
+
+        // Preload next upcoming slide image
+        const upcomingIndex = (currentSlide + 1) % heroSlides.length;
+        preloadSlideImage(heroSlides[upcomingIndex]);
     }
     function startHeroSlideshow() {
         if (heroSlides.length > 1 && !heroSlideshowInterval) {
-            heroSlideshowInterval = setInterval(nextSlide, 3000);
+            heroSlideshowInterval = setInterval(nextSlide, 3500);
+            preloadSlideImage(heroSlides[1]);
         }
     }
 
@@ -188,6 +209,7 @@ testDatabaseConnection();
     }
     window.addEventListener("resize", applyHeroMobileBg);
     applyHeroMobileBg();
+
     /* ---------- HAMBURGER / MOBILE MENU ---------- */
     const glow = document.getElementById("cursorGlow");
     const dot = document.getElementById("cursorDot");
@@ -195,14 +217,16 @@ testDatabaseConnection();
     if (dot) {
         window.addEventListener("mousemove", e => {
             mx = e.clientX; my = e.clientY;
-            dot.style.left = mx + "px"; dot.style.top = my + "px";
-        });
+            dot.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
+        }, { passive: true });
     }
-    (function loop() {
-        gx += (mx - gx) * 0.12; gy += (my - gy) * 0.12;
-        glow.style.left = gx + "px"; glow.style.top = gy + "px";
-        requestAnimationFrame(loop);
-    })();
+    if (glow) {
+        (function loop() {
+            gx += (mx - gx) * 0.12; gy += (my - gy) * 0.12;
+            glow.style.transform = `translate3d(${gx}px, ${gy}px, 0)`;
+            requestAnimationFrame(loop);
+        })();
+    }
     if (dot) {
         document.querySelectorAll("a, button, .cat-item, .look-item, .product-card").forEach(el => {
             el.addEventListener("mouseenter", () => dot.classList.add("grow"));
