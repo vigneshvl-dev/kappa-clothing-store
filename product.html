@@ -1465,10 +1465,13 @@
         }
 
         async function loadSingleProduct() {
+    console.log("🔍 loadSingleProduct() called!");
     const urlParams = new URLSearchParams(window.location.search);
     const slug = urlParams.get('slug');
+    console.log("📌 Target slug:", slug);
 
     if (!slug) {
+        console.error("❌ No slug found in URL!");
         const titleEl = document.getElementById('pdp-title');
         if (titleEl) titleEl.innerText = 'PRODUCT NOT FOUND';
         return;
@@ -1476,7 +1479,16 @@
 
     try {
         let product = null;
-        const client = window.supabaseClient || supabaseClient;
+        const client = window.supabaseClient || window.supabase || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        
+        if (!client) {
+            console.error("❌ Supabase client is not available!");
+            const titleEl = document.getElementById('pdp-title');
+            if (titleEl) titleEl.innerText = 'Database Client Missing';
+            return;
+        }
+
+        console.log("📡 Querying Supabase for product...");
 
         // Try matching by slug first (using product_variants(*) to prevent column mismatch crashes)
         const { data: bySlug, error: slugErr } = await client
@@ -1489,7 +1501,9 @@
 
         if (bySlug) {
             product = bySlug;
+            console.log("✅ Found product by slug:", product);
         } else {
+            console.log("🔄 Slug not found, trying fallback by ID...");
             // Fallback: try matching by id (for products without a slug)
             const { data: byId, error: idErr } = await client
                 .from('products')
@@ -1498,10 +1512,14 @@
                 .maybeSingle();
             
             if (idErr) console.error("ID query error:", idErr);
-            if (byId) product = byId;
+            if (byId) {
+                product = byId;
+                console.log("✅ Found product by ID:", product);
+            }
         }
 
         if (!product) {
+            console.warn("⚠️ Product not found in database for slug/id:", slug);
             const titleEl = document.getElementById('pdp-title');
             if (titleEl) titleEl.innerText = 'Product Not Found';
             const descEl = document.getElementById('pdp-description');
@@ -1658,7 +1676,7 @@
         loadZaraGrids(product.category_id, product.id);
 
     } catch (err) {
-        console.error("Error loading product:", err);
+        console.error("🔥 Error loading product:", err);
         const titleEl = document.getElementById('pdp-title');
         if (titleEl) titleEl.innerText = 'Error Loading Product';
     }
@@ -1667,7 +1685,8 @@
 async function loadZaraGrids(categoryId, currentProductId) {
     try {
         let targetCategoryIds = [];
-        const client = window.supabaseClient || supabaseClient;
+        const client = window.supabaseClient || window.supabase || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!client) return;
 
         if (categoryId) {
             targetCategoryIds.push(categoryId);
