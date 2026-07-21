@@ -314,11 +314,10 @@ async function loadOrders() {
                     </button>
                     <div>
                         <select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)" style="font-size: 11px; padding:4px; margin-top:2px; border-radius:4px; border:1px solid #ccc; width:100%;">
+                            ${currentStatus === 'paid' ? '<option value="paid" selected disabled hidden>Paid (Razorpay)</option>' : ''}
                             <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>Pending (Unpaid)</option>
-                            <option value="paid" ${currentStatus === 'paid' ? 'selected' : ''}>Paid (Ready to Pack)</option>
                             <option value="shipped" ${currentStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
                             <option value="delivered" ${currentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
-                            <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                         </select>
                     </div>
                  </td>
