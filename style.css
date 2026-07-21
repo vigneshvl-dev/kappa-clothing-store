@@ -4481,6 +4481,38 @@ body > *:last-child{
     border-radius: 4px;
 }
 
+.boys-badge.out-of-stock-badge {
+    background: #d32f2f !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    letter-spacing: 1px !important;
+    box-shadow: 0 2px 8px rgba(211, 47, 47, 0.4);
+}
+
+.out-of-stock-overlay {
+    position: absolute;
+    top: 45%;
+    left: 0;
+    width: 100%;
+    transform: translateY(-50%);
+    background: rgba(211, 47, 47, 0.92);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 8px 0;
+    letter-spacing: 1.5px;
+    z-index: 6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    pointer-events: none;
+}
+
+.is-out-of-stock img.boys-card-img,
+.is-out-of-stock .pc-media img {
+    filter: grayscale(40%) opacity(0.85);
+}
+
 .boys-card img.boys-card-img {
     width: 100%;
     aspect-ratio: 3/4;
