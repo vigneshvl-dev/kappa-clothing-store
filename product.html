@@ -2045,6 +2045,11 @@ window.selectSize = function selectSize(element, size) {
     // Clear error message
     const sizeErr = document.getElementById('size-error-msg');
     if (sizeErr) sizeErr.style.display = 'none';
+
+    // Update stock alert for selected size if stock mapping exists
+    if (window.sizeStockMap && window.sizeStockMap[size] !== undefined) {
+        updateStockAlert(window.sizeStockMap[size], size);
+    }
 }
 
 window.selectColor = function selectColor(element, color, imgUrl) {
