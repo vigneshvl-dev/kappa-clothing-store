@@ -348,7 +348,6 @@ testDatabaseConnection();
       <img src="${p.img}" alt="${p.name}" loading="lazy">
       ${!small ? `
       <div class="pc-quick">
-        <button class="pc-btn add" data-add="${p.id}">Add to Cart</button>
         <button class="pc-btn view" data-view="${p.id}">Quick View</button>
       </div>` : ''}
     </div>
@@ -2062,7 +2061,7 @@ async function initStorefront() {
 
                     <p class="boys-price">₹${product.price || 0} ${comparePriceHTML}</p>
                     
-                    <button type="button" class="boys-card-add-btn btn-secondary" onclick="event.preventDefault(); event.stopPropagation(); addToCart('${product.id}', '${safeName}', ${product.price || 0}, '${safeImage}')">Add To Cart</button>
+
                 </div>
             `;
 
