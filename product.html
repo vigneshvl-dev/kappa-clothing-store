@@ -1689,6 +1689,12 @@
             if (showSelectionError(hasSizes, hasColors)) return;
 
             const sSize = window.selectedSize || 'Default';
+
+            // Out of stock guard check
+            if (sSize && window.sizeStockMap && window.sizeStockMap[sSize] === 0) {
+                if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} is out of stock.`);
+                return;
+            }
             const sColor = window.selectedColor || 'N/A';
             const qty = window.currentQty || 1;
 
@@ -2134,6 +2140,12 @@ window.handleAddToCart = function handleAddToCart() {
     if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
     const sSize = window.selectedSize || 'Default';
+
+    // Out of stock guard check
+    if (sSize && window.sizeStockMap && window.sizeStockMap[sSize] === 0) {
+        if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} is out of stock.`);
+        return;
+    }
     const sColor = window.selectedColor || 'N/A';
     const qty = window.currentQty || 1;
 
