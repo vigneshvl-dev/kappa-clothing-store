@@ -1773,33 +1773,28 @@
         }
 
         function handleAddToCart() {
-            if (!currentProductData) return;
+    if (!currentProductData) return;
 
-            let hasSizes = false; let hasColors = false;
-            if (currentProductData.product_variants && currentProductData.product_variants.length > 0) {
-                currentProductData.product_variants.forEach(v => {
-                    if (v.size) hasSizes = true;
-                    if (v.color) hasColors = true;
-                });
-            }
+    let hasSizes = false; let hasColors = false;
+    if (currentProductData.product_variants && currentProductData.product_variants.length > 0) {
+        currentProductData.product_variants.forEach(v => {
+            if (v.size) hasSizes = true;
+            if (v.color) hasColors = true;
+        });
+    }
 
-            if (hasSizes && !selectedSize) { alert("PLEASE SELECT A SIZE"); return; }
-            if (hasColors && !selectedColor) { alert("PLEASE SELECT A COLOUR"); return; }
+    if (hasSizes && !selectedSize) { alert("PLEASE SELECT A SIZE"); return; }
+    if (hasColors && !selectedColor) { alert("PLEASE SELECT A COLOUR"); return; }
 
-            const qty = currentQty || 1;
-            for (let i = 0; i < qty; i++) {
-                addToCart(
-                    currentProductData.id, 
-                    selectedSize || 'Default', 
-                    selectedColor || 'N/A', 
-                    currentProductData.price, 
-                    currentMainImageUrl
-                );
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', loadSingleProduct);
-    </script>
-</body>
-
-</html>
+    const qty = currentQty || 1;
+    for (let i = 0; i < qty; i++) {
+        addToCart(
+            currentProductData.id, 
+            selectedSize || 'Default', 
+            selectedColor || 'N/A', 
+            currentProductData.price, 
+            currentMainImageUrl,
+            currentProductData.name // <--- ADDED THE NAME HERE!
+        );
+    }
+}
