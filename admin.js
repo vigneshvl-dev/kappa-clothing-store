@@ -257,9 +257,9 @@ async function loadOrders() {
     data.forEach(order => {
         const dateObj = new Date(order.created_at);
         const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const currentStatus = (order.status || order.payment_status || 'pending').toLowerCase();
-        const statusClass = `status-${currentStatus}`;
-        const statusLabel = currentStatus.toUpperCase();
+        const currentStatus = (order.status || 'pending').toLowerCase();
+        const paymentStatus = (order.payment_status || 'pending').toLowerCase();
+        const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!order.razorpay_payment_id;
         const rzpId = order.razorpay_payment_id || order.payment_id || '';
 
         // Build items summary HTML
@@ -288,16 +288,18 @@ async function loadOrders() {
             itemsSummaryHtml = '<span style="color:#999; font-size:12px;">No items recorded</span>';
         }
 
-        let paymentStatusHtml = `<span class="badge ${statusClass}">${statusLabel}</span>`;
-        if (currentStatus === 'paid') {
-            paymentStatusHtml += `<div style="font-size:11px; color:#27ae60; font-weight:bold; margin-top:4px; display:flex; align-items:center; gap:3px;">
+        let paymentStatusHtml = '';
+        if (isPaid) {
+            paymentStatusHtml = `<span class="badge status-paid">PAID</span>
+            <div style="font-size:11px; color:#27ae60; font-weight:bold; margin-top:4px; display:flex; align-items:center; gap:3px;">
                 💳 Paid in Razorpay
             </div>`;
             if (rzpId) {
                 paymentStatusHtml += `<div style="font-size:10px; color:#555; font-family:monospace; margin-top:2px;">Txn: ${rzpId}</div>`;
             }
-        } else if (currentStatus === 'pending') {
-            paymentStatusHtml += `<div style="font-size:11px; color:#e67e22; font-weight:bold; margin-top:4px;">⚠️ Unpaid (Razorpay)</div>`;
+        } else {
+            paymentStatusHtml = `<span class="badge status-pending">PENDING</span>
+            <div style="font-size:11px; color:#e67e22; font-weight:bold; margin-top:4px;">⚠️ Unpaid (Razorpay)</div>`;
         }
         
         html += `<tr>
@@ -314,8 +316,7 @@ async function loadOrders() {
                     </button>
                     <div>
                         <select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)" style="font-size: 11px; padding:4px; margin-top:2px; border-radius:4px; border:1px solid #ccc; width:100%;">
-                            ${currentStatus === 'paid' ? '<option value="paid" selected disabled hidden>Paid (Razorpay)</option>' : ''}
-                            <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>Pending (Unpaid)</option>
+                            <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>Pending</option>
                             <option value="shipped" ${currentStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
                             <option value="delivered" ${currentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
                         </select>
@@ -330,17 +331,17 @@ async function loadOrders() {
 
 window.updateOrderStatus = async function(orderId, newStatus) {
     try {
-        console.log(`Updating order ${orderId} to status: ${newStatus}`);
+        console.log(`Updating order ${orderId} status in Supabase to: ${newStatus}`);
         const { error } = await supabaseClient
             .from('orders')
-            .update({ status: newStatus, payment_status: newStatus })
+            .update({ status: newStatus })
             .eq('id', orderId);
             
         if (error) {
             console.error("Error updating order status:", error);
             alert("Error updating status: " + error.message);
         } else {
-            console.log("Order status updated successfully!");
+            console.log("Order status updated successfully in Supabase!");
             await loadOrders();
         }
     } catch (err) {
