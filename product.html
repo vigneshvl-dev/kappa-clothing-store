@@ -912,12 +912,14 @@
                     <span class="link-dark" onclick="openSizeGuide()">SIZE GUIDE</span>
                 </div>
                 <div class="size-grid" id="pdp-sizes"></div>
+                <div id="size-error-msg" style="display:none; color:#e00; font-size:12px; font-weight:600; margin-top:6px; letter-spacing:0.3px;">⚠ Please select a size to continue.</div>
             </div>
 
             <!-- Color selector -->
             <div id="color-section" style="display:none;">
                 <div class="selector-header"><span>COLOUR</span></div>
                 <div class="color-grid" id="pdp-colors"></div>
+                <div id="color-error-msg" style="display:none; color:#e00; font-size:12px; font-weight:600; margin-top:6px; letter-spacing:0.3px;">⚠ Please select a colour to continue.</div>
             </div>
 
             <!-- WhatsApp Help Bar -->
@@ -1368,11 +1370,26 @@
     <script src="script.js"></script>
 
     <script>
-        let selectedSize = null;
-        let selectedColor = null;
-        let currentProductData = null;
-        let currentMainImageUrl = '';
-        let currentQty = 1;
+        // Dedicated Supabase query client — avoids the window.supabase (raw library, not a client) pitfall
+        const _pdp = (() => {
+            try {
+                if (window.supabase && typeof window.supabase.createClient === 'function') {
+                    return window.supabase.createClient(
+                        'https://ugphxapfbzcrauchwlef.supabase.co',
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
+                    );
+                }
+                if (typeof supabaseClient !== 'undefined' && typeof supabaseClient.from === 'function') return supabaseClient;
+            } catch(e) { console.error('Supabase client init error:', e); }
+            return null;
+        })();
+
+        // All shared state on window so every script block + onclick handler can access it
+        window.selectedSize = null;
+        window.selectedColor = null;
+        window.currentProductData = null;
+        window.currentMainImageUrl = '';
+        window.currentQty = 1;
 
         function openSizeGuide() {
             const overlay = document.getElementById('sizeGuideOverlay');
@@ -1450,15 +1467,61 @@
 
 
         function changeQty(delta) {
-            currentQty = Math.max(1, currentQty + delta);
-            document.getElementById('pdp-qty').textContent = currentQty;
+            window.currentQty = Math.max(1, window.currentQty + delta);
+            document.getElementById('pdp-qty').textContent = window.currentQty;
+        }
+
+        function showSelectionError(hasSizes, hasColors) {
+            const sSize = window.selectedSize || null;
+            const sColor = window.selectedColor || null;
+            let hasError = false;
+
+            const sizeErr = document.getElementById('size-error-msg');
+            const colorErr = document.getElementById('color-error-msg');
+            const sizeSec = document.getElementById('size-section');
+            const colorSec = document.getElementById('color-section');
+
+            if (sizeErr) sizeErr.style.display = 'none';
+            if (colorErr) colorErr.style.display = 'none';
+            // Reset red border on size boxes
+            document.querySelectorAll('.size-box').forEach(el => el.style.borderColor = '');
+            document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.style.outline = '');
+
+            if (hasSizes && !sSize) {
+                if (sizeErr && sizeSec && sizeSec.style.display !== 'none') {
+                    sizeErr.style.display = 'block';
+                    document.querySelectorAll('.size-box').forEach(el => el.style.borderColor = '#e00');
+                    sizeErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                hasError = true;
+            }
+            if (hasColors && !sColor) {
+                if (colorErr && colorSec && colorSec.style.display !== 'none') {
+                    colorErr.style.display = 'block';
+                    document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.style.outline = '2px solid #e00');
+                    if (!hasError) colorErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                hasError = true;
+            }
+            return hasError;
         }
 
         function handleBuyNow() {
-            handleAddToCart();
-            // Open cart after adding
-            const cartOverlay = document.getElementById('cartOverlay');
-            if (cartOverlay) cartOverlay.classList.add('open');
+            if (!window.currentProductData) return;
+
+            let hasSizes = false, hasColors = false;
+            if (window.currentProductData.product_variants && window.currentProductData.product_variants.length > 0) {
+                window.currentProductData.product_variants.forEach(v => {
+                    if (v.size) hasSizes = true;
+                    if (v.color) hasColors = true;
+                });
+            }
+
+            if (showSelectionError(hasSizes, hasColors)) return;
+
+            // Add to cart then go directly to checkout
+            window.handleAddToCart();
+            window.location.href = 'checkout.html';
         }
 
         function parseArrayData(data) {
@@ -1489,7 +1552,7 @@
 
     try {
         let product = null;
-        const client = window.supabaseClient || window.supabase || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        const client = _pdp;
         
         if (!client) {
             console.error("❌ Supabase client is not available!");
@@ -1695,7 +1758,7 @@
 async function loadZaraGrids(categoryId, currentProductId) {
     try {
         let targetCategoryIds = [];
-        const client = window.supabaseClient || window.supabase || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        const client = _pdp;
         if (!client) return;
 
         if (categoryId) {
@@ -1780,15 +1843,21 @@ window.swapImage = function swapImage(url, element) {
 }
 
 window.selectSize = function selectSize(element, size) {
-    document.querySelectorAll('.size-box').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.size-box').forEach(el => { el.classList.remove('selected'); el.style.borderColor = ''; });
     if (element) element.classList.add('selected');
-    window.selectedSize = size; 
+    window.selectedSize = size;
+    // Clear error message
+    const sizeErr = document.getElementById('size-error-msg');
+    if (sizeErr) sizeErr.style.display = 'none';
 }
 
 window.selectColor = function selectColor(element, color, imgUrl) {
-    document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => { el.classList.remove('selected'); el.style.outline = ''; });
     if (element) element.classList.add('selected');
-    window.selectedColor = color; 
+    window.selectedColor = color;
+    // Clear error message
+    const colorErr = document.getElementById('color-error-msg');
+    if (colorErr) colorErr.style.display = 'none';
     
     if (imgUrl) {
         window.currentMainImageUrl = imgUrl; 
@@ -1801,41 +1870,42 @@ window.selectColor = function selectColor(element, color, imgUrl) {
 }
 
 window.handleAddToCart = function handleAddToCart() {
-    if (typeof currentProductData === 'undefined' || !currentProductData) return;
+    const pd = window.currentProductData;
+    if (!pd) { console.warn('handleAddToCart: no product data'); return; }
 
-    let hasSizes = false; let hasColors = false;
-    if (currentProductData.product_variants && currentProductData.product_variants.length > 0) {
-        currentProductData.product_variants.forEach(v => {
+    let hasSizes = false, hasColors = false;
+    if (pd.product_variants && pd.product_variants.length > 0) {
+        pd.product_variants.forEach(v => {
             if (v.size) hasSizes = true;
             if (v.color) hasColors = true;
         });
     }
 
-    const sSize = typeof selectedSize !== 'undefined' ? selectedSize : null;
-    const sColor = typeof selectedColor !== 'undefined' ? selectedColor : null;
+    // Use showSelectionError for inline red-highlight validation
+    if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
-    if (hasSizes && !sSize) { alert("PLEASE SELECT A SIZE"); return; }
-    if (hasColors && !sColor) { alert("PLEASE SELECT A COLOUR"); return; }
+    const sSize = window.selectedSize || 'Default';
+    const sColor = window.selectedColor || 'N/A';
+    const qty = window.currentQty || 1;
 
-    const qty = (typeof currentQty !== 'undefined') ? currentQty : 1;
-    
     let img = 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
-    if (typeof currentMainImageUrl !== 'undefined' && currentMainImageUrl) {
-        img = currentMainImageUrl;
-    } else if (currentProductData.product_images && currentProductData.product_images.length > 0) {
-        img = currentProductData.product_images[0].url;
+    if (window.currentMainImageUrl) {
+        img = window.currentMainImageUrl;
+    } else if (pd.product_images && pd.product_images.length > 0) {
+        img = pd.product_images[0].url;
     }
 
     for (let i = 0; i < qty; i++) {
-        addToCart(
-            currentProductData.id, 
-            sSize || 'Default', 
-            sColor || 'N/A', 
-            currentProductData.price, 
+        window.addToCart(
+            pd.id,
+            sSize,
+            sColor,
+            pd.price,
             img,
-            currentProductData.name
+            pd.name
         );
     }
+    console.log('Added to cart:', pd.name, 'size:', sSize, 'color:', sColor, 'qty:', qty);
 }
 
 if (document.readyState === 'loading') {
@@ -1843,3 +1913,6 @@ if (document.readyState === 'loading') {
 } else {
     loadSingleProduct();
 }
+</script>
+</body>
+</html>
