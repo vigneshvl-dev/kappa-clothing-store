@@ -1358,6 +1358,12 @@
     <script src="script.js"></script>
 
     <script>
+        // Dedicated Supabase client for this page — avoids the window.supabase (raw library) pitfall
+        const _pdp = window.supabase.createClient(
+            'https://ugphxapfbzcrauchwlef.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
+        );
+
         let selectedSize = null;
         let selectedColor = null;
         let currentProductData = null;
@@ -1479,7 +1485,7 @@
 
     try {
         let product = null;
-        const client = window.supabaseClient || window.supabase || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        const client = _pdp;
         
         if (!client) {
             console.error("❌ Supabase client is not available!");
@@ -1685,7 +1691,7 @@
 async function loadZaraGrids(categoryId, currentProductId) {
     try {
         let targetCategoryIds = [];
-        const client = window.supabaseClient || window.supabase || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        const client = _pdp;
         if (!client) return;
 
         if (categoryId) {
@@ -1791,23 +1797,46 @@ window.selectColor = function selectColor(element, color, imgUrl) {
 }
 
 window.handleAddToCart = function handleAddToCart() {
-    if (typeof currentProductData === 'undefined' || !currentProductData) return;
+    console.log("🛒 handleAddToCart() triggered!");
+
+    if (typeof currentProductData === 'undefined' || !currentProductData) {
+        console.error("❌ Cannot add to cart: Product data is missing. Did it fail to load?");
+        return false;
+    }
 
     let hasSizes = false; let hasColors = false;
     if (currentProductData.product_variants && currentProductData.product_variants.length > 0) {
         currentProductData.product_variants.forEach(v => {
-            if (v.size) hasSizes = true;
-            if (v.color) hasColors = true;
+            if (v.size && v.size.trim() !== '') hasSizes = true;
+            if (v.color && v.color.trim() !== '') hasColors = true;
         });
     }
 
     const sSize = typeof selectedSize !== 'undefined' ? selectedSize : null;
     const sColor = typeof selectedColor !== 'undefined' ? selectedColor : null;
 
-    if (hasSizes && !sSize) { alert("PLEASE SELECT A SIZE"); return; }
-    if (hasColors && !sColor) { alert("PLEASE SELECT A COLOUR"); return; }
+    if (hasSizes && !sSize) { 
+        alert("PLEASE SELECT A SIZE"); 
+        console.warn("⚠️ Blocked: User didn't select a size.");
+        return false; 
+    }
+    if (hasColors && !sColor) { 
+        alert("PLEASE SELECT A COLOUR"); 
+        console.warn("⚠️ Blocked: User didn't select a color.");
+        return false; 
+    }
 
-    const qty = (typeof currentQty !== 'undefined') ? currentQty : 1;
+    // Try to grab quantity safely
+    let qty = 1;
+    if (typeof currentQty !== 'undefined') {
+        qty = currentQty;
+    } else {
+        // Fallback: Try to scrape it from the DOM if currentQty isn't updating globally
+        const qtyElement = document.querySelector('input[type="number"], .quantity, .qty-display');
+        if (qtyElement && !isNaN(parseInt(qtyElement.value || qtyElement.innerText))) {
+            qty = parseInt(qtyElement.value || qtyElement.innerText);
+        }
+    }
     
     let img = 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
     if (typeof currentMainImageUrl !== 'undefined' && currentMainImageUrl) {
@@ -1816,20 +1845,97 @@ window.handleAddToCart = function handleAddToCart() {
         img = currentProductData.product_images[0].url;
     }
 
-    for (let i = 0; i < qty; i++) {
-        addToCart(
-            currentProductData.id, 
-            sSize || 'Default', 
-            sColor || 'N/A', 
-            currentProductData.price, 
-            img,
-            currentProductData.name
-        );
+    console.log(`📦 Proceeding to add: ${qty}x ${currentProductData.name} | Size: ${sSize || 'Default'} | Color: ${sColor || 'N/A'}`);
+
+    try {
+        if (typeof addToCart !== 'function') {
+            console.error("🔥 CRITICAL: addToCart() function is not defined. Make sure your cart script is linked!");
+            return false;
+        }
+
+        for (let i = 0; i < qty; i++) {
+            addToCart(
+                currentProductData.id, 
+                sSize || 'Default', 
+                sColor || 'N/A', 
+                currentProductData.price, 
+                img,
+                currentProductData.name
+            );
+        }
+        
+        console.log("✅ Successfully added to cart logic!");
+
+        // Force the cart UI to refresh if you have a global render function
+        if (typeof updateCartUI === 'function') updateCartUI();
+        else if (typeof renderCart === 'function') renderCart();
+        else if (typeof updateCart === 'function') updateCart();
+
+        return true; // Indicate success
+
+    } catch (err) {
+        console.error("🔥 Error during addToCart execution:", err);
+        return false;
     }
 }
 
+// ---------------------------------------------------------
+// AUTO-BIND BUTTONS: Fixes missing onclicks in the HTML
+// ---------------------------------------------------------
+function bindCartButtons() {
+    // Find all buttons on the page
+    const buttons = document.querySelectorAll('button, .btn');
+    
+    buttons.forEach(btn => {
+        const text = (btn.innerText || "").trim().toUpperCase();
+        
+        // Wire up the ADD TO CART button
+        if (text === 'ADD TO CART') {
+            // Remove old listeners to prevent duplicates, then add fresh one
+            btn.replaceWith(btn.cloneNode(true)); 
+            const newBtn = Array.from(document.querySelectorAll('button, .btn')).find(b => (b.innerText || "").trim().toUpperCase() === 'ADD TO CART');
+            
+            if (newBtn) {
+                newBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    handleAddToCart();
+                });
+            }
+        }
+        
+        // Wire up the BUY NOW button
+        if (text === 'BUY NOW') {
+            btn.replaceWith(btn.cloneNode(true));
+            const newBtn = Array.from(document.querySelectorAll('button, .btn')).find(b => (b.innerText || "").trim().toUpperCase() === 'BUY NOW');
+            
+            if (newBtn) {
+                newBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const success = handleAddToCart();
+                    
+                    // Only open the cart if the item was successfully added (e.g. sizes were selected)
+                    if (success) {
+                        if (typeof toggleCart === 'function') toggleCart();
+                        else if (typeof openCart === 'function') openCart();
+                        else {
+                            // Simulate a click on the top nav cart icon as a fallback
+                            const cartIcon = document.querySelector('.cart-icon, #cart-icon');
+                            if (cartIcon) cartIcon.click();
+                        }
+                    }
+                });
+            }
+        }
+    });
+}
+
+// Initialize on load
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadSingleProduct);
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSingleProduct();
+        setTimeout(bindCartButtons, 500); // Slight delay ensures DOM is fully rendered
+    });
 } else {
     loadSingleProduct();
+    setTimeout(bindCartButtons, 500);
 }
