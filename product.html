@@ -341,6 +341,68 @@
         }
 
         /* Urgency Badge */
+        /* Stock / Urgency Alert Badge */
+        .pdp-stock-alert {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff0f0;
+            border: 1px solid #ffcdd2;
+            color: #d32f2f;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-top: 6px;
+            margin-bottom: 10px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .pdp-stock-alert.out-of-stock {
+            background: #f5f5f5;
+            border-color: #e0e0e0;
+            color: #757575;
+        }
+
+        .pdp-stock-alert.in-stock {
+            background: #e8f5e9;
+            border-color: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .size-box {
+            min-width: 44px;
+            height: auto;
+            min-height: 40px;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+            background: #fff;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        .size-stock-tag {
+            font-size: 9px;
+            font-weight: 700;
+            line-height: 1;
+            margin-top: 2px;
+        }
+
+        .size-stock-tag.low {
+            color: #e00;
+        }
+
+        .size-stock-tag.out {
+            color: #999;
+        }
+
         .pdp-sold-badge {
             display: inline-flex;
             align-items: center;
@@ -918,7 +980,11 @@
         <div class="hero-right">
             <h1 class="hero-title" id="pdp-title">Loading...</h1>
 
-            <!-- Urgency badge -->
+            <!-- Urgency / Stock Alert Badge -->
+            <div id="pdp-stock-alert" class="pdp-stock-alert" style="display:none;">
+                <span>🔥</span>
+                <span id="pdp-stock-text">Hurry! Only 2 left in stock</span>
+            </div>
 
             <!-- Price block -->
             <div class="pdp-price-block">
@@ -1486,6 +1552,45 @@
             document.getElementById('pdp-qty').textContent = window.currentQty;
         }
 
+        function updateStockAlert(stockVal, sizeName = '') {
+            const alertEl = document.getElementById('pdp-stock-alert');
+            const textEl = document.getElementById('pdp-stock-text');
+            if (!alertEl || !textEl) return;
+
+            if (stockVal === null || stockVal === undefined || isNaN(stockVal)) {
+                alertEl.style.display = 'none';
+                return;
+            }
+
+            const qty = Number(stockVal);
+            if (qty > 0 && qty <= 5) {
+                alertEl.className = 'pdp-stock-alert';
+                alertEl.style.display = 'inline-flex';
+                alertEl.style.color = '#d32f2f';
+                alertEl.style.borderColor = '#ffcdd2';
+                alertEl.style.background = '#fff0f0';
+                if (sizeName) {
+                    textEl.innerText = `Hurry! Only ${qty} left in size ${sizeName}`;
+                } else {
+                    textEl.innerText = `Hurry! Only ${qty} left in stock`;
+                }
+            } else if (qty === 0) {
+                alertEl.className = 'pdp-stock-alert out-of-stock';
+                alertEl.style.display = 'inline-flex';
+                alertEl.style.color = '#757575';
+                alertEl.style.borderColor = '#e0e0e0';
+                alertEl.style.background = '#f5f5f5';
+                textEl.innerText = sizeName ? `Size ${sizeName} is Out of Stock` : `Out of Stock`;
+            } else {
+                alertEl.className = 'pdp-stock-alert in-stock';
+                alertEl.style.display = 'inline-flex';
+                alertEl.style.color = '#2e7d32';
+                alertEl.style.borderColor = '#c8e6c9';
+                alertEl.style.background = '#e8f5e9';
+                textEl.innerText = sizeName ? `In Stock for size ${sizeName}` : `In Stock (${qty} available)`;
+            }
+        }
+
         function showSelectionError(hasSizes, hasColors) {
             const sSize = window.selectedSize || null;
             const sColor = window.selectedColor || null;
@@ -1739,14 +1844,34 @@
         const thumbsContainer = document.getElementById('pdp-thumbnails');
         if (thumbsContainer) thumbsContainer.innerHTML = thumbnailsHTML;
 
+        window.sizeStockMap = {};
         let availableSizes = new Set();
         let availableColors = new Set();
+        let totalProductStock = (product.stock_quantity !== undefined && product.stock_quantity !== null) ? Number(product.stock_quantity) : null;
 
         if (product.product_variants && product.product_variants.length > 0) {
+            let variantStockSum = 0;
+            let hasVariantStockData = false;
             product.product_variants.forEach(variant => {
-                if (variant.size) availableSizes.add(variant.size.trim());
+                if (variant.size) {
+                    const sz = variant.size.trim();
+                    availableSizes.add(sz);
+                    const sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
+                    if (sq !== null) {
+                        window.sizeStockMap[sz] = sq;
+                        variantStockSum += sq;
+                        hasVariantStockData = true;
+                    }
+                }
                 if (variant.color) availableColors.add(variant.color.trim());
             });
+            if (totalProductStock === null && hasVariantStockData) {
+                totalProductStock = variantStockSum;
+            }
+        }
+
+        if (totalProductStock !== null) {
+            updateStockAlert(totalProductStock);
         }
 
         const sizes = Array.from(availableSizes);
@@ -1755,9 +1880,19 @@
         if (sizes.length > 0) {
             const pdpSizes = document.getElementById('pdp-sizes');
             if (pdpSizes) {
-                pdpSizes.innerHTML = sizes.map(size =>
-                    `<div class="size-box" onclick="selectSize(this, '${size}')">${size}</div>`
-                ).join('');
+                pdpSizes.innerHTML = sizes.map(size => {
+                    const st = window.sizeStockMap ? window.sizeStockMap[size] : null;
+                    let stockBadge = '';
+                    if (st !== null && st !== undefined && st > 0 && st <= 5) {
+                        stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                    } else if (st === 0) {
+                        stockBadge = `<span class="size-stock-tag out">Out</span>`;
+                    }
+                    return `<div class="size-box" onclick="selectSize(this, '${size}')" data-size="${size}">
+                        <span>${size}</span>
+                        ${stockBadge}
+                    </div>`;
+                }).join('');
             }
             const sizeSec = document.getElementById('size-section');
             if (sizeSec) sizeSec.style.display = 'block';
