@@ -736,42 +736,56 @@ testDatabaseConnection();
     }
 
 
-   function addToCart(id, size = 'Default', color = 'N/A', price, img) {
+   function addToCart(id, size = 'Default', color = 'N/A', price, img, passedName) {
+    let actualSize = size;
+    let actualColor = color;
+    let actualPrice = price;
+    let actualImg = img;
+    let actualName = passedName;
+
+    // Detect if called from the homepage grid (where arguments are shifted to: id, name, price, img)
+    if (typeof color === 'number' || (typeof color === 'string' && !isNaN(Number(color)) && price === undefined)) {
+        actualName = size;               // 'size' slot actually holds the Name
+        actualPrice = Number(color);     // 'color' slot actually holds the Price
+        actualImg = price;               // 'price' slot actually holds the Image URL
+        actualSize = 'Default';
+        actualColor = 'N/A';
+    }
+
+    // Find product or create fallback
     let p = PRODUCTS.find(x => x.id === id || x.id == id);
     if (!p) {
-        const productName = (typeof size === 'string' && price !== undefined && size !== 'Default')
-            ? size
-            : 'Product';
         p = {
             id: id,
-            name: productName,
-            price: price || 0,
-            img: img || 'assets/sleeping sis.png',
+            name: actualName || 'Product',
+            price: actualPrice || 0,
+            img: actualImg || 'assets/sleeping sis.png',
             sizes: ['Default'],
             colors: ['N/A']
         };
         PRODUCTS.push(p);
     }
 
-    const actualSize = size || 'Default';
-    const actualColor = color || 'N/A';
+    const finalSize = actualSize || 'Default';
+    const finalColor = actualColor || 'N/A';
+    const finalName = actualName || p.name || 'Product'; 
 
-    const existing = cart.find(c => c.id === id && c.size === actualSize && c.color === actualColor);
+    const existing = cart.find(c => c.id === id && c.size === finalSize && c.color === finalColor);
     if (existing) {
         existing.qty++;
     } else {
         cart.push({ 
             id, 
-            size: actualSize, 
-            color: actualColor, 
+            size: finalSize, 
+            color: finalColor, 
             qty: 1, 
-            name: p.name, 
-            price: p.price, 
-            customImg: img || p.img 
+            name: finalName, 
+            price: actualPrice || p.price, 
+            customImg: actualImg || p.img 
         });
     }
     renderCart();
-    showToast(`${p.name} added to cart`);
+    showToast(`${finalName} added to cart`);
 }
 window.addToCart = addToCart;
 
