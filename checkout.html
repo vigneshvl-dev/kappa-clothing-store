@@ -769,10 +769,7 @@
         // Automatically reduce stock in backend DB & Admin panel upon order creation
         await reduceStockForCart(cartItems);
 
-        const newOrderId = result.order_id || result.id;
-        const verifiedTotal = result.total_amount; // The true, untamperable total from the database
-
-        // 4. Finalize
+        // 4. Finalize & Extract Order ID and Total Amount
         let newOrderId = null;
         if (result) {
             if (typeof result === 'string' || typeof result === 'number') {
@@ -783,7 +780,7 @@
                 newOrderId = result.order_id || result.id;
             }
         }
-        const verifiedTotal = result.total_amount || (Array.isArray(result) && result[0] ? result[0].total_amount : undefined);
+        const verifiedTotal = (typeof result === 'object' && result.total_amount) || (Array.isArray(result) && result[0] ? result[0].total_amount : undefined) || orderPayload.total_amount;
 
         localStorage.setItem('kappa_active_order_id', newOrderId);
         localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));

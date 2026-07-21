@@ -907,12 +907,14 @@ window.showOrderDetails = async function(orderId) {
 
     const cust = data.customer_details || {};
     const addr = data.shipping_address || {};
-    const currentStatus = (data.status || data.payment_status || 'pending').toLowerCase();
+    const currentStatus = (data.status || 'pending').toLowerCase();
+    const paymentStatus = (data.payment_status || 'pending').toLowerCase();
+    const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!data.razorpay_payment_id;
     const rzpId = data.razorpay_payment_id || data.payment_id || '';
 
     // Payment Banner
     let paymentBannerHtml = '';
-    if (currentStatus === 'paid') {
+    if (isPaid) {
         paymentBannerHtml = `
             <div style="background: #e8f8f0; border: 1px solid #a3e6be; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
                 <div>
