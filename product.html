@@ -907,12 +907,14 @@
                     <span class="link-dark" onclick="openSizeGuide()">SIZE GUIDE</span>
                 </div>
                 <div class="size-grid" id="pdp-sizes"></div>
+                <div id="size-error-msg" style="display:none; color:#e00; font-size:12px; font-weight:600; margin-top:6px; letter-spacing:0.3px;">⚠ Please select a size to continue.</div>
             </div>
 
             <!-- Color selector -->
             <div id="color-section" style="display:none;">
                 <div class="selector-header"><span>COLOUR</span></div>
                 <div class="color-grid" id="pdp-colors"></div>
+                <div id="color-error-msg" style="display:none; color:#e00; font-size:12px; font-weight:600; margin-top:6px; letter-spacing:0.3px;">⚠ Please select a colour to continue.</div>
             </div>
 
             <!-- WhatsApp Help Bar -->
@@ -1463,12 +1465,58 @@
             document.getElementById('pdp-qty').textContent = currentQty;
         }
 
+        function showSelectionError(hasSizes, hasColors) {
+            const sSize = typeof selectedSize !== 'undefined' ? selectedSize : null;
+            const sColor = typeof selectedColor !== 'undefined' ? selectedColor : null;
+            let hasError = false;
+
+            const sizeErr = document.getElementById('size-error-msg');
+            const colorErr = document.getElementById('color-error-msg');
+            const sizeSec = document.getElementById('size-section');
+            const colorSec = document.getElementById('color-section');
+
+            if (sizeErr) sizeErr.style.display = 'none';
+            if (colorErr) colorErr.style.display = 'none';
+            // Reset red border on size boxes
+            document.querySelectorAll('.size-box').forEach(el => el.style.borderColor = '');
+            document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.style.outline = '');
+
+            if (hasSizes && !sSize) {
+                if (sizeErr && sizeSec && sizeSec.style.display !== 'none') {
+                    sizeErr.style.display = 'block';
+                    document.querySelectorAll('.size-box').forEach(el => el.style.borderColor = '#e00');
+                    sizeErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                hasError = true;
+            }
+            if (hasColors && !sColor) {
+                if (colorErr && colorSec && colorSec.style.display !== 'none') {
+                    colorErr.style.display = 'block';
+                    document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.style.outline = '2px solid #e00');
+                    if (!hasError) colorErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                hasError = true;
+            }
+            return hasError;
+        }
+
         function handleBuyNow() {
-            // Call the globally-defined add-to-cart handler
+            if (typeof currentProductData === 'undefined' || !currentProductData) return;
+
+            let hasSizes = false, hasColors = false;
+            if (currentProductData.product_variants && currentProductData.product_variants.length > 0) {
+                currentProductData.product_variants.forEach(v => {
+                    if (v.size) hasSizes = true;
+                    if (v.color) hasColors = true;
+                });
+            }
+
+            if (showSelectionError(hasSizes, hasColors)) return; // stop if missing
+
+            // Add to cart then go directly to checkout
             if (typeof window.handleAddToCart === 'function') {
                 window.handleAddToCart();
             }
-            // Navigate directly to checkout
             window.location.href = 'checkout.html';
         }
 
