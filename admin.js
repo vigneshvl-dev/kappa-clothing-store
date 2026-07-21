@@ -329,10 +329,26 @@ async function loadOrders() {
     container.innerHTML = html;
 }
 
-async function updateOrderStatus(orderId, newStatus) {
-    const { error } = await supabaseClient.from('orders').update({ status: newStatus, payment_status: newStatus }).eq('id', orderId);
-    if(error) alert("Error updating status: " + error.message); else loadOrders();
-}
+window.updateOrderStatus = async function(orderId, newStatus) {
+    try {
+        console.log(`Updating order ${orderId} to status: ${newStatus}`);
+        const { error } = await supabaseClient
+            .from('orders')
+            .update({ status: newStatus, payment_status: newStatus })
+            .eq('id', orderId);
+            
+        if (error) {
+            console.error("Error updating order status:", error);
+            alert("Error updating status: " + error.message);
+        } else {
+            console.log("Order status updated successfully!");
+            await loadOrders();
+        }
+    } catch (err) {
+        console.error("Failed to update status:", err);
+        alert("Failed to update status: " + err.message);
+    }
+};
 
 async function loadDashboard() {
     const { data: orders } = await supabaseClient.from('orders').select('total_amount');
