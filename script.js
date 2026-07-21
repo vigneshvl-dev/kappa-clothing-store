@@ -341,12 +341,14 @@ testDatabaseConnection();
     /* ---------- RENDER: PRODUCT CARDS ---------- */
     function productCard(p, small) {
         const discountPct = p.old ? Math.round((1 - p.price / p.old) * 100) : null;
+        const isOut = p.stock_quantity === 0 || p.isOutOfStock || p.stock === 0;
         return `
-  <div class="product-card ${small ? 'trend-card' : ''}" data-id="${p.id}">
-    <div class="pc-media">
-      ${p.tag ? `<span class="pc-tag ${p.tag === 'SALE' ? 'sale' : ''}">${p.tag}</span>` : ''}
+  <div class="product-card ${small ? 'trend-card' : ''} ${isOut ? 'is-out-of-stock' : ''}" data-id="${p.id}">
+    <div class="pc-media" style="position:relative;">
+      ${isOut ? `<span class="pc-tag sale" style="background:#d32f2f; color:#fff; font-weight:800; z-index:5;">OUT OF STOCK</span>` : (p.tag ? `<span class="pc-tag ${p.tag === 'SALE' ? 'sale' : ''}">${p.tag}</span>` : '')}
       <img src="${p.img}" alt="${p.name}" loading="lazy">
-      ${!small ? `
+      ${isOut ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
+      ${!small && !isOut ? `
       <div class="pc-quick">
         <button class="pc-btn view" data-view="${p.id}">Quick View</button>
       </div>` : ''}
