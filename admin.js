@@ -216,7 +216,17 @@ async function loadOrders() {
     
     const { data, error } = await supabaseClient
         .from('orders')
-        .select('*')
+        .select(`
+            *,
+            order_items (
+                quantity,
+                price_at_purchase,
+                size,
+                color,
+                image_url,
+                products ( name )
+            )
+        `)
         .order('created_at', { ascending: false });
 
     if (error) { 
@@ -236,7 +246,8 @@ async function loadOrders() {
                             <th>Date</th>
                             <th>Order ID</th>
                             <th>Customer</th>
-                            <th>Status</th>
+                            <th>Ordered Items (Name, Size, Color, Qty)</th>
+                            <th>Payment Status</th>
                             <th>Total</th>
                             <th>Action</th>
                         </tr>
@@ -246,20 +257,50 @@ async function loadOrders() {
     data.forEach(order => {
         const dateObj = new Date(order.created_at);
         const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const statusClass = `status-${order.status || 'pending'}`;
+        const currentStatus = (order.status || order.payment_status || 'pending').toLowerCase();
+        const statusClass = `status-${currentStatus}`;
+        const statusLabel = currentStatus.toUpperCase();
+
+        // Build items summary HTML
+        let itemsSummaryHtml = '';
+        if (order.order_items && order.order_items.length > 0) {
+            itemsSummaryHtml = order.order_items.map(item => {
+                const name = item.products?.name || 'Product';
+                const size = item.size || 'N/A';
+                const color = item.color || 'N/A';
+                const qty = item.quantity || 1;
+                return `<div style="margin-bottom:6px; font-size:12px; line-height:1.4;">
+                    <strong style="color:#111; font-size:13px;">${name}</strong>
+                    <div style="margin-top:3px; display:flex; gap:4px; flex-wrap:wrap;">
+                        <span class="item-tag tag-qty">Qty: ${qty}</span>
+                        <span class="item-tag tag-size">Size: ${size}</span>
+                        <span class="item-tag tag-color">Color: ${color}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            itemsSummaryHtml = '<span style="color:#999; font-size:12px;">No items recorded</span>';
+        }
         
         html += `<tr>
-                 <td><small>${formattedDate}</small></td>
+                 <td style="white-space:nowrap;"><small>${formattedDate}</small></td>
                  <td><strong>#${order.id.toString().substring(0, 8)}</strong></td>
                  <td>${order.user_id ? "Registered" : "Guest"}</td>
-                 <td><span class="badge ${statusClass}">${(order.status || 'pending').toUpperCase()}</span></td>
-                 <td>₹${order.total_amount}</td>
+                 <td style="min-width:220px;">${itemsSummaryHtml}</td>
                  <td>
-                    <button class="btn-secondary" style="padding: 2px 8px; font-size: 11px;" onclick="showOrderDetails('${order.id}')">View</button>
-                    <select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)" style="font-size: 11px; margin-left: 5px;">
-                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
-                        <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
-                        <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                    <span class="badge ${statusClass}">${statusLabel}</span>
+                    ${currentStatus === 'paid' ? '<div style="font-size:10px; color:#27ae60; font-weight:bold; margin-top:2px;">Ready to Pack</div>' : ''}
+                    ${currentStatus === 'pending' ? '<div style="font-size:10px; color:#e67e22; font-weight:bold; margin-top:2px;">Unpaid (Razorpay)</div>' : ''}
+                 </td>
+                 <td><strong>₹${order.total_amount}</strong></td>
+                 <td>
+                    <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px; height:auto; margin-bottom:4px;" onclick="showOrderDetails('${order.id}')">View Details</button>
+                    <select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)" style="font-size: 11px; padding:4px; margin-top:4px;">
+                        <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>Pending (Unpaid)</option>
+                        <option value="paid" ${currentStatus === 'paid' ? 'selected' : ''}>Paid (Ready to Pack)</option>
+                        <option value="shipped" ${currentStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
+                        <option value="delivered" ${currentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
+                        <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                     </select>
                  </td>
                  </tr>`;
@@ -808,7 +849,6 @@ window.showOrderDetails = async function(orderId) {
     overlay.style.display = 'flex';
     content.innerHTML = "Loading...";
 
-    // 1. UPDATED: Fetch size, color, and image_url directly from order_items
     const { data, error } = await supabaseClient
         .from('orders')
         .select(`
@@ -833,15 +873,24 @@ window.showOrderDetails = async function(orderId) {
     const cust = data.customer_details || {};
     const addr = data.shipping_address || {};
 
-    // Create a color mapping for the status badge
+    const currentStatus = (data.status || data.payment_status || 'pending').toLowerCase();
+    
+    // Status Badge colors
     const statusColors = {
-        pending: '#f39c12', // Orange
-        processing: '#3498db', // Blue
-        shipped: '#9b59b6', // Purple
-        delivered: '#2ecc71', // Green
-        cancelled: '#e74c3c' // Red
+        paid: '#2ecc71',       // Bright Green
+        pending: '#e67e22',    // Orange
+        shipped: '#3498db',    // Blue
+        delivered: '#16a085',  // Teal
+        cancelled: '#e74c3c'   // Red
     };
-    const badgeColor = statusColors[data.status?.toLowerCase()] || '#95a5a6';
+    const badgeColor = statusColors[currentStatus] || '#95a5a6';
+
+    let statusNote = '';
+    if (currentStatus === 'paid') {
+        statusNote = '<div style="font-size:11px; color:#27ae60; font-weight:700; margin-top:4px;">✅ Paid in Razorpay — Ready for Packing</div>';
+    } else if (currentStatus === 'pending') {
+        statusNote = '<div style="font-size:11px; color:#e67e22; font-weight:700; margin-top:4px;">⚠️ Customer did not pay in Razorpay — Do Not Pack</div>';
+    }
 
     let htmlContent = `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333;">
@@ -854,9 +903,10 @@ window.showOrderDetails = async function(orderId) {
                 </div>
                 <div style="text-align: right;">
                     <div style="font-size: 22px; font-weight: 800; color: #111; margin-bottom: 4px;">₹${data.total_amount}</div>
-                    <span style="display: inline-block; padding: 4px 10px; background-color: ${badgeColor}; color: white; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                        ${data.status}
+                    <span class="badge status-${currentStatus}">
+                        ${currentStatus.toUpperCase()}
                     </span>
+                    ${statusNote}
                 </div>
             </div>
 
@@ -887,7 +937,7 @@ window.showOrderDetails = async function(orderId) {
             <!-- 3. Products Ordered List -->
             <h4 style="margin: 0 0 10px 0; font-size: 15px; color: #222; border-bottom: 2px solid #eee; padding-bottom: 8px;">Order Items</h4>
             
-            <ul style="list-style-type: none; padding-left: 0; margin: 0; max-height: 260px; overflow-y: auto; padding-right: 5px;">
+            <ul style="list-style-type: none; padding-left: 0; margin: 0; max-height: 280px; overflow-y: auto; padding-right: 5px;">
     `;
 
     if (data.order_items && data.order_items.length > 0) {
@@ -895,25 +945,26 @@ window.showOrderDetails = async function(orderId) {
             const productName = item.products ? item.products.name : 'Unknown Product';
             const price = item.price_at_purchase || 0;
             const qty = item.quantity || 1;
+            const size = item.size || 'N/A';
+            const color = item.color || 'N/A';
             
             let imgHtml = '<div style="width: 55px; height: 55px; background: #e0e0e0; border-radius: 6px; display: inline-block; margin-right: 15px; flex-shrink: 0;"></div>';
             if (item.image_url) {
                 imgHtml = `<img src="${item.image_url}" style="width: 55px; height: 55px; object-fit: cover; border-radius: 6px; display: inline-block; margin-right: 15px; flex-shrink: 0; border: 1px solid #eee;">`;
             }
 
-            const sizeText = item.size && item.size !== 'Default' ? `Size: <strong style="color:#222;">${item.size}</strong>` : '';
-            const colorText = item.color && item.color !== 'Default' ? `Color: <strong style="color:#222;">${item.color}</strong>` : '';
-            const variantDivider = (sizeText && colorText) ? ' <span style="color:#ccc; margin: 0 4px;">|</span> ' : '';
-
             htmlContent += `
                 <li style="border-bottom: 1px solid #f0f0f0; padding: 12px 0; display: flex; align-items: center;">
                     ${imgHtml}
                     <div style="flex-grow: 1;">
-                        <div style="font-weight: 600; font-size: 14px; color: #222; margin-bottom: 4px;">${productName}</div>
-                        ${(sizeText || colorText) ? `<div style="color: #666; font-size: 12px; margin-bottom: 4px;">${sizeText}${variantDivider}${colorText}</div>` : ''}
-                        <div style="color: #888; font-size: 12px;">Qty: <strong style="color:#222;">${qty}</strong></div>
+                        <div style="font-weight: 700; font-size: 14px; color: #111; margin-bottom: 4px;">${productName}</div>
+                        <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
+                            <span class="item-tag tag-qty">Qty: ${qty}</span>
+                            <span class="item-tag tag-size">Size: ${size}</span>
+                            <span class="item-tag tag-color">Color: ${color}</span>
+                        </div>
                     </div>
-                    <div style="font-weight: 700; font-size: 15px; color: #111;">₹${price * qty}</div>
+                    <div style="font-weight: 700; font-size: 15px; color: #111; text-align: right; min-width: 60px;">₹${price * qty}</div>
                 </li>
             `;
         });

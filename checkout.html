@@ -823,6 +823,20 @@
                     description: "Test Payment",
                     image: "https://cdn.corenexis.com/f/fRkaM2Pbrr7.png",
                     handler: async function (response) {
+                        try {
+                            if (dbOrderId) {
+                                await supabaseClient
+                                    .from('orders')
+                                    .update({ 
+                                        status: 'paid', 
+                                        payment_status: 'paid', 
+                                        razorpay_payment_id: response.razorpay_payment_id 
+                                    })
+                                    .eq('id', dbOrderId);
+                            }
+                        } catch (stErr) {
+                            console.error("Error updating payment status in DB:", stErr);
+                        }
                         await reduceStockForCart(cartItems);
                         localStorage.removeItem('kappa_cart');
                         localStorage.removeItem('kappa_checkout_cart');

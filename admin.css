@@ -353,3 +353,67 @@ textarea.admin-input {
     background: #e53e3e;
     color: #fff;
 }
+
+/* Status Badges Styling */
+.badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.status-paid, .badge.status-paid {
+    background-color: #2ecc71 !important;
+    color: #ffffff !important;
+}
+
+.status-pending, .badge.status-pending {
+    background-color: #e67e22 !important;
+    color: #ffffff !important;
+}
+
+.status-shipped, .badge.status-shipped {
+    background-color: #3498db !important;
+    color: #ffffff !important;
+}
+
+.status-delivered, .badge.status-delivered {
+    background-color: #16a085 !important;
+    color: #ffffff !important;
+}
+
+.status-cancelled, .badge.status-cancelled {
+    background-color: #e74c3c !important;
+    color: #ffffff !important;
+}
+
+/* Order Item Variant Badges in Admin Table */
+.item-tag {
+    display: inline-block;
+    background: #f0f2f5;
+    color: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+}
+.item-tag.tag-size {
+    background: #eef2ff;
+    color: #4f46e5;
+    border: 1px solid #c7d2fe;
+}
+.item-tag.tag-color {
+    background: #fdf2f8;
+    color: #db2777;
+    border: 1px solid #fbcfe8;
+}
+.item-tag.tag-qty {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
