@@ -1743,20 +1743,20 @@
             }
         }
 
-        function swapImage(url, element) {
+        window.swapImage = function swapImage(url, element) {
             const mainImg = document.getElementById('main-product-image');
             if (mainImg) mainImg.src = url;
             document.querySelectorAll('.thumb-img').forEach(el => el.classList.remove('active'));
             if (element) element.classList.add('active');
         }
 
-        function selectSize(element, size) {
+        window.selectSize = function selectSize(element, size) {
             document.querySelectorAll('.size-box').forEach(el => el.classList.remove('selected'));
             if (element) element.classList.add('selected');
             window.selectedSize = size; 
         }
 
-        function selectColor(element, color, imgUrl) {
+        window.selectColor = function selectColor(element, color, imgUrl) {
             document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.classList.remove('selected'));
             if (element) element.classList.add('selected');
             window.selectedColor = color; 
@@ -1771,7 +1771,7 @@
             }
         }
 
-        function handleAddToCart() {
+        window.handleAddToCart = function handleAddToCart() {
             if (typeof currentProductData === 'undefined' || !currentProductData) return;
 
             let hasSizes = false; let hasColors = false;
@@ -1790,7 +1790,6 @@
 
             const qty = (typeof currentQty !== 'undefined') ? currentQty : 1;
             
-            // Safely grab the image without crashing
             let img = 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
             if (typeof currentMainImageUrl !== 'undefined' && currentMainImageUrl) {
                 img = currentMainImageUrl;
