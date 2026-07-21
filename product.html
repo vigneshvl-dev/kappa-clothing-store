@@ -1870,12 +1870,19 @@ window.handleAddToCart = function handleAddToCart() {
         });
     }
 
+    // Show red visual errors instead of alert boxes
+    if (showSelectionError(hasSizes, hasColors)) return;
+
+    // Clear any previous errors on successful selection
+    const sizeErr = document.getElementById('size-error-msg');
+    const colorErr = document.getElementById('color-error-msg');
+    if (sizeErr) sizeErr.style.display = 'none';
+    if (colorErr) colorErr.style.display = 'none';
+    document.querySelectorAll('.size-box').forEach(el => el.style.borderColor = '');
+    document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => el.style.outline = '');
+
     const sSize = typeof selectedSize !== 'undefined' ? selectedSize : null;
     const sColor = typeof selectedColor !== 'undefined' ? selectedColor : null;
-
-    if (hasSizes && !sSize) { alert("PLEASE SELECT A SIZE"); return; }
-    if (hasColors && !sColor) { alert("PLEASE SELECT A COLOUR"); return; }
-
     const qty = (typeof currentQty !== 'undefined') ? currentQty : 1;
     
     let img = 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
