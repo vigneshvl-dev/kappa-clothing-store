@@ -123,7 +123,7 @@ testDatabaseConnection();
         if (loader && !loader.classList.contains("hide")) {
             loader.classList.add("hide");
             document.body.style.overflow = "";
-            setTimeout(() => { if (loader) loader.style.display = "none"; }, 400);
+            setTimeout(() => { if (loader) loader.style.display = "none"; }, 500);
             revealCheck();
             startHeroSlideshow(); // Start slideshow transitions after loader is hidden
             initMarquee(); // Start marquee animations after loader is hidden
@@ -132,15 +132,17 @@ testDatabaseConnection();
     // Only run loader logic if the loader element exists on the page
     if (document.getElementById("loader")) {
         document.body.style.overflow = "hidden";
-        let loaderTimer = setTimeout(hideLoader, 350);
-        window.addEventListener("load", () => {
-            clearTimeout(loaderTimer);
-            hideLoader();
-        });
         document.addEventListener("DOMContentLoaded", () => {
             const fill = document.getElementById("loaderFill");
-            if (fill) fill.style.width = "100%";
-            setTimeout(hideLoader, 200);
+            let p = 0;
+            const iv = setInterval(() => {
+                p += 1;
+                if (fill) fill.style.width = p + "%";
+                if (p >= 100) {
+                    clearInterval(iv);
+                }
+            }, 35); // 100 steps of 35ms = 3500ms (3.5 seconds)
+            setTimeout(hideLoader, 3500);
         });
     } else {
         // If no loader, start marquee immediately
