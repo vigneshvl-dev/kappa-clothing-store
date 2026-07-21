@@ -1,5 +1,5 @@
 {
-  "liveServer.settings.port": 5515,
+  "liveServer.settings.port": 5516,
   "deno.enablePaths": [
     "supabase/functions"
   ],
