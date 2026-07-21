@@ -872,9 +872,7 @@
                 <!-- Inner items loaded via DOM parser -->
             </div>
             <div class="hero-main-img">
-                <img id="main-product-image" src="https://placehold.co/400x500/eaeaea/000000?text=No+Image" alt="Product Image" ...>
-                    style="background:#f5f5f5;"
-                    onerror="this.onerror=null; this.src='https://placehold.co/400x500/eaeaea/000000?text=No+Image';"
+                <img id="main-product-image" src="https://placehold.co/400x500/eaeaea/000000?text=No+Image" alt="Product Image" style="background:#f5f5f5;" onerror="this.onerror=null; this.src='https://placehold.co/400x500/eaeaea/000000?text=No+Image';">
 
                 <!-- SVG Icons for Sharing -->
                 <div class="share-icons">
@@ -1571,7 +1569,7 @@
 
                 let images = product.product_images || [];
                 images.sort((a, b) => a.position - b.position);
-                currentMainImageUrl = images.length > 0 ? images[0].url : 'assets/sleeping sis.png';
+                currentMainImageUrl = images.length > 0 ? images[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
                 const mainImg = document.getElementById('main-product-image');
                 if (mainImg) mainImg.src = currentMainImageUrl;
 
@@ -1719,7 +1717,7 @@
                         let html = items.map(item => {
                             let imgs = item.product_images || [];
                             imgs.sort((a, b) => a.position - b.position);
-                            const imgUrl = imgs.length > 0 ? imgs[0].url : 'assets/sleeping sis.png';
+                            const imgUrl = imgs.length > 0 ? imgs[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
                             return `
                                 <div class="zara-card" onclick="window.location.href='product.html?slug=${item.slug}'">
                                     <img src="${imgUrl}" alt="${item.name}">
