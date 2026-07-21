@@ -686,13 +686,14 @@ testDatabaseConnection();
             const cartDetails = cart.map(c => {
                 const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
                 return {
-                    id: c.id,
-                    name: p ? p.name : (c.name || 'Product'),
-                    price: p ? p.price : (c.price || 0),
-                    size: c.size,
-                    qty: c.qty,
-                    img: c.customImg || (p ? p.img : 'assets/sleeping sis.png')
-                };
+                 id: c.id,
+                 name: p ? p.name : (c.name || 'Product'),
+                 price: p ? p.price : (c.price || 0),
+                 size: c.size,
+                 color: c.color || 'N/A', // ADD THIS LINE RIGHT HERE
+                 qty: c.qty,
+                 img: c.customImg || (p ? p.img : 'assets/sleeping sis.png')
+        };
             });
             const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
             const discPercent = discount || 0;
