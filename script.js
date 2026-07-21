@@ -541,6 +541,8 @@ testDatabaseConnection();
                 const profilePopup = document.getElementById("profilePopup");
                 if (profilePopup) {
                     profilePopup.classList.toggle("open");
+                } else {
+                    openOverlay(accountOverlay);
                 }
             } else {
                 openOverlay(accountOverlay);
