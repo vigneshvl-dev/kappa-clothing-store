@@ -564,7 +564,7 @@
                     <img src="${item.img}" alt="${item.name}">
                     <div class="item-info">
                         <div class="item-name">${item.name}</div>
-                        <div class="item-meta">Size: ${item.size} &nbsp;|&nbsp; Qty: ${item.qty}</div>
+                        <div class="item-meta">Size: ${item.size} &nbsp;|&nbsp; Color: ${item.color || 'N/A'} &nbsp;|&nbsp; Qty: ${item.qty}</div>
                     </div>
                     <div class="item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
                 </div>
