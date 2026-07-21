@@ -75,7 +75,7 @@
 
         @media (max-width: 768px) {
             .profile-content-area { grid-template-columns: 1fr; padding: 20px 16px 60px; gap: 16px; }
-            .profile-sidebar { position: static; }
+            .profile-sidebar { display: none; }
             .panel-header { padding: 18px 20px 14px; }
         }
     </style>
@@ -110,6 +110,34 @@
             </div>
         </div>
     </header>
+
+    <!-- MOBILE PROFILE NAV -->
+    <nav class="mobile-profile-nav">
+        <a href="my-orders.html" class="mobile-profile-nav-item">
+            <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            <span>My Orders</span>
+        </a>
+        <a href="track-order.html" class="mobile-profile-nav-item">
+            <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            <span>Track Order</span>
+        </a>
+        <a href="saved-address.html" class="mobile-profile-nav-item">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>Saved Address</span>
+        </a>
+        <a href="my-reviews.html" class="mobile-profile-nav-item active">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span>My Reviews</span>
+        </a>
+        <a href="my-notifications.html" class="mobile-profile-nav-item">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span>My Notifications</span>
+        </a>
+        <a href="my-coupons.html" class="mobile-profile-nav-item">
+            <svg viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><path d="M20 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><rect x="4" y="6" width="16" height="12" rx="2"></rect><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="4"></line></svg>
+            <span>My Coupons</span>
+        </a>
+    </nav>
 
     <div class="profile-page-wrapper">
         <div class="profile-content-area">
