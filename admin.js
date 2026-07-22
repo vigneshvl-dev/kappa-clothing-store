@@ -98,6 +98,9 @@ async function verifyAdmin() {
     const adminAvatar = document.getElementById('admin-avatar');
     if(adminName) adminName.textContent = profile.full_name || 'Admin User';
     if(adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
+    
+    // Load dashboard stats on verify success
+    await loadDashboard();
 
     loadCategories(); 
 }

@@ -406,6 +406,10 @@
             }
 
             let html = filtered.map(product => {
+                const hasProductStock = (product.stock_quantity || 0) > 0;
+                const hasVariantStock = (product.product_variants || []).some(v => (v.stock_quantity || 0) > 0);
+                const isOutOfStock = !(hasProductStock || hasVariantStock);
+
                 const uniqueColorImages = [];
                 const seenColors = new Set();
                 (product.product_images || []).forEach(img => {
@@ -453,12 +457,15 @@
                 const comparePriceHTML = product.compare_at_price ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>` : '';
 
                 return `
-                    <div class="boys-card" 
+                    <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
                          style="position: relative;"
                          onclick="window.location.href='product.html?slug=${product.slug || product.id}'">
-                        <span class="boys-badge">NEW</span>
+                        ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
                         
-                        <img class="boys-card-img" src="${imageUrl}" alt="Product Image">
+                        <div style="position: relative; overflow: hidden; border-radius: 8px;">
+                            <img class="boys-card-img" src="${imageUrl}" alt="Product Image">
+                            ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
+                        </div>
                         
                         <!-- Color Selector Thumbnails -->
                         <div class="boys-card-thumbs">

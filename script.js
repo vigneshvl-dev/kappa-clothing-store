@@ -240,30 +240,48 @@ testDatabaseConnection();
     const progress = document.getElementById("scrollProgress");
     const navbar = document.getElementById("navbar");
     let lastY = 0;
+    let ticking = false;
 
     function handleScroll() {
-        const h = document.documentElement;
-        const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
-        if (progress) progress.style.width = scrolled + "%";
-        const y = window.scrollY;
-        const isScrolled = y > 40;
-        document.body.classList.toggle("scrolled", isScrolled);
-        if (navbar) navbar.classList.toggle("scrolled", isScrolled);
-        lastY = y;
-        revealCheck();
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const h = document.documentElement;
+                const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+                if (progress) progress.style.width = scrolled + "%";
+                const y = window.scrollY;
+                const isScrolled = y > 40;
+                document.body.classList.toggle("scrolled", isScrolled);
+                if (navbar) navbar.classList.toggle("scrolled", isScrolled);
+                lastY = y;
+                ticking = false;
+            });
+            ticking = true;
+        }
     }
     window.addEventListener("scroll", handleScroll, { passive: true });
     // Run once initially to style page if scrolled on load
     handleScroll();
 
     /* ---------- REVEAL ON SCROLL ---------- */
+    let revealObserver = null;
     function revealCheck() {
+        if (!revealObserver) {
+            revealObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("in");
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, {
+                rootMargin: "0px 0px -12% 0px"
+            });
+        }
         document.querySelectorAll(".reveal-up:not(.in), .reveal:not(.in)").forEach(el => {
-            const r = el.getBoundingClientRect();
-            if (r.top < innerHeight * 0.88) el.classList.add("in");
+            revealObserver.observe(el);
         });
     }
-    window.addEventListener("scroll", revealCheck, { passive: true });
+    revealCheck();
     window.addEventListener("resize", revealCheck);
 
     /* ---------- HAMBURGER / MOBILE MENU ---------- */
@@ -371,7 +389,7 @@ testDatabaseConnection();
         return `
   <div class="product-card ${small ? 'trend-card' : ''} ${isOut ? 'is-out-of-stock' : ''}" data-id="${p.id}">
     <div class="pc-media" style="position:relative;">
-      ${(p.tag && !isOut) ? `<span class="pc-tag ${p.tag === 'SALE' ? 'sale' : ''}">${p.tag}</span>` : ''}
+      ${isOut ? `<span class="pc-tag out-of-stock-badge" style="background:#d32f2f !important; color:#ffffff !important; font-weight:800 !important; box-shadow: 0 2px 8px rgba(211, 47, 47, 0.4);">OUT OF STOCK</span>` : ((p.tag) ? `<span class="pc-tag ${p.tag === 'SALE' ? 'sale' : ''}">${p.tag}</span>` : '')}
       <img src="${p.img}" alt="${p.name}" loading="lazy">
       ${isOut ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
       ${!small && !isOut ? `
@@ -2087,7 +2105,7 @@ async function initStorefront() {
                      data-product-name="${safeName}" 
                      data-product-price="${product.price || 0}" 
                      style="max-width: 280px; width: 100%; position: relative;">
-                    ${isOutOfStock ? '' : `<span class="boys-badge">NEW</span>`}
+                    ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
                     
                     <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                         <img class="boys-card-img" src="${imageUrl}" alt="Product Image">
