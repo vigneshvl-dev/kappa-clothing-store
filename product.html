@@ -1984,7 +1984,7 @@
             (product.product_images || []).forEach(img => {
                 const parts = img.url.split('#');
                 const cleanUrl = parts[0];
-                const imgColor = (parts[1] || '').trim();
+                const imgColor = (parts[1] || '').trim().toLowerCase();
                 if (imgColor && !colorImageMap[imgColor]) {
                     colorImageMap[imgColor] = cleanUrl;
                 }
@@ -1993,7 +1993,7 @@
             const pdpColors = document.getElementById('pdp-colors');
             if (pdpColors) {
                 pdpColors.innerHTML = colors.map((color, idx) => {
-                    const imgUrl = colorImageMap[color] || null;
+                    const imgUrl = colorImageMap[color.toLowerCase()] || (images.length > idx ? images[idx].url.split('#')[0] : null);
                     const safeColor = color.replace(/'/g, "\\'");
                     if (imgUrl) {
                         const safeImg = imgUrl.replace(/'/g, "\\'");
@@ -2003,14 +2003,15 @@
                             <span class="swatch-label">${color}</span>
                         </div>`;
                     } else {
-                        return `<div class="color-box" style="background-color:${color.toLowerCase()};" title="${color}" onclick="selectColor(this, '${safeColor}')"></div>`;
+                        const activeClass = idx === 0 ? ' selected' : '';
+                        return `<div class="color-box${activeClass}" style="background-color:${color.toLowerCase()};" title="${color}" onclick="selectColor(this, '${safeColor}')"></div>`;
                     }
                 }).join('');
 
-                const firstSwatch = pdpColors.querySelector('.color-img-swatch');
+                const firstSwatch = pdpColors.querySelector('.color-img-swatch, .color-box');
                 if (firstSwatch) {
                     const firstColor = colors[0];
-                    const firstImg = colorImageMap[firstColor];
+                    const firstImg = colorImageMap[firstColor.toLowerCase()] || (images.length > 0 ? images[0].url.split('#')[0] : null);
                     window.selectedColor = firstColor;
                     if (firstImg) {
                         window.currentMainImageUrl = firstImg;
