@@ -31,7 +31,52 @@
 }
 
 html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto !important;
+}
+
+/* LENIS SMOOTH SCROLLING STYLES */
+html.lenis, html.lenis body {
+    height: auto;
+}
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+    pointer-events: none;
+}
+
+/* GSAP ANIMATION UTILITIES */
+.gsap-reveal {
+    opacity: 0;
+    will-change: transform, opacity;
+}
+
+.gsap-scale {
+    opacity: 0;
+    transform: scale(0.92);
+    will-change: transform, opacity;
+}
+
+.gsap-slide-left {
+    opacity: 0;
+    transform: translateX(-40px);
+    will-change: transform, opacity;
+}
+
+.gsap-slide-right {
+    opacity: 0;
+    transform: translateX(40px);
+    will-change: transform, opacity;
 }
 
 body {
@@ -1184,15 +1229,14 @@ body.home-page .navbar.scrolled {
 .hero-slide {
     position: absolute;
     inset: 0;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
     opacity: 0;
     z-index: 1;
     transition: opacity 0.7s cubic-bezier(0.25, 1, 0.5, 1);
-    will-change: opacity, transform;
-    transform: translate3d(0, 0, 0);
-    background-color: #121212;
+    will-change: opacity;
+    background-color: var(--yellow);
 }
 
 @media (max-width: 768px) {
@@ -1538,9 +1582,9 @@ body.home-page .navbar.scrolled {
 
     /* Show FULL background image */
     .hero-slide {
-        background-size: 100% auto !important;
-        background-repeat: no-repeat;
-        background-position: center center;
+        background-size: cover !important;
+        background-repeat: no-repeat !important;
+        background-position: center center !important;
         background-color: var(--yellow);
     }
 

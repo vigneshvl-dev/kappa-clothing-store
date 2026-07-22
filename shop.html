@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kappa - Shop All</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Lenis Smooth Scroll CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.18/dist/lenis.css">
     <!-- Supabase Setup -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -522,5 +524,10 @@
         if (shopMobileMenuClose) shopMobileMenuClose.addEventListener('click', closeShopMenu);
         if (shopMobileMenu) shopMobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeShopMenu));
     </script>
+    <!-- GSAP & Lenis Smooth Scroll Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+    <script src="animations.js"></script>
 </body>
 </html>
