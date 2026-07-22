@@ -19,11 +19,11 @@ function generateSlug(text) {
 // 2. DOM INITIALIZATION
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    initSidebar();
-    verifyAdmin();
-    initProductForm(); 
-    loadParentCategories(); 
-    initImagePreview(); 
+    try { initSidebar(); } catch(e) { console.error('initSidebar error:', e); }
+    try { verifyAdmin(); } catch(e) { console.error('verifyAdmin error:', e); }
+    try { initProductForm(); } catch(e) { console.error('initProductForm error:', e); }
+    try { loadParentCategories(); } catch(e) { console.error('loadParentCategories error:', e); }
+    try { initImagePreview(); } catch(e) { console.error('initImagePreview error:', e); }
 });
 
 // ==========================================
@@ -64,7 +64,9 @@ function initSidebar() {
 }
 
 function clearProductForm() {
-    document.getElementById('add-product-form').reset();
+    const form = document.getElementById('add-product-form');
+    if (!form) return;
+    form.reset();
     document.getElementById('editing-product-id').value = '';
     document.getElementById('btn-submit-product').textContent = "Publish Product to Storefront";
     document.getElementById('stock-table-container').innerHTML = '';
@@ -614,6 +616,7 @@ let pendingImageFiles = [];
 
 function initImagePreview() {
     const fileInput = document.getElementById('prod-images');
+    if (!fileInput) return;
     
     fileInput.addEventListener('change', function() {
         pendingImageFiles = Array.from(this.files);
