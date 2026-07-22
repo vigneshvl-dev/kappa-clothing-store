@@ -378,6 +378,8 @@ window.addCategory = async function() {
 
     // Generate slug using parent category name if selected to differentiate e.g. men-t-shirts vs women-t-shirts
     let baseSlug = generateSlug(name);
+    if (!baseSlug) baseSlug = 'category';
+
     if (parent_id && parentSelect) {
         const selectedOpt = parentSelect.options[parentSelect.selectedIndex];
         if (selectedOpt && selectedOpt.textContent) {
@@ -390,21 +392,34 @@ window.addCategory = async function() {
 
     let slug = baseSlug;
 
-    // Check existing categories to ensure slug uniqueness and prevent duplicate key violations
-    const { data: existingCats } = await supabaseClient.from('categories').select('slug');
-    if (existingCats && existingCats.length > 0) {
-        const existingSlugs = new Set(existingCats.map(c => c.slug));
-        let count = 1;
-        while (existingSlugs.has(slug)) {
-            slug = `${baseSlug}-${count}`;
-            count++;
+    // Check existing categories to ensure slug uniqueness
+    try {
+        const { data: existingCats } = await supabaseClient.from('categories').select('slug');
+        if (existingCats && existingCats.length > 0) {
+            const existingSlugs = new Set(existingCats.map(c => c.slug));
+            let count = 1;
+            while (existingSlugs.has(slug)) {
+                slug = `${baseSlug}-${count}`;
+                count++;
+            }
         }
+    } catch(e) {
+        console.warn('Slug check error:', e);
     }
 
-    const { error } = await supabaseClient.from('categories').insert([{ name, slug, parent_id }]);
+    // Try primary insert
+    let { error } = await supabaseClient.from('categories').insert([{ name, slug, parent_id }]);
 
-    if (error) { alert('Error adding category: ' + error.message); }
-    else {
+    // Fail-safe: If duplicate key constraint occurs on categories_slug_key, retry with guaranteed unique timestamp suffix
+    if (error && error.message && error.message.includes('categories_slug_key')) {
+        const uniqueSlug = `${baseSlug}-${Date.now().toString(36)}`;
+        const retry = await supabaseClient.from('categories').insert([{ name, slug: uniqueSlug, parent_id }]);
+        error = retry.error;
+    }
+
+    if (error) { 
+        alert('Error adding category: ' + error.message); 
+    } else {
         nameInput.value = '';
         await Promise.all([loadCategoriesList(), loadParentCategories(), loadCategories()]);
         // If there was a selected category open, refresh it
