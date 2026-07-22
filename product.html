@@ -1991,8 +1991,10 @@
         }
 
         if (colors.length > 0) {
+            // Build map from explicit #ColorTag on image URLs
             const colorImageMap = {};
-            (product.product_images || []).forEach(img => {
+            const sortedImages = (product.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+            sortedImages.forEach(img => {
                 const parts = img.url.split('#');
                 const cleanUrl = parts[0];
                 const imgColor = (parts[1] || '').trim().toLowerCase();
@@ -2001,33 +2003,116 @@
                 }
             });
 
+            // Check if we have explicit tags for all colors
+            const allTagged = colors.every(c => colorImageMap[c.toLowerCase()]);
             const pdpColors = document.getElementById('pdp-colors');
-            if (pdpColors) {
-                pdpColors.innerHTML = colors.map((color, idx) => {
-                    const imgUrl = colorImageMap[color.toLowerCase()] || (images.length > idx ? images[idx].url.split('#')[0] : (images.length > 0 ? images[0].url.split('#')[0] : 'assets/sleeping sis.png'));
-                    const safeColor = color.replace(/'/g, "\\'");
-                    const safeImg = imgUrl ? imgUrl.replace(/'/g, "\\'") : '';
-                    const activeClass = idx === 0 ? ' selected' : '';
-                    return `<div class="color-img-swatch${activeClass}" title="${color}" onclick="selectColor(this, '${safeColor}', '${safeImg}')">
-                        <img src="${imgUrl}" alt="${color}">
-                        <span class="swatch-label">${color}</span>
-                    </div>`;
-                }).join('');
-
-                const firstSwatch = pdpColors.querySelector('.color-img-swatch, .color-box');
-                if (firstSwatch) {
-                    const firstColor = colors[0];
-                    const firstImg = colorImageMap[firstColor.toLowerCase()] || (images.length > 0 ? images[0].url.split('#')[0] : null);
-                    window.selectedColor = firstColor;
-                    if (firstImg) {
-                        window.currentMainImageUrl = firstImg;
-                        const mainImg = document.getElementById('main-product-image');
-                        if (mainImg) mainImg.src = firstImg;
-                    }
-                }
+            if (!pdpColors) {
+                const colorSec = document.getElementById('color-section');
+                if (colorSec) colorSec.style.display = 'block';
+                return;
             }
+
+            if (allTagged) {
+                // All colors have explicit image tags — use them directly
+                buildColorSwatches(pdpColors, colors, colorImageMap, sortedImages);
+            } else {
+                // Auto-detect dominant colors from images using canvas
+                Promise.all(sortedImages.map(img => getDominantColor(img.url.split('#')[0]))).then(detectedColors => {
+                    // Build a set of named colors to match
+                    const colorNames = colors.map(c => c.toLowerCase());
+                    
+                    // For each image, find which color variant it best represents
+                    const autoMap = {};
+                    detectedColors.forEach((detected, idx) => {
+                        const imgCleanUrl = sortedImages[idx].url.split('#')[0];
+                        const best = findClosestColorName(detected, colorNames, autoMap);
+                        if (best && !autoMap[best]) autoMap[best] = imgCleanUrl;
+                    });
+                    
+                    // Merge: explicit tags override auto-detected
+                    const finalMap = { ...autoMap, ...colorImageMap };
+                    buildColorSwatches(pdpColors, colors, finalMap, sortedImages);
+                });
+            }
+
             const colorSec = document.getElementById('color-section');
             if (colorSec) colorSec.style.display = 'block';
+        }
+
+        function buildColorSwatches(container, colors, colorImageMap, allImages) {
+            container.innerHTML = colors.map((color, idx) => {
+                const imgUrl = colorImageMap[color.toLowerCase()] || (allImages.length > 0 ? allImages[0].url.split('#')[0] : 'assets/sleeping sis.png');
+                const safeColor = color.replace(/'/g, "\\'");
+                const safeImg = imgUrl.replace(/'/g, "\\'");
+                const activeClass = idx === 0 ? ' selected' : '';
+                return `<div class="color-img-swatch${activeClass}" title="${color}" onclick="selectColor(this, '${safeColor}', '${safeImg}')">
+                    <img src="${imgUrl}" alt="${color}">
+                </div>`;
+            }).join('');
+
+            const firstColor = colors[0];
+            const firstImg = colorImageMap[firstColor.toLowerCase()] || (allImages.length > 0 ? allImages[0].url.split('#')[0] : null);
+            window.selectedColor = firstColor;
+            if (firstImg) {
+                window.currentMainImageUrl = firstImg;
+                const mainImg = document.getElementById('main-product-image');
+                if (mainImg) mainImg.src = firstImg;
+            }
+        }
+
+        // Detect dominant non-background color in an image via canvas
+        function getDominantColor(url) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 50; canvas.height = 50;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, 50, 50);
+                        const data = ctx.getImageData(0, 0, 50, 50).data;
+                        let rSum = 0, gSum = 0, bSum = 0, count = 0;
+                        for (let i = 0; i < data.length; i += 4) {
+                            const r = data[i], g = data[i+1], b = data[i+2];
+                            // Skip near-white background pixels
+                            if (r > 220 && g > 220 && b > 220) continue;
+                            rSum += r; gSum += g; bSum += b; count++;
+                        }
+                        if (count === 0) return resolve({ r:128, g:128, b:128 });
+                        resolve({ r: Math.round(rSum/count), g: Math.round(gSum/count), b: Math.round(bSum/count) });
+                    } catch(e) { resolve({ r:128, g:128, b:128 }); }
+                };
+                img.onerror = () => resolve({ r:128, g:128, b:128 });
+                img.src = url;
+            });
+        }
+
+        // Match detected RGB to the nearest color name from available variants
+        function findClosestColorName(rgb, colorNames, alreadyMapped) {
+            const namedColors = {
+                red: {r:200,g:30,b:30}, blue: {r:30,g:60,b:200}, navy:{r:20,g:30,b:90},
+                'navy blue':{r:20,g:30,b:90}, white:{r:240,g:240,b:240}, black:{r:20,g:20,b:20},
+                grey:{r:130,g:130,b:130}, gray:{r:130,g:130,b:130}, green:{r:30,g:160,b:50},
+                yellow:{r:230,g:210,b:40}, orange:{r:220,g:110,b:30}, pink:{r:220,g:100,b:150},
+                purple:{r:100,g:30,b:160}, brown:{r:130,g:70,b:30}, cyan:{r:30,g:190,b:200},
+                'light blue':{r:120,g:180,b:220}, 'dark blue':{r:15,g:25,b:80},
+                'sky blue':{r:100,g:170,b:230}, maroon:{r:120,g:20,b:30}
+            };
+
+            let best = null, bestDist = Infinity;
+            colorNames.forEach(name => {
+                if (alreadyMapped[name]) return;
+                const ref = namedColors[name] || namedColors[name.split(' ')[0]];
+                if (!ref) return;
+                const dist = Math.sqrt(
+                    Math.pow(rgb.r - ref.r, 2) +
+                    Math.pow(rgb.g - ref.g, 2) +
+                    Math.pow(rgb.b - ref.b, 2)
+                );
+                if (dist < bestDist) { bestDist = dist; best = name; }
+            });
+            return best;
         }
 
         loadZaraGrids(product.category_id, product.id);
