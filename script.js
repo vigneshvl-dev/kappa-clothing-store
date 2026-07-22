@@ -280,7 +280,7 @@ testDatabaseConnection();
                 const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
                 if (progress) progress.style.width = scrolled + "%";
                 const y = window.scrollY;
-                const isScrolled = y > 40;
+                const isScrolled = y > 46; // Matches marquee height to prevent any gap on scroll
                 document.body.classList.toggle("scrolled", isScrolled);
                 if (navbar) navbar.classList.toggle("scrolled", isScrolled);
                 lastY = y;

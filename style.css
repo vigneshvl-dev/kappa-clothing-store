@@ -819,7 +819,7 @@ body.home-page .navbar.scrolled {
 /* Header bar */
 .mobile-menu-header {
     background-color: #f8af04;
-    color: #0a0a0a;
+    color: #000000;
     height: 60px;
     min-height: 60px;
     padding: 0 24px;
@@ -831,16 +831,19 @@ body.home-page .navbar.scrolled {
 }
 
 .mobile-menu-title {
-    font-size: 22px;
+    font-size: 15px;
     font-weight: 700;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #000000;
 }
 
 .mobile-menu-close-btn {
     background: transparent;
     border: none;
-    color: #ffffff;
-    font-size: 24px;
+    color: #000000;
+    font-size: 20px;
     cursor: pointer;
     padding: 4px 8px;
     line-height: 1;
@@ -873,14 +876,16 @@ body.home-page .navbar.scrolled {
 .mobile-menu .mnav-link {
     display: flex;
     align-items: center;
-    padding: 20px 24px;
-    color: #000000;
-    font-size: 18px;
+    padding: 18px 24px;
+    color: #111111;
+    font-size: 13px;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
     text-decoration: none;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s ease, padding-left 0.2s ease;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: background-color 0.25s ease, padding-left 0.25s ease, color 0.25s ease;
     border-radius: 0;
     text-align: left;
     width: 100%;
@@ -906,15 +911,61 @@ body.home-page .navbar.scrolled {
 
 .mobile-menu .mnav-link:hover,
 .mobile-menu .mnav-link:active {
-    background-color: #f9f9f9;
+    background-color: #fcfcfc;
     padding-left: 28px;
+    color: #000000;
 }
 
 .mobile-menu .mnav-link .menu-icon {
-    margin-right: 16px;
-    color: #000000;
-    stroke: #000000;
-    stroke-width: 1.8;
+    margin-right: 14px;
+    color: #111111;
+    stroke: #111111;
+    stroke-width: 2;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* Footer & Login Button */
+.mobile-menu-footer {
+    padding: 20px 24px;
+    background: #fafafa;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.mobile-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 15px;
+    background: #000000;
+    color: #ffffff;
+    border-radius: 100px; /* capsule premium look */
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    transition: background-color 0.25s ease, transform 0.2s ease;
+    box-sizing: border-box;
+}
+
+.mobile-login-btn:active {
+    background-color: #222222;
+    transform: scale(0.97);
+}
+
+.mobile-login-btn .menu-icon {
+    stroke: #ffffff;
+    stroke-width: 2.2;
+    width: 18px;
+    height: 18px;
     flex-shrink: 0;
 }
 
@@ -1243,6 +1294,9 @@ body.home-page .navbar.scrolled {
     body.home-page .navbar {
         background: var(--yellow) !important;
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .navbar {
+        transition: none !important; /* Disable transition on mobile to prevent scrolling lag/gap */
     }
     .hero {
         margin-top: calc(var(--marquee-h) + var(--nav-h)) !important;
@@ -1590,16 +1644,14 @@ body.home-page .navbar.scrolled {
         background-color: var(--yellow);
     }
 
-    /* Light overlay so image stays visible */
+    /* Light overlay removed to show original vibrant colors */
     .hero::after {
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(to bottom,
-                rgba(0, 0, 0, .15),
-                rgba(0, 0, 0, .30),
-                rgba(0, 0, 0, .60));
+        background: none;
         z-index: 1;
+        pointer-events: none;
     }
 
     .hero-content {
