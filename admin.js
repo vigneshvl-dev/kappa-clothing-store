@@ -1027,6 +1027,8 @@ window.deleteProduct = async function(id) {
     } catch (err) {
         alert("Error deleting product: " + err.message);
     }
+}
+
 window.updateImageColor = async function(imageId, cleanUrl, newColorTag) {
     const trimmedColor = (newColorTag || '').trim();
     const newUrl = trimmedColor ? `${cleanUrl}#${trimmedColor}` : cleanUrl;
