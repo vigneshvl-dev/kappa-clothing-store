@@ -339,6 +339,14 @@
 
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => { if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20); });
+
+        const heroHamburger = document.getElementById('heroHamburger');
+        if (heroHamburger) {
+            heroHamburger.addEventListener('click', () => {
+                heroHamburger.classList.toggle('open');
+                window.location.href = 'index.html';
+            });
+        }
     </script>
     <!-- GSAP & Lenis Smooth Scroll Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
