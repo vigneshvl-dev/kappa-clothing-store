@@ -234,20 +234,20 @@
             document.getElementById('sidebarUserName').textContent = name;
             document.getElementById('profilePopupName').textContent = name;
             document.getElementById('profilePopupAvatarPlaceholder').textContent = initial;
-        });
 
-        if (profileBtn) {
-            profileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (currentUser) profilePopup.classList.toggle('open');
-                else window.location.href = 'index.html';
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (profilePopup && profilePopup.classList.contains('open')) {
-                if (!profilePopup.contains(e.target) && !profileBtn.contains(e.target)) profilePopup.classList.remove('open');
+            if (profileBtn) {
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (currentUser) profilePopup.classList.toggle('open');
+                    else window.location.href = 'index.html';
+                });
             }
+
+            document.addEventListener('click', (e) => {
+                if (profilePopup && profilePopup.classList.contains('open')) {
+                    if (!profilePopup.contains(e.target) && !profileBtn.contains(e.target)) profilePopup.classList.remove('open');
+                }
+            });
         });
 
         async function doLogout() {
