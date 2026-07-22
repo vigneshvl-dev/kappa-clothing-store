@@ -752,30 +752,33 @@ window.filterInventory = function() {
 }
 
 window.deleteProduct = async function(id) {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+    if (!confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
     try {
-        // 1. Delete associated images, variants, cart, wishlist, and review rows
+        // 1. Delete associated child table records
         await supabaseClient.from('product_images').delete().eq('product_id', id);
         await supabaseClient.from('product_variants').delete().eq('product_id', id);
         await supabaseClient.from('cart_items').delete().eq('product_id', id);
         await supabaseClient.from('wishlists').delete().eq('product_id', id);
         await supabaseClient.from('reviews').delete().eq('product_id', id);
 
-        // 2. Attempt hard delete of product
+        // 2. Clear or remove order_items references to resolve foreign key constraint
+        const { error: orderUpdateErr } = await supabaseClient.from('order_items').update({ product_id: null }).eq('product_id', id);
+        if (orderUpdateErr) {
+            await supabaseClient.from('order_items').delete().eq('product_id', id);
+        }
+
+        // 3. Delete product from products table
         const { error } = await supabaseClient.from('products').delete().eq('id', id);
 
         if (error) {
-            // If foreign key constraint (e.g. order_items) prevents deletion, soft-delete by marking inactive
-            if (error.code === '23503' || (error.message && error.message.includes('foreign key constraint'))) {
-                const { error: updateErr } = await supabaseClient.from('products').update({ is_active: false }).eq('id', id);
-                if (updateErr) throw updateErr;
-                alert("Product is referenced in customer order history. It has been deactivated and hidden from the shop!");
-            } else {
-                throw error;
-            }
+            // Soft-delete fallback
+            const { error: softErr } = await supabaseClient.from('products').update({ is_active: false, stock_quantity: 0 }).eq('id', id);
+            if (softErr) throw error;
+            alert("Product has been deactivated and hidden from store!");
         } else {
             alert("Product deleted successfully!");
         }
+
         if (typeof loadInventory === 'function') loadInventory();
         if (typeof loadDashboard === 'function') loadDashboard();
     } catch (err) {
