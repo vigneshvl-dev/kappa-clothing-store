@@ -375,7 +375,32 @@ window.addCategory = async function() {
     const parent_id = parentSelect.value || null;
 
     if (!name) return alert('Please enter a category name');
-    const slug = generateSlug(name);
+
+    // Generate slug using parent category name if selected to differentiate e.g. men-t-shirts vs women-t-shirts
+    let baseSlug = generateSlug(name);
+    if (parent_id && parentSelect) {
+        const selectedOpt = parentSelect.options[parentSelect.selectedIndex];
+        if (selectedOpt && selectedOpt.textContent) {
+            const parentName = selectedOpt.textContent.replace(/^[\s↳]+/, '').trim();
+            if (parentName) {
+                baseSlug = generateSlug(`${parentName}-${name}`);
+            }
+        }
+    }
+
+    let slug = baseSlug;
+
+    // Check existing categories to ensure slug uniqueness and prevent duplicate key violations
+    const { data: existingCats } = await supabaseClient.from('categories').select('slug');
+    if (existingCats && existingCats.length > 0) {
+        const existingSlugs = new Set(existingCats.map(c => c.slug));
+        let count = 1;
+        while (existingSlugs.has(slug)) {
+            slug = `${baseSlug}-${count}`;
+            count++;
+        }
+    }
+
     const { error } = await supabaseClient.from('categories').insert([{ name, slug, parent_id }]);
 
     if (error) { alert('Error adding category: ' + error.message); }
