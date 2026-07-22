@@ -177,10 +177,31 @@
                         <button class="btn-secondary" onclick="addCategory()">Add Category</button>
                     </div>
                 </section>
-                <section class="card">
-                    <h2 class="card-title">Current Categories</h2>
-                    <div id="categories-list-container"></div>
-                </section>
+
+                <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+                    <!-- LEFT: Category Tree -->
+                    <section class="card" style="flex: 1; min-width: 280px;">
+                        <h2 class="card-title">Category Tree</h2>
+                        <p style="font-size:12px; color:#888; margin-bottom:16px;">Click a category to view its products</p>
+                        <div id="categories-list-container"></div>
+                    </section>
+
+                    <!-- RIGHT: Products for selected category -->
+                    <section class="card" id="cat-products-panel" style="flex: 2; min-width: 320px; display: none;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                            <div>
+                                <h2 class="card-title" id="cat-products-title" style="margin-bottom:4px;">Products</h2>
+                                <p id="cat-products-subtitle" style="font-size:12px; color:#888; margin:0;"></p>
+                            </div>
+                            <button id="cat-add-product-btn" class="btn-secondary" style="background:#FFD700; border-color:#FFD700; font-weight:700; display:none;" onclick="addProductInCategory()">
+                                + Add Product Here
+                            </button>
+                        </div>
+                        <div id="cat-products-list">
+                            <p style="color:#bbb; text-align:center; padding:30px 0;">Select a category to view products</p>
+                        </div>
+                    </section>
+                </div>
             </div>
 
             <!-- VIEW: REVIEWS -->

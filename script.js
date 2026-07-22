@@ -2077,58 +2077,51 @@ async function initStorefront() {
                 }
             }
 
-            // Extract unique color images from product.product_images
-            const uniqueColorImages = [];
-            const seenColors = new Set();
-            (product.product_images || []).forEach(img => {
+            // Sort images by position, then build thumbnail list from ALL images
+            const allImages = (product.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+
+            // Build a list of ALL images (strip #color tag from URL if present)
+            const thumbImages = allImages.map(img => {
                 const parts = img.url.split('#');
                 const cleanUrl = parts[0];
-                const color = parts[1] || 'Default';
-                if (!seenColors.has(color)) {
-                    seenColors.add(color);
-                    uniqueColorImages.push({ color, url: cleanUrl });
-                }
+                const colorLabel = parts[1] || '';
+                return { url: cleanUrl, label: colorLabel };
             });
 
-            // Handle Image safely
-            let imageUrl = 'assets/sleeping sis.png'; 
-            if (uniqueColorImages.length > 0) {
-                imageUrl = uniqueColorImages[0].url;
-            } else if (product.product_images && product.product_images.length > 0) {
-                product.product_images.sort((a, b) => (a.position || 0) - (b.position || 0));
-                imageUrl = product.product_images[0].url || imageUrl;
-                uniqueColorImages.push({ color: 'Default', url: imageUrl });
-            } else {
-                uniqueColorImages.push({ color: 'Default', url: imageUrl });
+            // Handle cover image safely
+            let imageUrl = 'assets/sleeping sis.png';
+            if (thumbImages.length > 0) {
+                imageUrl = thumbImages[0].url;
             }
 
-            // Create thumbnails HTML
-            const maxThumbs = 4;
+            // Create thumbnails HTML from ALL product images
+            const maxThumbs = 5;
             let thumbsHTML = '';
-            uniqueColorImages.slice(0, maxThumbs).forEach((item, idx) => {
+            thumbImages.slice(0, maxThumbs).forEach((item, idx) => {
                 const isActive = idx === 0;
+                const safeUrl = item.url.replace(/'/g, "\\'");
+                const safeLabel = item.label.replace(/'/g, "\\'");
                 thumbsHTML += `
                     <img class="boys-card-thumb ${isActive ? 'active' : ''}" 
                          src="${item.url}" 
-                         alt="${item.color}"
-                         title="${item.color}"
-                         onclick="event.preventDefault(); event.stopPropagation(); changeCardColor(this, '${item.color.replace(/'/g, "\\'")}', '${item.url}')">
+                         alt="${item.label || 'View'}"
+                         title="${item.label || 'View'}"
+                         onclick="event.preventDefault(); event.stopPropagation(); changeCardColor(this, '${safeLabel}', '${safeUrl}')">
                 `;
             });
 
-            if (uniqueColorImages.length > maxThumbs) {
+            if (thumbImages.length > maxThumbs) {
                 thumbsHTML += `
                     <span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">
-                        +${uniqueColorImages.length - maxThumbs}
+                        +${thumbImages.length - maxThumbs}
                     </span>
                 `;
             }
 
             // Sanitize text to prevent HTML errors
             const safeName = (product.name || 'Untitled').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            const safeImage = imageUrl.replace(/'/g, "\\'");
             const comparePriceHTML = product.compare_at_price ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>` : '';
-            
+
             // Build the card with Out of Stock overlay & badge
             const cardHTML = `
                 <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
@@ -2139,15 +2132,19 @@ async function initStorefront() {
                     ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
                     
                     <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block; position: relative;">
-                        <img class="boys-card-img" src="${imageUrl}" alt="Product Image">
-                        ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
+                        <div class="boys-card-img-wrap" style="overflow:hidden; border-radius:8px;">
+                            <img class="boys-card-img" src="${imageUrl}" alt="${product.name || 'Product'}">
+                            ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
+                        </div>
                         <h3>${product.name || 'Untitled Product'}</h3>
                     </a>
 
-                    <!-- Color Selector Thumbnails -->
+                    <!-- All Image Thumbnails — click to switch main image -->
+                    ${thumbImages.length > 1 ? `
                     <div class="boys-card-thumbs">
                         ${thumbsHTML}
                     </div>
+                    ` : ''}
 
                     <p class="boys-price">₹${product.price || 0} ${comparePriceHTML}</p>
                 </div>
@@ -2170,16 +2167,30 @@ async function initStorefront() {
     }
 }
 
-// --- COLOR SWITCHER ACTION ---
+// --- COLOR / IMAGE SWITCHER ACTION ---
 window.changeCardColor = function(thumbElement, colorName, imageUrl) {
     const card = thumbElement.closest('.boys-card');
     if (!card) return;
 
-    // Update main image URL
+    // Update main image
     const mainImg = card.querySelector('.boys-card-img');
-    if (mainImg) mainImg.src = imageUrl;
+    if (mainImg) {
+        mainImg.style.transition = 'opacity 0.2s ease';
+        mainImg.style.opacity = '0';
+        setTimeout(() => {
+            mainImg.src = imageUrl;
+            mainImg.style.opacity = '1';
+        }, 180);
+    }
 
-    // Remove active styling from all sibling thumbnails, and add to current one
+    // Update the product link to carry the selected image as the active image
+    const link = card.querySelector('a[href^="product.html"]');
+    if (link) {
+        const base = link.href.split('&img=')[0];
+        link.href = base + '&img=' + encodeURIComponent(imageUrl);
+    }
+
+    // Remove active styling from all sibling thumbnails, add to clicked one
     const thumbs = card.querySelectorAll('.boys-card-thumb');
     thumbs.forEach(t => {
         t.style.border = '1px solid #ddd';
@@ -2188,19 +2199,16 @@ window.changeCardColor = function(thumbElement, colorName, imageUrl) {
     thumbElement.style.border = '2px solid #111';
     thumbElement.classList.add('active');
 
-    // Update the Add To Cart button action and parameters
+    // Update the Add To Cart button action if present
     const addBtn = card.querySelector('.boys-card-add-btn');
     if (addBtn) {
         const prodId = card.getAttribute('data-product-id');
         const prodName = card.getAttribute('data-product-name');
         const prodPrice = card.getAttribute('data-product-price');
-        
         let cartName = prodName;
-        if (colorName && colorName !== 'Default' && colorName !== 'None') {
+        if (colorName && colorName !== 'Default' && colorName !== '') {
             cartName += ` - ${colorName}`;
         }
-        
-        // Escape quotes safely
         const escapedCartName = cartName.replace(/'/g, "\\'");
         const escapedImageUrl = imageUrl.replace(/'/g, "\\'");
         addBtn.setAttribute('onclick', `event.preventDefault(); event.stopPropagation(); addToCart('${prodId}', '${escapedCartName}', ${prodPrice}, '${escapedImageUrl}')`);
@@ -2212,3 +2220,4 @@ if (document.readyState === "interactive" || document.readyState === "complete")
 } else {
     document.addEventListener('DOMContentLoaded', initStorefront);
 }
+

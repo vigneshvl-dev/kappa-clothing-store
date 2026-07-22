@@ -117,23 +117,24 @@ async function loadCategories() {
 
     categorySelect.innerHTML = `<option value="" disabled selected>Select Category</option>`;
 
+    // Only show SUB-CATEGORIES (children with a parent_id) — not root parents like Men/Women
     const roots = categories.filter(c => !c.parent_id).sort((a, b) => a.name.localeCompare(b.name));
     const children = categories.filter(c => c.parent_id);
 
     roots.forEach(root => {
+        const myChildren = children
+            .filter(c => c.parent_id === root.id)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (myChildren.length === 0) return; // skip root if no sub-cats
+
         const group = document.createElement('optgroup');
         group.label = root.name;
 
-        const rootOption = document.createElement('option');
-        rootOption.value = root.id;
-        rootOption.textContent = `${root.name} (General)`;
-        group.appendChild(rootOption);
-
-        const myChildren = children.filter(c => c.parent_id === root.id).sort((a, b) => a.name.localeCompare(b.name));
         myChildren.forEach(child => {
             const childOption = document.createElement('option');
             childOption.value = child.id;
-            childOption.textContent = `↳ ${child.name}`;
+            childOption.textContent = child.name;
             group.appendChild(childOption);
         });
         categorySelect.appendChild(group);
@@ -162,57 +163,248 @@ async function loadParentCategories() {
     select.innerHTML = html;
 }
 
+// Track the currently selected category for "Add Product Here"
+let _selectedCategoryId = null;
+let _selectedCategoryIsRoot = false;
+
 async function loadCategoriesList() {
     const container = document.getElementById('categories-list-container');
-    if(!container) return;
-    
+    if (!container) return;
+
     const { data, error } = await supabaseClient.from('categories').select('*');
-    if (error) { container.innerHTML = "Error loading categories."; return; }
+    if (error) { container.innerHTML = '<p style="color:red;">Error loading categories.</p>'; return; }
 
     const roots = data.filter(c => !c.parent_id).sort((a, b) => a.name.localeCompare(b.name));
     const children = data.filter(c => c.parent_id);
 
-    let html = `<table class="stock-table"><thead><tr><th>Name</th><th>Slug</th><th>Action</th></tr></thead><tbody>`;
-    
+    let html = '';
     roots.forEach(root => {
-        html += `<tr><td><strong>${root.name}</strong></td><td>${root.slug}</td>
-            <td><button class="btn-secondary" style="padding: 5px 10px; height: 30px;" onclick="deleteCategory('${root.id}')">Delete</button></td></tr>`;
+        const myChildren = children
+            .filter(c => c.parent_id === root.id)
+            .sort((a, b) => a.name.localeCompare(b.name));
 
-        const myChildren = children.filter(c => c.parent_id === root.id).sort((a, b) => a.name.localeCompare(b.name));
+        // Root row — clicking shows ALL products under this root
+        html += `
+        <div style="margin-bottom:6px;">
+            <div class="cat-tree-row cat-tree-root" onclick="loadCategoryProducts('${root.id}', true, '${root.name.replace(/'/g, "\\'")}')"
+                 style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-radius:10px; background:#f7f7f7; cursor:pointer; transition:background 0.18s; border:1.5px solid transparent;"
+                 onmouseover="this.style.background='#fffbea'; this.style.borderColor='#FFD700';"
+                 onmouseout="this.style.background='#f7f7f7'; this.style.borderColor='transparent';">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:18px;">📁</span>
+                    <strong style="font-size:14px;">${root.name}</strong>
+                    <span style="font-size:11px; color:#999; font-style:italic;">General</span>
+                </div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <span style="font-size:11px; color:#aaa;">${myChildren.length} sub-cats</span>
+                    <button class="btn-delete" style="padding:3px 8px; font-size:11px;" onclick="event.stopPropagation(); deleteCategory('${root.id}')">✕</button>
+                </div>
+            </div>`;
+
+        // Sub-category rows — clicking shows only that sub-cat's products + Add button
         myChildren.forEach(child => {
-            html += `<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;↳ ${child.name}</td><td>${child.slug}</td>
-            <td><button class="btn-secondary" style="padding: 5px 10px; height: 30px;" onclick="deleteCategory('${child.id}')">Delete</button></td></tr>`;
+            html += `
+            <div class="cat-tree-row cat-tree-child" onclick="loadCategoryProducts('${child.id}', false, '${child.name.replace(/'/g, "\\'")}')"
+                 style="display:flex; align-items:center; justify-content:space-between; padding:8px 14px 8px 36px; border-radius:8px; cursor:pointer; transition:background 0.15s; border:1.5px solid transparent; margin-top:3px;"
+                 onmouseover="this.style.background='#f0f9ff'; this.style.borderColor='#93c5fd';"
+                 onmouseout="this.style.background='transparent'; this.style.borderColor='transparent';">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="color:#aaa; font-size:13px;">↳</span>
+                    <span style="font-size:13px; font-weight:600;">${child.name}</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-delete" style="padding:3px 8px; font-size:11px;" onclick="event.stopPropagation(); deleteCategory('${child.id}')">✕</button>
+                </div>
+            </div>`;
         });
+
+        html += `</div>`;
     });
-    html += `</tbody></table>`;
+
+    if (!html) html = '<p style="color:#aaa; text-align:center; padding:20px;">No categories yet.</p>';
     container.innerHTML = html;
 }
+
+// Load products for a given category and show them in the right panel
+window.loadCategoryProducts = async function(categoryId, isRoot, categoryName) {
+    _selectedCategoryId = categoryId;
+    _selectedCategoryIsRoot = isRoot;
+
+    // Highlight the clicked row in the tree
+    document.querySelectorAll('.cat-tree-row').forEach(el => el.classList.remove('active-cat'));
+    document.querySelectorAll('.cat-tree-row').forEach(el => {
+        const onclickAttr = el.getAttribute('onclick') || '';
+        if (onclickAttr.includes(`'${categoryId}'`)) el.classList.add('active-cat');
+    });
+
+    const panel = document.getElementById('cat-products-panel');
+    const title = document.getElementById('cat-products-title');
+    const subtitle = document.getElementById('cat-products-subtitle');
+    const listEl = document.getElementById('cat-products-list');
+    const addBtn = document.getElementById('cat-add-product-btn');
+
+    if (!panel) return;
+
+    panel.style.display = 'block';
+    title.textContent = categoryName;
+    subtitle.textContent = isRoot ? 'Showing all products in this category and sub-categories' : 'Products in this sub-category';
+    addBtn.style.display = isRoot ? 'none' : 'inline-flex';
+    listEl.innerHTML = '<p style="color:#aaa;">Loading...</p>';
+
+    // Scroll panel into view
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // If root: get all children category IDs too
+    let categoryIds = [categoryId];
+    if (isRoot) {
+        const { data: cats } = await supabaseClient.from('categories').select('id, parent_id');
+        if (cats) {
+            const childIds = cats.filter(c => c.parent_id === categoryId).map(c => c.id);
+            categoryIds = [categoryId, ...childIds];
+        }
+    }
+
+    // Fetch products for these category IDs
+    const { data: products, error } = await supabaseClient
+        .from('products')
+        .select('id, name, price, slug, is_active, product_images(id, url, position)')
+        .in('category_id', categoryIds)
+        .order('created_at', { ascending: false });
+
+    if (error) { listEl.innerHTML = '<p style="color:red;">Error loading products.</p>'; return; }
+    if (!products || products.length === 0) {
+        listEl.innerHTML = `
+            <div style="text-align:center; padding:40px 20px; color:#aaa;">
+                <div style="font-size:40px; margin-bottom:12px;">📦</div>
+                <p style="font-size:14px;">No products yet in <strong style="color:#111;">${categoryName}</strong></p>
+                ${!isRoot ? '<p style="font-size:12px; margin-top:6px;">Click "+ Add Product Here" to get started.</p>' : ''}
+            </div>`;
+        return;
+    }
+
+    let html = `<div style="display:flex; flex-direction:column; gap:12px;">`;
+    products.forEach(prod => {
+        const sortedImgs = (prod.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+        const coverImg = sortedImgs.length > 0 ? sortedImgs[0].url.split('#')[0] : '';
+        const imgHtml = coverImg
+            ? `<img src="${coverImg}" style="width:54px; height:64px; object-fit:cover; border-radius:8px; border:1px solid #eee; flex-shrink:0;">`
+            : `<div style="width:54px; height:64px; background:#f0f0f0; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:20px;">🖼️</div>`;
+
+        // Thumbnail strip (remaining images)
+        let thumbStrip = '';
+        if (sortedImgs.length > 1) {
+            thumbStrip = `<div style="display:flex; gap:4px; margin-top:4px;">`;
+            sortedImgs.slice(1, 5).forEach(img => {
+                const cleanUrl = img.url.split('#')[0];
+                thumbStrip += `<img src="${cleanUrl}" style="width:28px; height:34px; object-fit:cover; border-radius:4px; border:1px solid #eee;">`;
+            });
+            if (sortedImgs.length > 5) thumbStrip += `<span style="font-size:10px; color:#aaa; align-self:center;">+${sortedImgs.length - 5}</span>`;
+            thumbStrip += `</div>`;
+        }
+
+        const statusBadge = prod.is_active
+            ? `<span style="background:#e8f8f0; color:#1e7e44; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700;">ACTIVE</span>`
+            : `<span style="background:#fff0f0; color:#c0392b; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700;">HIDDEN</span>`;
+
+        html += `
+        <div style="display:flex; align-items:flex-start; gap:14px; padding:12px 14px; background:#fafafa; border:1px solid #f0f0f0; border-radius:12px; transition:border-color 0.2s;"
+             onmouseover="this.style.borderColor='#e0e0e0'" onmouseout="this.style.borderColor='#f0f0f0'">
+            <div style="flex-shrink:0;">
+                ${imgHtml}
+                ${thumbStrip}
+            </div>
+            <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                    <strong style="font-size:14px; color:#111;">${prod.name}</strong>
+                    ${statusBadge}
+                </div>
+                <div style="font-size:13px; color:#555; font-weight:600;">₹${prod.price}</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+                <button class="btn-secondary" style="padding:5px 14px; font-size:12px; height:auto;" onclick="editProduct('${prod.id}')">
+                    ✏️ Edit
+                </button>
+                <button class="btn-delete" style="padding:5px 12px; font-size:12px;" onclick="deleteProduct('${prod.id}')">
+                    🗑️ Delete
+                </button>
+            </div>
+        </div>`;
+    });
+    html += `</div>`;
+    listEl.innerHTML = html;
+};
+
+// Navigate to Add Product form with this sub-category pre-selected
+window.addProductInCategory = function() {
+    if (!_selectedCategoryId || _selectedCategoryIsRoot) return;
+
+    // Navigate to products view
+    document.querySelectorAll('.sidebar-menu li').forEach(nav => nav.classList.remove('active'));
+    document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
+    const prodNav = document.querySelector('.sidebar-menu li[data-target="products"]');
+    if (prodNav) prodNav.classList.add('active');
+    const prodView = document.getElementById('view-products');
+    if (prodView) prodView.classList.add('active-view');
+    document.getElementById('dynamic-page-title').textContent = 'Add Product';
+
+    clearProductForm();
+
+    // Pre-select the category
+    setTimeout(() => {
+        const select = document.getElementById('prod-category');
+        if (select) {
+            select.value = _selectedCategoryId;
+            // If not found as a direct option, try to find it
+            if (!select.value) {
+                for (let opt of select.options) {
+                    if (opt.value === _selectedCategoryId) { opt.selected = true; break; }
+                }
+            }
+        }
+    }, 100);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
 window.addCategory = async function() {
     const nameInput = document.getElementById('new-cat-name');
     const parentSelect = document.getElementById('parent-cat-select');
     const name = nameInput.value.trim();
-    const parent_id = parentSelect.value || null; 
-    
-    if (!name) return alert("Please enter a category name");
+    const parent_id = parentSelect.value || null;
+
+    if (!name) return alert('Please enter a category name');
     const slug = generateSlug(name);
     const { error } = await supabaseClient.from('categories').insert([{ name, slug, parent_id }]);
 
-    if (error) { alert("Error adding category: " + error.message); } 
+    if (error) { alert('Error adding category: ' + error.message); }
     else {
         nameInput.value = '';
-        loadCategoriesList(); 
-        loadParentCategories();
-        loadCategories();
+        await Promise.all([loadCategoriesList(), loadParentCategories(), loadCategories()]);
+        // If there was a selected category open, refresh it
+        if (_selectedCategoryId) {
+            const panel = document.getElementById('cat-products-panel');
+            if (panel && panel.style.display !== 'none') {
+                const title = document.getElementById('cat-products-title');
+                loadCategoryProducts(_selectedCategoryId, _selectedCategoryIsRoot, title ? title.textContent : '');
+            }
+        }
     }
-}
+};
 
 window.deleteCategory = async function(id) {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+    if (!confirm('Are you sure you want to delete this category? Products inside it will become uncategorized.')) return;
     const { error } = await supabaseClient.from('categories').delete().eq('id', id);
-    if (error) alert("Error deleting: " + error.message);
-    else { loadCategoriesList(); loadCategories(); loadParentCategories(); }
-}
+    if (error) alert('Error deleting: ' + error.message);
+    else {
+        // If the deleted category was selected, hide the panel
+        if (_selectedCategoryId === id) {
+            _selectedCategoryId = null;
+            const panel = document.getElementById('cat-products-panel');
+            if (panel) panel.style.display = 'none';
+        }
+        loadCategoriesList(); loadCategories(); loadParentCategories();
+    }
+};
 
 async function loadOrders() {
     const container = document.querySelector('#view-orders .card');
@@ -682,7 +874,7 @@ async function loadInventory() {
     // 2. Fetch all products
     const { data, error } = await supabaseClient
         .from('products')
-        .select('id, name, price, category_id, product_images(url)')
+        .select('id, name, price, category_id, product_images(id, url, position)')
         .order('created_at', { ascending: false });
 
     if (error) { container.innerHTML = "<p>Error loading products.</p>"; return; }
@@ -710,12 +902,37 @@ async function loadInventory() {
             parentId = catMap[prod.category_id].parent_id;
         }
 
-        const imgUrl = (prod.product_images && prod.product_images.length > 0) ? prod.product_images[0].url : '';
-        const imgTag = imgUrl ? `<img src="${imgUrl}" style="width: 45px; height: 45px; border-radius: 6px; object-fit: cover;">` : `<div style="width: 45px; height: 45px; background: #eee; border-radius: 6px;"></div>`;
+        // Sort images by position and build thumbnail strip
+        const sortedImages = (prod.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+        
+        let imgStripHTML = '';
+        if (sortedImages.length === 0) {
+            imgStripHTML = `<div style="width: 48px; height: 56px; background: #eee; border-radius: 6px; display:inline-block;"></div>`;
+        } else {
+            imgStripHTML = `<div style="display:flex; gap:4px; align-items:center; flex-wrap:nowrap;">`;
+            const maxShow = 4;
+            sortedImages.slice(0, maxShow).forEach((img, idx) => {
+                const cleanUrl = img.url.split('#')[0];
+                const colorLabel = img.url.split('#')[1] || '';
+                const isCover = idx === 0;
+                imgStripHTML += `
+                    <div style="position:relative; display:inline-block;" title="${colorLabel || 'Image ' + (idx+1)}">
+                        <img src="${cleanUrl}" 
+                             style="width:${isCover ? '52px' : '38px'}; height:${isCover ? '62px' : '46px'}; object-fit:cover; border-radius:5px; border:${isCover ? '2px solid #111' : '1px solid #ddd'}; cursor:pointer; transition:transform 0.15s ease;"
+                             onmouseover="this.style.transform='scale(1.12)'" 
+                             onmouseout="this.style.transform='scale(1)'">
+                        ${isCover ? '<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.65);color:#fff;font-size:8px;text-align:center;border-radius:0 0 4px 4px;padding:1px;">COVER</span>' : ''}
+                    </div>`;
+            });
+            if (sortedImages.length > maxShow) {
+                imgStripHTML += `<span style="font-size:11px;color:#777;font-weight:bold;">+${sortedImages.length - maxShow}</span>`;
+            }
+            imgStripHTML += `</div>`;
+        }
 
         // Inject data-attributes for live filtering
         html += `<tr class="inv-row" data-cat="${prod.category_id}" data-parent="${parentId}" style="border-bottom: 1px solid #f9f9f9;">
-            <td style="padding: 10px 0;">${imgTag}</td>
+            <td style="padding: 10px 4px;">${imgStripHTML}</td>
             <td><strong>${prod.name}</strong></td>
             <td><span class="badge" style="background:#f1f1f1; color:#333; font-weight:bold; font-size: 12px; padding: 4px 8px; border-radius: 4px;">${catDisplay}</span></td>
             <td>₹${prod.price}</td>
@@ -752,7 +969,7 @@ window.filterInventory = function() {
 }
 
 window.deleteProduct = async function(id) {
-    if (!confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
+    if (!confirm("Are you sure you want to PERMANENTLY delete this product? This action cannot be undone.")) return;
     try {
         // 1. Delete associated child table records
         await supabaseClient.from('product_images').delete().eq('product_id', id);
@@ -761,30 +978,35 @@ window.deleteProduct = async function(id) {
         await supabaseClient.from('wishlists').delete().eq('product_id', id);
         await supabaseClient.from('reviews').delete().eq('product_id', id);
 
-        // 2. Clear or remove order_items references to resolve foreign key constraint
-        const { error: orderUpdateErr } = await supabaseClient.from('order_items').update({ product_id: null }).eq('product_id', id);
-        if (orderUpdateErr) {
-            await supabaseClient.from('order_items').delete().eq('product_id', id);
-        }
+        // 2. Unlink or delete order_items rows for this product
+        await supabaseClient.from('order_items').update({ product_id: null }).eq('product_id', id);
+        await supabaseClient.from('order_items').delete().eq('product_id', id);
 
-        // 3. Delete product from products table
+        // 3. HARD DELETE product from products table
         const { error } = await supabaseClient.from('products').delete().eq('id', id);
 
         if (error) {
-            // Soft-delete fallback
-            const { error: softErr } = await supabaseClient.from('products').update({ is_active: false, stock_quantity: 0 }).eq('id', id);
-            if (softErr) throw error;
-            alert("Product has been deactivated and hidden from store!");
-        } else {
-            alert("Product deleted successfully!");
+            throw error;
         }
+
+        alert("Product deleted permanently!");
 
         if (typeof loadInventory === 'function') loadInventory();
         if (typeof loadDashboard === 'function') loadDashboard();
+
+        // Refresh category products panel if it's open
+        if (_selectedCategoryId) {
+            const panel = document.getElementById('cat-products-panel');
+            if (panel && panel.style.display !== 'none') {
+                const title = document.getElementById('cat-products-title');
+                loadCategoryProducts(_selectedCategoryId, _selectedCategoryIsRoot, title ? title.textContent : '');
+            }
+        }
     } catch (err) {
         alert("Error deleting product: " + err.message);
     }
 }
+
 
 window.deleteProductImage = async function(imageId, imageUrl, productId) {
     if (!confirm("Remove this image?")) return;
