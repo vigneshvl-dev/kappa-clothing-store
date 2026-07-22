@@ -163,12 +163,20 @@
         </div>
         <div class="mobile-menu-body">
             <a href="index.html" class="mnav-link">Home</a>
-            <a href="shop.html" class="mnav-link">Shop</a>
-            <a href="shop.html?filter=men" class="mnav-link">Men</a>
-            <a href="shop.html?filter=women" class="mnav-link">Women</a>
-            <a href="reels.html" class="mnav-link">Reels</a>
-            <a href="about.html" class="mnav-link">About</a>
+            <a href="#" class="mnav-link" id="shopMobileOrdersLink">Orders</a>
+            <a href="shop.html?filter=sale" class="mnav-link">Shop</a>
             <a href="contact.html" class="mnav-link">Contact</a>
+            <a href="shop.html" class="mnav-link">All products</a>
+        </div>
+        <div class="mobile-menu-footer">
+            <a href="#" class="mobile-login-btn" id="shopMobileAccountLink">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
+                </svg>
+                <span>Login / Register</span>
+            </a>
         </div>
     </div>
 
@@ -528,6 +536,25 @@
         });
         if (shopMobileMenuClose) shopMobileMenuClose.addEventListener('click', closeShopMenu);
         if (shopMobileMenu) shopMobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeShopMenu));
+
+        const shopMobileOrdersLink = document.getElementById('shopMobileOrdersLink');
+        if (shopMobileOrdersLink) {
+            shopMobileOrdersLink.addEventListener('click', e => {
+                e.preventDefault();
+                closeShopMenu();
+                const overlay = document.getElementById('accountOverlay');
+                if (overlay) { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+            });
+        }
+
+        const shopMobileAccountLink = document.getElementById('shopMobileAccountLink');
+        if (shopMobileAccountLink) {
+            shopMobileAccountLink.addEventListener('click', e => {
+                e.preventDefault();
+                closeShopMenu();
+                setTimeout(() => { window.location.href = 'index.html'; }, 300);
+            });
+        }
     </script>
     <!-- GSAP & Lenis Smooth Scroll Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
