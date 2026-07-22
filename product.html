@@ -2137,16 +2137,26 @@ window.selectColor = function selectColor(element, color, imgUrl) {
     document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => { el.classList.remove('selected'); el.style.outline = ''; });
     if (element) element.classList.add('selected');
     window.selectedColor = color;
+    
     // Clear error message
     const colorErr = document.getElementById('color-error-msg');
     if (colorErr) colorErr.style.display = 'none';
     
     if (imgUrl) {
-        window.currentMainImageUrl = imgUrl; 
+        const cleanTarget = imgUrl.split('#')[0];
+        window.currentMainImageUrl = cleanTarget; 
         const mainImg = document.getElementById('main-product-image');
-        if (mainImg) mainImg.src = imgUrl;
+        if (mainImg) {
+            mainImg.style.transition = 'opacity 0.2s ease';
+            mainImg.style.opacity = '0';
+            setTimeout(() => {
+                mainImg.src = cleanTarget;
+                mainImg.style.opacity = '1';
+            }, 180);
+        }
         document.querySelectorAll('.thumb-img').forEach(t => {
-            t.classList.toggle('active', t.src.includes(imgUrl.split('/').pop().split('?')[0]));
+            const cleanThumb = t.src.split('#')[0];
+            t.classList.toggle('active', cleanThumb === cleanTarget || t.src.includes(cleanTarget.split('/').pop()));
         });
     }
 }

@@ -351,10 +351,14 @@
             document.getElementById('current-category-title').innerText = categoryName.toUpperCase();
             document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading...</div>';
 
+            // Build the list of category IDs to fetch:
+            // If a root category (like Men/Women), include root ID + ALL its children
+            // If a sub-category (like T-Shirt), include only that ID
             let targetCategoryIds = [];
 
             if (categoryId) {
-                targetCategoryIds.push(categoryId); 
+                targetCategoryIds.push(categoryId);
+                // Also push all direct children (sub-categories under this root)
                 allCategoriesData.forEach(c => {
                     if (c.parent_id === categoryId && !targetCategoryIds.includes(c.id)) {
                         targetCategoryIds.push(c.id);
@@ -365,7 +369,8 @@
             let query = supabaseClient
                 .from('products')
                 .select('*, product_images(url, position), product_variants(size, stock_quantity)')
-                .eq('is_active', true);
+                .eq('is_active', true)
+                .order('created_at', { ascending: false });
 
             if (targetCategoryIds.length > 0) {
                 query = query.in('category_id', targetCategoryIds);
@@ -412,69 +417,61 @@
                 const hasVariantStock = (product.product_variants || []).some(v => (v.stock_quantity || 0) > 0);
                 const isOutOfStock = !(hasProductStock || hasVariantStock);
 
-                const uniqueColorImages = [];
-                const seenColors = new Set();
-                (product.product_images || []).forEach(img => {
-                    const parts = img.url.split('#');
-                    const cleanUrl = parts[0];
-                    const color = parts[1] || 'Default';
-                    if (!seenColors.has(color)) {
-                        seenColors.add(color);
-                        uniqueColorImages.push({ color, url: cleanUrl });
-                    }
-                });
+                // Sort all images by position and use ALL of them as thumbnails
+                const allImages = (product.product_images || [])
+                    .slice()
+                    .sort((a, b) => (a.position || 0) - (b.position || 0))
+                    .map(img => ({
+                        url: img.url.split('#')[0],
+                        label: img.url.split('#')[1] || ''
+                    }));
 
+                // Cover image = first image
                 let imageUrl = 'assets/sleeping sis.png';
-                if (uniqueColorImages.length > 0) {
-                    imageUrl = uniqueColorImages[0].url;
-                } else if (product.product_images && product.product_images.length > 0) {
-                    product.product_images.sort((a, b) => (a.position || 0) - (b.position || 0));
-                    imageUrl = product.product_images[0].url || imageUrl;
-                    uniqueColorImages.push({ color: 'Default', url: imageUrl });
-                } else {
-                    uniqueColorImages.push({ color: 'Default', url: imageUrl });
-                }
+                if (allImages.length > 0) imageUrl = allImages[0].url;
 
-                const maxThumbs = 4;
+                // Build thumbnail strip from ALL images
+                const maxThumbs = 5;
                 let thumbsHTML = '';
-                uniqueColorImages.slice(0, maxThumbs).forEach((item, idx) => {
+                allImages.slice(0, maxThumbs).forEach((item, idx) => {
                     const isActive = idx === 0;
+                    const safeUrl = item.url.replace(/'/g, "\\'");
+                    const safeLabel = item.label.replace(/'/g, "\\'");
                     thumbsHTML += `
                         <img class="boys-card-thumb ${isActive ? 'active' : ''}" 
                              src="${item.url}" 
-                             alt="${item.color}"
-                             title="${item.color}"
-                             onclick="event.preventDefault(); event.stopPropagation(); changeCardColor(this, '${item.color.replace(/'/g, "\\'")}', '${item.url}')">
+                             alt="${item.label || 'View'}"
+                             title="${item.label || 'View'}"
+                             onclick="event.stopPropagation(); changeCardColor(this, '${safeLabel}', '${safeUrl}')">
                     `;
                 });
 
-                if (uniqueColorImages.length > maxThumbs) {
-                    thumbsHTML += `
-                        <span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">
-                            +${uniqueColorImages.length - maxThumbs}
-                        </span>
-                    `;
+                if (allImages.length > maxThumbs) {
+                    thumbsHTML += `<span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">+${allImages.length - maxThumbs}</span>`;
                 }
 
                 const comparePriceHTML = product.compare_at_price ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>` : '';
 
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
-                         style="position: relative;"
+                         style="position: relative; cursor: pointer;"
                          onclick="window.location.href='product.html?slug=${product.slug || product.id}'">
                         ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
                         
                         <div style="position: relative; overflow: hidden; border-radius: 8px;">
-                            <img class="boys-card-img" src="${imageUrl}" alt="Product Image">
+                            <img class="boys-card-img" src="${imageUrl}" alt="${product.name || 'Product'}">
                             ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
-                        </div>
-                        
-                        <!-- Color Selector Thumbnails -->
-                        <div class="boys-card-thumbs">
-                            ${thumbsHTML}
                         </div>
 
                         <h3>${product.name || 'Untitled Product'}</h3>
+
+                        <!-- All Image Thumbnails — click to switch main image -->
+                        ${allImages.length > 1 ? `
+                        <div class="boys-card-thumbs">
+                            ${thumbsHTML}
+                        </div>
+                        ` : ''}
+
                         <p class="boys-price">₹${product.price || 0} ${comparePriceHTML}</p>
                     </div>
                 `;
@@ -488,7 +485,14 @@
             if (!card) return;
 
             const mainImg = card.querySelector('.boys-card-img');
-            if (mainImg) mainImg.src = imageUrl;
+            if (mainImg) {
+                mainImg.style.transition = 'opacity 0.2s ease';
+                mainImg.style.opacity = '0';
+                setTimeout(() => {
+                    mainImg.src = imageUrl;
+                    mainImg.style.opacity = '1';
+                }, 180);
+            }
 
             const thumbs = card.querySelectorAll('.boys-card-thumb');
             thumbs.forEach(t => {
@@ -498,6 +502,7 @@
             thumbElement.style.border = '2px solid #111';
             thumbElement.classList.add('active');
         };
+
 
         document.addEventListener('DOMContentLoaded', initShop);
 

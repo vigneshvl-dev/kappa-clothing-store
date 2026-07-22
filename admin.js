@@ -638,21 +638,39 @@ window.renderPendingImages = function() {
 
         pendingImageFiles.forEach((file, index) => {
             const wrapper = document.createElement('div');
-            wrapper.style = "position: relative; width: 85px; height: 85px; border: 2px dashed #ccc; border-radius: 6px; overflow: hidden; padding: 2px; display: inline-block; margin-right: 10px; margin-bottom: 10px;";
+            wrapper.style = "position: relative; width: 105px; border: 2px dashed #ccc; border-radius: 6px; padding: 4px; display: inline-block; margin-right: 10px; margin-bottom: 10px; background: #fff; vertical-align: top;";
             
+            const imgBox = document.createElement('div');
+            imgBox.style = "position: relative; width: 100%; height: 85px; overflow: hidden; border-radius: 4px;";
+
             const img = document.createElement('img');
             img.style = "width: 100%; height: 100%; object-fit: cover; border-radius: 4px;";
             
             const isCover = (!editingId || !hasExisting) && index === 0;
-            let badgeHTML = isCover ? '<div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); color:white; font-size:10px; text-align:center; padding:3px; font-weight:bold; z-index: 5;">COVER</div>' : '';
+            let badgeHTML = isCover ? '<div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); color:white; font-size:9px; text-align:center; padding:2px; font-weight:bold; z-index: 5;">COVER</div>' : '';
             
             let makeCoverBtn = (!isCover && (!editingId || !hasExisting)) ? 
-                `<button type="button" onclick="setPendingAsCover(${index})" style="position:absolute; bottom:2px; left:2px; right:2px; background:#f1c40f; color:#000; border:none; border-radius:3px; font-size:10px; padding:3px 0; cursor:pointer; z-index: 10; font-weight:bold;">Set Cover</button>` : '';
+                `<button type="button" onclick="setPendingAsCover(${index})" style="position:absolute; bottom:2px; left:2px; right:2px; background:#f1c40f; color:#000; border:none; border-radius:3px; font-size:9px; padding:2px 0; cursor:pointer; z-index: 10; font-weight:bold;">Set Cover</button>` : '';
 
-            let btnHTML = `<button type="button" onclick="removePendingImage(${index})" style="position:absolute; top:2px; right:2px; background:#e74c3c; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center; z-index: 10;">&times;</button>`;
+            let btnHTML = `<button type="button" onclick="removePendingImage(${index})" style="position:absolute; top:2px; right:2px; background:#e74c3c; color:white; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center; z-index: 10;">&times;</button>`;
 
-            wrapper.innerHTML = badgeHTML + makeCoverBtn + btnHTML;
-            wrapper.insertBefore(img, wrapper.firstChild);
+            imgBox.innerHTML = badgeHTML + makeCoverBtn + btnHTML;
+            imgBox.insertBefore(img, imgBox.firstChild);
+
+            // Color tag input for this image
+            const colorInput = document.createElement('input');
+            colorInput.type = "text";
+            colorInput.placeholder = "Color (e.g. Red)";
+            colorInput.className = "pending-image-color admin-input";
+            colorInput.dataset.index = index;
+            colorInput.style = "width: 100%; font-size: 10px; padding: 4px 6px; margin-top: 4px; border: 1px solid #ddd; border-radius: 4px; height: 26px;";
+            colorInput.value = file._colorTag || '';
+            colorInput.addEventListener('input', (e) => {
+                file._colorTag = e.target.value.trim();
+            });
+
+            wrapper.appendChild(imgBox);
+            wrapper.appendChild(colorInput);
 
             const reader = new FileReader();
             reader.onload = (e) => { img.src = e.target.result; };
@@ -793,16 +811,20 @@ function initProductForm() {
                 const fileInput = document.getElementById('prod-images');
                 if (fileInput && fileInput.files.length > 0) {
                     const imageRows = [];
-                    const filesArray = Array.from(fileInput.files); 
 
-                    for (const [index, file] of filesArray.entries()) {
+                    for (const [index, file] of pendingImageFiles.entries()) {
                         const filePath = `${targetProductId}/${Date.now()}_${file.name}`;
                         const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(filePath, file);
                         if (uploadError) throw uploadError;
 
                         const { data: { publicUrl } } = supabaseClient.storage.from('product-images').getPublicUrl(filePath);
                         
-                        imageRows.push({ product_id: targetProductId, url: publicUrl, position: startingImagePosition + index });
+                        let finalUrl = publicUrl;
+                        if (file._colorTag) {
+                            finalUrl += `#${file._colorTag}`;
+                        }
+                        
+                        imageRows.push({ product_id: targetProductId, url: finalUrl, position: startingImagePosition + index });
                     }
                     await supabaseClient.from('product_images').insert(imageRows);
                 }
@@ -1005,8 +1027,26 @@ window.deleteProduct = async function(id) {
     } catch (err) {
         alert("Error deleting product: " + err.message);
     }
-}
-
+window.updateImageColor = async function(imageId, cleanUrl, newColorTag) {
+    const trimmedColor = (newColorTag || '').trim();
+    const newUrl = trimmedColor ? `${cleanUrl}#${trimmedColor}` : cleanUrl;
+    
+    try {
+        const { error } = await supabaseClient
+            .from('product_images')
+            .update({ url: newUrl })
+            .eq('id', imageId);
+            
+        if (error) {
+            console.error("Error updating image color:", error);
+            alert("Failed to update color tag: " + error.message);
+        } else {
+            console.log(`Updated image ${imageId} color tag to: ${trimmedColor}`);
+        }
+    } catch (err) {
+        console.error("Error updating image color:", err);
+    }
+};
 
 window.deleteProductImage = async function(imageId, imageUrl, productId) {
     if (!confirm("Remove this image?")) return;
@@ -1103,16 +1143,25 @@ window.editProduct = async function(id) {
         
         data.product_images.forEach((img, index) => {
             const isCover = index === 0;
-            const badge = isCover ? '<div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); color:white; font-size:10px; text-align:center; padding:3px; font-weight:bold; z-index:5;">COVER</div>' : '';
+            const badge = isCover ? '<div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); color:white; font-size:9px; text-align:center; padding:2px; font-weight:bold; z-index:5;">COVER</div>' : '';
             
-            const makeCoverBtn = !isCover ? `<button type="button" onclick="setExistingAsCover('${img.id}', '${data.id}')" style="position:absolute; bottom:2px; left:2px; right:2px; background:#f1c40f; color:#000; border:none; border-radius:3px; font-size:10px; padding:3px 0; cursor:pointer; z-index:10; font-weight:bold;">Set Cover</button>` : '';
+            const makeCoverBtn = !isCover ? `<button type="button" onclick="setExistingAsCover('${img.id}', '${data.id}')" style="position:absolute; bottom:2px; left:2px; right:2px; background:#f1c40f; color:#000; border:none; border-radius:3px; font-size:9px; padding:2px 0; cursor:pointer; z-index:10; font-weight:bold;">Set Cover</button>` : '';
             
+            const parts = img.url.split('#');
+            const cleanUrl = parts[0];
+            const colorTag = parts[1] || '';
+
             imgHtml += `
-            <div style="position: relative; width: 85px; height: 85px; border: 1px solid #ccc; border-radius: 6px; overflow: hidden; display: inline-block; margin-right: 10px; margin-bottom: 10px;">
-                <img src="${img.url}" style="width: 100%; height: 100%; object-fit: cover;">
-                ${badge}
-                ${makeCoverBtn}
-                <button type="button" onclick="deleteProductImage('${img.id}', '${img.url}', '${data.id}')" style="position:absolute; top:2px; right:2px; background:#e74c3c; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center; z-index:10;">&times;</button>
+            <div style="position: relative; width: 105px; border: 1px solid #ccc; border-radius: 6px; padding: 4px; display: inline-block; margin-right: 10px; margin-bottom: 10px; background: #fff; vertical-align: top;">
+                <div style="position: relative; width: 100%; height: 85px; overflow: hidden; border-radius: 4px;">
+                    <img src="${cleanUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                    ${badge}
+                    ${makeCoverBtn}
+                    <button type="button" onclick="deleteProductImage('${img.id}', '${img.url}', '${data.id}')" style="position:absolute; top:2px; right:2px; background:#e74c3c; color:white; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center; z-index:10;">&times;</button>
+                </div>
+                <input type="text" placeholder="Color (e.g. Red)" value="${colorTag}" 
+                       onchange="updateImageColor('${img.id}', '${cleanUrl}', this.value)" 
+                       style="width: 100%; font-size: 10px; padding: 4px 6px; margin-top: 4px; border: 1px solid #ddd; border-radius: 4px; height: 26px;">
             </div>`;
         });
         existingImagesDiv.innerHTML = imgHtml;
