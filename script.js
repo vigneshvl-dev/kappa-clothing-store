@@ -98,6 +98,37 @@ testDatabaseConnection();
     let PRODUCTS = []; // Will be populated by storefront loader
     let currentUserSession = null;
 
+    async function loadStorefrontProducts() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('products')
+                .select('*, product_images(url, position), product_variants(*)');
+            if (!error && data) {
+                PRODUCTS = data.map(p => {
+                    const sizesSet = new Set();
+                    const colorsSet = new Set();
+                    if (p.product_variants) {
+                        p.product_variants.forEach(v => {
+                            if (v.size) sizesSet.add(v.size);
+                            if (v.color) colorsSet.add(v.color);
+                        });
+                    }
+                    return {
+                        ...p,
+                        sizes: Array.from(sizesSet),
+                        colors: Array.from(colorsSet),
+                        img: (p.product_images && p.product_images.length > 0) ? p.product_images[0].url : 'assets/sleeping sis.png'
+                    };
+                });
+                window.PRODUCTS = PRODUCTS;
+                renderCart();
+            }
+        } catch (e) {
+            console.error("Error loading products for storefront:", e);
+        }
+    }
+    loadStorefrontProducts();
+
     /* ---------- UTILITIES ---------- */
     // Fixes the "fmt is not defined" error
     function fmt(price) {
@@ -859,7 +890,7 @@ window.addToCart = addToCart;
         <img src="${img}" alt="${name}">
         <div class="ci-info">
           <div class="ci-name">${name}</div>
-          <div class="ci-meta">Size: ${c.size} | Color: ${c.color}</div>
+          <div class="ci-meta">Size: ${c.size || 'Default'} | Color: ${c.color || 'N/A'}</div>
           <div class="ci-qty">
             <button data-dec="${idx}">−</button>
             <span>${c.qty}</span>
