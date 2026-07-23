@@ -4750,14 +4750,23 @@ body > *:last-child{
     }
 
     .boys-grid {
-        grid-template-columns: 1fr;
-        gap: 25px;
-        justify-items: center;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        justify-items: stretch;
     }
 
     .boys-card {
-        max-width: 340px;
+        max-width: none;
         width: 100%;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+
+    .boys-card img.boys-card-img {
+        aspect-ratio: 1/1;
+        border-radius: 14px 14px 0 0;
     }
 
     .boys-btn {
