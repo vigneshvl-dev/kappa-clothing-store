@@ -3480,6 +3480,46 @@ body > *:last-child{
     gap: 18px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--grey-300);
+    opacity: 0;
+    transform: translateX(30px) scale(0.96);
+}
+
+@keyframes cartItemIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+.overlay-right.open .cart-item {
+    animation: cartItemIn 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.overlay-right.open .cart-item:nth-child(1) { animation-delay: 0.06s; }
+.overlay-right.open .cart-item:nth-child(2) { animation-delay: 0.12s; }
+.overlay-right.open .cart-item:nth-child(3) { animation-delay: 0.18s; }
+.overlay-right.open .cart-item:nth-child(4) { animation-delay: 0.24s; }
+.overlay-right.open .cart-item:nth-child(5) { animation-delay: 0.30s; }
+.overlay-right.open .cart-item:nth-child(6) { animation-delay: 0.36s; }
+.overlay-right.open .cart-item:nth-child(7) { animation-delay: 0.42s; }
+.overlay-right.open .cart-item:nth-child(8) { animation-delay: 0.48s; }
+
+.cart-summary {
+    border-top: 1px solid var(--grey-300);
+    padding-top: 24px;
+    margin-top: 20px;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.4s ease 0.34s, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.34s;
+}
+
+.overlay-right.open .cart-summary {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .cart-item img {
@@ -3550,12 +3590,6 @@ body > *:last-child{
     text-align: center;
     color: var(--grey-500);
     font-size: 15px;
-}
-
-.cart-summary {
-    border-top: 1px solid var(--grey-300);
-    padding-top: 24px;
-    margin-top: 20px;
 }
 
 .promo-row {
@@ -7633,6 +7667,8 @@ body.reels-page {
 .profile-popup-menu li {
     padding: 0;
     margin: 0;
+    opacity: 0;
+    transform: translateY(16px) scale(0.92);
 }
 
 .profile-popup-menu a {
@@ -7646,6 +7682,30 @@ body.reels-page {
     transition: background 0.2s, color 0.2s;
     position: relative;
 }
+
+@keyframes popItemIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.profile-popup.open .profile-popup-menu li {
+    animation: popItemIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.profile-popup.open .profile-popup-menu li:nth-child(1) { animation-delay: 0.04s; }
+.profile-popup.open .profile-popup-menu li:nth-child(2) { animation-delay: 0.09s; }
+.profile-popup.open .profile-popup-menu li:nth-child(3) { animation-delay: 0.14s; }
+.profile-popup.open .profile-popup-menu li:nth-child(4) { animation-delay: 0.19s; }
+.profile-popup.open .profile-popup-menu li:nth-child(5) { animation-delay: 0.24s; }
+.profile-popup.open .profile-popup-menu li:nth-child(6) { animation-delay: 0.29s; }
+.profile-popup.open .profile-popup-menu li:nth-child(7) { animation-delay: 0.34s; }
+.profile-popup.open .profile-popup-menu li:nth-child(8) { animation-delay: 0.39s; }
 
 .profile-popup-menu a:hover {
     background: #f8f9fa;
