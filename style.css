@@ -2584,8 +2584,8 @@ body.scrolled .marquee {
 }
 
 .about-us-logo {
-    width: 80px;
-    height: auto;
+    height: 68px;
+    width: auto;
     margin-bottom: 32px;
     transition: transform 0.4s var(--ease);
 }
@@ -2596,8 +2596,9 @@ body.scrolled .marquee {
 
 .about-us-logo img {
     width: 100%;
-    height: auto;
+    height: 100%;
     object-fit: contain;
+    margin-top: -8px;
 }
 
 .about-us-subheading {
@@ -2654,14 +2655,14 @@ body.scrolled .marquee {
 }
 
 .badge-box-logo {
-    width: 60px;
-    height: auto;
+    height: 68px;
+    width: auto;
     margin-bottom: 24px;
 }
 
 .badge-box-logo img {
     width: 100%;
-    height: auto;
+    height: 100%;
     object-fit: contain;
 }
 
