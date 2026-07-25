@@ -1,3 +1,4 @@
+require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const Razorpay = require("razorpay");
 
 module.exports = async (req, res) => {
