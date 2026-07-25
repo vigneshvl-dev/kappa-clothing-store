@@ -1693,7 +1693,11 @@
 
         function handleBuyNow() {
             const pd = window.currentProductData;
-            if (!pd) return;
+            if (!pd) {
+                console.warn('handleBuyNow: no product data loaded');
+                if (typeof showProductToast === 'function') showProductToast('Product data is still loading. Please try again.');
+                return;
+            }
 
             let hasSizes = false, hasColors = false;
             if (pd.product_variants && pd.product_variants.length > 0) {
@@ -1760,6 +1764,8 @@
             // Navigate to checkout
             window.location.href = 'checkout.html';
         }
+
+        window.handleBuyNow = window.handleBuyNow || handleBuyNow;
 
         function parseArrayData(data) {
             if (!data) return [];
