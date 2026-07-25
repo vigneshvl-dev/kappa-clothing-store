@@ -163,18 +163,21 @@ testDatabaseConnection();
     // Only run loader logic if the loader element exists on the page
     if (document.getElementById("loader")) {
         document.body.style.overflow = "hidden";
-        document.addEventListener("DOMContentLoaded", () => {
-            const fill = document.getElementById("loaderFill");
+        const startLoader = () => {
             let p = 0;
             const iv = setInterval(() => {
                 p += 1;
-                if (fill) fill.style.width = p + "%";
                 if (p >= 100) {
                     clearInterval(iv);
                 }
-            }, 35); // 100 steps of 35ms = 3500ms (3.5 seconds)
+            }, 35);
             setTimeout(hideLoader, 3500);
-        });
+        };
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", startLoader);
+        } else {
+            startLoader();
+        }
     } else {
         // If no loader, start marquee immediately
         initMarquee();

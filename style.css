@@ -7525,14 +7525,23 @@ body.reels-page {
  animation-delay: -0.5s;
 }
 
-@keyframes scale {
- 0%, 40%, 100% {
-  transform: scaleY(0.05);
- }
+ @keyframes scale {
+  0%, 40%, 100% {
+   transform: scaleY(0.05);
+  }
 
- 20% {
-  transform: scaleY(1);
- }
+  20% {
+   transform: scaleY(1);
+  }
+}
+
+.loader-fill {
+    width: 0%;
+    height: 4px;
+    background: var(--ink);
+    margin-top: 30px;
+    border-radius: 2px;
+    transition: width 0.1s linear;
 }
 
 /* Color Thumbnails on Product Cards */
