@@ -1829,6 +1829,31 @@ body.scrolled .marquee {
     }
 }
 
+/* Mobile marquee alignment */
+@media (max-width: 768px) {
+    .marquee-static {
+        font-size: 11px;
+        letter-spacing: 1px;
+    }
+
+    .marquee-track span {
+        font-size: 11px;
+        letter-spacing: 1px;
+    }
+}
+
+@media (max-width: 480px) {
+    .marquee-static {
+        font-size: 10px;
+        letter-spacing: 0.5px;
+    }
+
+    .marquee-track span {
+        font-size: 10px;
+        letter-spacing: 0.5px;
+    }
+}
+
 /* ============ TRUST BAR ============ */
 .trust-bar {
     background: var(--white);
