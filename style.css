@@ -5377,6 +5377,7 @@ body > *:last-child{
 
 #accountOverlay .panel {
     display: none;
+    border-radius: 4px;
 }
 
 #accountOverlay .panel.active {
@@ -5387,11 +5388,9 @@ body > *:last-child{
 #accountOverlay .headline {
     font-size: 26px;
     font-weight: 700;
-    text-align: center;
+    text-align: left;
     margin: 0 0 6px;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    /* Reset global gradient/animation */
+    color: #000;
     font-family: 'Inter', sans-serif;
     background: none;
     -webkit-background-clip: unset;
@@ -5404,14 +5403,13 @@ body > *:last-child{
 
 #accountOverlay .subline {
     font-size: 14.5px;
-    color: var(--ink-soft);
-    text-align: center;
-    margin: 0 0 28px;
-    /* Reset global gradient/animation */
+    color: #777;
+    text-align: left;
+    margin: 0 0 25px;
     font-family: 'Inter', sans-serif;
     background: none;
     -webkit-background-clip: unset;
-    -webkit-text-fill-color: unset;
+    -webkit-text-fill-color: initial;
     background-clip: unset;
     animation: none;
     text-transform: none;
@@ -5471,11 +5469,11 @@ body > *:last-child{
 
 #accountOverlay .toggle-eye {
     position: absolute;
-    right: 12px;
+    right: 10px;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 6px;
+    padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -5495,21 +5493,20 @@ body > *:last-child{
 
 #accountOverlay .row-between {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin: 2px 0 22px;
-    font-size: 13px;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 14px;
 }
 
 #accountOverlay .checkbox-line {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 9px;
     cursor: pointer;
     user-select: none;
-    color: var(--ink-soft);
+    color: #444;
     font-size: 13px;
-    line-height: 1.5;
 }
 
 #accountOverlay .checkbox-line input[type="checkbox"] {
@@ -5570,50 +5567,63 @@ body > *:last-child{
 
 #accountOverlay .btn-primary {
     width: 100%;
-    padding: 14px 16px;
+    padding: 12px;
     border: none;
-    border-radius: 12px;
-    background: var(--ink);
-    color: var(--yellow);
+    border-radius: 6px;
+    background: #000;
+    color: #ffcc00;
     font-size: 15px;
-    font-weight: 700;
-    letter-spacing: .02em;
+    font-weight: 600;
     cursor: pointer;
-    box-shadow: var(--shadow-sm);
-    transition: transform .25s var(--ease), box-shadow .25s var(--ease), background .25s var(--ease);
+    transition: background 0.3s;
     position: relative;
     overflow: hidden;
     margin: 0;
 }
 
 #accountOverlay .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    background: #161616;
-    color: var(--yellow);
+    background: #222;
+    box-shadow: none;
+    transform: none;
+    color: #ffcc00;
 }
 
 #accountOverlay .btn-primary:active {
-    transform: translateY(0);
+    transform: none;
+    box-shadow: none;
 }
 
 #accountOverlay .divider {
     display: flex;
     align-items: center;
     gap: 14px;
-    margin: 24px 0;
-    color: #b7b7b7;
-    font-size: 11.5px;
-    font-weight: 700;
-    letter-spacing: .12em;
+    margin: 25px 0;
+    color: #aaa;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: normal;
 }
 
 #accountOverlay .divider::before,
 #accountOverlay .divider::after {
     content: "";
-    flex: 1;
+    position: absolute;
+    top: 50%;
+    width: 42%;
     height: 1px;
-    background: var(--line);
+    background: #ddd;
+}
+
+#accountOverlay .divider::before {
+    left: 0;
+}
+
+#accountOverlay .divider::after {
+    right: 0;
+}
+
+#accountOverlay .divider {
+    position: relative;
 }
 
 #accountOverlay .btn-google {
@@ -5622,21 +5632,29 @@ body > *:last-child{
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 12.5px 16px;
-    border-radius: 12px;
-    border: 1.5px solid var(--line);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
     background: #fff;
-    color: var(--ink);
-    font-size: 14.5px;
-    font-weight: 600;
+    color: #333;
+    font-size: 15px;
+    font-weight: 500;
     cursor: pointer;
-    transition: border-color .25s var(--ease), box-shadow .25s var(--ease), transform .25s var(--ease);
+    transition: border-color .25s var(--ease), background .25s var(--ease);
+    position: relative;
+    overflow: hidden;
 }
 
 #accountOverlay .btn-google:hover {
-    border-color: #d8d8d8;
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-1px);
+    border-color: #ccc;
+    background: #fafafa;
+    box-shadow: none;
+    transform: none;
+}
+
+#accountOverlay .btn-google:active {
+    transform: none;
+    box-shadow: none;
 }
 
 #accountOverlay .btn-google svg {
