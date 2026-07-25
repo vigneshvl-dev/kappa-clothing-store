@@ -107,6 +107,24 @@
             .panel-header { padding: 18px 20px 14px; }
             .addr-form-grid { grid-template-columns: 1fr; }
         }
+
+        .addr-modal { box-sizing: border-box; width: calc(100% - 32px); max-width: 480px; padding: 28px 24px; border-radius: 16px; background: #fff; box-shadow: 0 24px 80px rgba(0,0,0,0.15); transform: translateY(24px); transition: transform 0.28s cubic-bezier(.22,1,.36,1); }
+        .addr-modal-overlay { box-sizing: border-box; padding: 16px; }
+        .addr-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .addr-form-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+        .addr-form-field.full { grid-column: 1 / -1; }
+        .addr-form-field label { font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
+        .addr-form-field input, .addr-form-field select { box-sizing: border-box; width: 100%; padding: 11px 14px; border: 1.5px solid #e0e0de; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; color: #111; outline: none; transition: border-color 0.18s; }
+        .addr-form-field input:focus, .addr-form-field select:focus { border-color: #111; }
+
+        .address-list { padding: 0 28px 28px; display: flex; flex-direction: column; gap: 12px; }
+        .address-card { display: flex; align-items: stretch; justify-content: space-between; gap: 16px; padding: 18px 20px; border: 1.5px solid #e8e8e6; border-radius: 12px; background: #fff; transition: border-color 0.18s, box-shadow 0.18s; }
+        .address-card:hover { border-color: #111; box-shadow: 0 4px 18px rgba(0,0,0,0.06); }
+        .address-card-body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .address-card-name { font-weight: 700; font-size: 14px; color: #111; }
+        .address-card-line { font-size: 13px; color: #555; line-height: 1.5; }
+        .address-delete-btn { background: none; border: none; color: #bbb; cursor: pointer; font-size: 16px; padding: 4px 8px; transition: color 0.18s; align-self: flex-start; }
+        .address-delete-btn:hover { color: #e00; }
     </style>
 </head>
 <body class="profile-page">
@@ -202,15 +220,18 @@
                 <div class="empty-state" id="addressEmptyState">
                    <div class="empty-state-illustration">
                      <img src="./assets/map.png" alt="Map pin illustration">
-                    </div>
+                   </div>
 
                     <div class="empty-state-title">You are one step behind!</div>
                     <div class="empty-state-sub">Get a precise information on the delivery date by adding delivery address</div>
-                    <button class="btn-add-address" onclick="openAddressModal()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Add Address
-                    </button>
                 </div>
+
+                <button class="btn-add-address" onclick="openAddressModal()" id="btnAddAddress" style="display:none; margin: 0 28px 18px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add Address
+                </button>
+
+                <div class="address-list" id="addressListContainer"></div>
             </main>
 
         </div>
@@ -249,6 +270,10 @@
                     <label>Phone</label>
                     <input type="tel" id="addrPhone" placeholder="+91 98765 43210">
                 </div>
+                <div class="addr-form-field full">
+                    <label>Email</label>
+                    <input type="email" id="addrEmail" placeholder="you@example.com">
+                </div>
             </div>
             <div class="addr-form-actions">
                 <button class="btn-cancel" onclick="closeAddressModal()">Cancel</button>
@@ -259,12 +284,14 @@
 
     <div class="toast" id="toast"></div>
 
-    <script>
-        const supabaseClient = window.supabase.createClient(
-            'https://ugphxapfbzcrauchwlef.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
-        );
+    <!-- GSAP & Lenis Smooth Scroll Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+    <script src="animations.js"></script>
+    <script src="script.js"></script>
 
+    <script>
         function showToast(msg) {
             const t = document.getElementById('toast');
             if (!t) return;
@@ -281,13 +308,101 @@
             document.getElementById('addressModal').classList.remove('open');
         }
 
+        function getAddressKey() {
+            const uid = currentUser?.id || 'guest';
+            return `kappa_saved_addresses_${uid}`;
+        }
+
+        function getSavedAddresses() {
+            try {
+                return JSON.parse(localStorage.getItem(getAddressKey()) || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveAddressToStorage(addr) {
+            const addresses = getSavedAddresses();
+            addresses.push(addr);
+            localStorage.setItem(getAddressKey(), JSON.stringify(addresses));
+        }
+
+        function deleteAddressFromStorage(index) {
+            const addresses = getSavedAddresses();
+            addresses.splice(index, 1);
+            localStorage.setItem(getAddressKey(), JSON.stringify(addresses));
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderAddressList() {
+            const addresses = getSavedAddresses();
+            const emptyState = document.getElementById('addressEmptyState');
+            const listContainer = document.getElementById('addressListContainer');
+            const addBtn = document.getElementById('btnAddAddress');
+
+            if (addresses.length === 0) {
+                if (emptyState) emptyState.style.display = 'flex';
+                if (listContainer) listContainer.innerHTML = '';
+                if (addBtn) addBtn.style.display = 'inline-flex';
+                return;
+            }
+
+            if (emptyState) emptyState.style.display = 'none';
+            if (addBtn) addBtn.style.display = 'inline-flex';
+            if (!listContainer) return;
+
+            listContainer.innerHTML = addresses.map((addr, idx) => `
+                <div class="address-card">
+                    <div class="address-card-body">
+                        <div class="address-card-name">${escapeHtml(addr.firstName)} ${escapeHtml(addr.lastName)}</div>
+                        <div class="address-card-line">${escapeHtml(addr.line1)}</div>
+                        <div class="address-card-line">${escapeHtml(addr.city)}, ${escapeHtml(addr.state)} - ${escapeHtml(addr.pin)}</div>
+                        <div class="address-card-line">${escapeHtml(addr.phone)}</div>
+                        ${addr.email ? `<div class="address-card-line">${escapeHtml(addr.email)}</div>` : ''}
+                    </div>
+                    <button class="address-delete-btn" onclick="deleteAddress(${idx})" title="Delete">✕</button>
+                </div>
+            `).join('');
+        }
+
         function saveAddress() {
             const fn = document.getElementById('addrFirstName').value.trim();
             const ln = document.getElementById('addrLastName').value.trim();
             const line = document.getElementById('addrLine1').value.trim();
+            const city = document.getElementById('addrCity').value.trim();
+            const state = document.getElementById('addrState').value.trim();
+            const pin = document.getElementById('addrPin').value.trim();
+            const phone = document.getElementById('addrPhone').value.trim();
+            const email = document.getElementById('addrEmail').value.trim();
+
             if (!fn || !line) { showToast('Please fill in required fields'); return; }
+
+            saveAddressToStorage({ firstName: fn, lastName: ln, line1: line, city, state, pin, phone, email });
             showToast('Address saved successfully!');
             closeAddressModal();
+
+            document.getElementById('addrFirstName').value = '';
+            document.getElementById('addrLastName').value = '';
+            document.getElementById('addrLine1').value = '';
+            document.getElementById('addrCity').value = '';
+            document.getElementById('addrState').value = '';
+            document.getElementById('addrPin').value = '';
+            document.getElementById('addrPhone').value = '';
+            document.getElementById('addrEmail').value = '';
+
+            renderAddressList();
+        }
+
+        function deleteAddress(index) {
+            if (!confirm('Delete this address?')) return;
+            deleteAddressFromStorage(index);
+            showToast('Address deleted');
+            renderAddressList();
         }
 
         document.getElementById('addressModal').addEventListener('click', (e) => {
@@ -307,6 +422,8 @@
             document.getElementById('sidebarUserName').textContent = name;
             document.getElementById('profilePopupName').textContent = name;
             document.getElementById('profilePopupAvatarPlaceholder').textContent = initial;
+
+            renderAddressList();
 
             if (profileBtn) {
                 profileBtn.addEventListener('click', (e) => {
@@ -348,11 +465,6 @@
             });
         }
     </script>
-    <!-- GSAP & Lenis Smooth Scroll Engine -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
-    <script src="animations.js"></script>
 </body>
 </html>
 

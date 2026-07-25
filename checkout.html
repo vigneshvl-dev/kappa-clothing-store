@@ -251,6 +251,45 @@
         .btn-order:active {
             transform: scale(0.98);
         }
+
+        .saved-address-section {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        .saved-address-section label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .saved-address-select {
+            width: 100%;
+            padding: 12px;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .saved-address-select:focus {
+            border-color: #111;
+            outline: none;
+        }
+
+        .no-saved-address {
+            font-size: 12px;
+            color: #888;
+            font-style: italic;
+        }
     </style>
 </head>
 
@@ -387,6 +426,12 @@
         <!-- Billing Details Form -->
         <div class="checkout-section">
             <h2>Shipping &amp; Billing Details</h2>
+            <div class="saved-address-section" id="savedAddressSection" style="display:none;">
+                <label for="savedAddressSelect">Use Saved Address for Shipping &amp; Billing</label>
+                <select id="savedAddressSelect" class="saved-address-select" onchange="applySavedAddress()">
+                    <option value="">-- Select a saved address --</option>
+                </select>
+            </div>
             <form id="shipping-form" onsubmit="handleProceedToPayment(event)">
                 <div class="form-row">
                     <div class="form-group">
@@ -581,6 +626,67 @@
                 cartItems = [];
             }
             renderSummary();
+            loadSavedAddressOptions();
+        }
+
+        async function getCheckoutUser() {
+            try {
+                const { data } = await supabaseClient.auth.getUser();
+                return data?.user || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function loadSavedAddressOptions() {
+            const user = await getCheckoutUser();
+            const uid = user?.id || 'guest';
+            const key = `kappa_saved_addresses_${uid}`;
+            let addresses = [];
+            try {
+                addresses = JSON.parse(localStorage.getItem(key) || '[]');
+            } catch (e) {
+                addresses = [];
+            }
+
+            const section = document.getElementById('savedAddressSection');
+            const select = document.getElementById('savedAddressSelect');
+            if (!section || !select) return;
+
+            select.innerHTML = '<option value="">-- Select a saved address --</option>';
+
+            if (addresses.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            addresses.forEach((addr, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `${addr.firstName} ${addr.lastName}, ${addr.line1}, ${addr.city}, ${addr.state} - ${addr.pin}`;
+                select.appendChild(option);
+            });
+        }
+
+        async function applySavedAddress() {
+            const select = document.getElementById('savedAddressSelect');
+            const idx = select.value;
+            if (idx === '') return;
+
+            const user = await getCheckoutUser();
+            const uid = user?.id || 'guest';
+            const key = `kappa_saved_addresses_${uid}`;
+            const addresses = JSON.parse(localStorage.getItem(key) || '[]');
+            const addr = addresses[parseInt(idx)];
+            if (!addr) return;
+
+            document.getElementById('bill-name').value = `${addr.firstName} ${addr.lastName}`.trim();
+            if (addr.email) document.getElementById('bill-email').value = addr.email;
+            if (addr.phone) document.getElementById('bill-phone').value = addr.phone;
+            document.getElementById('bill-address').value = addr.line1;
+            document.getElementById('bill-state').value = addr.state;
+            document.getElementById('bill-zip').value = addr.pin;
         }
 
         function removeSummaryItem(idx) {
@@ -687,8 +793,32 @@
             zip: document.getElementById('bill-zip').value
         };
 
-        // Get the currently logged-in user right before inserting
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        let user = null;
+        try {
+            const { data } = await supabaseClient.auth.getUser();
+            user = data?.user || null;
+        } catch (e) {
+            console.error('Auth check failed:', e);
+        }
+
+        if (!user) {
+            try {
+                const formBackup = {
+                    name: document.getElementById('bill-name').value,
+                    email: document.getElementById('bill-email').value,
+                    phone: document.getElementById('bill-phone').value,
+                    address: document.getElementById('bill-address').value,
+                    state: document.getElementById('bill-state').value,
+                    zip: document.getElementById('bill-zip').value
+                };
+                localStorage.setItem('kappa_checkout_form', JSON.stringify(formBackup));
+                localStorage.setItem('kappa_pending_checkout', '1');
+            } catch (e) {
+                console.error('Failed to save checkout state:', e);
+            }
+            window.location.href = 'index.html';
+            return;
+        }
 
         // 2. Prepare order payload (Notice: NO PRICES are sent from client!)
         const orderPayload = {
