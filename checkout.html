@@ -251,6 +251,43 @@
         .btn-order:active {
             transform: scale(0.98);
         }
+
+        .saved-address-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 10px;
+        }
+
+        .saved-address-section label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+            letter-spacing: 0.05em;
+        }
+
+        .saved-address-select {
+            width: 100%;
+            padding: 13px 16px;
+            font-size: 14px;
+            border: 1.5px solid #e0e0de;
+            border-radius: 8px;
+            font-family: inherit;
+            background: #fff;
+            cursor: pointer;
+            color: #111;
+            outline: none;
+            transition: border-color 0.18s;
+            box-sizing: border-box;
+        }
+
+        .saved-address-select:focus {
+            border-color: #111;
+        }
     </style>
 </head>
 
@@ -267,10 +304,10 @@
         <nav class="nav-links">
             <a href="index.html#home" class="nav-link" data-i18n="nav_home">Home</a>
             <a href="about.html" class="nav-link">About</a>
-            <a href="index.html#footer" class="nav-link" data-i18n="nav_contact">Contact</a>
+            <a href="contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
         </nav>
 
-        <a href="index.html#home" class="nav-logo"><img src="https://cdn.corenexis.com/f/fRkaM2Pbrr7.png"
+        <a href="index.html#home" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png"
                 alt="KAPPA Fashion Store"></a>
 
         <div class="nav-actions">
@@ -387,6 +424,12 @@
         <!-- Billing Details Form -->
         <div class="checkout-section">
             <h2>Shipping &amp; Billing Details</h2>
+            <div class="saved-address-section" id="savedAddressSection" style="display:none;">
+                <label for="savedAddressSelect">Use Saved Address for Shipping &amp; Billing</label>
+                <select id="savedAddressSelect" class="saved-address-select" onchange="applySavedAddress()">
+                    <option value="">-- Select a saved address --</option>
+                </select>
+            </div>
             <form id="shipping-form" onsubmit="handleProceedToPayment(event)">
                 <div class="form-row">
                     <div class="form-group">
@@ -429,7 +472,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-order">Proceed to Payment</button>
+                <button type="submit" class="btn-order">Place Order</button>
             </form>
         </div>
 
@@ -470,7 +513,7 @@
         <div class="footer-top">
             <div class="footer-brand-col">
                 <a href="index.html#home" class="nav-logo" style="margin-bottom: 10px;">
-                    <img src="https://cdn.corenexis.com/f/fRkaM2Pbrr7.png" alt="KAPPA Fashion Store">
+                    <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store">
                 </a>
 
                 <h4 class="footer-heading">Office Address</h4>
@@ -559,7 +602,46 @@
         let shippingCost = 0;
         let discountPercent = 0;
 
-        function loadCheckoutDetails() {
+        async function autoSubmitIfPending() {
+            const isPending = localStorage.getItem('kappa_pending_checkout') === '1';
+            if (!isPending) return;
+
+            const user = await getCheckoutUser();
+            if (!user) return; // Still not logged in
+
+            // Populate the form from backup
+            try {
+                const formBackup = JSON.parse(localStorage.getItem('kappa_checkout_form') || '{}');
+                if (formBackup.name) document.getElementById('bill-name').value = formBackup.name;
+                if (formBackup.email) document.getElementById('bill-email').value = formBackup.email;
+                if (formBackup.phone) document.getElementById('bill-phone').value = formBackup.phone;
+                if (formBackup.address) document.getElementById('bill-address').value = formBackup.address;
+                if (formBackup.state) document.getElementById('bill-state').value = formBackup.state;
+                if (formBackup.zip) document.getElementById('bill-zip').value = formBackup.zip;
+            } catch (e) {
+                console.error("Error restoring checkout form backup:", e);
+            }
+
+            // Check form validity before auto-submitting
+            const form = document.getElementById('shipping-form');
+            if (form && !form.checkValidity()) {
+                // If invalid, clear flags so we don't try again automatically, and let the user click manually
+                localStorage.removeItem('kappa_pending_checkout');
+                localStorage.removeItem('kappa_checkout_form');
+                form.reportValidity();
+                return;
+            }
+
+            // Clear the pending flags
+            localStorage.removeItem('kappa_pending_checkout');
+            localStorage.removeItem('kappa_checkout_form');
+
+            // Submit the form!
+            const event = { preventDefault: () => {} };
+            await handleProceedToPayment(event);
+        }
+
+        async function loadCheckoutDetails() {
             try {
                 // Always read from the main cart (kappa_cart) — single source of truth
                 cartItems = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
@@ -581,6 +663,68 @@
                 cartItems = [];
             }
             renderSummary();
+            loadSavedAddressOptions();
+            await autoSubmitIfPending();
+        }
+
+        async function getCheckoutUser() {
+            try {
+                const { data } = await supabaseClient.auth.getUser();
+                return data?.user || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function loadSavedAddressOptions() {
+            const user = await getCheckoutUser();
+            const uid = user?.id || 'guest';
+            const key = `kappa_saved_addresses_${uid}`;
+            let addresses = [];
+            try {
+                addresses = JSON.parse(localStorage.getItem(key) || '[]');
+            } catch (e) {
+                addresses = [];
+            }
+
+            const section = document.getElementById('savedAddressSection');
+            const select = document.getElementById('savedAddressSelect');
+            if (!section || !select) return;
+
+            select.innerHTML = '<option value="">-- Select a saved address --</option>';
+
+            if (addresses.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            addresses.forEach((addr, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `${addr.firstName} ${addr.lastName}, ${addr.line1}, ${addr.city}, ${addr.state} - ${addr.pin}`;
+                select.appendChild(option);
+            });
+        }
+
+        async function applySavedAddress() {
+            const select = document.getElementById('savedAddressSelect');
+            const idx = select.value;
+            if (idx === '') return;
+
+            const user = await getCheckoutUser();
+            const uid = user?.id || 'guest';
+            const key = `kappa_saved_addresses_${uid}`;
+            const addresses = JSON.parse(localStorage.getItem(key) || '[]');
+            const addr = addresses[parseInt(idx)];
+            if (!addr) return;
+
+            document.getElementById('bill-name').value = `${addr.firstName} ${addr.lastName}`.trim();
+            if (addr.email) document.getElementById('bill-email').value = addr.email;
+            if (addr.phone) document.getElementById('bill-phone').value = addr.phone;
+            document.getElementById('bill-address').value = addr.line1;
+            document.getElementById('bill-state').value = addr.state;
+            document.getElementById('bill-zip').value = addr.pin;
         }
 
         function removeSummaryItem(idx) {
@@ -687,8 +831,32 @@
             zip: document.getElementById('bill-zip').value
         };
 
-        // Get the currently logged-in user right before inserting
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        let user = null;
+        try {
+            const { data } = await supabaseClient.auth.getUser();
+            user = data?.user || null;
+        } catch (e) {
+            console.error('Auth check failed:', e);
+        }
+
+        if (!user) {
+            try {
+                const formBackup = {
+                    name: document.getElementById('bill-name').value,
+                    email: document.getElementById('bill-email').value,
+                    phone: document.getElementById('bill-phone').value,
+                    address: document.getElementById('bill-address').value,
+                    state: document.getElementById('bill-state').value,
+                    zip: document.getElementById('bill-zip').value
+                };
+                localStorage.setItem('kappa_checkout_form', JSON.stringify(formBackup));
+                localStorage.setItem('kappa_pending_checkout', '1');
+            } catch (e) {
+                console.error('Failed to save checkout state:', e);
+            }
+            window.location.href = 'index.html';
+            return;
+        }
 
         // 2. Prepare order payload (Notice: NO PRICES are sent from client!)
         const orderPayload = {
@@ -827,7 +995,7 @@
                 order_id: order.order_id,
                 name: "Kappa Fashion Store",
                 description: "Test Payment",
-                image: "https://cdn.corenexis.com/f/fRkaM2Pbrr7.png",
+                image: "assets/IMG_4646-removebg-preview.png",
                 handler: async function (response) {
                     console.log("Razorpay Payment Successful! Response:", response);
                     try {
@@ -939,3 +1107,5 @@
 </body>
 
 </html>
+
+

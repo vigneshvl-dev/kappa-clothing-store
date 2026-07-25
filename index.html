@@ -35,6 +35,7 @@
             <span></span>
             <span></span>
         </div>
+        <div class="loader-fill" id="loaderFill"></div>
     </div>
 
     <div class="cursor-glow" id="cursorGlow"></div>
@@ -52,10 +53,10 @@
         <nav class="nav-links">
             <a href="#home" class="nav-link" data-i18n="nav_home">Home</a>
             <a href="about.html" class="nav-link">About</a>
-            <a href="#footer" class="nav-link" data-i18n="nav_contact">Contact</a>
+            <a href="contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
         </nav>
 
-        <a href="#home" class="nav-logo"><img src="./assets/IMG_4646-removebg-preview.png"
+        <a href="#home" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png"
                 alt="KAPPA Fashion Store"></a>
 
         <div class="nav-actions">
@@ -293,17 +294,7 @@
                     data-mobile-bg="assets/Frame%204%20-%20Mobile.webp"></div>
                 <div class="hero-slide" style="background-image:url('assets/Frame%201.webp')"
                     data-mobile-bg="assets/Frame%201%20-%20Mobile.webp">
-                    <img src="assets/slide2-logo.png" alt="Logo" style="
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        max-width: 320px;
-                        width: 40%;
-                        pointer-events: none;
-                        z-index: 5;
-                        filter: drop-shadow(0 4px 24px rgba(0,0,0,0.35));
-                    ">
+                  
                 </div>
                 <div class="hero-slide" style="background-image:url('assets/Frame%2012.webp')"
                     data-mobile-bg="assets/Frame%202%20-%20Mobile.webp"></div>
@@ -377,14 +368,14 @@
                     <img src="assets/duplicate.png" alt="MEN">
                     <div class="editorial-card-content">
                         <h3>MEN</h3>
-                        <a href="#boys-arrival-container" class="editorial-shop-link">SHOP NOW</a>
+                        <a href="shop.html?filter=men"class="editorial-shop-link">SHOP NOW</a>
                     </div>
                 </div>
                 <div class="editorial-card" onclick="location.href='#girls-collection'">
                     <img src="assets/WOMENFASHION.png" alt="WOMEN">
                     <div class="editorial-card-content">
                         <h3>WOMEN</h3>
-                        <a href="#girls-arrivals" class="editorial-shop-link">SHOP NOW</a>
+                        <a href="shop.html?filter=women"class="editorial-shop-link">SHOP NOW</a>
                     </div>
                 </div>
             </div>
@@ -804,7 +795,7 @@
             <div class="footer-top">
                 <div class="footer-brand-col">
                     <a href="#home" class="nav-logo" style="margin-bottom: 10px;">
-                        <img src="./assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store">
+                        <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store">
                     </a>
 
                     <h4 class="footer-heading">Office Address</h4>
@@ -972,14 +963,14 @@
                     <a href="#home" class="about-nav-link"
                         onclick="document.getElementById('accountClose').click();">Home</a>
                     <a href="about.html" class="about-nav-link">About</a>
-                    <a href="#footer" class="about-nav-link"
+                    <a href="contact.html" class="about-nav-link"
                         onclick="document.getElementById('accountClose').click();">Contact</a>
                 </div>
                 <button class="account-nav-toggle" id="accountNavToggle" aria-label="Menu">
                     <span></span><span></span><span></span>
                 </button>
                 <a href="#home" class="about-nav-logo" onclick="document.getElementById('accountClose').click();"><img
-                        src="https://cdn.corenexis.com/f/fRkaM2Pbrr7.png" alt="KAPPA"></a>
+                        src="assets/IMG_4646-removebg-preview.png" alt="KAPPA"></a>
                 <div class="about-nav-right">
                     <a href="#home" class="back-to-home-btn" onclick="document.getElementById('accountClose').click();">
                         <span>Back to Home</span>
@@ -1158,3 +1149,5 @@
 </body>
 
 </html>
+
+

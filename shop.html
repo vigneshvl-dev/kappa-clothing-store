@@ -10,19 +10,25 @@
     <!-- Supabase Setup -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- Fonts: Jost (headings / labels) + Inter (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
     <style>
         /* --- ARCHITECTURAL RESETS --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #111; line-height: 1.4; background: #fff; }
+        body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #111; line-height: 1.5; background: #fff; }
         a { text-decoration: none; color: inherit; cursor: pointer; }
         ul { list-style: none; }
 
         /* --- SHOP LAYOUT --- */
         .shop-layout {
             display: flex;
+            align-items: flex-start;
             max-width: 1400px;
             margin: 40px auto;
-            padding: 0 40px;
+            padding: 300px 40px;
             gap: 50px;
             min-height: 80vh;
         }
@@ -34,21 +40,27 @@
             position: sticky;
             top: 40px;
             height: max-content;
+            text-align: left;
         }
         .filter-title {
-            font-size: 10px;
-            font-weight: 800;
+            font-family: 'Jost', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
             margin-bottom: 30px;
             border-bottom: 1px solid #111;
-            padding-bottom: 10px;
+            padding-bottom: 12px;
+            text-align: left;
         }
         .filter-group { margin-bottom: 25px; }
         .cat-parent {
-            font-size: 12px;
-            font-weight: 700;
+            font-family: 'Jost', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
+            text-align: left;
             margin-bottom: 10px;
             cursor: pointer;
             transition: color 0.2s;
@@ -58,10 +70,14 @@
             padding-left: 10px;
             margin-bottom: 15px;
             border-left: 1px solid #eee;
+            text-align: left;
         }
         .cat-child {
-            font-size: 11px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            letter-spacing: 0.3px;
             text-transform: uppercase;
+            text-align: left;
             color: #555;
             margin-bottom: 8px;
             cursor: pointer;
@@ -69,9 +85,12 @@
         }
         .cat-child:hover, .cat-child.active { color: #111; font-weight: 700; }
         .btn-view-all {
-            font-size: 11px;
+            font-family: 'Jost', sans-serif;
+            font-size: 12px;
             font-weight: 700;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
+            text-align: left;
             cursor: pointer;
             margin-bottom: 20px;
             display: block;
@@ -85,16 +104,20 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
-            font-size: 11px;
+            font-family: 'Jost', sans-serif;
+            font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: 1px;
             font-weight: 600;
+            text-align: left;
         }
         .shop-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 30px;
+            align-items: start;
         }
-        .empty-state { grid-column: 1 / -1; text-align: center; padding: 50px; color: #777; font-size: 12px; text-transform: uppercase; }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 50px; color: #777; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
 
         /* Responsive */
         @media (max-width: 900px) {
@@ -120,7 +143,8 @@
             color: #111;
             background: transparent;
             text-decoration: none;
-            font-size: 11px;
+            font-family: 'Jost', sans-serif;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -141,36 +165,69 @@
 <body>
 
     <!-- HEADER (Kappa Yellow) -->
-    <header style="background-color: #FFD700; border-bottom: 1px solid #e0c200;">
-        <div style="max-width: 1400px; margin: 0 auto; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;">
-            <button class="hamburger" id="shopHamburger" aria-label="Menu" style="display:none;">
-                <span></span><span></span><span></span>
+     <header class="navbar" id="navbar">
+        <!-- LEFT TOGGLE (mobile only) -->
+        <button class="hn-hamburger" id="heroHamburger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+
+        <nav class="nav-links">
+            <a href="index.html#home" class="nav-link" data-i18n="nav_home">Home</a>
+            <a href="about.html" class="nav-link">About</a>
+            <a href="contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
+        </nav>
+
+        <a href="index.html#home" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png"
+                alt="KAPPA Fashion Store"></a>
+
+        <div class="nav-actions">
+            <button class="icon-btn cart-btn" id="cartBtn">
+                <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
             </button>
-            <nav style="font-size: 12px; font-weight: 500; display: flex; gap: 20px;">
-                <a href="index.html">Home</a>
-                <a href="#">About</a>
-            </nav>
-            <a href="index.html" style="text-decoration: none; color: black; font-weight: 800; font-size: 20px; letter-spacing: 2px; text-transform: uppercase;">KAPPA</a>
-            <div style="font-size: 12px; font-weight: 500;">🛒 Cart (0)</div>
+            <button class="icon-btn profile-btn" id="profileBtn">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg>
+            </button>
+            <div class="profile-popup" id="profilePopup">
+                <div class="profile-popup-header">
+                    <div class="profile-avatar-circle">
+                        <img src="" id="profilePopupAvatarImg" class="profile-avatar-img" style="display:none;" />
+                        <div id="profilePopupAvatarPlaceholder" class="profile-avatar-placeholder">U</div>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="profilePopupName">User</div>
+                        <a href="#" class="profile-link" id="profilePopupLink">My Profile</a>
+                    </div>
+                </div>
+                <div class="profile-divider"></div>
+                <ul class="profile-popup-menu">
+                    <li><a href="my-orders.html" id="popupMyOrders"><span class="menu-icon-wrap" style="background-color:#ffeef2;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span><span class="menu-label">My Orders</span></a></li>
+                    <li><a href="track-order.html" id="popupTrackOrder"><span class="menu-icon-wrap" style="background-color:#e8f5e9;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></span><span class="menu-label">Track Order</span></a></li>
+                    <li><a href="saved-address.html" id="popupSavedAddress"><span class="menu-icon-wrap" style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span><span class="menu-label">Saved Address</span></a></li>
+                    <li><a href="my-reviews.html" id="popupMyReviews"><span class="menu-icon-wrap" style="background-color:#fff9c4;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span><span class="menu-label">My Reviews</span></a></li>
+                    <li><a href="my-notifications.html" id="popupMyNotifications"><span class="menu-icon-wrap" style="background-color:#f3e8ff;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0-6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span><span class="menu-label">My Notifications</span></a></li>
+                    <li><a href="my-coupons.html" id="popupMyCoupons"><span class="menu-icon-wrap" style="background-color:#ffeedb;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><path d="M20 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><rect x="4" y="6" width="16" height="12" rx="2"></rect><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="4"></line></svg></span><span class="menu-label">My Coupons</span></a></li>
+                    <li><a href="#" id="popupLogout"><span class="menu-icon-wrap" style="background-color:#ffebee;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></span><span class="menu-label">Logout</span></a></li>
+                </ul>
+            </div>
         </div>
     </header>
 
     <!-- MOBILE MENU -->
-    <div class="mobile-menu" id="shopMobileMenu">
+   <div class="mobile-menu" id="mobileMenu">
         <div class="mobile-menu-header">
             <span class="mobile-menu-title">Menu</span>
-            <button class="mobile-menu-close-btn" id="shopMobileMenuClose" aria-label="Close menu">✕</button>
+            <button class="mobile-menu-close-btn" id="mobileMenuClose" aria-label="Close menu">✕</button>
         </div>
         <div class="mobile-menu-body">
-            <a href="index.html" class="mnav-link">Home</a>
+            <a href="index.html#home" class="mnav-link">Home</a>
             <a href="about.html" class="mnav-link">About</a>
-            <a href="#" class="mnav-link" id="shopMobileOrdersLink">Orders</a>
+            <a href="#" class="mnav-link" id="mobileOrdersLink">Orders</a>
             <a href="shop.html?filter=sale" class="mnav-link">Shop</a>
             <a href="contact.html" class="mnav-link">Contact</a>
             <a href="shop.html" class="mnav-link">All products</a>
         </div>
         <div class="mobile-menu-footer">
-            <a href="#" class="mobile-login-btn" id="shopMobileAccountLink">
+            <a href="#" class="mobile-login-btn" id="mobileAccountLink">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
                     <circle cx="12" cy="8" r="4"></circle>
@@ -178,6 +235,57 @@
                 </svg>
                 <span>Login / Register</span>
             </a>
+        </div>
+    </div>
+<!-- ads -->
+<nav class="bottom-nav">
+        <a href="index.html#home" class="bnav-item" data-label="Home" data-i18n="nav_home">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 11l9-8 9 8"></path>
+                <path d="M5 10v10h14V10"></path>
+            </svg>
+        </a>
+        <button class="bnav-item" id="bnavSearch" data-label="Search" data-i18n="nav_search">
+            <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </button>
+        <a href="reels.html" class="bnav-item active" data-label="Reels">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" style="width:20px;height:20px;display:block;margin:0 auto;">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+        </a>
+        <button class="bnav-item" id="bnavWish" data-label="Wishlist" data-i18n="nav_wishlist">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M12 21s-7.5-4.6-10-9.2C.4 8 2 4 6 4c2.2 0 3.7 1.2 4.7 2.6C11.7 5.2 13.2 4 15.4 4c4 0 5.6 4 4 7.8-2.5 4.6-10 9.2-10 9.2z">
+                </path>
+            </svg>
+        </button>
+        <button class="bnav-item" id="bnavCart" data-label="Cart" data-i18n="nav_cart">
+            <svg viewBox="0 0 24 24">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path>
+            </svg>
+        </button>
+    </nav>
+
+    <div class="marquee">
+        <div class="marquee-static">★ THIRUVANANTHAPURAM'S BEST FASHION SHOP ★</div>
+        <div class="marquee-track">
+            <span>NEW DROP&nbsp;&nbsp;★&nbsp;&nbsp;Extra 5% OFF on Pre-Paid Orders&nbsp;&nbsp;★&nbsp;&nbsp;Additional
+                15% OFF on Above 3000/-&nbsp;&nbsp;★&nbsp;&nbsp;LIMITED RUN&nbsp;&nbsp;★&nbsp;&nbsp;FREE SHIPPING OVER
+                ₹4000&nbsp;&nbsp;★&nbsp;&nbsp;Additional 20% OFF on Above 5000/-&nbsp;&nbsp;★&nbsp;&nbsp;Flat 15% Off on
+                All Products&nbsp;&nbsp;★&nbsp;&nbsp;</span>
+            <span>NEW DROP&nbsp;&nbsp;★&nbsp;&nbsp;Extra 5% OFF on Pre-Paid Orders&nbsp;&nbsp;★&nbsp;&nbsp;Additional
+                15% OFF on Above 3000/-&nbsp;&nbsp;★&nbsp;&nbsp;LIMITED RUN&nbsp;&nbsp;★&nbsp;&nbsp;FREE SHIPPING OVER
+                ₹4000&nbsp;&nbsp;★&nbsp;&nbsp;Additional 20% OFF on Above 5000/-&nbsp;&nbsp;★&nbsp;&nbsp;Flat 15% Off on
+                All Products&nbsp;&nbsp;★&nbsp;&nbsp;</span>
         </div>
     </div>
 
@@ -193,14 +301,14 @@
 
             <!-- Availability Filter -->
             <div class="filter-group" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-                <div class="filter-subtitle" style="font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center;">
+                <div class="filter-subtitle" style="font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; text-align: left;">
                     <span>Availability</span>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 10px; padding-left: 10px; border-left: 1px solid #eee;">
-                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <label style="font-family: 'Inter', sans-serif; font-size: 12px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer; text-align: left;">
                         <input type="checkbox" class="stock-filter-checkbox" value="in-stock" style="accent-color: #111;"> In stock
                     </label>
-                    <label style="font-size: 11px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <label style="font-family: 'Inter', sans-serif; font-size: 12px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer; text-align: left;">
                         <input type="checkbox" class="stock-filter-checkbox" value="out-of-stock" style="accent-color: #111;"> Out of stock
                     </label>
                 </div>
@@ -231,50 +339,56 @@
     </div>
 
     <!-- FOOTER -->
-    <footer class="footer" id="footer" style="background:#fff; border-top:1px solid #eee; margin-top:60px;">
-        <div class="footer-top" style="max-width: 1400px; margin: 0 auto; padding: 40px 40px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px;">
+    <footer class="footer" id="footer">
+        <div class="footer-top">
             <div class="footer-brand-col">
-                <a href="index.html#home" class="nav-logo" style="margin-bottom: 10px; display: block;">
-                    <img src="https://cdn.corenexis.com/f/fRkaM2Pbrr7.png" alt="KAPPA Fashion Store" style="max-height: 40px;">
+                <a href="index.html#home" class="nav-logo" style="margin-bottom: 10px;">
+                    <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store">
                 </a>
-                <h4 class="footer-heading" style="font-size:12px; font-weight:700; text-transform:uppercase; margin-bottom:15px; color:#111;">Office Address</h4>
-                <p class="footer-text" style="font-size:13px; color:#666; line-height:1.6; margin: 0 0 15px;">
+
+                <h4 class="footer-heading">Office Address</h4>
+                <p class="footer-text">
                     Mahatma Gandhi Rd, opposite Hotel Azad,<br>
                     Overbridge, Nalumukku, Pazhavangadi,<br>
                     Thiruvananthapuram, Kerala 695023, India
                 </p>
-                <h4 class="footer-heading" style="font-size:12px; font-weight:700; text-transform:uppercase; margin-bottom:10px; color:#111;">Contact Support</h4>
-                <p class="footer-text" style="font-size:13px; margin: 0;">
-                    <a href="mailto:kappatvm@gmail.com" style="color:#111; text-decoration:none;">kappatvm@gmail.com</a>
+
+                <h4 class="footer-heading" style="margin-top: 10px;">Contact Support</h4>
+                <p class="footer-text">
+                    <a href="mailto:kappatvm@gmail.com" class="footer-link-email">kappatvm@gmail.com</a>
                 </p>
             </div>
 
-            <div class="footer-col" style="display:flex; flex-direction:column; gap:10px;">
-                <h4 class="footer-heading" style="font-size:12px; font-weight:700; text-transform:uppercase; margin-bottom:15px; color:#111;">Quick Links</h4>
-                <a href="about.html" style="font-size:13px; color:#666; text-decoration:none;">Our Story</a>
-                <a href="shop.html" style="font-size:13px; color:#666; text-decoration:none;">Collections</a>
-                <a href="reels.html" style="font-size:13px; color:#666; text-decoration:none;">Reels</a>
+            <div class="footer-col">
+                <h4 class="footer-heading">Quick Links</h4>
+                <a href="about.html">Our Story</a>
+                <a href="shop.html">Collections</a>
+                <a href="reels.html">Reels</a>
             </div>
 
-            <div class="footer-col" style="display:flex; flex-direction:column; gap:10px;">
-                <h4 class="footer-heading" style="font-size:12px; font-weight:700; text-transform:uppercase; margin-bottom:15px; color:#111;">Support</h4>
-                <a href="contact.html" style="font-size:13px; color:#666; text-decoration:none;">Contact Us</a>
-                <a href="shipping.html" style="font-size:13px; color:#666; text-decoration:none;">Shipping Policy</a>
-                <a href="refund.html" style="font-size:13px; color:#666; text-decoration:none;">Returns &amp; Refunds</a>
+            <div class="footer-col">
+                <h4 class="footer-heading">Support</h4>
+                <a href="contact.html">Contact Us</a>
+                <a href="shipping.html">Shipping Policy</a>
+                <a href="refund.html">Returns &amp; Refunds</a>
             </div>
 
-            <div class="footer-col" style="display:flex; flex-direction:column; gap:10px;">
-                <h4 class="footer-heading" style="font-size:12px; font-weight:700; text-transform:uppercase; margin-bottom:15px; color:#111;">Legal</h4>
-                <a href="privacy.html" style="font-size:13px; color:#666; text-decoration:none;">Privacy Policy</a>
-                <a href="terms.html" style="font-size:13px; color:#666; text-decoration:none;">Terms &amp; Conditions</a>
+            <div class="footer-col">
+                <h4 class="footer-heading">Legal</h4>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms &amp; Conditions</a>
             </div>
         </div>
 
-        <div class="footer-bottom" style="text-align:center; padding: 20px; font-size:12px; color:#999; border-top: 1px solid #eee; max-width: 1400px; margin: 0 auto;">
-            <p>© 2026 KAPPA. All rights reserved. Designed by Hyna Studio</p>
+        <div class="footer-illustration">
+            <img src="assets/kappamenwomen.png" alt="Kappa Fashion Illustration">
+        </div>
+
+        <div class="footer-bottom">
+            <p>© <span id="year"></span> KAPPA. All rights reserved.</p>
+            <p>Designed by Hyna Studio</p>
         </div>
     </footer>
-
     <!-- EXECUTION LOGIC SCRIPTS -->
     <script>
         const supabaseUrl = 'https://ugphxapfbzcrauchwlef.supabase.co'; 
