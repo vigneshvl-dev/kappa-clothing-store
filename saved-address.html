@@ -56,7 +56,6 @@
 
         .btn-add-address:hover { background: #333; transform: translateY(-1px); }
 
-        /* Address Form Modal */
         .addr-modal-overlay {
             position: fixed;
             inset: 0;
@@ -65,6 +64,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 16px;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.22s;
@@ -73,11 +73,12 @@
         .addr-modal-overlay.open { opacity: 1; pointer-events: all; }
 
         .addr-modal {
-            background: #fff;
-            border-radius: 16px;
-            width: 100%;
+            box-sizing: border-box;
+            width: calc(100% - 32px);
             max-width: 480px;
-            padding: 32px 28px;
+            padding: 28px 24px;
+            border-radius: 16px;
+            background: #fff;
             box-shadow: 0 24px 80px rgba(0,0,0,0.15);
             transform: translateY(24px);
             transition: transform 0.28s cubic-bezier(.22,1,.36,1);
@@ -87,13 +88,47 @@
 
         .addr-modal-title { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 24px; }
 
-        .addr-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .addr-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
 
-        .addr-form-field { display: flex; flex-direction: column; gap: 6px; }
+        .addr-form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
         .addr-form-field.full { grid-column: 1 / -1; }
-        .addr-form-field label { font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
-        .addr-form-field input, .addr-form-field select { padding: 11px 14px; border: 1.5px solid #e0e0de; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; color: #111; outline: none; transition: border-color 0.18s; }
-        .addr-form-field input:focus, .addr-form-field select:focus { border-color: #111; }
+
+        .addr-form-field label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .addr-form-field input,
+        .addr-form-field select {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #e0e0de;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            color: #111;
+            outline: none;
+            transition: border-color 0.18s;
+        }
+
+        .addr-form-field input:focus,
+        .addr-form-field select:focus {
+            border-color: #111;
+        }
 
         .addr-form-actions { display: flex; gap: 12px; margin-top: 24px; }
         .addr-form-actions .btn-save { flex: 1; padding: 13px; background: #111; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.18s; font-family: 'Inter', sans-serif; }
@@ -107,15 +142,6 @@
             .panel-header { padding: 18px 20px 14px; }
             .addr-form-grid { grid-template-columns: 1fr; }
         }
-
-        .addr-modal { box-sizing: border-box; width: calc(100% - 32px); max-width: 480px; padding: 28px 24px; border-radius: 16px; background: #fff; box-shadow: 0 24px 80px rgba(0,0,0,0.15); transform: translateY(24px); transition: transform 0.28s cubic-bezier(.22,1,.36,1); }
-        .addr-modal-overlay { box-sizing: border-box; padding: 16px; }
-        .addr-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .addr-form-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-        .addr-form-field.full { grid-column: 1 / -1; }
-        .addr-form-field label { font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
-        .addr-form-field input, .addr-form-field select { box-sizing: border-box; width: 100%; padding: 11px 14px; border: 1.5px solid #e0e0de; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; color: #111; outline: none; transition: border-color 0.18s; }
-        .addr-form-field input:focus, .addr-form-field select:focus { border-color: #111; }
 
         .address-list { padding: 0 28px 28px; display: flex; flex-direction: column; gap: 12px; }
         .address-card { display: flex; align-items: stretch; justify-content: space-between; gap: 16px; padding: 18px 20px; border: 1.5px solid #e8e8e6; border-radius: 12px; background: #fff; transition: border-color 0.18s, box-shadow 0.18s; }
