@@ -472,7 +472,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-order">Proceed to Payment</button>
+                <button type="submit" class="btn-order">Place Order</button>
             </form>
         </div>
 
@@ -602,7 +602,46 @@
         let shippingCost = 0;
         let discountPercent = 0;
 
-        function loadCheckoutDetails() {
+        async function autoSubmitIfPending() {
+            const isPending = localStorage.getItem('kappa_pending_checkout') === '1';
+            if (!isPending) return;
+
+            const user = await getCheckoutUser();
+            if (!user) return; // Still not logged in
+
+            // Populate the form from backup
+            try {
+                const formBackup = JSON.parse(localStorage.getItem('kappa_checkout_form') || '{}');
+                if (formBackup.name) document.getElementById('bill-name').value = formBackup.name;
+                if (formBackup.email) document.getElementById('bill-email').value = formBackup.email;
+                if (formBackup.phone) document.getElementById('bill-phone').value = formBackup.phone;
+                if (formBackup.address) document.getElementById('bill-address').value = formBackup.address;
+                if (formBackup.state) document.getElementById('bill-state').value = formBackup.state;
+                if (formBackup.zip) document.getElementById('bill-zip').value = formBackup.zip;
+            } catch (e) {
+                console.error("Error restoring checkout form backup:", e);
+            }
+
+            // Check form validity before auto-submitting
+            const form = document.getElementById('shipping-form');
+            if (form && !form.checkValidity()) {
+                // If invalid, clear flags so we don't try again automatically, and let the user click manually
+                localStorage.removeItem('kappa_pending_checkout');
+                localStorage.removeItem('kappa_checkout_form');
+                form.reportValidity();
+                return;
+            }
+
+            // Clear the pending flags
+            localStorage.removeItem('kappa_pending_checkout');
+            localStorage.removeItem('kappa_checkout_form');
+
+            // Submit the form!
+            const event = { preventDefault: () => {} };
+            await handleProceedToPayment(event);
+        }
+
+        async function loadCheckoutDetails() {
             try {
                 // Always read from the main cart (kappa_cart) — single source of truth
                 cartItems = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
@@ -625,6 +664,7 @@
             }
             renderSummary();
             loadSavedAddressOptions();
+            await autoSubmitIfPending();
         }
 
         async function getCheckoutUser() {

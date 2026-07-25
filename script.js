@@ -589,7 +589,17 @@ testDatabaseConnection();
     const accountOverlay = document.getElementById("accountOverlay");
 
     function openOverlay(el) { if (el) { el.classList.add("open"); document.body.style.overflow = "hidden"; } }
-    function closeOverlay(el) { if (el) { el.classList.remove("open"); document.body.style.overflow = ""; } }
+    function closeOverlay(el) {
+        if (el) {
+            el.classList.remove("open");
+            document.body.style.overflow = "";
+            if (el === accountOverlay) {
+                // If they close the account overlay, cancel pending checkout
+                localStorage.removeItem('kappa_pending_checkout');
+                localStorage.removeItem('kappa_checkout_form');
+            }
+        }
+    }
 
     // Helper to safely add event listeners so the script doesn't crash!
     function safeAddListener(id, event, callback) {
@@ -1458,6 +1468,13 @@ window.addToCart = addToCart;
             if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
             if (event === 'SIGNED_IN') showToast('Welcome back, ' + getUserDisplayName(session.user) + '!');
 
+            // If we have a pending checkout, redirect back to checkout.html
+            if (localStorage.getItem('kappa_pending_checkout') === '1') {
+                if (!window.location.pathname.includes('checkout.html')) {
+                    window.location.href = 'checkout.html';
+                }
+            }
+
             injectDashboardPanel();
 
             // Adjust overlay class
@@ -1513,6 +1530,13 @@ window.addToCart = addToCart;
             if (panelDashboard) panelDashboard.classList.remove('active');
             if (panelSignup) panelSignup.classList.remove('active');
             if (panelLogin) panelLogin.classList.add('active');
+
+            // Auto-open login panel if pending checkout
+            if (localStorage.getItem('kappa_pending_checkout') === '1') {
+                if (accountOverlay) {
+                    openOverlay(accountOverlay);
+                }
+            }
         }
     });
 
