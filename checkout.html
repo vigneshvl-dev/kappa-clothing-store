@@ -795,46 +795,65 @@
             const amountInPaise = Math.round(secureTotal * 100);
 
             // 2. Call backend to create a Razorpay order securely
-            const { data: order, error: funcError } = await supabaseClient.functions.invoke('create-order', {
-                body: { 
+            const response = await fetch("/api/create-order", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
                     amount: amountInPaise,
-                    receipt_id: dbOrderId 
-                }
+                    currency: "INR",
+                    receipt: dbOrderId ? String(dbOrderId) : "receipt_" + Date.now()
+                })
             });
 
-            if (funcError) {
-                console.error("Full Function Error Object:", funcError);
-                let detailedMsg = funcError.message;
-                
-                try {
-                    if (funcError.context && typeof funcError.context.json === 'function') {
-                        const errJson = await funcError.context.json();
-                        detailedMsg = errJson.error || detailedMsg;
-                    }
-                } catch (e) {
-                    // Ignore parsing fallback error
-                }
-
-                throw new Error(detailedMsg);
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || `HTTP error! status: ${response.status}`);
             }
+
+            const order = await response.json();
             console.log("Razorpay Order created:", order);
 
-            if (!order.id) {
+            if (!order.order_id) {
                 console.error("Razorpay Error Response:", order);
-                throw new Error(order.error?.description || "No order ID returned from server");
+                throw new Error("No order ID returned from server");
             }
 
             var options = {
-                key: "rzp_test_TFOxCSs3iPI2pU",
+                key: order.key_id,
                 amount: order.amount,
                 currency: order.currency,
-                order_id: order.id,
+                order_id: order.order_id,
                 name: "Kappa Fashion Store",
                 description: "Test Payment",
                 image: "https://cdn.corenexis.com/f/fRkaM2Pbrr7.png",
                 handler: async function (response) {
                     console.log("Razorpay Payment Successful! Response:", response);
                     try {
+                        // Call backend endpoint to verify signature
+                        const verifyRes = await fetch("/api/verify-payment", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+
+                        if (!verifyRes.ok) {
+                            const errData = await verifyRes.json();
+                            throw new Error(errData.error || "Payment signature verification failed");
+                        }
+
+                        const verifyData = await verifyRes.json();
+                        if (!verifyData.success) {
+                            throw new Error("Payment signature verification failed on the server");
+                        }
+
                         if (dbOrderId) {
                             console.log("Updating order status in DB for order:", dbOrderId);
                             const { error: upErr1 } = await supabaseClient
@@ -862,6 +881,8 @@
                         }
                     } catch (stErr) {
                         console.error("Error updating payment status in DB:", stErr);
+                        alert("❌ Payment verification failed: " + stErr.message);
+                        return;
                     }
                     await reduceStockForCart(cartItems);
                     localStorage.removeItem('kappa_cart');
@@ -895,6 +916,7 @@
                     modal: {
                         ondismiss: function () {
                             console.log("Razorpay modal closed");
+                            alert("⚠️ Payment process was cancelled by the user.");
                         }
                     }
                 };

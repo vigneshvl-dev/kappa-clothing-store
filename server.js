@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 
@@ -6,6 +7,9 @@ app.use(express.static(__dirname)); // serves checkout.html, index.html, etc.
 
 const createOrder = require("./api/create-order");
 app.post("/api/create-order", createOrder);
+
+const verifyPayment = require("./api/verify-payment");
+app.post("/api/verify-payment", verifyPayment);
 
 const PORT = 3000;
 app.listen(PORT, () => {
