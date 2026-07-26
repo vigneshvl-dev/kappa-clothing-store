@@ -467,13 +467,13 @@ async function loadOrders() {
         `)
         .order('created_at', { ascending: false });
 
-    if (error) { 
-        console.error(error);
-        return; 
-    }
+    const paidOrders = (data || []).filter(order => {
+        const currentStatus = (order.status || 'pending').toLowerCase();
+        return currentStatus === 'paid' || !!order.razorpay_payment_id;
+    });
 
-    if (!data || data.length === 0) { 
-        container.innerHTML = `<h2>Orders</h2><p>No orders found.</p>`; 
+    if (paidOrders.length === 0) { 
+        container.innerHTML = `<h2>Orders</h2><p>No paid orders found.</p>`; 
         return; 
     }
 
@@ -492,7 +492,7 @@ async function loadOrders() {
                     </thead>
                     <tbody>`;
     
-    data.forEach(order => {
+    paidOrders.forEach(order => {
         const dateObj = new Date(order.created_at);
         const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         const currentStatus = (order.status || 'pending').toLowerCase();
@@ -631,10 +631,11 @@ async function loadDashboard() {
     const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer');
     
     if (orders) {
-        document.getElementById('stat-orders').textContent = orders.length;
+        // Only count paid orders in the dashboard order stat
+        const paidOrders = orders.filter(o => (o.status || '').toLowerCase() === 'paid');
+        document.getElementById('stat-orders').textContent = paidOrders.length;
         
         // Calculate revenue only from orders that are marked as 'paid'
-        const paidOrders = orders.filter(o => (o.status || '').toLowerCase() === 'paid');
         const totalRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
         
         document.getElementById('stat-revenue').textContent = `₹${totalRevenue.toLocaleString()}`;
