@@ -132,7 +132,82 @@ testDatabaseConnection();
             console.error("Error loading products for storefront:", e);
         }
     }
+    async function loadDynamicHomepageMedia() {
+        try {
+            const response = await fetch('https://ugphxapfbzcrauchwlef.supabase.co/storage/v1/object/public/product-images/homepage_settings.json?t=' + Date.now());
+            if (!response.ok) return;
+
+            const config = await response.json();
+            if (!config) return;
+
+            // 1. Update Hero Slides
+            if (config.heroSlides && config.heroSlides.length > 0) {
+                const slidesContainer = document.querySelector('.hero-slides');
+                if (slidesContainer) {
+                    slidesContainer.innerHTML = config.heroSlides.map((slide, index) => {
+                        const activeClass = index === 0 ? 'active' : '';
+                        return `<div class="hero-slide ${activeClass}" style="background-image:url('${slide.desktop}')" data-mobile-bg="${slide.mobile || slide.desktop}"></div>`;
+                    }).join('');
+                    
+                    // Reset slideshow state
+                    if (heroSlideshowInterval) {
+                        clearInterval(heroSlideshowInterval);
+                        heroSlideshowInterval = null;
+                    }
+                    currentSlide = 0;
+
+                    // Re-query and re-assign heroSlides
+                    heroSlides = document.querySelectorAll(".hero-slide");
+                    applyHeroMobileBg();
+
+                    // Restart slideshow if loader has finished/hidden
+                    const loader = document.getElementById("loader");
+                    if (!loader || loader.classList.contains("hide") || loader.style.display === "none") {
+                        startHeroSlideshow();
+                    }
+                }
+            }
+
+            // 2. Update Reel Videos
+            if (config.reels && config.reels.length > 0) {
+                const reelElements = document.querySelectorAll('.reel-video-element');
+                reelElements.forEach((videoEl, index) => {
+                    const reel = config.reels[index];
+                    if (reel) {
+                        if (reel.video) videoEl.src = reel.video;
+                        if (reel.poster) videoEl.poster = reel.poster;
+                    }
+                });
+            }
+
+            // 3. Update Store Promo Video
+            if (config.storePromoVideo) {
+                const promoVideo = document.querySelector('.visit-store-img');
+                if (promoVideo) promoVideo.src = config.storePromoVideo;
+            }
+
+            // 4. Update Editorial Images
+            if (config.editorial) {
+                const cards = document.querySelectorAll('.editorial-card img');
+                if (cards.length >= 2) {
+                    if (config.editorial.men) {
+                        cards[0].src = config.editorial.men;
+                        cards[0].alt = "MEN";
+                    }
+                    if (config.editorial.women) {
+                        cards[1].src = config.editorial.women;
+                        cards[1].alt = "WOMEN";
+                    }
+                }
+            }
+
+        } catch (e) {
+            console.error("Failed to load dynamic homepage media:", e);
+        }
+    }
+
     loadStorefrontProducts();
+    loadDynamicHomepageMedia();
 
     /* ---------- UTILITIES ---------- */
     // Fixes the "fmt is not defined" error
@@ -189,7 +264,7 @@ testDatabaseConnection();
     }
 
     /* ---------- HERO SLIDESHOW ---------- */
-    const heroSlides = document.querySelectorAll(".hero-slide");
+    let heroSlides = document.querySelectorAll(".hero-slide");
     let currentSlide = 0;
     let heroSlideshowInterval = null;
 
