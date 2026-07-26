@@ -26,6 +26,9 @@ app.post("/api/verify-payment", verifyPayment);
 const deleteOrder = require("./api/delete-order");
 app.post("/api/delete-order", deleteOrder);
 
+const cancelOrder = require("./api/cancel-order");
+app.post("/api/cancel-order", cancelOrder);
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`✅ Server running → http://localhost:${PORT}`);
