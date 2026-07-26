@@ -552,6 +552,10 @@ async function loadOrders() {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         View Details
                     </button>
+                    <button class="btn-black" onclick="deleteOrder('${order.id}')" style="background:#c0392b; margin-top:4px; width:100%;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path></svg>
+                        Delete
+                    </button>
                     <div>
                         <select class="action-select" onchange="updateOrderStatus('${order.id}', this.value)" style="font-size: 11px; padding:4px; margin-top:2px; border-radius:4px; border:1px solid #ccc; width:100%;">
                             <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>Pending</option>
@@ -585,6 +589,40 @@ window.updateOrderStatus = async function(orderId, newStatus) {
     } catch (err) {
         console.error("Failed to update status:", err);
         alert("Failed to update status: " + err.message);
+    }
+};
+
+window.deleteOrder = async function(orderId) {
+    if (!confirm(`⚠️ Are you sure you want to permanently delete order #${orderId.toString().substring(0, 8)}?\nThis cannot be undone.`)) return;
+
+    try {
+        // Delete related order_items first (foreign key constraint)
+        const { error: itemsError } = await supabaseClient
+            .from('order_items')
+            .delete()
+            .eq('order_id', orderId);
+
+        if (itemsError) {
+            console.error("Error deleting order items:", itemsError);
+            // Continue anyway — items may not exist
+        }
+
+        // Delete the order itself
+        const { error } = await supabaseClient
+            .from('orders')
+            .delete()
+            .eq('id', orderId);
+
+        if (error) {
+            console.error("Error deleting order:", error);
+            alert("❌ Error deleting order: " + error.message);
+        } else {
+            alert('🗑️ Order deleted successfully!');
+            await loadOrders();
+        }
+    } catch (err) {
+        console.error("Failed to delete order:", err);
+        alert("Failed to delete order: " + err.message);
     }
 };
 

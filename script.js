@@ -170,14 +170,14 @@ testDatabaseConnection();
         card.insertBefore(wrapper, card.firstChild);
 
         if (videoUrl) {
-            wrapper.innerHTML = `<video src="${videoUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; transition:transform 0.8s;"></video>`;
+            wrapper.innerHTML = `<video src="${videoUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; object-position:top center; transform:scale(1.1); transition:transform 0.8s;"></video>`;
         } else if (images.length > 0) {
             if (images.length === 1) {
-                wrapper.innerHTML = `<img src="${images[0]}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.8s;">`;
+                wrapper.innerHTML = `<img src="${images[0]}" style="width:100%; height:100%; object-fit:cover; object-position:top center; transform:scale(1.1); transition:transform 0.8s;">`;
             } else {
                 wrapper.innerHTML = images.map((imgUrl, idx) => {
                     const opacity = idx === 0 ? 1 : 0;
-                    return `<img src="${imgUrl}" class="fade-slide" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; opacity:${opacity}; transition:opacity 1.5s ease, transform 0.8s; z-index:${10 - idx};">`;
+                    return `<img src="${imgUrl}" class="fade-slide" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; object-position:top center; transform:scale(1.1); opacity:${opacity}; transition:opacity 1.5s ease, transform 0.8s; z-index:${10 - idx};">`;
                 }).join('');
 
                 let activeIdx = 0;
