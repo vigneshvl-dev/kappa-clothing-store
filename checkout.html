@@ -1121,15 +1121,37 @@
                     },
                     theme: { color: "#fbf428" },
                     modal: {
-                        ondismiss: function () {
+                        ondismiss: async function () {
                             console.log("Razorpay modal closed");
+                            if (dbOrderId) {
+                                try {
+                                    await fetch(`${apiOrigin}/api/cancel-order`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ orderId: dbOrderId })
+                                    });
+                                } catch (e) {
+                                    console.error("Failed to mark order as cancelled:", e);
+                                }
+                            }
                             alert("⚠️ Payment process was cancelled by the user.");
                         }
                     }
                 };
 
                 var rzp = new Razorpay(options);
-                rzp.on("payment.failed", function (resp) {
+                rzp.on("payment.failed", async function (resp) {
+                    if (dbOrderId) {
+                        try {
+                            await fetch(`${apiOrigin}/api/cancel-order`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ orderId: dbOrderId })
+                            });
+                        } catch (e) {
+                            console.error("Failed to mark order as cancelled on failure:", e);
+                        }
+                    }
                     alert("❌ Payment failed: " + resp.error.description);
                     console.error("Payment failed:", resp.error);
                 });

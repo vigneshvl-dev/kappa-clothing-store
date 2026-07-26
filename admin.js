@@ -527,7 +527,10 @@ async function loadOrders() {
         }
 
         let paymentStatusHtml = '';
-        if (isPaid) {
+        if (currentStatus === 'cancelled') {
+            paymentStatusHtml = `<span class="badge status-cancelled" style="background:#e74c3c; color:#fff; padding:3px 6px; border-radius:4px; font-weight:bold; font-size:10px;">CANCELLED</span>
+            <div style="font-size:11px; color:#c0392b; font-weight:bold; margin-top:4px;">❌ Payment Cancelled</div>`;
+        } else if (isPaid) {
             paymentStatusHtml = `<span class="badge status-paid">PAID</span>
             <div style="font-size:11px; color:#27ae60; font-weight:bold; margin-top:4px; display:flex; align-items:center; gap:3px;">
                 💳 Paid in Razorpay
@@ -561,6 +564,7 @@ async function loadOrders() {
                             <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>Pending</option>
                             <option value="shipped" ${currentStatus === 'shipped' ? 'selected' : ''}>Shipped</option>
                             <option value="delivered" ${currentStatus === 'delivered' ? 'selected' : ''}>Delivered</option>
+                            <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                         </select>
                     </div>
                  </td>
@@ -622,13 +626,18 @@ window.deleteOrder = async function(orderId) {
 };
 
 async function loadDashboard() {
-    const { data: orders } = await supabaseClient.from('orders').select('total_amount');
+    const { data: orders } = await supabaseClient.from('orders').select('total_amount, status');
     const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
     const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer');
     
     if (orders) {
         document.getElementById('stat-orders').textContent = orders.length;
-        document.getElementById('stat-revenue').textContent = `₹${orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0).toLocaleString()}`;
+        
+        // Calculate revenue only from orders that are marked as 'paid'
+        const paidOrders = orders.filter(o => (o.status || '').toLowerCase() === 'paid');
+        const totalRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+        
+        document.getElementById('stat-revenue').textContent = `₹${totalRevenue.toLocaleString()}`;
     }
     document.getElementById('stat-products').textContent = prodCount || 0;
     document.getElementById('stat-customers').textContent = custCount || 0;
