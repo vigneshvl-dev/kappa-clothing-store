@@ -1215,7 +1215,7 @@ window.addToCart = addToCart;
         if (!q) { searchResults.innerHTML = ''; return; }
         const matches = PRODUCTS.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q));
         searchResults.innerHTML = matches.length ? matches.map(p => `
-    <div class="sr-item" data-view="${p.id}">
+    <div class="sr-item" data-slug="${p.slug || p.id}">
       <img src="${p.img}" alt="${p.name}">
       <div>
         <div class="sr-name">${p.name}</div>
@@ -1225,7 +1225,7 @@ window.addToCart = addToCart;
     });
     searchResults.addEventListener("click", e => {
         const item = e.target.closest(".sr-item");
-        if (item) { closeOverlay(searchOverlay); openQuickView(Number(item.dataset.view)); }
+        if (item) { closeOverlay(searchOverlay); window.location.href = `product.html?slug=${item.dataset.slug}`; }
     });
 
     /* ---------- NEWSLETTER ---------- */
