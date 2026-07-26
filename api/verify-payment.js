@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: "Missing required verification fields: razorpay_order_id, razorpay_payment_id, and razorpay_signature are required" });
     }
 
-    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET ? process.env.RAZORPAY_KEY_SECRET.trim().replace(/^['"]|['"]$/g, "") : null;
     if (!key_secret) {
         return res.status(401).json({ error: "Razorpay credentials are not configured on the server" });
     }
