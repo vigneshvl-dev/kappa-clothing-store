@@ -27,6 +27,7 @@
                 <li data-target="customers">Customers</li>
                 <li data-target="categories">Categories</li>
                 <li data-target="reviews">Reviews</li>
+                <li data-target="homepage">Homepage Media</li>
                 <li data-target="settings" style="margin-top: auto;">Settings</li>
             </ul>
         </aside>
@@ -211,6 +212,98 @@
                 </div>
             </div>
 
+            <!-- VIEW: HOMEPAGE MEDIA -->
+            <div id="view-homepage" class="view-section">
+                <form id="homepage-media-form" onsubmit="event.preventDefault(); saveHomepageSettings();">
+                    <!-- HERO SLIDES SECTION -->
+                    <section class="card">
+                        <h2 class="card-title">Hero Carousel Slides</h2>
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Upload slide images for Desktop and Mobile view.</p>
+                        
+                        <div id="hero-slides-editor-container" style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;">
+                            <!-- Injected dynamically by admin.js -->
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="addHeroSlideRow()" style="margin-bottom:10px;">+ Add New Slide</button>
+                    </section>
+
+                    <!-- REEL VIDEOS SECTION -->
+                    <section class="card">
+                        <h2 class="card-title">Homepage Reel Videos</h2>
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Upload video (.mp4) and poster image for each reel card.</p>
+                        <div id="reels-editor-container" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:20px; margin-bottom:20px;">
+                            <!-- Injected dynamically by admin.js -->
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="addReelCard()" style="margin-bottom:10px;">+ Add New Reel</button>
+                    </section>
+
+                    <!-- VISIT STORE promo video -->
+                    <section class="card">
+                        <h2 class="card-title">Visit Store Banner Promo Video</h2>
+                        <div class="form-group row" style="display:grid; grid-template-columns:1.5fr 1fr; gap:20px;">
+                            <div>
+                                <label for="store-promo-video-file">Upload Store Promo Video (.mp4)</label>
+                                <input type="file" id="store-promo-video-file" class="admin-input" accept="video/mp4" onchange="previewStorePromoVideo(this)">
+                                <input type="hidden" id="store-promo-video-url">
+                            </div>
+                            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; border:1px dashed #ccc; border-radius:6px; height:120px; overflow:hidden;">
+                                <video id="store-promo-video-preview" style="max-height:100%; max-width:100%; display:none;" muted controls></video>
+                                <span id="store-promo-video-placeholder" style="color:#aaa; font-size:12px;">No video loaded</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- EDITORIAL IMAGES SECTION -->
+                    <section class="card">
+                        <h2 class="card-title">Editorial Category Cards (MEN & WOMEN)</h2>
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Upload multiple images and an optional background video for the Men and Women storefront banner cards.</p>
+                        
+                        <div class="form-group row" style="display:grid; grid-template-columns:1fr 1fr; gap:30px;">
+                            <!-- MEN CARD -->
+                            <div class="card" style="padding:15px; background:#fafafa; border:1px solid #eee;">
+                                <h3 style="font-size:14px; font-weight:700; margin-top:0; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:6px;">MEN Category Media</h3>
+                                
+                                <div style="margin-bottom:15px;">
+                                    <label style="font-size:11px; font-weight:700;">Banners Images List</label>
+                                    <div id="editorial-men-images-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">
+                                        <!-- Injected by media.js -->
+                                    </div>
+                                    <button type="button" class="btn-secondary" style="font-size:11px; padding:6px 12px;" onclick="addEditorialImageRow('men')">+ Add Image</button>
+                                </div>
+
+                                <div style="border-top:1px dashed #ddd; padding-top:15px;">
+                                    <label style="font-size:11px; font-weight:700;">Optional Video URL (.mp4)</label>
+                                    <input type="text" id="editorial-men-video-url" class="admin-input" placeholder="Video path/URL" style="margin-bottom:6px; font-size:12px;">
+                                    <input type="file" id="editorial-men-video-file" class="admin-input" accept="video/mp4" style="font-size:11px; padding:4px;" onchange="previewEditorialVideo(this, 'men')">
+                                    <video id="editorial-men-video-preview" style="max-height:80px; max-width:100%; display:none; margin-top:8px;" muted controls></video>
+                                </div>
+                            </div>
+
+                            <!-- WOMEN CARD -->
+                            <div class="card" style="padding:15px; background:#fafafa; border:1px solid #eee;">
+                                <h3 style="font-size:14px; font-weight:700; margin-top:0; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:6px;">WOMEN Category Media</h3>
+                                
+                                <div style="margin-bottom:15px;">
+                                    <label style="font-size:11px; font-weight:700;">Banners Images List</label>
+                                    <div id="editorial-women-images-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">
+                                        <!-- Injected by media.js -->
+                                    </div>
+                                    <button type="button" class="btn-secondary" style="font-size:11px; padding:6px 12px;" onclick="addEditorialImageRow('women')">+ Add Image</button>
+                                </div>
+
+                                <div style="border-top:1px dashed #ddd; padding-top:15px;">
+                                    <label style="font-size:11px; font-weight:700;">Optional Video URL (.mp4)</label>
+                                    <input type="text" id="editorial-women-video-url" class="admin-input" placeholder="Video path/URL" style="margin-bottom:6px; font-size:12px;">
+                                    <input type="file" id="editorial-women-video-file" class="admin-input" accept="video/mp4" style="font-size:11px; padding:4px;" onchange="previewEditorialVideo(this, 'women')">
+                                    <video id="editorial-women-video-preview" style="max-height:80px; max-width:100%; display:none; margin-top:8px;" muted controls></video>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <button type="submit" class="submit-btn" style="background:#FFD700; color:#111; font-weight:800; border:none; margin-bottom:40px;">Save Homepage Layout Settings</button>
+                </form>
+            </div>
+
             <!-- VIEW: SETTINGS -->
             <div id="view-settings" class="view-section">
                 <section class="card">
@@ -233,6 +326,7 @@
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
     <script src="animations.js"></script>
     <script src="admin.js"></script>
+    <script src="media.js"></script>
 
    <!-- ORDER DETAILS MODAL -->
 <div class="overlay" id="orderDetailsOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(3px); z-index:1000; align-items:center; justify-content:center;">

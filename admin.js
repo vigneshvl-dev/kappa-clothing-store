@@ -57,6 +57,7 @@ function initSidebar() {
                     case 'customers': await loadCustomers(); break;
                     case 'settings': await loadSettings(); break;
                     case 'products': clearProductForm(); break; 
+                    case 'homepage': await loadHomepageSettings(); break; 
                 }
             }
         });

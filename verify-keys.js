@@ -1,8 +1,14 @@
+require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 const Razorpay = require("razorpay");
-const KEY_ID = "rzp_test_TFOxCSs3iPI2pU";
-const KEY_SECRET = "bb6nZdz3nr7lytEq9eaubKgG";
+const KEY_ID = process.env.RAZORPAY_KEY_ID;
+const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
 
-console.log("Testing Razorpay connection...");
+if (!KEY_ID || !KEY_SECRET) {
+    console.error("❌ ERROR: RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET environment variables are missing!");
+    process.exit(1);
+}
+
+console.log("Testing Razorpay connection with key ID:", KEY_ID);
 const rzp = new Razorpay({
     key_id: KEY_ID,
     key_secret: KEY_SECRET

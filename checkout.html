@@ -307,15 +307,21 @@
             <a href="contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
         </nav>
 
-        <a href="index.html#home" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png"
-                alt="KAPPA Fashion Store"></a>
+        <a href="index.html#home" class="nav-logo"><img src="assets/kappalogo_favion.png" alt="KAPPA Fashion Store"></a>
 
         <div class="nav-actions">
             <button class="icon-btn cart-btn" id="cartBtn">
-                <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
+                <svg viewBox="0 0 24 24">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path>
+                </svg>
             </button>
             <button class="icon-btn profile-btn" id="profileBtn">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg>
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
+                </svg>
             </button>
             <div class="profile-popup" id="profilePopup">
                 <div class="profile-popup-header">
@@ -330,13 +336,61 @@
                 </div>
                 <div class="profile-divider"></div>
                 <ul class="profile-popup-menu">
-                    <li><a href="my-orders.html" id="popupMyOrders"><span class="menu-icon-wrap" style="background-color:#ffeef2;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span><span class="menu-label">My Orders</span></a></li>
-                    <li><a href="track-order.html" id="popupTrackOrder"><span class="menu-icon-wrap" style="background-color:#e8f5e9;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></span><span class="menu-label">Track Order</span></a></li>
-                    <li><a href="saved-address.html" id="popupSavedAddress"><span class="menu-icon-wrap" style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span><span class="menu-label">Saved Address</span></a></li>
-                    <li><a href="my-reviews.html" id="popupMyReviews"><span class="menu-icon-wrap" style="background-color:#fff9c4;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span><span class="menu-label">My Reviews</span></a></li>
-                    <li><a href="my-notifications.html" id="popupMyNotifications"><span class="menu-icon-wrap" style="background-color:#f3e8ff;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0-6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span><span class="menu-label">My Notifications</span></a></li>
-                    <li><a href="my-coupons.html" id="popupMyCoupons"><span class="menu-icon-wrap" style="background-color:#ffeedb;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><path d="M20 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><rect x="4" y="6" width="16" height="12" rx="2"></rect><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="4"></line></svg></span><span class="menu-label">My Coupons</span></a></li>
-                    <li><a href="#" id="popupLogout"><span class="menu-icon-wrap" style="background-color:#ffebee;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></span><span class="menu-label">Logout</span></a></li>
+                    <li><a href="my-orders.html" id="popupMyOrders"><span class="menu-icon-wrap"
+                                style="background-color:#ffeef2;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
+                                    fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                </svg></span><span class="menu-label">My Orders</span></a></li>
+                    <li><a href="track-order.html" id="popupTrackOrder"><span class="menu-icon-wrap"
+                                style="background-color:#e8f5e9;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
+                                    fill="none" stroke="#2e7d32" stroke-width="2.2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="1" y="3" width="15" height="13"></rect>
+                                    <polygon points="16 8 20 8 23 11 23 16 16 8"></polygon>
+                                    <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                    <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                </svg></span><span class="menu-label">Track Order</span></a></li>
+                    <li><a href="saved-address.html" id="popupSavedAddress"><span class="menu-icon-wrap"
+                                style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
+                                    fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg></span><span class="menu-label">Saved Address</span></a></li>
+                    <li><a href="my-reviews.html" id="popupMyReviews"><span class="menu-icon-wrap"
+                                style="background-color:#fff9c4;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
+                                    fill="none" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                    </polygon>
+                                </svg></span><span class="menu-label">My Reviews</span></a></li>
+                    <li><a href="my-notifications.html" id="popupMyNotifications"><span class="menu-icon-wrap"
+                                style="background-color:#f3e8ff;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
+                                    fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M18 8A6 6 0 0 0-6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                </svg></span><span class="menu-label">My Notifications</span></a></li>
+                    <li><a href="my-coupons.html" id="popupMyCoupons"><span class="menu-icon-wrap"
+                                style="background-color:#ffeedb;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
+                                    fill="none" stroke="#f57c00" stroke-width="2.2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M8 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path>
+                                    <path d="M20 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path>
+                                    <rect x="4" y="6" width="16" height="12" rx="2"></rect>
+                                    <line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="4"></line>
+                                </svg></span><span class="menu-label">My Coupons</span></a></li>
+                    <li><a href="#" id="popupLogout"><span class="menu-icon-wrap" style="background-color:#ffebee;"><svg
+                                    class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#d32f2f"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg></span><span class="menu-label">Logout</span></a></li>
                 </ul>
             </div>
         </div>
@@ -637,7 +691,7 @@
             localStorage.removeItem('kappa_checkout_form');
 
             // Submit the form!
-            const event = { preventDefault: () => {} };
+            const event = { preventDefault: () => { } };
             await handleProceedToPayment(event);
         }
 
@@ -744,7 +798,7 @@
                     return true;
                 });
                 localStorage.setItem("kappa_cart", JSON.stringify(raw));
-            } catch(e) {}
+            } catch (e) { }
 
             renderSummary();
         }
@@ -811,258 +865,262 @@
         }
 
         async function handleProceedToPayment(event) {
-        event.preventDefault();
+            event.preventDefault();
 
-        if (cartItems.length === 0) {
-            alert("Your cart is empty!");
-            return;
-        }
+            if (cartItems.length === 0) {
+                alert("Your cart is empty!");
+                return;
+            }
 
-        // 1. Gather all data from the form fields
-        const customerDetails = {
-            name: document.getElementById('bill-name').value,
-            email: document.getElementById('bill-email').value,
-            phone: document.getElementById('bill-phone').value
-        };
+            // 1. Gather all data from the form fields
+            const customerDetails = {
+                name: document.getElementById('bill-name').value,
+                email: document.getElementById('bill-email').value,
+                phone: document.getElementById('bill-phone').value
+            };
 
-        const shippingAddress = {
-            address: document.getElementById('bill-address').value,
-            state: document.getElementById('bill-state').value,
-            zip: document.getElementById('bill-zip').value
-        };
+            const shippingAddress = {
+                address: document.getElementById('bill-address').value,
+                state: document.getElementById('bill-state').value,
+                zip: document.getElementById('bill-zip').value
+            };
 
-        let user = null;
-        try {
-            const { data } = await supabaseClient.auth.getUser();
-            user = data?.user || null;
-        } catch (e) {
-            console.error('Auth check failed:', e);
-        }
-
-        if (!user) {
+            let user = null;
             try {
-                const formBackup = {
-                    name: document.getElementById('bill-name').value,
-                    email: document.getElementById('bill-email').value,
-                    phone: document.getElementById('bill-phone').value,
-                    address: document.getElementById('bill-address').value,
-                    state: document.getElementById('bill-state').value,
-                    zip: document.getElementById('bill-zip').value
-                };
-                localStorage.setItem('kappa_checkout_form', JSON.stringify(formBackup));
-                localStorage.setItem('kappa_pending_checkout', '1');
+                const { data } = await supabaseClient.auth.getUser();
+                user = data?.user || null;
             } catch (e) {
-                console.error('Failed to save checkout state:', e);
+                console.error('Auth check failed:', e);
             }
-            window.location.href = 'index.html';
-            return;
-        }
 
-        // 2. Prepare order payload (Notice: NO PRICES are sent from client!)
-        const orderPayload = {
-            p_user_id: user ? user.id : null,
-            p_shipping_address: shippingAddress,
-            p_customer_details: customerDetails,
-            p_items: cartItems.map(item => ({
-                product_id: item.id,       // Changed from variant_id
-                quantity: item.qty,
-                size: item.size || 'N/A',  // Send size directly from cart
-                color: item.color || 'N/A' // Send color directly from cart
-            }))
-        };
-
-        async function reduceStockForCart(items) {
-            if (!items || items.length === 0) return;
-            console.log("📦 Deducting backend stock for items:", items);
-
-            for (const item of items) {
-                const prodId = item.id;
-                const qty = item.qty || 1;
-                const size = item.size || null;
-
+            if (!user) {
                 try {
-                    // 1. Reduce variant stock quantity in product_variants table
-                    if (prodId && size && size !== 'Default' && size !== 'N/A') {
-                        const { data: variants } = await supabaseClient
-                            .from('product_variants')
-                            .select('id, stock_quantity')
-                            .eq('product_id', prodId)
-                            .eq('size', size);
-
-                        if (variants && variants.length > 0) {
-                            for (const v of variants) {
-                                const currentStock = Number(v.stock_quantity || 0);
-                                const newStock = Math.max(0, currentStock - qty);
-                                await supabaseClient
-                                    .from('product_variants')
-                                    .update({ stock_quantity: newStock })
-                                    .eq('id', v.id);
-                                console.log(`✅ Reduced variant ${v.id} stock from ${currentStock} to ${newStock}`);
-                            }
-                        }
-                    }
-
-                    // 2. Reduce total product stock quantity in products table
-                    if (prodId) {
-                        const { data: prod } = await supabaseClient
-                            .from('products')
-                            .select('id, stock_quantity')
-                            .eq('id', prodId)
-                            .maybeSingle();
-
-                        if (prod && prod.stock_quantity !== undefined && prod.stock_quantity !== null) {
-                            const currentProdStock = Number(prod.stock_quantity || 0);
-                            const newProdStock = Math.max(0, currentProdStock - qty);
-                            await supabaseClient
-                                .from('products')
-                                .update({ stock_quantity: newProdStock })
-                                .eq('id', prodId);
-                            console.log(`✅ Reduced product ${prodId} total stock from ${currentProdStock} to ${newProdStock}`);
-                        }
-                    }
-                } catch (err) {
-                    console.error(`⚠️ Error updating stock for product ${prodId}:`, err);
-                }
-            }
-        }
-
-        // 3. Invoke secure server-side RPC function
-        const { data: result, error: orderError } = await supabaseClient.rpc('create_secure_order', orderPayload);
-
-        if (orderError) {
-            console.error("Database Error (Secure Order):", orderError);
-            alert("Could not process order securely. Please try again.");
-            return;
-        }
-
-        // Automatically reduce stock in backend DB & Admin panel upon order creation
-        await reduceStockForCart(cartItems);
-
-        // 4. Finalize & Extract Order ID and Total Amount
-        let newOrderId = null;
-        if (result) {
-            if (typeof result === 'string' || typeof result === 'number') {
-                newOrderId = result;
-            } else if (Array.isArray(result) && result[0]) {
-                newOrderId = result[0].order_id || result[0].id || result[0];
-            } else if (typeof result === 'object') {
-                newOrderId = result.order_id || result.id;
-            }
-        }
-        const verifiedTotal = (typeof result === 'object' && result.total_amount) || (Array.isArray(result) && result[0] ? result[0].total_amount : undefined) || orderPayload.total_amount;
-
-        localStorage.setItem('kappa_active_order_id', newOrderId);
-        localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
-
-        payNow(verifiedTotal, newOrderId);
-    }
-
-    async function payNow(secureTotal, dbOrderId) {
-        try {
-            // 1. Convert secure total to paise (Razorpay expects smallest currency unit)
-            const amountInPaise = Math.round(secureTotal * 100);
-
-            // 2. Call backend to create a Razorpay order securely
-            const { data: order, error: funcError } = await supabaseClient.functions.invoke('create-order', {
-                body: { 
-                    amount: amountInPaise,
-                    receipt_id: dbOrderId 
-                }
-            });
-
-            if (funcError) {
-                console.error("Full Function Error Object:", funcError);
-                let detailedMsg = funcError.message;
-                
-                try {
-                    if (funcError.context && typeof funcError.context.json === 'function') {
-                        const errJson = await funcError.context.json();
-                        detailedMsg = errJson.error || detailedMsg;
-                    }
+                    const formBackup = {
+                        name: document.getElementById('bill-name').value,
+                        email: document.getElementById('bill-email').value,
+                        phone: document.getElementById('bill-phone').value,
+                        address: document.getElementById('bill-address').value,
+                        state: document.getElementById('bill-state').value,
+                        zip: document.getElementById('bill-zip').value
+                    };
+                    localStorage.setItem('kappa_checkout_form', JSON.stringify(formBackup));
+                    localStorage.setItem('kappa_pending_checkout', '1');
                 } catch (e) {
-                    // Ignore parsing fallback error
+                    console.error('Failed to save checkout state:', e);
                 }
-
-                throw new Error(detailedMsg);
-            }
-            console.log("Razorpay Order created:", order);
-
-            if (!order.id) {
-                console.error("Razorpay Error Response:", order);
-                throw new Error(order.error?.description || "No order ID returned from server");
+                window.location.href = 'index.html';
+                return;
             }
 
-            var options = {
-                key: "rzp_test_TFOxCSs3iPI2pU",
-                amount: order.amount,
-                currency: order.currency,
-                order_id: order.id,
-                name: "Kappa Fashion Store",
-                description: "Test Payment",
-                image: "assets/IMG_4646-removebg-preview.png",
-                handler: async function (response) {
-                    console.log("Razorpay Payment Successful! Response:", response);
+            // 2. Prepare order payload (Notice: NO PRICES are sent from client!)
+            const orderPayload = {
+                p_user_id: user ? user.id : null,
+                p_shipping_address: shippingAddress,
+                p_customer_details: customerDetails,
+                p_items: cartItems.map(item => ({
+                    product_id: item.id,       // Changed from variant_id
+                    quantity: item.qty,
+                    size: item.size || 'N/A',  // Send size directly from cart
+                    color: item.color || 'N/A' // Send color directly from cart
+                }))
+            };
+
+            async function reduceStockForCart(items) {
+                if (!items || items.length === 0) return;
+                console.log("📦 Deducting backend stock for items:", items);
+
+                for (const item of items) {
+                    const prodId = item.id;
+                    const qty = item.qty || 1;
+                    const size = item.size || null;
+
                     try {
-                        if (dbOrderId) {
-                            console.log("Updating order status in DB for order:", dbOrderId);
-                            const { error: upErr1 } = await supabaseClient
-                                .from('orders')
-                                .update({ 
-                                    status: 'paid', 
-                                    payment_status: 'paid', 
-                                    razorpay_payment_id: response.razorpay_payment_id 
-                                })
-                                .eq('id', dbOrderId);
+                        // 1. Reduce variant stock quantity in product_variants table
+                        if (prodId && size && size !== 'Default' && size !== 'N/A') {
+                            const { data: variants } = await supabaseClient
+                                .from('product_variants')
+                                .select('id, stock_quantity')
+                                .eq('product_id', prodId)
+                                .eq('size', size);
 
-                            if (upErr1) {
-                                console.warn("Update with razorpay_payment_id failed, trying without it:", upErr1);
-                                const { error: upErr2 } = await supabaseClient
-                                    .from('orders')
-                                    .update({ 
-                                        status: 'paid', 
-                                        payment_status: 'paid' 
-                                    })
-                                    .eq('id', dbOrderId);
-                                if (upErr2) {
-                                    console.error("Fallback update also failed:", upErr2);
+                            if (variants && variants.length > 0) {
+                                for (const v of variants) {
+                                    const currentStock = Number(v.stock_quantity || 0);
+                                    const newStock = Math.max(0, currentStock - qty);
+                                    await supabaseClient
+                                        .from('product_variants')
+                                        .update({ stock_quantity: newStock })
+                                        .eq('id', v.id);
+                                    console.log(`✅ Reduced variant ${v.id} stock from ${currentStock} to ${newStock}`);
                                 }
                             }
                         }
-                    } catch (stErr) {
-                        console.error("Error updating payment status in DB:", stErr);
+
+                        // 2. Reduce total product stock quantity in products table
+                        if (prodId) {
+                            const { data: prod } = await supabaseClient
+                                .from('products')
+                                .select('id, stock_quantity')
+                                .eq('id', prodId)
+                                .maybeSingle();
+
+                            if (prod && prod.stock_quantity !== undefined && prod.stock_quantity !== null) {
+                                const currentProdStock = Number(prod.stock_quantity || 0);
+                                const newProdStock = Math.max(0, currentProdStock - qty);
+                                await supabaseClient
+                                    .from('products')
+                                    .update({ stock_quantity: newProdStock })
+                                    .eq('id', prodId);
+                                console.log(`✅ Reduced product ${prodId} total stock from ${currentProdStock} to ${newProdStock}`);
+                            }
+                        }
+                    } catch (err) {
+                        console.error(`⚠️ Error updating stock for product ${prodId}:`, err);
                     }
-                    await reduceStockForCart(cartItems);
-                    localStorage.removeItem('kappa_cart');
-                    localStorage.removeItem('kappa_checkout_cart');
-                    alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
-                    window.location.href = 'index.html';
-                },
+                }
+            }
+
+            // 3. Invoke secure server-side RPC function
+            const { data: result, error: orderError } = await supabaseClient.rpc('create_secure_order', orderPayload);
+
+            if (orderError) {
+                console.error("Database Error (Secure Order):", orderError);
+                alert("Could not process order securely. Please try again.");
+                return;
+            }
+
+            // Automatically reduce stock in backend DB & Admin panel upon order creation
+            await reduceStockForCart(cartItems);
+
+            // 4. Finalize & Extract Order ID and Total Amount
+            let newOrderId = null;
+            if (result) {
+                if (typeof result === 'string' || typeof result === 'number') {
+                    newOrderId = result;
+                } else if (Array.isArray(result) && result[0]) {
+                    newOrderId = result[0].order_id || result[0].id || result[0];
+                } else if (typeof result === 'object') {
+                    newOrderId = result.order_id || result.id;
+                }
+            }
+            const verifiedTotal = (typeof result === 'object' && result.total_amount) || (Array.isArray(result) && result[0] ? result[0].total_amount : undefined) || orderPayload.total_amount;
+
+            localStorage.setItem('kappa_active_order_id', newOrderId);
+            localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
+
+            payNow(verifiedTotal, newOrderId);
+        }
+
+        async function payNow(secureTotal, dbOrderId) {
+            try {
+                // 1. Convert secure total to paise (Razorpay expects smallest currency unit)
+                const amountInPaise = Math.round(secureTotal * 100);
+
+                // 2. Call backend to create a Razorpay order securely
+                const response = await fetch("/api/create-order", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        amount: amountInPaise,
+                        currency: "INR",
+                        receipt: dbOrderId ? String(dbOrderId) : "receipt_" + Date.now()
+                    })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const order = await response.json();
+                console.log("Razorpay Order created:", order);
+
+                if (!order.order_id) {
+                    console.error("Razorpay Error Response:", order);
+                    throw new Error("No order ID returned from server");
+                }
+
+                var options = {
+                    key: order.key_id,
+                    amount: order.amount,
+                    currency: order.currency,
+                    order_id: order.order_id,
+                    name: "Kappa Fashion Store",
+                    description: "Test Payment",
+                    handler: async function (response) {
+                        console.log("Razorpay Payment Successful! Response:", response);
+                        try {
+                            // Call backend endpoint to verify signature
+                            const verifyRes = await fetch("/api/verify-payment", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature
+                                })
+                            });
+
+                            if (!verifyRes.ok) {
+                                const errData = await verifyRes.json();
+                                throw new Error(errData.error || "Payment signature verification failed");
+                            }
+
+                            const verifyData = await verifyRes.json();
+                            if (!verifyData.success) {
+                                throw new Error("Payment signature verification failed on the server");
+                            }
+
+                            if (dbOrderId) {
+                                console.log("Updating order status in DB for order:", dbOrderId);
+                                const { error: upErr1 } = await supabaseClient
+                                    .from('orders')
+                                    .update({
+                                        status: 'paid',
+                                        payment_status: 'paid',
+                                        razorpay_payment_id: response.razorpay_payment_id
+                                    })
+                                    .eq('id', dbOrderId);
+
+                                if (upErr1) {
+                                    console.warn("Update with razorpay_payment_id failed, trying without it:", upErr1);
+                                    const { error: upErr2 } = await supabaseClient
+                                        .from('orders')
+                                        .update({
+                                            status: 'paid',
+                                            payment_status: 'paid'
+                                        })
+                                        .eq('id', dbOrderId);
+                                    if (upErr2) {
+                                        console.error("Fallback update also failed:", upErr2);
+                                    }
+                                }
+                            }
+                        } catch (stErr) {
+                            console.error("Error updating payment status in DB:", stErr);
+                            alert("❌ Payment verification failed: " + stErr.message);
+                            return;
+                        }
+                        await reduceStockForCart(cartItems);
+                        localStorage.removeItem('kappa_cart');
+                        localStorage.removeItem('kappa_checkout_cart');
+                        alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
+                        window.location.href = 'index.html';
+                    },
                     prefill: {
                         name: document.getElementById("bill-name") ? document.getElementById("bill-name").value : "",
                         email: document.getElementById("bill-email") ? document.getElementById("bill-email").value : "",
-                        contact: document.getElementById("bill-phone") ? document.getElementById("bill-phone").value : "",
-                        method: "upi"
+                        contact: document.getElementById("bill-phone") ? document.getElementById("bill-phone").value : ""
                     },
-                    theme: { color: "#111111" },
-                    config: {
-                        display: {
-                            blocks: {
-                                preferred: {
-                                    name: "Recommended (UPI Only)",
-                                    instruments: [
-                                        { method: "upi" }
-                                    ]
-                                }
-                            },
-                            sequence: ["block.preferred", "block.other"],
-                            preferences: {
-                                show_default_blocks: true
-                            }
-                        }
-                    },
+                    theme: { color: "#fbf428" },
                     modal: {
                         ondismiss: function () {
                             console.log("Razorpay modal closed");
+                            alert("⚠️ Payment process was cancelled by the user.");
                         }
                     }
                 };
@@ -1085,5 +1143,3 @@
 </body>
 
 </html>
-
-
