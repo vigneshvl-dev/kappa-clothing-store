@@ -40,13 +40,13 @@ module.exports = async (req, res) => {
         });
     } catch (error) {
         console.error("Razorpay API Error:", error);
-        // Handle auth failures (return 401) if statusCode is 401 or if the error suggests invalid keys
         const isAuthError = 
             error.statusCode === 401 || 
             (error.error && typeof error.error.description === "string" && 
              (error.error.description.includes("key") || error.error.description.includes("secret") || error.error.description.includes("auth")));
         
         const statusCode = isAuthError ? 401 : (error.statusCode || 500);
-        res.status(statusCode).json({ error: error.message || "Failed to create order" });
+        const errorMessage = (error.error && error.error.description) || error.description || error.message || "Failed to create order";
+        res.status(statusCode).json({ error: errorMessage });
     }
 };
