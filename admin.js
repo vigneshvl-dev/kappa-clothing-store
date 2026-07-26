@@ -596,33 +596,24 @@ window.deleteOrder = async function(orderId) {
     if (!confirm(`⚠️ Are you sure you want to permanently delete order #${orderId.toString().substring(0, 8)}?\nThis cannot be undone.`)) return;
 
     try {
-        // Delete related order_items first (foreign key constraint)
-        const { error: itemsError } = await supabaseClient
-            .from('order_items')
-            .delete()
-            .eq('order_id', orderId);
+        const res = await fetch('/api/delete-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId })
+        });
 
-        if (itemsError) {
-            console.error("Error deleting order items:", itemsError);
-            // Continue anyway — items may not exist
-        }
+        const result = await res.json();
 
-        // Delete the order itself
-        const { error } = await supabaseClient
-            .from('orders')
-            .delete()
-            .eq('id', orderId);
-
-        if (error) {
-            console.error("Error deleting order:", error);
-            alert("❌ Error deleting order: " + error.message);
+        if (!res.ok) {
+            console.error("Delete order failed:", result);
+            alert("❌ Error deleting order: " + (result.error || "Unknown error"));
         } else {
             alert('🗑️ Order deleted successfully!');
             await loadOrders();
         }
     } catch (err) {
         console.error("Failed to delete order:", err);
-        alert("Failed to delete order: " + err.message);
+        alert("❌ Failed to delete order: " + err.message);
     }
 };
 
