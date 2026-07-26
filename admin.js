@@ -596,7 +596,11 @@ window.deleteOrder = async function(orderId) {
     if (!confirm(`⚠️ Are you sure you want to permanently delete order #${orderId.toString().substring(0, 8)}?\nThis cannot be undone.`)) return;
 
     try {
-        const res = await fetch('/api/delete-order', {
+        const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
+            ? 'http://localhost:3000'
+            : '';
+
+        const res = await fetch(`${apiOrigin}/api/delete-order`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ orderId })

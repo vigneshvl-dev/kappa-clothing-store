@@ -1016,8 +1016,12 @@
                 // 1. Convert secure total to paise (Razorpay expects smallest currency unit)
                 const amountInPaise = Math.round(secureTotal * 100);
 
+                const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
+                    ? 'http://localhost:3000'
+                    : '';
+
                 // 2. Call backend to create a Razorpay order securely
-                const response = await fetch("/api/create-order", {
+                const response = await fetch(`${apiOrigin}/api/create-order`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -1053,7 +1057,7 @@
                         console.log("Razorpay Payment Successful! Response:", response);
                         try {
                             // Call backend endpoint to verify signature
-                            const verifyRes = await fetch("/api/verify-payment", {
+                            const verifyRes = await fetch(`${apiOrigin}/api/verify-payment`, {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json"

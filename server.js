@@ -3,6 +3,18 @@ const express = require("express");
 const app = express();
 
 app.use(express.json());
+
+// Enable CORS for all requests (useful when frontend runs on port 5518/5500 Live Server)
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Authorization, Content-Type, apikey");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 app.use(express.static(__dirname)); // serves checkout.html, index.html, etc.
 
 const createOrder = require("./api/create-order");
