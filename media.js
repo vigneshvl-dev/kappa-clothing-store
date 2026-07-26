@@ -164,7 +164,7 @@ function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', 
     div.innerHTML = `
         <div style="display:grid; grid-template-columns:60px 1fr; gap:10px; align-items:center;">
             <div style="height:50px; border:1px solid #eee; border-radius:4px; overflow:hidden; background:#f0f0f0; display:flex; justify-content:center; align-items:center;">
-                <img class="desktop-preview-img" src="${getPreviewSrc(desktopUrl)}" style="max-height:100%; max-width:100%; object-fit:contain;">
+                <img class="desktop-preview-img" src="${getPreviewSrc(desktopUrl)}" style="max-height:100%; max-width:100%; object-fit:contain; cursor:pointer;" title="Click to Crop Image" onclick="triggerCropSlideImage(this, 'desktop')">
             </div>
             <div>
                 <label style="font-size:10px; font-weight:700;">Desktop Image</label>
@@ -174,7 +174,7 @@ function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', 
         </div>
         <div style="display:grid; grid-template-columns:60px 1fr; gap:10px; align-items:center;">
             <div style="height:50px; border:1px solid #eee; border-radius:4px; overflow:hidden; background:#f0f0f0; display:flex; justify-content:center; align-items:center;">
-                <img class="mobile-preview-img" src="${getPreviewSrc(mobileUrl)}" style="max-height:100%; max-width:100%; object-fit:contain;">
+                <img class="mobile-preview-img" src="${getPreviewSrc(mobileUrl)}" style="max-height:100%; max-width:100%; object-fit:contain; cursor:pointer;" title="Click to Crop Image" onclick="triggerCropSlideImage(this, 'mobile')">
             </div>
             <div>
                 <label style="font-size:10px; font-weight:700;">Mobile Image</label>
@@ -204,12 +204,40 @@ function previewSlideFile(input, type) {
     if (file) {
         const row = input.closest('.hero-slide-row');
         const img = row.querySelector(`.${type}-preview-img`);
-        if (img) {
-            img.src = URL.createObjectURL(file);
+        const objectUrl = URL.createObjectURL(file);
+        const aspect = type === 'desktop' ? (16 / 9) : (9 / 16);
+
+        if (typeof openCropper === 'function') {
+            openCropper(objectUrl, aspect, (croppedBlob, croppedUrl) => {
+                img.src = croppedUrl;
+                input.croppedBlob = croppedBlob;
+            });
+        } else {
+            img.src = objectUrl;
         }
     }
 }
 window.previewSlideFile = previewSlideFile;
+
+function triggerCropSlideImage(imgElement, type) {
+    const src = imgElement.src;
+    if (!src || src.endsWith('duplicate.png')) {
+        alert('Please choose an image file first before cropping!');
+        return;
+    }
+
+    const row = imgElement.closest('.hero-slide-row');
+    const fileInput = row.querySelector(`.slide-${type}-file`);
+    const aspect = type === 'desktop' ? (16 / 9) : (9 / 16);
+
+    if (typeof openCropper === 'function') {
+        openCropper(src, aspect, (croppedBlob, croppedUrl) => {
+            imgElement.src = croppedUrl;
+            fileInput.croppedBlob = croppedBlob;
+        });
+    }
+}
+window.triggerCropSlideImage = triggerCropSlideImage;
 
 function previewSlideVideoFile(input) {
     const file = input.files[0];
@@ -316,7 +344,7 @@ function addEditorialImageRowElement(gender, imageUrl = '') {
 
     div.innerHTML = `
         <div style="height:40px; overflow:hidden; background:#eee; border-radius:4px; display:flex; justify-content:center; align-items:center;">
-            <img class="editorial-preview-img" src="${getPreviewSrc(imageUrl)}" style="max-height:100%; max-width:100%; object-fit:contain;">
+            <img class="editorial-preview-img" src="${getPreviewSrc(imageUrl)}" style="max-height:100%; max-width:100%; object-fit:contain; cursor:pointer;" title="Click to Crop Image" onclick="triggerCropEditorialImage(this)">
         </div>
         <div>
             <input type="text" class="admin-input editorial-image-url" value="${imageUrl}" style="display:none;">
@@ -337,11 +365,37 @@ function previewEditorialImage(input) {
     if (file) {
         const row = input.closest('.editorial-image-row');
         const img = row.querySelector('.editorial-preview-img');
-        if (img) {
-            img.src = URL.createObjectURL(file);
+        const objectUrl = URL.createObjectURL(file);
+
+        if (typeof openCropper === 'function') {
+            openCropper(objectUrl, 4/5, (croppedBlob, croppedUrl) => {
+                img.src = croppedUrl;
+                input.croppedBlob = croppedBlob;
+            });
+        } else {
+            img.src = objectUrl;
         }
     }
 }
+
+function triggerCropEditorialImage(imgElement) {
+    const src = imgElement.src;
+    if (!src || src.endsWith('duplicate.png')) {
+        alert('Please choose an image file first before cropping!');
+        return;
+    }
+
+    const row = imgElement.closest('.editorial-image-row');
+    const fileInput = row.querySelector('.editorial-image-file');
+
+    if (typeof openCropper === 'function') {
+        openCropper(src, 4/5, (croppedBlob, croppedUrl) => {
+            imgElement.src = croppedUrl;
+            fileInput.croppedBlob = croppedBlob;
+        });
+    }
+}
+window.triggerCropEditorialImage = triggerCropEditorialImage;
 
 function previewEditorialVideo(input, gender) {
     const file = input.files[0];
@@ -377,14 +431,26 @@ async function saveHomepageSettings() {
         const heroSlides = [];
         for (const row of slideRows) {
             let desktop = row.querySelector('.slide-desktop-url').value.trim();
-            const desktopFile = row.querySelector('.slide-desktop-file').files[0];
-            if (desktopFile) {
+            const desktopFileInput = row.querySelector('.slide-desktop-file');
+            const desktopFile = desktopFileInput.files[0];
+            const desktopCropped = desktopFileInput.croppedBlob;
+
+            if (desktopCropped) {
+                const fileToUpload = new File([desktopCropped], desktopFile ? desktopFile.name : "desktop_slide.jpg", { type: "image/jpeg" });
+                desktop = await uploadHomepageFile(fileToUpload, 'hero_desktop');
+            } else if (desktopFile) {
                 desktop = await uploadHomepageFile(desktopFile, 'hero_desktop');
             }
 
             let mobile = row.querySelector('.slide-mobile-url').value.trim();
-            const mobileFile = row.querySelector('.slide-mobile-file').files[0];
-            if (mobileFile) {
+            const mobileFileInput = row.querySelector('.slide-mobile-file');
+            const mobileFile = mobileFileInput.files[0];
+            const mobileCropped = mobileFileInput.croppedBlob;
+
+            if (mobileCropped) {
+                const fileToUpload = new File([mobileCropped], mobileFile ? mobileFile.name : "mobile_slide.jpg", { type: "image/jpeg" });
+                mobile = await uploadHomepageFile(fileToUpload, 'hero_mobile');
+            } else if (mobileFile) {
                 mobile = await uploadHomepageFile(mobileFile, 'hero_mobile');
             }
 
@@ -430,8 +496,14 @@ async function saveHomepageSettings() {
         const menImages = [];
         for (const row of menRows) {
             let imgUrl = row.querySelector('.editorial-image-url').value.trim();
-            const imgFile = row.querySelector('.editorial-image-file').files[0];
-            if (imgFile) {
+            const imgFileInput = row.querySelector('.editorial-image-file');
+            const imgFile = imgFileInput.files[0];
+            const imgCropped = imgFileInput.croppedBlob;
+
+            if (imgCropped) {
+                const fileToUpload = new File([imgCropped], imgFile ? imgFile.name : "men_editorial.jpg", { type: "image/jpeg" });
+                imgUrl = await uploadHomepageFile(fileToUpload, 'editorial_men');
+            } else if (imgFile) {
                 imgUrl = await uploadHomepageFile(imgFile, 'editorial_men');
             }
             if (imgUrl) menImages.push(imgUrl);
@@ -448,8 +520,14 @@ async function saveHomepageSettings() {
         const womenImages = [];
         for (const row of womenRows) {
             let imgUrl = row.querySelector('.editorial-image-url').value.trim();
-            const imgFile = row.querySelector('.editorial-image-file').files[0];
-            if (imgFile) {
+            const imgFileInput = row.querySelector('.editorial-image-file');
+            const imgFile = imgFileInput.files[0];
+            const imgCropped = imgFileInput.croppedBlob;
+
+            if (imgCropped) {
+                const fileToUpload = new File([imgCropped], imgFile ? imgFile.name : "women_editorial.jpg", { type: "image/jpeg" });
+                imgUrl = await uploadHomepageFile(fileToUpload, 'editorial_women');
+            } else if (imgFile) {
                 imgUrl = await uploadHomepageFile(imgFile, 'editorial_women');
             }
             if (imgUrl) womenImages.push(imgUrl);
