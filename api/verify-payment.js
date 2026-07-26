@@ -43,7 +43,6 @@ module.exports = async (req, res) => {
                     },
                     body: JSON.stringify({
                         status: 'paid',
-                        payment_status: 'paid',
                         razorpay_payment_id: razorpay_payment_id
                     })
                 });
