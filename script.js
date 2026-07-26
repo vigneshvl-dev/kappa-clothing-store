@@ -132,6 +132,65 @@ testDatabaseConnection();
             console.error("Error loading products for storefront:", e);
         }
     }
+    function updateEditorialCardMedia(card, mediaConfig) {
+        if (!card) return;
+
+        let images = [];
+        let videoUrl = '';
+
+        if (typeof mediaConfig === 'string') {
+            images = [mediaConfig];
+        } else if (mediaConfig && typeof mediaConfig === 'object') {
+            images = mediaConfig.images || [];
+            videoUrl = mediaConfig.video || '';
+        }
+
+        const existingImg = card.querySelector('img');
+        const existingVideo = card.querySelector('video');
+        const existingWrapper = card.querySelector('.editorial-media-wrapper');
+
+        if (existingImg) {
+            existingImg.remove();
+        }
+        if (existingVideo) existingVideo.remove();
+        if (existingWrapper) existingWrapper.remove();
+
+        card.style.position = 'relative';
+        card.style.overflow = 'hidden';
+
+        const cardContent = card.querySelector('.editorial-card-content');
+        if (cardContent) {
+            cardContent.style.position = 'relative';
+            cardContent.style.zIndex = '5';
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'editorial-media-wrapper';
+        wrapper.style = 'position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; z-index:1;';
+        card.insertBefore(wrapper, card.firstChild);
+
+        if (videoUrl) {
+            wrapper.innerHTML = `<video src="${videoUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; transition:transform 0.8s;"></video>`;
+        } else if (images.length > 0) {
+            if (images.length === 1) {
+                wrapper.innerHTML = `<img src="${images[0]}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.8s;">`;
+            } else {
+                wrapper.innerHTML = images.map((imgUrl, idx) => {
+                    const opacity = idx === 0 ? 1 : 0;
+                    return `<img src="${imgUrl}" class="fade-slide" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; opacity:${opacity}; transition:opacity 1.5s ease, transform 0.8s; z-index:${10 - idx};">`;
+                }).join('');
+
+                let activeIdx = 0;
+                const slides = wrapper.querySelectorAll('.fade-slide');
+                setInterval(() => {
+                    if (slides[activeIdx]) slides[activeIdx].style.opacity = 0;
+                    activeIdx = (activeIdx + 1) % slides.length;
+                    if (slides[activeIdx]) slides[activeIdx].style.opacity = 1;
+                }, 3000);
+            }
+        }
+    }
+
     async function loadDynamicHomepageMedia() {
         try {
             const response = await fetch('https://ugphxapfbzcrauchwlef.supabase.co/storage/v1/object/public/product-images/homepage_settings.json?t=' + Date.now());
@@ -146,7 +205,11 @@ testDatabaseConnection();
                 if (slidesContainer) {
                     slidesContainer.innerHTML = config.heroSlides.map((slide, index) => {
                         const activeClass = index === 0 ? 'active' : '';
-                        return `<div class="hero-slide ${activeClass}" style="background-image:url('${slide.desktop}')" data-mobile-bg="${slide.mobile || slide.desktop}"></div>`;
+                        if (slide.video) {
+                            return `<div class="hero-slide ${activeClass}" style="background:#000;"><video class="hero-slide-video" src="${slide.video}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover;"></video></div>`;
+                        } else {
+                            return `<div class="hero-slide ${activeClass}" style="background-image:url('${slide.desktop}')" data-mobile-bg="${slide.mobile || slide.desktop}"></div>`;
+                        }
                     }).join('');
                     
                     // Reset slideshow state
@@ -170,14 +233,29 @@ testDatabaseConnection();
 
             // 2. Update Reel Videos
             if (config.reels && config.reels.length > 0) {
-                const reelElements = document.querySelectorAll('.reel-video-element');
-                reelElements.forEach((videoEl, index) => {
-                    const reel = config.reels[index];
-                    if (reel) {
-                        if (reel.video) videoEl.src = reel.video;
-                        if (reel.poster) videoEl.poster = reel.poster;
-                    }
-                });
+                const reelsWrapper = document.querySelector('.reels-wrapper');
+                if (reelsWrapper) {
+                    reelsWrapper.innerHTML = config.reels.map((reel, index) => {
+                        return `
+                            <div class="reel-card" data-index="${index}">
+                                <div class="reel-video">
+                                    <video class="reel-video-element" src="${reel.video}" poster="${reel.poster}"
+                                        loop muted playsinline preload="metadata"></video>
+                                    <button class="reel-sound-btn" aria-label="Mute/Unmute">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2.5" class="sound-icon-svg">
+                                            <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"
+                                                class="sound-waves"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    initReelsSlider();
+                }
             }
 
             // 3. Update Store Promo Video
@@ -187,17 +265,16 @@ testDatabaseConnection();
             }
 
             // 4. Update Editorial Images
+            // 4. Update Editorial Category Media
             if (config.editorial) {
-                const cards = document.querySelectorAll('.editorial-card img');
-                if (cards.length >= 2) {
-                    if (config.editorial.men) {
-                        cards[0].src = config.editorial.men;
-                        cards[0].alt = "MEN";
-                    }
-                    if (config.editorial.women) {
-                        cards[1].src = config.editorial.women;
-                        cards[1].alt = "WOMEN";
-                    }
+                const menCard = document.querySelector('.editorial-card[onclick*="boys-collection"]');
+                if (menCard && config.editorial.men) {
+                    updateEditorialCardMedia(menCard, config.editorial.men);
+                }
+
+                const womenCard = document.querySelector('.editorial-card[onclick*="girls-collection"]');
+                if (womenCard && config.editorial.women) {
+                    updateEditorialCardMedia(womenCard, config.editorial.women);
                 }
             }
 
@@ -1160,6 +1237,7 @@ window.addToCart = addToCart;
             const note = document.getElementById("newsletterNote");
             if (note) note.textContent = `You're in — confirmation sent to ${email.value}`;
             if (email) email.value = "";
+        if (email) email.value = "";
             showToast("Welcome to the inner circle");
         });
     }
@@ -1169,15 +1247,31 @@ window.addToCart = addToCart;
 
 
     /* ---------- REELS AUTOPLAY, SLIDER & AUDIO CONTROL ---------- */
-    const reelsContainer = document.getElementById("reels");
-    if (reelsContainer) {
+    let reelsObserver = null;
+    let resizeHandler = null;
+
+    function initReelsSlider() {
+        const reelsContainer = document.getElementById("reels");
+        if (!reelsContainer) return;
+
+        // Clean up previous observer if it exists
+        if (reelsObserver) {
+            reelsObserver.disconnect();
+            reelsObserver = null;
+        }
+
         const wrapper = reelsContainer.querySelector(".reels-wrapper");
         const cards = reelsContainer.querySelectorAll(".reel-card");
         const prevBtn = reelsContainer.querySelector(".reels-nav-btn.prev");
         const nextBtn = reelsContainer.querySelector(".reels-nav-btn.next");
         const videos = reelsContainer.querySelectorAll(".reel-video-element");
 
-        let currentIndex = 2; // Start with center card (Reel 3) active
+        if (cards.length === 0) return;
+
+        // Center card index or fallback
+        let currentIndex = Math.min(2, cards.length - 1);
+        if (currentIndex < 0) currentIndex = 0;
+        
         let reelsInView = false;
 
         /* ---- Helpers ---- */
@@ -1186,7 +1280,6 @@ window.addToCart = addToCart;
             return cards[actualIdx] ? cards[actualIdx].querySelector(".reel-video-element") : null;
         }
 
-        // Control playback (play/pause/mute) based on current active card and viewport visibility
         function updateVideosState() {
             cards.forEach((card, i) => {
                 const v = card.querySelector(".reel-video-element");
@@ -1194,7 +1287,6 @@ window.addToCart = addToCart;
                 if (!v) return;
 
                 if (i === currentIndex && reelsInView) {
-                    // Play active video and unmute it!
                     v.muted = false;
                     v.volume = 1;
                     updateSoundButtonIcon(soundBtn, false);
@@ -1202,7 +1294,6 @@ window.addToCart = addToCart;
                     const promise = v.play();
                     if (promise !== undefined) {
                         promise.catch(() => {
-                            // Fallback to muted playback if audio is blocked by user gesture policy
                             v.muted = true;
                             v.volume = 0;
                             v.play().catch(() => { });
@@ -1210,7 +1301,6 @@ window.addToCart = addToCart;
                         });
                     }
                 } else {
-                    // Pause all other videos
                     v.pause();
                     v.muted = true;
                     v.volume = 0;
@@ -1229,18 +1319,13 @@ window.addToCart = addToCart;
             }
         }
 
-        function playActiveWithAudio(idx) {
-            currentIndex = (idx + cards.length) % cards.length;
-            updateVideosState();
-        }
-
-        /* ---- Slider positioning ---- */
         function updateSlider() {
             if (!wrapper || !cards.length) return;
             const container = reelsContainer.querySelector(".reels-slider-container");
             if (!container) return;
             const cw = container.clientWidth;
             const card = cards[currentIndex];
+            if (!card) return;
             const tx = (cw / 2) - (card.offsetLeft + card.clientWidth / 2);
             wrapper.style.transform = `translateX(${tx}px)`;
 
@@ -1255,20 +1340,26 @@ window.addToCart = addToCart;
             });
         }
 
-        /* ---- Navigate ---- */
         function goTo(idx) {
             currentIndex = (idx + cards.length) % cards.length;
             updateSlider();
             updateVideosState();
         }
 
-        /* ---- Events ---- */
-        if (prevBtn) prevBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex - 1); });
-        if (nextBtn) nextBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex + 1); });
+        // Event listeners re-binding with clone element to avoid duplicates
+        if (prevBtn) {
+            const newPrevBtn = prevBtn.cloneNode(true);
+            prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+            newPrevBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex - 1); });
+        }
+        if (nextBtn) {
+            const newNextBtn = nextBtn.cloneNode(true);
+            nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+            newNextBtn.addEventListener("click", e => { e.stopPropagation(); goTo(currentIndex + 1); });
+        }
 
         cards.forEach((card, idx) => {
             card.addEventListener("click", (e) => {
-                // If they clicked the sound button, handle it separately
                 if (e.target.closest(".reel-sound-btn")) {
                     e.stopPropagation();
                     const v = card.querySelector(".reel-video-element");
@@ -1287,18 +1378,19 @@ window.addToCart = addToCart;
             });
         });
 
-        /* ---- Slider layout init ---- */
-        window.addEventListener("resize", updateSlider);
+        if (resizeHandler) {
+            window.removeEventListener("resize", resizeHandler);
+        }
+        resizeHandler = updateSlider;
+        window.addEventListener("resize", resizeHandler);
+        
         setTimeout(updateSlider, 100);
         setTimeout(updateSlider, 500);
         setTimeout(updateSlider, 1500);
-        window.addEventListener("load", updateSlider);
 
-        // Run updateVideosState once initially to load active poster frame
         setTimeout(updateVideosState, 200);
 
-        /* ---- IntersectionObserver: auto-play on scroll into view ---- */
-        const reelsObserver = new IntersectionObserver(entries => {
+        reelsObserver = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting) {
                 reelsInView = true;
                 updateSlider();
@@ -1307,9 +1399,11 @@ window.addToCart = addToCart;
                 reelsInView = false;
                 updateVideosState();
             }
-        }, { threshold: 0.1 }); // Lowered threshold so videos load/play as soon as they enter screen
+        }, { threshold: 0.1 });
         reelsObserver.observe(reelsContainer);
     }
+
+    initReelsSlider();
 
 
     /* ---------- SEPARATE REELS PAGE GRID & LIGHTBOX LOGIC ---------- */
