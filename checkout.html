@@ -995,7 +995,6 @@
                 order_id: order.order_id,
                 name: "Kappa Fashion Store",
                 description: "Test Payment",
-                image: "assets/IMG_4646-removebg-preview.png",
                 handler: async function (response) {
                     console.log("Razorpay Payment Successful! Response:", response);
                     try {
@@ -1063,6 +1062,7 @@
                         email: document.getElementById("bill-email") ? document.getElementById("bill-email").value : "",
                         contact: document.getElementById("bill-phone") ? document.getElementById("bill-phone").value : ""
                     },
+                    theme: { color: "#fbf428" },
                     modal: {
                         ondismiss: function () {
                             console.log("Razorpay modal closed");
