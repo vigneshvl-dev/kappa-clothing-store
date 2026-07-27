@@ -15,14 +15,9 @@
         href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    
     <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.18/dist/lenis.css">
-
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
     <style>
         @media (max-width: 768px) {
             .marquee {
@@ -295,7 +290,7 @@
 
     <div class="cursor-glow" id="cursorGlow"></div>
 
-    
+    <!-- NAVBAR -->
     <header class="navbar" id="navbar">
         <button class="hn-hamburger" id="heroHamburger" aria-label="Menu">
             <span></span><span></span><span></span>
@@ -396,7 +391,7 @@
         </div>
     </header>
 
-    
+    <!-- MOBILE MENU -->
     <div class="mobile-menu" id="mobileMenu">
         <div class="mobile-menu-header">
             <span class="mobile-menu-title">Menu</span>
@@ -422,7 +417,7 @@
         </div>
     </div>
 
-    
+    <!-- BOTTOM NAV (mobile) -->
     <nav class="bottom-nav">
         <a href="index.html#home" class="bnav-item active" data-label="Home" data-i18n="nav_home">
             <svg viewBox="0 0 24 24">
@@ -475,7 +470,6 @@
     </div>
 
     <div class="checkout-layout">
-        
         <div class="checkout-section">
             <h2>Shipping &amp; Billing Details</h2>
             <div class="saved-address-section" id="savedAddressSection" style="display:none;">
@@ -530,11 +524,11 @@
             </form>
         </div>
 
-        
+        <!-- Order Summary Sidebar -->
         <div class="order-summary-sidebar">
             <h2 class="summary-title">Order Summary</h2>
             <div class="summary-items" id="summary-items-list">
-                
+                <!-- Loaded from localStorage -->
             </div>
 
             <div class="promo-block">
@@ -562,7 +556,7 @@
         </div>
     </div>
 
-    
+    <!-- FOOTER -->
     <footer class="footer" id="footer">
         <div class="footer-top">
             <div class="footer-brand-col">
@@ -614,7 +608,7 @@
         </div>
     </footer>
 
-    
+    <!-- POPUPS & TOASTS (Minimized for brevity but fully intact) -->
     <div class="overlay" id="searchOverlay">
         <div class="search-panel"><input type="text" id="searchInput" placeholder="Search for products..."><button
                 class="overlay-close" id="searchClose">✕</button>
@@ -644,7 +638,7 @@
     </div>
     <div class="toast" id="toast"></div>
 
-    
+    <!-- GSAP & Lenis Smooth Scroll Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
