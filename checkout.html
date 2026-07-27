@@ -924,35 +924,16 @@
                 console.error('Auth check failed:', e);
             }
 
-            if (!user) {
-                try {
-                    const formBackup = {
-                        name: document.getElementById('bill-name').value,
-                        email: document.getElementById('bill-email').value,
-                        phone: document.getElementById('bill-phone').value,
-                        address: document.getElementById('bill-address').value,
-                        state: document.getElementById('bill-state').value,
-                        zip: document.getElementById('bill-zip').value
-                    };
-                    localStorage.setItem('kappa_checkout_form', JSON.stringify(formBackup));
-                    localStorage.setItem('kappa_pending_checkout', '1');
-                } catch (e) {
-                    console.error('Failed to save checkout state:', e);
-                }
-                window.location.href = 'index.html';
-                return;
-            }
-
-            // 2. Prepare order payload (Notice: NO PRICES are sent from client!)
+            // 2. Prepare order payload
             const orderPayload = {
                 p_user_id: user ? user.id : null,
                 p_shipping_address: shippingAddress,
                 p_customer_details: customerDetails,
                 p_items: cartItems.map(item => ({
-                    product_id: item.id,       // Changed from variant_id
+                    product_id: item.id,
                     quantity: item.qty,
-                    size: item.size || 'N/A',  // Send size directly from cart
-                    color: item.color || 'N/A' // Send color directly from cart
+                    size: item.size || 'N/A',
+                    color: item.color || 'N/A'
                 }))
             };
 
@@ -966,7 +947,6 @@
                     const size = item.size || null;
 
                     try {
-                        // 1. Reduce variant stock quantity in product_variants table
                         if (prodId && size && size !== 'Default' && size !== 'N/A') {
                             const { data: variants } = await supabaseClient
                                 .from('product_variants')
@@ -982,12 +962,10 @@
                                         .from('product_variants')
                                         .update({ stock_quantity: newStock })
                                         .eq('id', v.id);
-                                    console.log(`✅ Reduced variant ${v.id} stock from ${currentStock} to ${newStock}`);
                                 }
                             }
                         }
 
-                        // 2. Reduce total product stock quantity in products table
                         if (prodId) {
                             const { data: prod } = await supabaseClient
                                 .from('products')
@@ -1002,7 +980,6 @@
                                     .from('products')
                                     .update({ stock_quantity: newProdStock })
                                     .eq('id', prodId);
-                                console.log(`✅ Reduced product ${prodId} total stock from ${currentProdStock} to ${newProdStock}`);
                             }
                         }
                     } catch (err) {
@@ -1011,30 +988,24 @@
                 }
             }
 
-            // 3. Invoke secure server-side RPC function
-            const { data: result, error: orderError } = await supabaseClient.rpc('create_secure_order', orderPayload);
-
-            if (orderError) {
-                console.error("Database Error (Secure Order):", orderError);
-                alert("Could not process order securely. Please try again.");
-                return;
-            }
-
-            // Automatically reduce stock in backend DB & Admin panel upon order creation
-            await reduceStockForCart(cartItems);
-
-            // 4. Finalize & Extract Order ID and Total Amount
-            let newOrderId = null;
-            if (result) {
-                if (typeof result === 'string' || typeof result === 'number') {
-                    newOrderId = result;
-                } else if (Array.isArray(result) && result[0]) {
-                    newOrderId = result[0].order_id || result[0].id || result[0];
-                } else if (typeof result === 'object') {
-                    newOrderId = result.order_id || result.id;
+            // 3. Optional DB RPC function for logged in users
+            let newOrderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+            try {
+                if (user && supabaseClient) {
+                    const { data: result } = await supabaseClient.rpc('create_secure_order', orderPayload);
+                    if (result) {
+                        if (typeof result === 'string' || typeof result === 'number') {
+                            newOrderId = result;
+                        } else if (Array.isArray(result) && result[0]) {
+                            newOrderId = result[0].order_id || result[0].id || result[0];
+                        } else if (typeof result === 'object') {
+                            newOrderId = result.order_id || result.id;
+                        }
+                    }
                 }
+            } catch (e) {
+                console.warn('Optional DB order creation notice:', e);
             }
-            const verifiedTotal = (typeof result === 'object' && result.total_amount) || (Array.isArray(result) && result[0] ? result[0].total_amount : undefined) || orderPayload.total_amount;
 
             localStorage.setItem('kappa_active_order_id', newOrderId);
             localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
@@ -1064,7 +1035,7 @@
                 date: new Date().toISOString()
             };
 
-            // Call Razorpay Payment Modal
+            // Launch Razorpay Payment Modal directly
             await payNow(total, newOrderId, orderRecord);
         }
 
