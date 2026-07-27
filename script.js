@@ -10,13 +10,22 @@ const LANGS = {
 };
 
 const supabaseClient = (() => {
-    if (window.supabaseClient) return window.supabaseClient;
-    const client = window.supabase.createClient(
-        'https://ugphxapfbzcrauchwlef.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
-    );
-    window.supabaseClient = client;
-    return client;
+    try {
+        if (window.supabaseClient && typeof window.supabaseClient.from === 'function') return window.supabaseClient;
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+            console.error('Supabase CDN not loaded yet in script.js');
+            return null;
+        }
+        const client = window.supabase.createClient(
+            'https://ugphxapfbzcrauchwlef.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
+        );
+        window.supabaseClient = client;
+        return client;
+    } catch (e) {
+        console.error('Supabase client init error in script.js:', e);
+        return null;
+    }
 })();
 
 async function testDatabaseConnection() {
