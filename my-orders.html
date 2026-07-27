@@ -483,6 +483,74 @@
         </div>
     </div>
 
+    <!-- CART SIDEBAR OVERLAY -->
+    <div class="overlay overlay-right" id="cartOverlay">
+        <div class="side-panel">
+            <div class="side-head">
+                <h3>Your Cart</h3>
+                <button class="overlay-close" id="cartClose">✕</button>
+            </div>
+            <div class="cart-items" id="cartItems"></div>
+            <div class="cart-summary">
+                <div class="promo-row">
+                    <input type="text" id="promoInput" placeholder="Promo code">
+                    <button class="btn-mini" id="promoApply">Apply</button>
+                </div>
+                <p class="promo-msg" id="promoMsg"></p>
+                <div class="shipping-row">
+                    <span>Shipping estimate</span>
+                    <select id="shipSelect">
+                        <option value="0">India — Free</option>
+                        <option value="1500">International — ₹1500</option>
+                    </select>
+                </div>
+                <div class="summary-line"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
+                <div class="summary-line"><span>Discount</span><span id="cartDiscount">− ₹0</span></div>
+                <div class="summary-line"><span>Shipping</span><span id="cartShipping">₹0</span></div>
+                <div class="summary-line total"><span>Total</span><span id="cartTotal">₹0</span></div>
+                <button class="btn btn-primary full magnetic" id="checkoutBtn"><span>Checkout</span></button>
+                <div class="cart-badges-row">
+                    <div class="cart-badge-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
+                        <span>Fast Delivery</span>
+                    </div>
+                    <div class="cart-badge-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.86 19.86 0 0 1 3.08 4.18 2 2 0 0 1 5.09 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L9.91 9.91a16 16 0 0 0 6.18 6.18l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+                        <span>24/7 Support</span>
+                    </div>
+                    <div class="cart-badge-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
+                        <span>Free Shipping</span>
+                    </div>
+                    <div class="cart-badge-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 11l2 2 4-4" /></svg>
+                        <span>Secure Checkout</span>
+                    </div>
+                    <div class="cart-badge-item">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-4.5" /></svg>
+                        <span>Easy Returns</span>
+                    </div>
+                </div>
+                <div class="cart-payment-partner">
+                    <span class="cpp-label">Payment processing partner</span>
+                    <div class="cpp-logo-wrap">
+                        <img src="https://razorpay.com/assets/razorpay-glyph.svg" alt="Razorpay" class="cpp-glyph">
+                        <span class="cpp-text">Razorpay</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEARCH OVERLAY -->
+    <div class="overlay" id="searchOverlay">
+        <div class="search-panel">
+            <input type="text" id="searchInput" placeholder="Search for products..." autocomplete="off">
+            <button class="overlay-close" id="searchClose">✕</button>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
@@ -670,11 +738,241 @@
                         <div style="font-size: 16px; font-weight: 700; color: #111;">Total: ₹${(order.total || 0).toLocaleString('en-IN')}</div>
                     </div>
                     <div style="margin-top: 10px; font-size: 12px; color: red; font-weight: 700;">The products will be delivered within 2 to 5 days.</div>
+
+                    <div style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="cancelOrder('${order.orderId}', this)" style="padding: 8px 18px; background: #fff; color: #d32f2f; border: 1.5px solid #d32f2f; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.18s;">Cancel</button>
+                        <button onclick="returnOrder('${order.orderId}', this)" style="padding: 8px 18px; background: #fff; color: #f57c00; border: 1.5px solid #f57c00; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.18s;">Return</button>
+                    </div>
                 </div>
             `).join('');
         }
 
         loadMyOrders();
+
+        async function cancelOrder(orderId, btn) {
+            if (!confirm('Are you sure you want to cancel this order?')) return;
+            if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
+
+            try {
+                // Update Supabase if logged in
+                const { data: session } = await supabaseClient.auth.getSession();
+                if (session?.session?.user) {
+                    await supabaseClient.from('orders').update({ status: 'cancelled' }).eq('id', orderId);
+                }
+            } catch (e) {
+                console.warn('Supabase cancel update notice:', e);
+            }
+
+            updateLocalOrderStatus(orderId, 'Cancelled');
+            if (btn) { btn.disabled = false; btn.textContent = 'Cancelled'; btn.style.background = '#d32f2f'; btn.style.color = '#fff'; }
+            showToast('Order has been cancelled successfully');
+        }
+
+        async function returnOrder(orderId, btn) {
+            if (!confirm('Are you sure you want to return this order?')) return;
+            if (btn) { btn.disabled = true; btn.textContent = 'Processing...'; }
+
+            try {
+                const { data: session } = await supabaseClient.auth.getSession();
+                if (session?.session?.user) {
+                    await supabaseClient.from('orders').update({ status: 'returned' }).eq('id', orderId);
+                }
+            } catch (e) {
+                console.warn('Supabase return update notice:', e);
+            }
+
+            updateLocalOrderStatus(orderId, 'Returned');
+            if (btn) { btn.disabled = false; btn.textContent = 'Returned'; btn.style.background = '#f57c00'; btn.style.color = '#fff'; }
+            showToast('Return request has been submitted');
+        }
+
+        function updateLocalOrderStatus(orderId, newStatus) {
+            try {
+                const keys = ['kappa_orders', 'kappa_orders_guest'];
+                keys.forEach(key => {
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return;
+                    const orders = JSON.parse(raw);
+                    const idx = orders.findIndex(o => String(o.orderId) === String(orderId));
+                    if (idx !== -1) {
+                        orders[idx].status = newStatus;
+                        localStorage.setItem(key, JSON.stringify(orders));
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to update local order status:', e);
+            }
+            loadMyOrders();
+        }
+
+        // ── CART FUNCTIONALITY ──
+        let cart = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
+        let discount = 0;
+        let PRODUCTS = [];
+        try {
+            const cached = localStorage.getItem("kappa_cached_products");
+            if (cached) PRODUCTS = JSON.parse(cached);
+        } catch (e) {}
+
+        function fmt(price) {
+            return "₹" + Number(price).toLocaleString('en-IN');
+        }
+
+        // Overlay helpers
+        const cartOverlay = document.getElementById('cartOverlay');
+        const searchOverlay = document.getElementById('searchOverlay');
+
+        function openOverlay(el) { if (el) { el.classList.add('open'); document.body.style.overflow = 'hidden'; } }
+        function closeOverlay(el) { if (el) { el.classList.remove('open'); document.body.style.overflow = ''; } }
+
+        // Cart button
+        const cartBtn = document.getElementById('cartBtn');
+        if (cartBtn) cartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            renderCart();
+            openOverlay(cartOverlay);
+        });
+
+        // Cart close
+        const cartClose = document.getElementById('cartClose');
+        if (cartClose) cartClose.addEventListener('click', () => closeOverlay(cartOverlay));
+
+        // Search button
+        const searchBtn = document.getElementById('searchBtn');
+        if (searchBtn) searchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openOverlay(searchOverlay);
+            const inp = document.getElementById('searchInput');
+            if (inp) setTimeout(() => inp.focus(), 100);
+        });
+
+        // Search close
+        const searchClose = document.getElementById('searchClose');
+        if (searchClose) searchClose.addEventListener('click', () => closeOverlay(searchOverlay));
+
+        // Close overlays on backdrop click
+        if (cartOverlay) cartOverlay.addEventListener('click', (e) => { if (e.target === cartOverlay) closeOverlay(cartOverlay); });
+        if (searchOverlay) searchOverlay.addEventListener('click', (e) => { if (e.target === searchOverlay) closeOverlay(searchOverlay); });
+
+        // Close with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                [cartOverlay, searchOverlay].forEach(o => closeOverlay(o));
+            }
+        });
+
+        function updateSummary() {
+            const subtotal = cart.reduce((a, c) => a + (c.price || 0) * (c.qty || 1), 0);
+            const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
+            const discAmt = Math.round(subtotal * discount);
+            const total = Math.max(subtotal - discAmt + (subtotal > 0 ? shipCost : 0), 0);
+            const subEl = document.getElementById('cartSubtotal');
+            const discEl = document.getElementById('cartDiscount');
+            const shipEl = document.getElementById('cartShipping');
+            const totalEl = document.getElementById('cartTotal');
+            if (subEl) subEl.textContent = fmt(subtotal);
+            if (discEl) discEl.textContent = '- ' + fmt(discAmt);
+            if (shipEl) shipEl.textContent = subtotal > 0 ? fmt(shipCost) : fmt(0);
+            if (totalEl) totalEl.textContent = fmt(total);
+        }
+
+        function renderCart() {
+            const wrap = document.getElementById('cartItems');
+            if (!wrap) return;
+            const totalItems = cart.reduce((a, c) => a + (c.qty || 1), 0);
+            const badge = document.querySelector('#cartBtn .badge');
+            if (!badge && totalItems > 0) {
+                const b = document.createElement('span');
+                b.className = 'badge';
+                b.textContent = totalItems;
+                document.getElementById('cartBtn')?.appendChild(b);
+            } else if (badge) {
+                badge.textContent = totalItems;
+                if (totalItems === 0) badge.remove();
+            }
+            if (!cart.length) {
+                wrap.innerHTML = '<div class="cart-empty">Your cart is empty.<br>Start adding items.</div>';
+            } else {
+                wrap.innerHTML = cart.map((c, idx) => {
+                    const name = c.name || 'Product';
+                    const img = c.customImg || c.img || 'assets/sleeping sis.png';
+                    const price = c.price || 0;
+                    return `
+                        <div class="cart-item">
+                            <img src="${img}" alt="${name}">
+                            <div class="ci-info">
+                                <div class="ci-name">${name}</div>
+                                <div class="ci-meta">Size: ${c.size || 'Default'} | Color: ${c.color || 'N/A'}</div>
+                                <div class="ci-qty">
+                                    <button data-dec="${idx}">−</button>
+                                    <span>${c.qty || 1}</span>
+                                    <button data-inc="${idx}">+</button>
+                                </div>
+                                <span class="ci-remove" data-remove="${idx}">Remove</span>
+                            </div>
+                            <div class="ci-price">${fmt(price * (c.qty || 1))}</div>
+                        </div>`;
+                }).join('');
+            }
+            updateSummary();
+        }
+
+        // Cart item interactions
+        document.addEventListener('click', function(e) {
+            const inc = e.target.dataset.inc;
+            const dec = e.target.dataset.dec;
+            const rem = e.target.dataset.remove;
+            if (inc !== undefined) { cart[inc].qty = (cart[inc].qty || 1) + 1; localStorage.setItem('kappa_cart', JSON.stringify(cart)); renderCart(); }
+            if (dec !== undefined) { cart[dec].qty = (cart[dec].qty || 1) - 1; if (cart[dec].qty <= 0) cart.splice(dec, 1); localStorage.setItem('kappa_cart', JSON.stringify(cart)); renderCart(); }
+            if (rem !== undefined) { cart.splice(rem, 1); localStorage.setItem('kappa_cart', JSON.stringify(cart)); renderCart(); }
+        });
+
+        // Promo code
+        const promoApply = document.getElementById('promoApply');
+        const promoInput = document.getElementById('promoInput');
+        const promoMsg = document.getElementById('promoMsg');
+        if (promoApply) {
+            promoApply.addEventListener('click', () => {
+                const code = promoInput?.value.trim().toUpperCase() || '';
+                if (code === 'KAPPA10') { discount = 0.10; if (promoMsg) promoMsg.textContent = '10% off applied ✓'; }
+                else if (code === 'KAPPA20') { discount = 0.20; if (promoMsg) promoMsg.textContent = '20% off applied ✓'; }
+                else { discount = 0; if (promoMsg) promoMsg.textContent = code ? 'Invalid code' : ''; }
+                updateSummary();
+            });
+        }
+
+        // Shipping select
+        const shipSelect = document.getElementById('shipSelect');
+        if (shipSelect) shipSelect.addEventListener('change', updateSummary);
+
+        // Checkout button
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', () => {
+                if (cart.length === 0) {
+                    showToast('Your cart is empty!');
+                    return;
+                }
+                const cartDetails = cart.map(c => ({
+                    id: c.id,
+                    name: c.name || 'Product',
+                    price: c.price || 0,
+                    size: c.size || 'Default',
+                    color: c.color || 'N/A',
+                    qty: c.qty || 1,
+                    img: c.customImg || c.img || 'assets/sleeping sis.png'
+                }));
+                const shipCost = Number(document.getElementById('shipSelect')?.value || 0);
+                localStorage.setItem('kappa_checkout_cart', JSON.stringify(cartDetails));
+                localStorage.setItem('kappa_checkout_shipping', shipCost);
+                localStorage.setItem('kappa_checkout_discount', discount);
+                window.location.href = 'checkout.html';
+            });
+        }
+
+        // Render cart on load
+        renderCart();
     </script>
     <!-- GSAP & Lenis Smooth Scroll Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
