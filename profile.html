@@ -25,62 +25,23 @@
             padding: 0 24px;
         }
 
-        .profile-cover {
-            position: relative;
+        .profile-brand {
             width: 100%;
-            height: 240px;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            background: linear-gradient(135deg, var(--yellow) 0%, var(--yellow-deep) 100%);
-            margin-bottom: 80px;
-        }
-
-        .profile-cover-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .profile-cover-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 60%);
-        }
-
-        .profile-cover-upload {
-            position: absolute;
-            bottom: 16px;
-            right: 16px;
             display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            background: rgba(255,255,255,0.95);
-            border: none;
-            border-radius: 100px;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--ink);
-            cursor: pointer;
-            backdrop-filter: blur(8px);
-            transition: background 0.2s, transform 0.15s;
-            font-family: 'Inter', sans-serif;
+            justify-content: center;
+            padding: 32px 0 18px;
         }
 
-        .profile-cover-upload:hover {
-            background: #ffffff;
-            transform: translateY(-1px);
-        }
-
-        .profile-cover-upload svg {
-            width: 14px;
-            height: 14px;
+        .profile-brand img {
+            height: 56px;
+            width: auto;
+            object-fit: contain;
+            display: block;
         }
 
             .profile-header {
                 position: relative;
-                margin-top: -120px;
+                margin-top: 10px;
                 margin-bottom: 32px;
                 display: flex;
                 align-items: center;
@@ -363,14 +324,12 @@
         }
 
         @media (max-width: 768px) {
-            .profile-cover {
-                height: 160px;
-                border-radius: var(--radius-md);
-                margin-bottom: 70px;
+            .profile-brand img {
+                height: 40px;
             }
 
             .profile-header {
-                margin-top: -100px;
+                margin-top: 10px;
                 gap: 16px;
             }
 
@@ -395,7 +354,7 @@
                 flex-direction: column;
             }
 
-            .btn-primary, .btn-secondary {
+            .btn-primary, .btn-secondary, .btn-danger {
                 width: 100%;
                 text-align: center;
             }
@@ -443,14 +402,8 @@
 
     <div class="profile-page-wrapper">
         <div class="profile-container">
-            <div class="profile-cover" id="profileCover">
-                <img src="" alt="Cover" class="profile-cover-img" id="profileCoverImg" style="display:none;" />
-                <div class="profile-cover-overlay"></div>
-                <button type="button" class="profile-cover-upload" id="profileCoverUploadBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <span>Change Cover</span>
-                </button>
-                <input type="file" id="profileCoverInput" accept="image/*" style="display:none;" />
+            <div class="profile-brand">
+                <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store">
             </div>
 
             <div class="profile-header">
@@ -598,8 +551,6 @@
             const profileAddressInput = document.getElementById('profile-address');
             const profileAvatarImg = document.getElementById('profileAvatarImg');
             const profileAvatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
-            const profileCoverImg = document.getElementById('profileCoverImg');
-            const profileCoverInput = document.getElementById('profileCoverInput');
             const profileAvatarInput = document.getElementById('profileAvatarInput');
             const profileForm = document.getElementById('profile-form');
             const profileCancelBtn = document.getElementById('profileCancelBtn');
@@ -638,14 +589,6 @@
                     profileAvatarPlaceholder.textContent = initial;
                 }
 
-                // Load cover
-                const coverKey = `kappa_cover_${userId}`;
-                const coverSrc = localStorage.getItem(coverKey);
-                if (coverSrc && profileCoverImg) {
-                    profileCoverImg.src = coverSrc;
-                    profileCoverImg.style.display = 'block';
-                }
-
                 // Populate fields
                 if (profileNameDisplay) profileNameDisplay.textContent = profileData.name || name;
                 if (profileEmailDisplay) profileEmailDisplay.textContent = email;
@@ -653,31 +596,6 @@
                 if (profileEmailInput) profileEmailInput.value = email;
                 if (profilePhoneInput) profilePhoneInput.value = profileData.phone || '';
                 if (profileAddressInput) profileAddressInput.value = profileData.address || '';
-
-                // Cover upload
-                const coverBtn = document.getElementById('profileCoverUploadBtn');
-                if (coverBtn && profileCoverInput) {
-                    coverBtn.addEventListener('click', () => profileCoverInput.click());
-                    profileCoverInput.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        if (!file.type.startsWith('image/')) {
-                            showToast('Please select a valid image file');
-                            return;
-                        }
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            const dataUrl = reader.result;
-                            localStorage.setItem(coverKey, dataUrl);
-                            if (profileCoverImg) {
-                                profileCoverImg.src = dataUrl;
-                                profileCoverImg.style.display = 'block';
-                            }
-                            showToast('Cover photo updated');
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                }
 
                 // Avatar upload
                 const avatarBtn = document.getElementById('profileAvatarBtn');
