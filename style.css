@@ -1255,6 +1255,52 @@ body.home-page .navbar.scrolled {
     font-size: 1.2rem;
 }
 
+@media (max-width: 768px) {
+    .testimonial {
+        max-width: 200px;
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .testimonial img {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 10px;
+    }
+
+    .testimonial p {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    .testimonial h4 {
+        font-size: 0.85rem;
+    }
+
+    .testimonial .role {
+        font-size: 0.75rem;
+        margin-bottom: 5px;
+    }
+
+    .stars {
+        font-size: 0.9rem;
+    }
+
+    .testimonial-container {
+        gap: 16px;
+        padding: 0 10px;
+    }
+
+    .testimonials {
+        padding: 40px 10px;
+    }
+
+    .testimonials h2 {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+    }
+}
+
 /* ============ HERO ============ */
 .hero {
     position: relative;
@@ -6233,34 +6279,47 @@ body {
 }
 
 @media (max-width: 768px) {
+    .editorial-intro {
+        max-width: 90%;
+    }
+
+    .editorial-intro p {
+        font-size: 16px;
+        line-height: 1.4;
+    }
+
     .editorial-heading {
         font-size: 28px;
     }
-    .editorial-intro p {
-        font-size: 18px;
-    }
+
     .editorial-grid-two {
         grid-template-columns: 1fr 1fr;
         gap: 12px;
     }
+
     .editorial-item {
         gap: 10px;
     }
+
     .editorial-item-title {
         font-size: 18px;
         letter-spacing: 1px;
     }
+
     .editorial-card-content {
         bottom: 20px;
     }
+
     .editorial-card-content h3 {
         font-size: 20px;
         margin-bottom: 8px;
     }
+
     .editorial-shop-link {
-        font-size: 9px;
-        padding: 8px 18px;
-        letter-spacing: 1px;
+        font-size: 7px;
+        padding: 5px 10px;
+        letter-spacing: 0.5px;
+        gap: 4px;
     }
 }
 
@@ -6398,13 +6457,17 @@ body {
 @media (max-width: 768px) {
     .racing-marquee {
         padding: 15px;
+        align-items: flex-start;
     }
+
     .racing-marquee-track {
         gap: 40px;
         padding-right: 40px;
     }
+
     .racing-marquee-track span {
-        font-size: 13px;
+        font-size: 12px;
+        letter-spacing: 1px;
     }
 }
 
