@@ -573,12 +573,61 @@
             const ordersList = document.getElementById('ordersList');
             const emptyState = document.getElementById('ordersEmptyState');
 
-            let orders = [];
+            let localOrders = [];
             try {
-                orders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
+                localOrders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
             } catch (e) {
-                orders = [];
+                localOrders = [];
             }
+
+            let dbOrders = [];
+            if (currentUser && currentUser.id) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .select('*, order_items(*, products(name, price, product_images(url)))')
+                        .eq('user_id', currentUser.id)
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data) {
+                        dbOrders = data.map(o => ({
+                            orderId: o.id,
+                            customer: o.customer_details || {},
+                            shipping: o.shipping_address || {},
+                            items: (o.order_items || []).map(item => ({
+                                id: item.product_id,
+                                name: item.products?.name || item.name || 'Product',
+                                price: item.price || item.products?.price || 0,
+                                size: item.size || 'Default',
+                                color: item.color || 'N/A',
+                                qty: item.quantity || 1,
+                                img: (item.products?.product_images && item.products.product_images[0]?.url) || ''
+                            })),
+                            subtotal: Number(o.total_amount || 0),
+                            discount: 0,
+                            shippingCost: 0,
+                            total: Number(o.total_amount || 0),
+                            status: o.status === 'paid' ? 'Completed & Paid' : (o.status || 'Order Placed'),
+                            date: o.created_at || new Date().toISOString()
+                        }));
+                    }
+                } catch (e) {
+                    console.warn('Could not load DB orders:', e);
+                }
+            }
+
+            // Combine DB orders & local storage orders, deduplicating by orderId
+            const orderMap = new Map();
+            localOrders.forEach(o => {
+                if (o && o.orderId) orderMap.set(String(o.orderId), o);
+            });
+            dbOrders.forEach(o => {
+                if (o && o.orderId && !orderMap.has(String(o.orderId))) {
+                    orderMap.set(String(o.orderId), o);
+                }
+            });
+
+            const orders = Array.from(orderMap.values());
 
             if (orders.length === 0) {
                 emptyState.style.display = 'flex';
@@ -599,7 +648,7 @@
                         <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">${order.status}</span>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 12px;">
-                        ${order.items.map(item => `
+                        ${(order.items || []).map(item => `
                             <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                                 <img src="${item.img || 'https://placehold.co/50x65/eaeaea/999?text=?'}" alt="${item.name}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px; background: #fff; border: 1px solid #eee;" onerror="this.src='https://placehold.co/50x65/eaeaea/999?text=?'">
                                 <div style="flex-grow: 1; min-width: 150px;">
@@ -615,10 +664,10 @@
                         `).join('')}
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 24px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0ee; flex-wrap: wrap;">
-                        <div style="font-size: 13px; color: #555;">Subtotal: <span style="font-weight: 600;">₹${order.subtotal.toLocaleString('en-IN')}</span></div>
-                        <div style="font-size: 13px; color: #555;">Discount: <span style="font-weight: 600;">− ₹${order.discount.toLocaleString('en-IN')}</span></div>
-                        <div style="font-size: 13px; color: #555;">Shipping: <span style="font-weight: 600;">₹${order.shippingCost.toLocaleString('en-IN')}</span></div>
-                        <div style="font-size: 16px; font-weight: 700; color: #111;">Total: ₹${order.total.toLocaleString('en-IN')}</div>
+                        <div style="font-size: 13px; color: #555;">Subtotal: <span style="font-weight: 600;">₹${(order.subtotal || 0).toLocaleString('en-IN')}</span></div>
+                        <div style="font-size: 13px; color: #555;">Discount: <span style="font-weight: 600;">− ₹${(order.discount || 0).toLocaleString('en-IN')}</span></div>
+                        <div style="font-size: 13px; color: #555;">Shipping: <span style="font-weight: 600;">₹${(order.shippingCost || 0).toLocaleString('en-IN')}</span></div>
+                        <div style="font-size: 16px; font-weight: 700; color: #111;">Total: ₹${(order.total || 0).toLocaleString('en-IN')}</div>
                     </div>
                 </div>
             `).join('');

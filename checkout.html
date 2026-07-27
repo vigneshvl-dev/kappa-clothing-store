@@ -1179,7 +1179,7 @@
                         localStorage.removeItem('kappa_checkout_cart');
                         localStorage.removeItem('kappa_buy_now_item');
                         alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
-                        window.location.href = 'index.html';
+                        window.location.href = 'my-orders.html';
                     },
                     prefill: {
                         name: document.getElementById("bill-name") ? document.getElementById("bill-name").value : "",
