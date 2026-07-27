@@ -8168,12 +8168,7 @@ form .btn-submit:active {
 }
 
 /* Consistent panel/layout spacing */
-.panel {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-    overflow: hidden;
-}
+
 
 .panel-header {
     padding: 24px 28px 20px;
