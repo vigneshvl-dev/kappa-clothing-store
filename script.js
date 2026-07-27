@@ -796,11 +796,9 @@ testDatabaseConnection();
     // Wire up profile popup quick action events
     const profilePopupLink = document.getElementById('profilePopupLink');
     if (profilePopupLink) {
-        profilePopupLink.addEventListener('click', (e) => {
-            e.preventDefault();
+        profilePopupLink.addEventListener('click', () => {
             const profilePopup = document.getElementById('profilePopup');
             if (profilePopup) profilePopup.classList.remove('open');
-            openOverlay(accountOverlay);
         });
     }
 
@@ -1741,6 +1739,7 @@ window.addToCart = addToCart;
                         <div class="dash-profile-meta">
                             <div class="dash-profile-name" id="dashProfileNameDisplay">User</div>
                             <div class="dash-profile-email" id="dashProfileEmailDisplay">user@example.com</div>
+                            <a href="profile.html" class="profile-link" style="margin-top:6px;display:inline-block;">View Full Profile →</a>
                         </div>
                     </div>
 
