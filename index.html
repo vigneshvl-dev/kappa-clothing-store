@@ -886,32 +886,6 @@
 
         <!-- ACCOUNT OVERLAY -->
         <div class="overlay" id="accountOverlay">
-            <!-- Custom Navbar inside Overlay -->
-            <header class="navbar about-navbar account-overlay-navbar"
-                style="border-bottom: 1px solid rgba(0,0,0,0.06); width: 100%; box-sizing: border-box;">
-                <div class="about-nav-left">
-                    <a href="#home" class="about-nav-link"
-                        onclick="document.getElementById('accountClose').click();">Home</a>
-                    <a href="about.html" class="about-nav-link">About</a>
-                    <a href="contact.html" class="about-nav-link"
-                        onclick="document.getElementById('accountClose').click();">Contact</a>
-                </div>
-                <button class="account-nav-toggle" id="accountNavToggle" aria-label="Menu">
-                    <span></span><span></span><span></span>
-                </button>
-                <a href="#home" class="about-nav-logo" onclick="document.getElementById('accountClose').click();"><img
-                        src="assets/IMG_4646-removebg-preview.png" alt="KAPPA"></a>
-                <div class="about-nav-right">
-                    <a href="#home" class="back-to-home-btn" onclick="document.getElementById('accountClose').click();">
-                        <span>Back to Home</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                            stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                            <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
-                    </a>
-                </div>
-            </header>
             <button class="overlay-close" id="accountClose" aria-label="Close overlay" style="display: none;">✕</button>
             <div class="stage">
                 <div class="card auth-split-card">
@@ -944,6 +918,12 @@
 
                     <!-- RIGHT FORM SIDE (WHITE) -->
                     <div class="auth-form-side">
+                        <button type="button" class="card-close-btn" aria-label="Close">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
                         <!-- LOGIN PANEL -->
                         <section class="panel active" id="panel-login">
                             <h1 class="headline" data-i18n="acc_welcome">SIGN IN</h1>
