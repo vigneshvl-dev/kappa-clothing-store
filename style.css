@@ -6233,6 +6233,12 @@ body {
 }
 
 @media (max-width: 768px) {
+    .editorial-heading {
+        font-size: 28px;
+    }
+    .editorial-intro p {
+        font-size: 18px;
+    }
     .editorial-grid-two {
         grid-template-columns: 1fr 1fr;
         gap: 12px;
@@ -6252,8 +6258,8 @@ body {
         margin-bottom: 8px;
     }
     .editorial-shop-link {
-        font-size: 8px;
-        padding: 6px 14px;
+        font-size: 9px;
+        padding: 8px 18px;
         letter-spacing: 1px;
     }
 }
@@ -6386,6 +6392,19 @@ body {
 
     to {
         transform: translateX(-50%);
+    }
+}
+
+@media (max-width: 768px) {
+    .racing-marquee {
+        padding: 15px;
+    }
+    .racing-marquee-track {
+        gap: 40px;
+        padding-right: 40px;
+    }
+    .racing-marquee-track span {
+        font-size: 13px;
     }
 }
 
