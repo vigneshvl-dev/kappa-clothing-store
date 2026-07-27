@@ -2947,7 +2947,7 @@ body.scrolled .marquee {
 /* ============ PAYMENT PARTNERS BAR ============ */
 .payment-partners-bar {
     background: #ffffff;
-    padding: 30px 6vw;
+    padding: 16px 6vw;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -2958,7 +2958,7 @@ body.scrolled .marquee {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 40px;
+    gap: 30px;
     flex-wrap: wrap;
     max-width: 1200px;
     width: 100%;
@@ -2968,32 +2968,63 @@ body.scrolled .marquee {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 2px;
 }
 
 .payment-processing-label {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 14px;
-    font-style: italic;
-    color: #444;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    color: #888;
 }
 
 .payment-razorpay-logo-wrap {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .payment-razorpay-logo-wrap img.razorpay-glyph {
-    height: 32px;
+    height: 20px;
+    width: auto;
+    display: block;
+}
+
+.delivery-partner-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.delivery-partner-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    color: #888;
+}
+
+.delivery-partner-logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.delivery-partner-logo-wrap img.shiprocket-glyph {
+    height: 26px;
     width: auto;
     display: block;
 }
 
 .razorpay-text {
     font-family: 'Inter', sans-serif;
-    font-size: 26px;
+    font-size: 18px;
     font-weight: 800;
     color: #0b2545;
     letter-spacing: -0.5px;
@@ -3001,49 +3032,43 @@ body.scrolled .marquee {
 
 .payment-divider {
     width: 1px;
-    height: 48px;
+    height: 28px;
     background: rgba(0, 0, 0, 0.08);
 }
 
 .payment-methods-block {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
     flex-wrap: wrap;
     justify-content: center;
 }
 
 .pm-logo {
-    height: 32px;
+    height: 20px;
     width: auto;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    transition: transform 0.2s ease;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    transition: all 0.2s ease;
+    display: block;
 }
 
 .pm-logo:hover {
-    transform: translateY(-2px);
-}
-
-.pm-upi {
-    width: 80px;
-    height: auto;
-}
-
-.pm-rupay {
-    width: 80px;
-    height: auto;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
 @media (max-width: 768px) {
     .payment-partners-bar {
-        padding: 24px 4vw;
+        padding: 16px 4vw;
     }
     .payment-partners-inner {
         flex-direction: column;
-        gap: 20px;
+        gap: 16px;
     }
-    .payment-razorpay-block {
+    .payment-razorpay-block,
+    .delivery-partner-block {
         align-items: center;
     }
     .payment-divider {
@@ -3099,6 +3124,8 @@ body.scrolled .marquee {
     gap: 52px;
     align-items: start;
     padding: 100px 6vw 64px 6vw;
+    position: relative;
+    z-index: 10;
 }
 
 .footer-brand-col {
@@ -3181,6 +3208,7 @@ body.scrolled .marquee {
     left: 50%;
     transform: translateX(-50%);
     z-index: 8;
+    pointer-events: none;
 }
 
 .footer-bottom {
@@ -6249,17 +6277,18 @@ body {
     align-self: stretch;
 }
 
-.editorial-card img {
+.editorial-card img,
+.editorial-card video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: top center;
-    transform: scale(1.1);
     transition: transform 1.2s var(--ease);
 }
 
-.editorial-card:hover img {
-    transform: scale(1.15);
+.editorial-card:hover img,
+.editorial-card:hover video {
+    transform: scale(1.05);
 }
 
 .editorial-card::after {
@@ -6274,9 +6303,15 @@ body {
 .editorial-card-content {
     position: absolute;
     bottom: 40px;
-    left: 40px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 2;
     color: #ffffff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 .editorial-card-content h3 {
@@ -6284,26 +6319,44 @@ body {
     font-size: 32px;
     font-weight: 700;
     letter-spacing: 1px;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .editorial-shop-link {
     font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     letter-spacing: 2px;
     color: #ffffff;
     text-decoration: none;
-    border-bottom: 2px solid #ffffff;
-    padding-bottom: 4px;
-    display: inline-block;
-    transition: border-color 0.3s ease, color 0.3s ease;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 12px 28px;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.editorial-shop-link svg {
+    transition: transform 0.3s ease;
 }
 
 .editorial-card:hover .editorial-shop-link {
-    color: var(--yellow);
-    border-color: var(--yellow);
+    background: #ffffff;
+    color: #000000;
+    border-color: #ffffff;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.editorial-card:hover .editorial-shop-link svg {
+    transform: translateX(4px);
 }
 
 /* ============ RACING MARQUEE ============ */
@@ -6450,6 +6503,61 @@ body {
 }
 
 .newsletter-submit-btn:hover {
+    background: #333333;
+    border-color: #333333;
+}
+
+.newsletter-input-stack {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+}
+
+.newsletter-input-stack input,
+.newsletter-input-stack textarea {
+    width: 100%;
+    padding: 16px 20px;
+    border: 1.5px solid #111111;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: #111111;
+    outline: none;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.newsletter-input-stack textarea {
+    resize: none;
+}
+
+.newsletter-input-stack input:focus,
+.newsletter-input-stack textarea:focus {
+    border-color: #555555;
+    background: rgba(0,0,0,0.01);
+}
+
+.newsletter-input-stack input::placeholder,
+.newsletter-input-stack textarea::placeholder {
+    color: #b7b7b7;
+}
+
+.newsletter-submit-btn-vertical {
+    background: #111111;
+    color: #ffffff;
+    border: 1.5px solid #111111;
+    padding: 16px 0;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.newsletter-submit-btn-vertical:hover {
     background: #333333;
     border-color: #333333;
 }

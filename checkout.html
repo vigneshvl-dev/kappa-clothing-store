@@ -51,6 +51,14 @@
             display: grid;
             grid-template-columns: 1.6fr 1fr;
             gap: 50px;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .checkout-layout.loaded {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .checkout-section {
@@ -556,6 +564,27 @@
         </div>
     </div>
 
+    <!-- PAYMENT PARTNERS -->
+    <div class="payment-partners-bar">
+        <div class="payment-partners-inner">
+            <div class="payment-razorpay-block">
+                <span class="payment-processing-label">Payment processing partner</span>
+                <div class="payment-razorpay-logo-wrap">
+                    <img src="https://latestlogo.com/wp-content/uploads/2024/01/razorpay-logo.png" alt="Razorpay"
+                        class="razorpay-glyph">
+                </div>
+            </div>
+            <div class="payment-divider"></div>
+            <div class="delivery-partner-block">
+                <span class="delivery-partner-label">Delivery Partner</span>
+                <div class="delivery-partner-logo-wrap">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/SR-logo-wiki.png" alt="Shiprocket"
+                        class="shiprocket-glyph">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- FOOTER -->
     <footer class="footer" id="footer">
         <div class="footer-top">
@@ -608,7 +637,6 @@
         </div>
     </footer>
 
-    <!-- POPUPS & TOASTS (Minimized for brevity but fully intact) -->
     <div class="overlay" id="searchOverlay">
         <div class="search-panel"><input type="text" id="searchInput" placeholder="Search for products..."><button
                 class="overlay-close" id="searchClose">✕</button>
@@ -691,20 +719,26 @@
 
         async function loadCheckoutDetails() {
             try {
-                // Always read from the main cart (kappa_cart) — single source of truth
-                cartItems = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
-                // Merge qty: kappa_cart stores each entry as qty:1, group by id+size+color
-                const merged = [];
-                cartItems.forEach(item => {
-                    const key = `${item.id}|${item.size}|${item.color}`;
-                    const existing = merged.find(m => `${m.id}|${m.size}|${m.color}` === key);
-                    if (existing) {
-                        existing.qty = (existing.qty || 1) + (item.qty || 1);
-                    } else {
-                        merged.push({ ...item, qty: item.qty || 1 });
-                    }
-                });
-                cartItems = merged;
+                const buyNowItemStr = localStorage.getItem("kappa_buy_now_item");
+                if (buyNowItemStr) {
+                    const buyNowItem = JSON.parse(buyNowItemStr);
+                    cartItems = [{ ...buyNowItem, qty: buyNowItem.qty || 1 }];
+                } else {
+                    // Always read from the main cart (kappa_cart) — single source of truth
+                    cartItems = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
+                    // Merge qty: kappa_cart stores each entry as qty:1, group by id+size+color
+                    const merged = [];
+                    cartItems.forEach(item => {
+                        const key = `${item.id}|${item.size}|${item.color}`;
+                        const existing = merged.find(m => `${m.id}|${m.size}|${m.color}` === key);
+                        if (existing) {
+                            existing.qty = (existing.qty || 1) + (item.qty || 1);
+                        } else {
+                            merged.push({ ...item, qty: item.qty || 1 });
+                        }
+                    });
+                    cartItems = merged;
+                }
                 shippingCost = Number(localStorage.getItem("kappa_checkout_shipping") || 0);
                 discountPercent = Number(localStorage.getItem("kappa_checkout_discount") || 0);
             } catch (e) {
@@ -712,6 +746,8 @@
             }
             renderSummary();
             loadSavedAddressOptions();
+            const layout = document.querySelector('.checkout-layout');
+            if (layout) layout.classList.add('loaded');
             await autoSubmitIfPending();
         }
 
@@ -779,8 +815,9 @@
             const removed = cartItems[idx];
             cartItems.splice(idx, 1);
 
-            // Sync removal back to kappa_cart
+            // Sync removal back to kappa_cart and kappa_buy_now_item
             try {
+                localStorage.removeItem("kappa_buy_now_item");
                 let raw = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
                 // Remove all matching entries (there may be multiple qty:1 entries)
                 let removedCount = removed.qty || 1;
@@ -1105,6 +1142,7 @@
                         await reduceStockForCart(cartItems);
                         localStorage.removeItem('kappa_cart');
                         localStorage.removeItem('kappa_checkout_cart');
+                        localStorage.removeItem('kappa_buy_now_item');
                         alert("✅ Payment Successful!\nPayment ID: " + response.razorpay_payment_id);
                         window.location.href = 'index.html';
                     },
@@ -1157,7 +1195,11 @@
             }
         }
 
-        window.onload = loadCheckoutDetails;
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", loadCheckoutDetails);
+        } else {
+            loadCheckoutDetails();
+        }
     </script>
 </body>
 

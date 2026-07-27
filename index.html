@@ -25,18 +25,6 @@
 
 <body class="home-page">
 
-    <!-- LOADER -->
-    <div class="loader" id="loader">
-        <div class="loader-mark"></div>
-        <div class="loading">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        <div class="loader-fill" id="loaderFill"></div>
-    </div>
 
     <div class="cursor-glow" id="cursorGlow"></div>
 
@@ -363,18 +351,28 @@
                 </p>
             </div>
             <div class="editorial-grid-two">
-                <div class="editorial-card" onclick="location.href='#boys-collection'">
+                <div class="editorial-card" onclick="location.href='shop.html?filter=men'">
                     <img src="assets/duplicate.png" alt="MEN">
                     <div class="editorial-card-content">
                         <h3>MEN</h3>
-                        <a href="shop.html?filter=men" class="editorial-shop-link">SHOP NOW</a>
+                        <a href="shop.html?filter=men" class="editorial-shop-link">
+                            SHOP NOW
+                            <svg viewBox="0 0 24 24" width="14" height="14">
+                                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                        </a>
                     </div>
                 </div>
-                <div class="editorial-card" onclick="location.href='#girls-collection'">
+                <div class="editorial-card" onclick="location.href='shop.html?filter=women'">
                     <img src="assets/WOMENFASHION.png" alt="WOMEN">
                     <div class="editorial-card-content">
                         <h3>WOMEN</h3>
-                        <a href="shop.html?filter=women" class="editorial-shop-link">SHOP NOW</a>
+                        <a href="shop.html?filter=women" class="editorial-shop-link">
+                            SHOP NOW
+                            <svg viewBox="0 0 24 24" width="14" height="14">
+                                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -723,26 +721,28 @@
         <section class="newsletter-section">
             <div class="newsletter-container">
                 <div class="newsletter-left">
-                    <p class="newsletter-eyebrow">STAY IN THE LOOP</p>
+                    <p class="newsletter-eyebrow">GET IN TOUCH</p>
                     <h2 class="newsletter-heading">
-                        Join the <span class="fancy-script">Kappa Fashion</span><br>
-                        inner circle.
+                        Talk with <span class="fancy-script">Kappa Fashion</span><br>
+                        direct support.
                     </h2>
                     <p class="newsletter-subtext">
-                        Early drops. Exclusive offers.<br>
-                        Stories from behind the brand.
+                        Have a question, order query, or feedback?<br>
+                        Drop us a line and our team will get back to you.
                     </p>
                 </div>
                 <div class="newsletter-right">
                     <form id="newsletterForm" class="newsletter-form">
-                        <div class="newsletter-input-group">
-                            <input type="email" id="newsletterEmail" placeholder="Your email address" required
-                                autocomplete="off">
-                            <button type="submit" class="newsletter-submit-btn">LET'S TALK</button>
+                        <div class="newsletter-input-stack">
+                            <input type="text" id="newsletterName" placeholder="Your Name" required autocomplete="name">
+                            <input type="tel" id="newsletterPhone" placeholder="Your Phone Number" required autocomplete="tel">
+                            <input type="email" id="newsletterEmail" placeholder="Your Gmail Address" required autocomplete="email">
+                            <textarea id="newsletterMessage" placeholder="Your Message" rows="3" required></textarea>
+                            <button type="submit" class="newsletter-submit-btn-vertical">SEND MESSAGE</button>
                         </div>
                     </form>
                     <div class="newsletter-footer-text">
-                        <span>No spam, ever..</span>
+                        <span>We usually respond within 24 hours.</span>
                         <span class="divider-dot">•</span>
                         <a href="#" class="privacy-link">Privacy Policy</a>
                     </div>
@@ -762,29 +762,13 @@
                     </div>
                 </div>
                 <div class="payment-divider"></div>
-                <div class="payment-methods-block">
-                    <!-- VISA -->
-                    <img src="./assets/VISA-Logo.png" alt="VISA" class="pm-logo">
-
-                    <!-- UPI -->
-                    <img src="./assets/upi.png" alt="UPI" class="pm-logo pm-upi">
-
-                    <!-- RuPay -->
-                    <img src="./assets/rupay-logo.png" alt="RuPay" class="pm-logo pm-rupay">
-
-                    <!-- Maestro -->
-                    <img src="./assets/maestro copy.png" alt="Maestro" class="pm-logo">
-
-                    <!-- Diners Club -->
-                    <img src="./assets/DCI_logo.jpg" alt="Diners Club" class="pm-logo">
-
-                    <!-- Mastercard -->
-                    <img src="./assets/OIP.png" alt="Mastercard" class="pm-logo">
-
-                    <!-- American Express -->
-                    <img src="./assets/American-Express.png" alt="American Express" class="pm-logo">
+                <div class="delivery-partner-block">
+                    <span class="delivery-partner-label">Delivery Partner</span>
+                    <div class="delivery-partner-logo-wrap">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/SR-logo-wiki.png" alt="Shiprocket"
+                            class="shiprocket-glyph">
+                    </div>
                 </div>
-
             </div>
         </div>
 

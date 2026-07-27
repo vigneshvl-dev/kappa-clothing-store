@@ -81,6 +81,12 @@
             padding: 0 40px;
             gap: 50px;
             align-items: start;
+            opacity: 0;
+            transition: opacity 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .zara-hero.loaded {
+            opacity: 1;
         }
 
         /* Left Column Frame */
@@ -1066,6 +1072,27 @@
     </section>
 
 
+    <!-- PAYMENT PARTNERS -->
+    <div class="payment-partners-bar">
+        <div class="payment-partners-inner">
+            <div class="payment-razorpay-block">
+                <span class="payment-processing-label">Payment processing partner</span>
+                <div class="payment-razorpay-logo-wrap">
+                    <img src="https://latestlogo.com/wp-content/uploads/2024/01/razorpay-logo.png" alt="Razorpay"
+                        class="razorpay-glyph">
+                </div>
+            </div>
+            <div class="payment-divider"></div>
+            <div class="delivery-partner-block">
+                <span class="delivery-partner-label">Delivery Partner</span>
+                <div class="delivery-partner-logo-wrap">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/SR-logo-wiki.png" alt="Shiprocket"
+                        class="shiprocket-glyph">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- FOOTER -->
     <footer class="footer" id="footer">
         <div class="footer-top">
@@ -1738,30 +1765,11 @@
                 customImg: img
             };
 
-            // Write directly to kappa_cart localStorage (reliable — no IIFE dependency)
-            try {
-                let existingCart = JSON.parse(localStorage.getItem('kappa_cart') || '[]');
-                // Merge: if same product+size+color exists, increase qty
-                const found = existingCart.find(c =>
-                    c.id == pd.id && c.size === sSize && c.color === sColor
-                );
-                if (found) {
-                    found.qty = (found.qty || 1) + qty;
-                } else {
-                    existingCart.push(newItem);
-                }
-                localStorage.setItem('kappa_cart', JSON.stringify(existingCart));
-                console.log('✅ Buy Now: saved to kappa_cart', newItem);
-            } catch (e) {
-                console.error('Failed to save cart:', e);
-            }
+            // Save to the temporary Buy Now storage key
+            localStorage.setItem('kappa_buy_now_item', JSON.stringify(newItem));
+            console.log('✅ Buy Now: saved to kappa_buy_now_item', newItem);
 
-            // Also sync via window.addToCart so badge/overlay stays updated
-            if (typeof window.addToCart === 'function') {
-                window.addToCart(pd.id, sSize, sColor, pd.price, img, pd.name);
-            }
-
-            // Navigate to checkout
+            // Navigate to checkout directly
             window.location.href = 'checkout.html';
         }
 
@@ -1780,248 +1788,274 @@
             return [];
         }
 
-        async function loadSingleProduct() {
-    console.log("🔍 loadSingleProduct() called!");
-    const urlParams = new URLSearchParams(window.location.search);
-    const slug = urlParams.get('slug');
-    console.log("📌 Target slug:", slug);
-
-    if (!slug) {
-        console.error("❌ No slug found in URL!");
-        const titleEl = document.getElementById('pdp-title');
-        if (titleEl) titleEl.innerText = 'PRODUCT NOT FOUND';
-        return;
-    }
-
-    try {
-        let product = null;
-        const client = _pdp;
-        
-        if (!client) {
-            console.error("❌ Supabase client is not available!");
-            const titleEl = document.getElementById('pdp-title');
-            if (titleEl) titleEl.innerText = 'Database Client Missing';
-            return;
-        }
-
-        console.log("📡 Querying Supabase for product...");
-
-        // Try matching by slug first (using product_variants(*) to prevent column mismatch crashes)
-        const { data: bySlug, error: slugErr } = await client
-            .from('products')
-            .select('*, product_images(url, position), product_variants(*)')
-            .eq('slug', slug)
-            .maybeSingle();
-
-        if (slugErr) console.error("Slug query error:", slugErr);
-
-        if (bySlug) {
-            product = bySlug;
-            console.log("✅ Found product by slug:", product);
-        } else {
-            console.log("🔄 Slug not found, trying fallback by ID...");
-            // Fallback: try matching by id (for products without a slug)
-            const { data: byId, error: idErr } = await client
-                .from('products')
-                .select('*, product_images(url, position), product_variants(*)')
-                .eq('id', slug)
-                .maybeSingle();
+        function renderSingleProduct(product) {
+            window.currentProductData = product;
             
-            if (idErr) console.error("ID query error:", idErr);
-            if (byId) {
-                product = byId;
-                console.log("✅ Found product by ID:", product);
-            }
-        }
+            const hero = document.querySelector('.zara-hero');
+            if (hero) hero.classList.add('loaded');
 
-        if (!product) {
-            console.warn("⚠️ Product not found in database for slug/id:", slug);
             const titleEl = document.getElementById('pdp-title');
-            if (titleEl) titleEl.innerText = 'Product Not Found';
+            if (titleEl) titleEl.innerText = product.name;
+
+            const bcTitle = document.getElementById('bc-title');
+            if (bcTitle) bcTitle.innerText = product.name;
+
+            // Update WhatsApp share link with product name
+            const shareWhatsapp = document.getElementById('share-whatsapp');
+            if (shareWhatsapp) {
+                const currentUrl = window.location.href;
+                const shareText = encodeURIComponent(`Check out this product on KAPPA: ${product.name} - ${currentUrl}`);
+                shareWhatsapp.href = `https://api.whatsapp.com/send?text=${shareText}`;
+            }
+
             const descEl = document.getElementById('pdp-description');
-            if (descEl) descEl.innerText = 'This product could not be loaded. Please go back and try again.';
-            return;
-        }
+            if (descEl) descEl.innerText = product.description || 'Details unavailable.';
 
-        window.currentProductData = product;
+            const priceEl = document.getElementById('pdp-price');
+            if (priceEl) priceEl.innerText = `Rs. ${Number(product.price).toLocaleString('en-IN')}`;
 
-        const titleEl = document.getElementById('pdp-title');
-        if (titleEl) titleEl.innerText = product.name;
-
-        const bcTitle = document.getElementById('bc-title');
-        if (bcTitle) bcTitle.innerText = product.name;
-
-        // Update WhatsApp share link with product name
-        const shareWhatsapp = document.getElementById('share-whatsapp');
-        if (shareWhatsapp) {
-            const currentUrl = window.location.href;
-            const shareText = encodeURIComponent(`Check out this product on KAPPA: ${product.name} - ${currentUrl}`);
-            shareWhatsapp.href = `https://api.whatsapp.com/send?text=${shareText}`;
-        }
-
-        const descEl = document.getElementById('pdp-description');
-        if (descEl) descEl.innerText = product.description || 'Details unavailable.';
-
-        const priceEl = document.getElementById('pdp-price');
-        if (priceEl) priceEl.innerText = `Rs. ${Number(product.price).toLocaleString('en-IN')}`;
-
-        if (product.compare_at_price) {
             const compPrice = document.getElementById('pdp-compare-price');
-            if (compPrice) {
-                compPrice.innerText = `Rs. ${Number(product.compare_at_price).toLocaleString('en-IN')}`;
-                compPrice.style.display = 'inline-block';
-            }
-
-            // Auto-compute and show discount badge
-            const discPct = Math.round((1 - product.price / product.compare_at_price) * 100);
-            if (discPct > 0) {
-                const badge = document.getElementById('pdp-discount-pct');
-                if (badge) {
-                    badge.innerText = discPct + '% OFF';
-                    badge.style.display = 'inline-block';
+            const badge = document.getElementById('pdp-discount-pct');
+            if (product.compare_at_price) {
+                if (compPrice) {
+                    compPrice.innerText = `Rs. ${Number(product.compare_at_price).toLocaleString('en-IN')}`;
+                    compPrice.style.display = 'inline-block';
                 }
-            }
-        }
 
-        // Show urgency badge (always visible for now if it exists)
-        const soldBadge = document.getElementById('pdp-sold-badge');
-        if (soldBadge) {
-            soldBadge.style.display = 'inline-flex';
-        }
-
-        // Build specification list from product metadata
-        const specItems = [];
-        if (product.style) specItems.push(`Style: ${product.style}`);
-        if (product.neckline) specItems.push(`Neckline: ${product.neckline}`);
-        if (product.fabric) specItems.push(`Fabric: ${product.fabric}`);
-        if (product.fit) specItems.push(`Fit: ${product.fit}`);
-        if (product.sleeve) specItems.push(`Sleeve: ${product.sleeve}`);
-        if (product.gsm) specItems.push(`GSM: ${product.gsm}`);
-        if (product.wash_care) specItems.push(`Wash Care: ${product.wash_care}`);
-        if (product.country_of_origin) specItems.push(`Origin: ${product.country_of_origin}`);
-
-        if (specItems.length > 0) {
-            const specList = document.getElementById('pdp-spec-list');
-            if (specList) specList.innerHTML = specItems.map(s => `<li>${s}</li>`).join('');
-            const specBlock = document.getElementById('spec-block');
-            if (specBlock) specBlock.style.display = 'block';
-        }
-
-        let images = product.product_images || [];
-        images.sort((a, b) => a.position - b.position);
-        window.currentMainImageUrl = images.length > 0 ? images[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
-        const mainImg = document.getElementById('main-product-image');
-        if (mainImg) mainImg.src = window.currentMainImageUrl;
-
-        let thumbnailsHTML = '';
-        images.forEach((img, index) => {
-            const activeClass = index === 0 ? 'active' : '';
-            thumbnailsHTML += `<img src="${img.url}" class="thumb-img ${activeClass}" onclick="swapImage('${img.url}', this)" alt="Thumb">`;
-        });
-        const thumbsContainer = document.getElementById('pdp-thumbnails');
-        if (thumbsContainer) thumbsContainer.innerHTML = thumbnailsHTML;
-
-        window.sizeStockMap = {};
-        let availableSizes = new Set();
-        let availableColors = new Set();
-        let totalProductStock = (product.stock_quantity !== undefined && product.stock_quantity !== null) ? Number(product.stock_quantity) : null;
-
-        if (product.product_variants && product.product_variants.length > 0) {
-            let variantStockSum = 0;
-            let hasVariantStockData = false;
-            product.product_variants.forEach(variant => {
-                if (variant.size) {
-                    const sz = variant.size.trim();
-                    availableSizes.add(sz);
-                    const sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
-                    if (sq !== null) {
-                        window.sizeStockMap[sz] = sq;
-                        variantStockSum += sq;
-                        hasVariantStockData = true;
+                // Auto-compute and show discount badge
+                const discPct = Math.round((1 - product.price / product.compare_at_price) * 100);
+                if (discPct > 0) {
+                    if (badge) {
+                        badge.innerText = discPct + '% OFF';
+                        badge.style.display = 'inline-block';
                     }
+                } else {
+                    if (badge) badge.style.display = 'none';
                 }
-                if (variant.color) availableColors.add(variant.color.trim());
-            });
-            if (totalProductStock === null && hasVariantStockData) {
-                totalProductStock = variantStockSum;
-            }
-        }
-
-        if (totalProductStock !== null) {
-            updateStockAlert(totalProductStock);
-        }
-
-        const sizes = Array.from(availableSizes);
-        const colors = Array.from(availableColors);
-
-        if (sizes.length > 0) {
-            const pdpSizes = document.getElementById('pdp-sizes');
-            if (pdpSizes) {
-                pdpSizes.innerHTML = sizes.map(size => {
-                    const st = window.sizeStockMap ? window.sizeStockMap[size] : null;
-                    let stockBadge = '';
-                    if (st !== null && st !== undefined && st > 0 && st <= 5) {
-                        stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
-                    } else if (st === 0) {
-                        stockBadge = `<span class="size-stock-tag out">Out</span>`;
-                    }
-                    return `<div class="size-box" onclick="selectSize(this, '${size}')" data-size="${size}">
-                        <span>${size}</span>
-                        ${stockBadge}
-                    </div>`;
-                }).join('');
-            }
-            const sizeSec = document.getElementById('size-section');
-            if (sizeSec) sizeSec.style.display = 'block';
-        }
-
-        if (colors.length > 0) {
-            // Build map from explicit #ColorTag on image URLs
-            const colorImageMap = {};
-            const sortedImages = (product.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
-            sortedImages.forEach(img => {
-                const parts = img.url.split('#');
-                const cleanUrl = parts[0];
-                const imgColor = (parts[1] || '').trim().toLowerCase();
-                if (imgColor && !colorImageMap[imgColor]) {
-                    colorImageMap[imgColor] = cleanUrl;
-                }
-            });
-
-            // Check if we have explicit tags for all colors
-            const allTagged = colors.every(c => colorImageMap[c.toLowerCase()]);
-            const pdpColors = document.getElementById('pdp-colors');
-            if (!pdpColors) {
-                const colorSec = document.getElementById('color-section');
-                if (colorSec) colorSec.style.display = 'block';
-                return;
-            }
-
-            if (allTagged) {
-                // All colors have explicit image tags — use them directly
-                buildColorSwatches(pdpColors, colors, colorImageMap, sortedImages);
             } else {
-                // Auto-detect dominant colors from images using canvas
-                Promise.all(sortedImages.map(img => getDominantColor(img.url.split('#')[0]))).then(detectedColors => {
-                    // Build a set of named colors to match
-                    const colorNames = colors.map(c => c.toLowerCase());
-                    
-                    // For each image, find which color variant it best represents
-                    const autoMap = {};
-                    detectedColors.forEach((detected, idx) => {
-                        const imgCleanUrl = sortedImages[idx].url.split('#')[0];
-                        const best = findClosestColorName(detected, colorNames, autoMap);
-                        if (best && !autoMap[best]) autoMap[best] = imgCleanUrl;
-                    });
-                    
-                    // Merge: explicit tags override auto-detected
-                    const finalMap = { ...autoMap, ...colorImageMap };
-                    buildColorSwatches(pdpColors, colors, finalMap, sortedImages);
+                if (compPrice) compPrice.style.display = 'none';
+                if (badge) badge.style.display = 'none';
+            }
+
+            // Show urgency badge (always visible for now if it exists)
+            const soldBadge = document.getElementById('pdp-sold-badge');
+            if (soldBadge) {
+                soldBadge.style.display = 'inline-flex';
+            }
+
+            // Build specification list from product metadata
+            const specItems = [];
+            if (product.style) specItems.push(`Style: ${product.style}`);
+            if (product.neckline) specItems.push(`Neckline: ${product.neckline}`);
+            if (product.fabric) specItems.push(`Fabric: ${product.fabric}`);
+            if (product.fit) specItems.push(`Fit: ${product.fit}`);
+            if (product.sleeve) specItems.push(`Sleeve: ${product.sleeve}`);
+            if (product.gsm) specItems.push(`GSM: ${product.gsm}`);
+            if (product.wash_care) specItems.push(`Wash Care: ${product.wash_care}`);
+            if (product.country_of_origin) specItems.push(`Origin: ${product.country_of_origin}`);
+
+            const specBlock = document.getElementById('spec-block');
+            if (specItems.length > 0) {
+                const specList = document.getElementById('pdp-spec-list');
+                if (specList) specList.innerHTML = specItems.map(s => `<li>${s}</li>`).join('');
+                if (specBlock) specBlock.style.display = 'block';
+            } else {
+                if (specBlock) specBlock.style.display = 'none';
+            }
+
+            let images = product.product_images || [];
+            images.sort((a, b) => (a.position || 0) - (b.position || 0));
+            window.currentMainImageUrl = images.length > 0 ? images[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
+            const mainImg = document.getElementById('main-product-image');
+            if (mainImg) mainImg.src = window.currentMainImageUrl;
+
+            let thumbnailsHTML = '';
+            images.forEach((img, index) => {
+                const activeClass = index === 0 ? 'active' : '';
+                thumbnailsHTML += `<img src="${img.url}" class="thumb-img ${activeClass}" onclick="swapImage('${img.url}', this)" alt="Thumb">`;
+            });
+            const thumbsContainer = document.getElementById('pdp-thumbnails');
+            if (thumbsContainer) {
+                thumbsContainer.innerHTML = thumbnailsHTML;
+                thumbsContainer.style.display = images.length > 1 ? 'flex' : 'none';
+            }
+
+            window.sizeStockMap = {};
+            let availableSizes = new Set();
+            let availableColors = new Set();
+            let totalProductStock = (product.stock_quantity !== undefined && product.stock_quantity !== null) ? Number(product.stock_quantity) : null;
+
+            if (product.product_variants && product.product_variants.length > 0) {
+                let variantStockSum = 0;
+                let hasVariantStockData = false;
+                product.product_variants.forEach(variant => {
+                    if (variant.size) {
+                        const sz = variant.size.trim();
+                        availableSizes.add(sz);
+                        const sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
+                        if (sq !== null) {
+                            window.sizeStockMap[sz] = sq;
+                            variantStockSum += sq;
+                            hasVariantStockData = true;
+                        }
+                    }
+                    if (variant.color) availableColors.add(variant.color.trim());
                 });
+                if (totalProductStock === null && hasVariantStockData) {
+                    totalProductStock = variantStockSum;
+                }
+            }
+
+            if (totalProductStock !== null) {
+                updateStockAlert(totalProductStock);
+            }
+
+            const sizes = Array.from(availableSizes);
+            const colors = Array.from(availableColors);
+
+            const sizeSec = document.getElementById('size-section');
+            if (sizes.length > 0) {
+                const pdpSizes = document.getElementById('pdp-sizes');
+                if (pdpSizes) {
+                    pdpSizes.innerHTML = sizes.map(size => {
+                        const st = window.sizeStockMap ? window.sizeStockMap[size] : null;
+                        let stockBadge = '';
+                        if (st !== null && st !== undefined && st > 0 && st <= 5) {
+                            stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                        } else if (st === 0) {
+                            stockBadge = `<span class="size-stock-tag out">Out</span>`;
+                        }
+                        return `<div class="size-box" onclick="selectSize(this, '${size}')" data-size="${size}">
+                            <span>${size}</span>
+                            ${stockBadge}
+                        </div>`;
+                    }).join('');
+                }
+                if (sizeSec) sizeSec.style.display = 'block';
+            } else {
+                if (sizeSec) sizeSec.style.display = 'none';
             }
 
             const colorSec = document.getElementById('color-section');
-            if (colorSec) colorSec.style.display = 'block';
+            if (colors.length > 0) {
+                const colorImageMap = {};
+                const sortedImages = (product.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+                sortedImages.forEach(img => {
+                    const parts = img.url.split('#');
+                    const cleanUrl = parts[0];
+                    const imgColor = (parts[1] || '').trim().toLowerCase();
+                    if (imgColor && !colorImageMap[imgColor]) {
+                        colorImageMap[imgColor] = cleanUrl;
+                    }
+                });
+
+                const pdpColors = document.getElementById('pdp-colors');
+                if (pdpColors) {
+                    buildColorSwatches(pdpColors, colors, colorImageMap, sortedImages);
+                }
+                if (colorSec) colorSec.style.display = 'block';
+            } else {
+                if (colorSec) colorSec.style.display = 'none';
+            }
+        }
+
+        async function loadSingleProduct() {
+            console.log("🔍 loadSingleProduct() called!");
+            const urlParams = new URLSearchParams(window.location.search);
+            const slug = urlParams.get('slug');
+            console.log("📌 Target slug:", slug);
+
+            if (!slug) {
+                console.error("❌ No slug found in URL!");
+                const titleEl = document.getElementById('pdp-title');
+                if (titleEl) titleEl.innerText = 'PRODUCT NOT FOUND';
+                return;
+            }
+
+            // Render instantly from local storage cache if available
+            try {
+                const cachedList = JSON.parse(localStorage.getItem("kappa_cached_products") || "[]");
+                const cachedProduct = cachedList.find(p => p.slug === slug || String(p.id) === slug);
+                if (cachedProduct) {
+                    console.log("⚡ Found matching product in cache! Rendering instantly...");
+                    renderSingleProduct(cachedProduct);
+                }
+            } catch (e) {
+                console.warn("Could not retrieve cached products:", e);
+            }
+
+            try {
+                let product = null;
+                const client = _pdp;
+                
+                if (!client) {
+                    console.error("❌ Supabase client is not available!");
+                    if (!window.currentProductData) {
+                        const titleEl = document.getElementById('pdp-title');
+                        if (titleEl) titleEl.innerText = 'Database Client Missing';
+                        const hero = document.querySelector('.zara-hero');
+                        if (hero) hero.classList.add('loaded');
+                    }
+                    return;
+                }
+
+                console.log("📡 Querying Supabase for product...");
+
+                // Try matching by slug first (using product_variants(*) to prevent column mismatch crashes)
+                const { data: bySlug, error: slugErr } = await client
+                    .from('products')
+                    .select('*, product_images(url, position), product_variants(*)')
+                    .eq('slug', slug)
+                    .maybeSingle();
+
+                if (slugErr) console.error("Slug query error:", slugErr);
+
+                if (bySlug) {
+                    product = bySlug;
+                    console.log("✅ Found product by slug:", product);
+                } else {
+                    console.log("🔄 Slug not found, trying fallback by ID...");
+                    // Fallback: try matching by id (for products without a slug)
+                    const { data: byId, error: idErr } = await client
+                        .from('products')
+                        .select('*, product_images(url, position), product_variants(*)')
+                        .eq('id', slug)
+                        .maybeSingle();
+                    
+                    if (idErr) console.error("ID query error:", idErr);
+                    if (byId) {
+                        product = byId;
+                        console.log("✅ Found product by ID:", product);
+                    }
+                }
+
+                if (!product) {
+                    console.warn("⚠️ Product not found in database for slug/id:", slug);
+                    if (!window.currentProductData) {
+                        const titleEl = document.getElementById('pdp-title');
+                        if (titleEl) titleEl.innerText = 'Product Not Found';
+                        const descEl = document.getElementById('pdp-description');
+                        if (descEl) descEl.innerText = 'This product could not be loaded. Please go back and try again.';
+                        const hero = document.querySelector('.zara-hero');
+                        if (hero) hero.classList.add('loaded');
+                    }
+                    return;
+                }
+
+                // Render fresh data from Supabase
+                renderSingleProduct(product);
+
+                loadZaraGrids(product.category_id, product.id);
+
+            } catch (err) {
+                console.error("🔥 Error loading product:", err);
+                if (!window.currentProductData) {
+                    const titleEl = document.getElementById('pdp-title');
+                    if (titleEl) titleEl.innerText = 'Error Loading Product';
+                    const hero = document.querySelector('.zara-hero');
+                    if (hero) hero.classList.add('loaded');
+                }
+            }
         }
 
         function buildColorSwatches(container, colors, colorImageMap, allImages) {
@@ -2100,14 +2134,7 @@
             return best;
         }
 
-        loadZaraGrids(product.category_id, product.id);
 
-    } catch (err) {
-        console.error("🔥 Error loading product:", err);
-        const titleEl = document.getElementById('pdp-title');
-        if (titleEl) titleEl.innerText = 'Error Loading Product';
-    }
-}
 
 async function loadZaraGrids(categoryId, currentProductId) {
     try {

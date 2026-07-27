@@ -96,6 +96,10 @@ testDatabaseConnection();
 
     applyLanguage(currentLang);
 
+    if (!window.location.pathname.includes('checkout.html')) {
+        localStorage.removeItem('kappa_buy_now_item');
+    }
+
     /* ---------- STATE ---------- */
     let cart = JSON.parse(localStorage.getItem("kappa_cart") || "[]");     // {id, size, qty}
     let wishlist = []; // [id]
@@ -126,6 +130,7 @@ testDatabaseConnection();
                     };
                 });
                 window.PRODUCTS = PRODUCTS;
+                localStorage.setItem("kappa_cached_products", JSON.stringify(PRODUCTS));
                 renderCart();
             }
         } catch (e) {
@@ -160,7 +165,6 @@ testDatabaseConnection();
 
         const cardContent = card.querySelector('.editorial-card-content');
         if (cardContent) {
-            cardContent.style.position = 'relative';
             cardContent.style.zIndex = '5';
         }
 
@@ -170,14 +174,14 @@ testDatabaseConnection();
         card.insertBefore(wrapper, card.firstChild);
 
         if (videoUrl) {
-            wrapper.innerHTML = `<video src="${videoUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; object-position:top center; transform:scale(1.1); transition:transform 0.8s;"></video>`;
+            wrapper.innerHTML = `<video src="${videoUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; object-position:top center; transition:transform 0.8s;"></video>`;
         } else if (images.length > 0) {
             if (images.length === 1) {
-                wrapper.innerHTML = `<img src="${images[0]}" style="width:100%; height:100%; object-fit:cover; object-position:top center; transform:scale(1.1); transition:transform 0.8s;">`;
+                wrapper.innerHTML = `<img src="${images[0]}" style="width:100%; height:100%; object-fit:cover; object-position:top center; transition:transform 0.8s;">`;
             } else {
                 wrapper.innerHTML = images.map((imgUrl, idx) => {
                     const opacity = idx === 0 ? 1 : 0;
-                    return `<img src="${imgUrl}" class="fade-slide" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; object-position:top center; transform:scale(1.1); opacity:${opacity}; transition:opacity 1.5s ease, transform 0.8s; z-index:${10 - idx};">`;
+                    return `<img src="${imgUrl}" class="fade-slide" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; object-position:top center; opacity:${opacity}; transition:opacity 1.5s ease, transform 0.8s; z-index:${10 - idx};">`;
                 }).join('');
 
                 let activeIdx = 0;
@@ -267,12 +271,12 @@ testDatabaseConnection();
             // 4. Update Editorial Images
             // 4. Update Editorial Category Media
             if (config.editorial) {
-                const menCard = document.querySelector('.editorial-card[onclick*="boys-collection"]');
+                const menCard = document.querySelector('.editorial-card[onclick*="filter=men"]');
                 if (menCard && config.editorial.men) {
                     updateEditorialCardMedia(menCard, config.editorial.men);
                 }
 
-                const womenCard = document.querySelector('.editorial-card[onclick*="girls-collection"]');
+                const womenCard = document.querySelector('.editorial-card[onclick*="filter=women"]');
                 if (womenCard && config.editorial.women) {
                     updateEditorialCardMedia(womenCard, config.editorial.women);
                 }
@@ -298,7 +302,7 @@ testDatabaseConnection();
         return "★".repeat(r) + "☆".repeat(5 - r);
     }
 
-    /* ---------- LOADER ---------- */
+    /* ---------- INITIALIZATION (NO LOADER) ---------- */
     function initMarquee() {
         const marquee = document.querySelector(".marquee");
         if (marquee) {
@@ -306,38 +310,12 @@ testDatabaseConnection();
         }
     }
 
-    function hideLoader() {
-        const loader = document.getElementById("loader");
-        if (loader && !loader.classList.contains("hide")) {
-            loader.classList.add("hide");
-            document.body.style.overflow = "";
-            setTimeout(() => { if (loader) loader.style.display = "none"; }, 500);
-            revealCheck();
-            startHeroSlideshow(); // Start slideshow transitions after loader is hidden
-            initMarquee(); // Start marquee animations after loader is hidden
-        }
-    }
-    // Only run loader logic if the loader element exists on the page
-    if (document.getElementById("loader")) {
-        document.body.style.overflow = "hidden";
-        const startLoader = () => {
-            let p = 0;
-            const iv = setInterval(() => {
-                p += 1;
-                if (p >= 100) {
-                    clearInterval(iv);
-                }
-            }, 35);
-            setTimeout(hideLoader, 3500);
-        };
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", startLoader);
-        } else {
-            startLoader();
-        }
+    // Initialize marquee and hero slideshow immediately
+    initMarquee();
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", startHeroSlideshow);
     } else {
-        // If no loader, start marquee immediately
-        initMarquee();
+        startHeroSlideshow();
     }
 
     /* ---------- HERO SLIDESHOW ---------- */
@@ -1228,17 +1206,27 @@ window.addToCart = addToCart;
         if (item) { closeOverlay(searchOverlay); window.location.href = `product.html?slug=${item.dataset.slug}`; }
     });
 
-    /* ---------- NEWSLETTER ---------- */
+    /* ---------- NEWSLETTER / CONTACT ---------- */
     const newsletterForm = document.getElementById("newsletterForm");
     if (newsletterForm) {
         newsletterForm.addEventListener("submit", e => {
             e.preventDefault();
-            const email = document.getElementById("newsletterEmail");
+            const nameInput = document.getElementById("newsletterName");
+            const phoneInput = document.getElementById("newsletterPhone");
+            const emailInput = document.getElementById("newsletterEmail");
+            const messageInput = document.getElementById("newsletterMessage");
             const note = document.getElementById("newsletterNote");
-            if (note) note.textContent = `You're in — confirmation sent to ${email.value}`;
-            if (email) email.value = "";
-        if (email) email.value = "";
-            showToast("Welcome to the inner circle");
+            
+            const name = nameInput ? nameInput.value.trim() : "";
+            
+            if (note) note.textContent = `Thank you, ${name || "there"}! Your message has been received.`;
+            
+            if (nameInput) nameInput.value = "";
+            if (phoneInput) phoneInput.value = "";
+            if (emailInput) emailInput.value = "";
+            if (messageInput) messageInput.value = "";
+            
+            showToast("Message sent successfully!");
         });
     }
 
