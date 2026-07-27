@@ -992,8 +992,8 @@
                 <!-- Inner items loaded via DOM parser -->
             </div>
             <div class="hero-main-img">
-                <img id="main-product-image" src="assets/sleeping sis.png" alt="Product Image"
-                    style="background:#f5f5f5;" onerror="this.src='assets/sleeping sis.png'">
+                <img id="main-product-image" src="https://placehold.co/400x500/f5f5f5/888888?text=Loading..." alt="Product Image"
+                    style="background:#f5f5f5;" onerror="this.onerror=null; this.src='https://placehold.co/400x500/f5f5f5/888888?text=KAPPA';">
 
                 <!-- SVG Icons for Sharing -->
                 <div class="share-icons">
@@ -1502,17 +1502,13 @@
     <script src="script.js"></script>
 
     <script>
-        // Dedicated Supabase query client — uses the shared client from script.js if available
-        const _pdp = (() => {
+        // Dedicated Supabase query client — dynamic Proxy so it always resolves the latest client from window.supabaseClient or window.supabase
+        function getPDPClient() {
             try {
-                // Prefer the already-initialized client from script.js (set on window)
                 if (window.supabaseClient && typeof window.supabaseClient.from === 'function') {
-                    console.log('✅ _pdp: using window.supabaseClient from script.js');
                     return window.supabaseClient;
                 }
-                // Fallback: create a new client if the CDN library is available
                 if (window.supabase && typeof window.supabase.createClient === 'function') {
-                    console.log('✅ _pdp: creating new Supabase client from CDN');
                     const c = window.supabase.createClient(
                         'https://ugphxapfbzcrauchwlef.supabase.co',
                         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
@@ -1520,10 +1516,19 @@
                     window.supabaseClient = c;
                     return c;
                 }
-                console.error('❌ _pdp: No Supabase client or CDN available!');
             } catch(e) { console.error('Supabase client init error:', e); }
             return null;
-        })();
+        }
+
+        const _pdp = new Proxy({}, {
+            get(target, prop) {
+                const client = getPDPClient();
+                if (client && typeof client[prop] === 'function') {
+                    return client[prop].bind(client);
+                }
+                return client ? client[prop] : undefined;
+            }
+        });
 
         // All shared state on window so every script block + onclick handler can access it
         window.selectedSize = null;
@@ -2029,23 +2034,20 @@
         async function loadSingleProduct() {
             console.log("🔍 loadSingleProduct() called!");
             const urlParams = new URLSearchParams(window.location.search);
-            const slug = urlParams.get('slug');
-            console.log("📌 Target slug:", slug);
-
-            if (!slug) {
-                console.error("❌ No slug found in URL!");
-                const titleEl = document.getElementById('pdp-title');
-                if (titleEl) titleEl.innerText = 'PRODUCT NOT FOUND';
-                return;
-            }
+            let slug = urlParams.get('slug') || urlParams.get('id');
+            console.log("📌 Target slug/id:", slug);
 
             // Render instantly from local storage cache if available
             try {
                 const cachedList = JSON.parse(localStorage.getItem("kappa_cached_products") || "[]");
-                const cachedProduct = cachedList.find(p => p.slug === slug || String(p.id) === slug);
-                if (cachedProduct) {
-                    console.log("⚡ Found matching product in cache! Rendering instantly...");
-                    renderSingleProduct(cachedProduct);
+                if (cachedList.length > 0) {
+                    const cachedProduct = slug 
+                        ? cachedList.find(p => p.slug === slug || String(p.id) === slug) 
+                        : cachedList[0];
+                    if (cachedProduct) {
+                        console.log("⚡ Found matching product in cache! Rendering instantly...");
+                        renderSingleProduct(cachedProduct);
+                    }
                 }
             } catch (e) {
                 console.warn("Could not retrieve cached products:", e);
@@ -2068,41 +2070,57 @@
 
                 console.log("📡 Querying Supabase for product...");
 
-                // Try matching by slug first (using product_variants(*) to prevent column mismatch crashes)
-                const { data: bySlug, error: slugErr } = await client
-                    .from('products')
-                    .select('*, product_images(url, position), product_variants(*)')
-                    .eq('slug', slug)
-                    .maybeSingle();
-
-                if (slugErr) console.error("Slug query error:", slugErr);
-
-                if (bySlug) {
-                    product = bySlug;
-                    console.log("✅ Found product by slug:", product);
-                } else {
-                    console.log("🔄 Slug not found, trying fallback by ID...");
-                    // Fallback: try matching by id (for products without a slug)
-                    const { data: byId, error: idErr } = await client
+                if (slug) {
+                    // Try matching by slug first (using product_variants(*) to prevent column mismatch crashes)
+                    const { data: bySlug, error: slugErr } = await client
                         .from('products')
                         .select('*, product_images(url, position), product_variants(*)')
-                        .eq('id', slug)
+                        .eq('slug', slug)
                         .maybeSingle();
-                    
-                    if (idErr) console.error("ID query error:", idErr);
-                    if (byId) {
-                        product = byId;
-                        console.log("✅ Found product by ID:", product);
+
+                    if (slugErr) console.error("Slug query error:", slugErr);
+
+                    if (bySlug) {
+                        product = bySlug;
+                        console.log("✅ Found product by slug:", product);
+                    } else {
+                        console.log("🔄 Slug not found, trying fallback by ID...");
+                        // Fallback: try matching by id (for products without a slug)
+                        const { data: byId, error: idErr } = await client
+                            .from('products')
+                            .select('*, product_images(url, position), product_variants(*)')
+                            .eq('id', slug)
+                            .maybeSingle();
+                        
+                        if (idErr) console.error("ID query error:", idErr);
+                        if (byId) {
+                            product = byId;
+                            console.log("✅ Found product by ID:", product);
+                        }
+                    }
+                }
+
+                // If no specific product found (or no slug provided), load first product in store as fallback
+                if (!product) {
+                    console.log("🔄 Fetching first product from database as fallback...");
+                    const { data: firstProd, error: firstErr } = await client
+                        .from('products')
+                        .select('*, product_images(url, position), product_variants(*)')
+                        .limit(1)
+                        .maybeSingle();
+
+                    if (!firstErr && firstProd) {
+                        product = firstProd;
                     }
                 }
 
                 if (!product) {
-                    console.warn("⚠️ Product not found in database for slug/id:", slug);
+                    console.warn("⚠️ No products found in database.");
                     if (!window.currentProductData) {
                         const titleEl = document.getElementById('pdp-title');
                         if (titleEl) titleEl.innerText = 'Product Not Found';
                         const descEl = document.getElementById('pdp-description');
-                        if (descEl) descEl.innerText = 'This product could not be loaded. Please go back and try again.';
+                        if (descEl) descEl.innerText = 'No products are currently available. Please check back soon.';
                         const hero = document.querySelector('.zara-hero');
                         if (hero) hero.classList.add('loaded');
                     }
