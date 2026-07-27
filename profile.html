@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile — KAPPA</title>
+    <link rel="icon" type="image/png" href="assets/kappalogo_favion.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.18/dist/lenis.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .profile-page-wrapper {
+            min-height: 100vh;
+            background: var(--white);
+            padding-top: calc(var(--marquee-h) + var(--nav-h) + 24px);
+            padding-bottom: 80px;
+        }
+
+        .profile-container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .profile-brand {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 32px 0 18px;
+        }
+
+        .profile-brand img {
+            height: 56px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+            .profile-header {
+                position: relative;
+                margin-top: 10px;
+                margin-bottom: 32px;
+                display: flex;
+                align-items: center;
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+
+        .profile-avatar-section {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .profile-avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px solid #ffffff;
+            background: var(--grey-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .profile-avatar-placeholder {
+            font-family: var(--font-display);
+            font-size: 56px;
+            color: var(--ink);
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .profile-avatar-camera {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--ink);
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .profile-avatar-camera:hover {
+            background: var(--yellow-deep);
+            transform: scale(1.05);
+        }
+
+        .profile-avatar-camera svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .profile-identity {
+            padding-bottom: 12px;
+            min-width: 0;
+        }
+
+        .profile-name {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--ink);
+            line-height: 1.1;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .profile-email {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--grey-500);
+            letter-spacing: 0.02em;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .profile-card {
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+        }
+
+        .profile-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .profile-card-title {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--ink);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .profile-fields {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        .profile-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .profile-field label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--grey-500);
+        }
+
+        .profile-field input,
+        .profile-field textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            background: var(--white);
+            color: var(--ink);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .profile-field input:focus,
+        .profile-field textarea:focus {
+            outline: none;
+            border-color: var(--yellow);
+            box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.15);
+        }
+
+        .profile-field textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            padding: 14px 28px;
+            background: var(--ink);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary:hover {
+            background: #333333;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            padding: 14px 28px;
+            background: transparent;
+            color: var(--ink);
+            border: 1.5px solid rgba(0,0,0,0.15);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0,0,0,0.03);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            padding: 14px 28px;
+            background: transparent;
+            color: #cc0000;
+            border: 1.5px solid #cc0000;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-danger:hover {
+            background: #cc0000;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .profile-nav-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+
+        .profile-nav-link {
+            padding: 10px 18px;
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+            text-decoration: none;
+            transition: background 0.2s, transform 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .profile-nav-link:hover {
+            background: var(--grey-100);
+            transform: translateY(-1px);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--ink);
+            color: var(--white);
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.35s var(--ease);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .profile-brand img {
+                height: 40px;
+            }
+
+            .profile-header {
+                margin-top: 10px;
+                gap: 16px;
+            }
+
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+            }
+
+            .profile-avatar-placeholder {
+                font-size: 40px;
+            }
+
+            .profile-name {
+                font-size: 24px;
+            }
+
+            .profile-card {
+                padding: 20px;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+            }
+
+            .btn-primary, .btn-secondary, .btn-danger {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="profile-page">
+    <header class="navbar" id="navbar">
+        <button class="hamburger hamburger-left" id="heroHamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+        <nav class="nav-links">
+            <a href="index.html#home" class="nav-link">Home</a>
+            <a href="about.html" class="nav-link">About</a>
+            <a href="contact.html" class="nav-link">Contact</a>
+        </nav>
+        <a href="index.html#home" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store"></a>
+        <div class="nav-actions">
+            <div class="search-box" id="searchBtn"><input type="text" placeholder="Search for products..." /><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
+            <button class="icon-btn cart-btn" id="cartBtn"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg></button>
+            <button class="icon-btn profile-btn" id="profileBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg></button>
+            <div class="profile-popup" id="profilePopup">
+                <div class="profile-popup-header">
+                    <div class="profile-avatar-circle">
+                        <img src="" id="profilePopupAvatarImg" class="profile-avatar-img" style="display:none;" />
+                        <div id="profilePopupAvatarPlaceholder" class="profile-avatar-placeholder">U</div>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="profilePopupName">User</div>
+                        <a href="profile.html" class="profile-link" id="profilePopupLink">My Profile</a>
+                    </div>
+                </div>
+                <div class="profile-divider"></div>
+                <ul class="profile-popup-menu">
+                    <li><a href="my-orders.html"><span class="menu-icon-wrap" style="background-color:#ffeef2;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span><span class="menu-label">My Orders</span></a></li>
+                    <li><a href="track-order.html"><span class="menu-icon-wrap" style="background-color:#e8f5e9;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></span><span class="menu-label">Track Order</span></a></li>
+                    <li><a href="saved-address.html"><span class="menu-icon-wrap" style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span><span class="menu-label">Saved Address</span></a></li>
+                    <li><a href="my-reviews.html"><span class="menu-icon-wrap" style="background-color:#fff9c4;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span><span class="menu-label">My Reviews</span></a></li>
+                    <li><a href="my-notifications.html"><span class="menu-icon-wrap" style="background-color:#f3e8ff;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span><span class="menu-label">My Notifications</span></a></li>
+                    <li><a href="my-coupons.html"><span class="menu-icon-wrap" style="background-color:#ffeedb;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#f57c00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><path d="M20 3v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2V3z"></path><rect x="4" y="6" width="16" height="12" rx="2"></rect><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="4"></line></svg></span><span class="menu-label">My Coupons</span></a></li>
+                    <li><a href="profile.html"><span class="menu-icon-wrap" style="background-color:#e3f2fd;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#1976d2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg></span><span class="menu-label">My Profile</span></a></li>
+                    <li><a href="#" id="popupLogout"><span class="menu-icon-wrap" style="background-color:#ffebee;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></span><span class="menu-label">Logout</span></a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="profile-page-wrapper">
+        <div class="profile-container">
+            <div class="profile-brand">
+                <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store">
+            </div>
+
+            <div class="profile-header">
+                <div class="profile-avatar-section">
+                    <div class="profile-avatar" id="profileAvatarBtn" title="Choose profile picture">
+                        <img src="" alt="Profile" class="profile-avatar-img" id="profileAvatarImg" style="display:none;" />
+                        <div class="profile-avatar-placeholder" id="profileAvatarPlaceholder">U</div>
+                    </div>
+                    <button type="button" class="profile-avatar-camera" id="profileAvatarCameraBtn" title="Choose profile picture">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    </button>
+                    <input type="file" id="profileAvatarInput" accept="image/*" style="display:none;" />
+                </div>
+                <div class="profile-identity">
+                    <div class="profile-name" id="profileNameDisplay">User</div>
+                    <div class="profile-email" id="profileEmailDisplay">user@example.com</div>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <div class="profile-card-title">Personal Information</div>
+                    </div>
+                    <form id="profile-form">
+                        <div class="profile-fields">
+                            <div class="profile-field">
+                                <label for="profile-name">Full Name</label>
+                                <input type="text" id="profile-name" placeholder="Your Name" />
+                            </div>
+                            <div class="profile-field">
+                                <label for="profile-email">Email Address</label>
+                                <input type="email" id="profile-email" placeholder="you@example.com" disabled />
+                            </div>
+                            <div class="profile-field">
+                                <label for="profile-phone">Mobile Number</label>
+                                <input type="tel" id="profile-phone" placeholder="Enter Mobile Number" />
+                            </div>
+                            <div class="profile-field">
+                                <label for="profile-address">Shipping Address</label>
+                                <textarea id="profile-address" placeholder="Enter Shipping Address"></textarea>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button type="submit" class="btn-primary">Save Changes</button>
+                            <button type="button" class="btn-secondary" id="profileCancelBtn">Cancel</button>
+                            <button type="button" class="btn-danger" id="profileLogoutBtn">Sign Out</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="profile-nav-row">
+                    <a href="my-orders.html" class="profile-nav-link">My Orders</a>
+                    <a href="track-order.html" class="profile-nav-link">Track Order</a>
+                    <a href="saved-address.html" class="profile-nav-link">Saved Address</a>
+                    <a href="my-reviews.html" class="profile-nav-link">My Reviews</a>
+                    <a href="my-notifications.html" class="profile-nav-link">Notifications</a>
+                    <a href="my-coupons.html" class="profile-nav-link">Coupons</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const supabaseClient = window.supabase.createClient(
+            'https://ugphxapfbzcrauchwlef.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
+        );
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function getUserDisplayName(user) {
+            if (!user) return "User";
+            const storedProfile = localStorage.getItem(`kappa_profile_${user.id}`);
+            if (storedProfile) {
+                try {
+                    const parsed = JSON.parse(storedProfile);
+                    if (parsed.name && parsed.name.trim() !== "") {
+                        return parsed.name.trim();
+                    }
+                } catch (_) { }
+            }
+            if (user.user_metadata && user.user_metadata.full_name) {
+                return user.user_metadata.full_name;
+            }
+            if (user.email) {
+                const parts = user.email.split('@')[0];
+                const namePart = parts.split(/[\._\d]/)[0];
+                return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+            }
+            return "User";
+        }
+
+        function initProfilePage() {
+            const profileBtn = document.getElementById('profileBtn');
+            const profilePopup = document.getElementById('profilePopup');
+
+            if (profileBtn) {
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (profilePopup) profilePopup.classList.toggle('open');
+                });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (profilePopup && profilePopup.classList.contains('open')) {
+                    if (!profilePopup.contains(e.target) && (!profileBtn || !profileBtn.contains(e.target))) {
+                        profilePopup.classList.remove('open');
+                    }
+                }
+            });
+
+            const profilePopupLink = document.getElementById('profilePopupLink');
+            if (profilePopupLink) {
+                profilePopupLink.addEventListener('click', (e) => {
+                    if (profilePopup) profilePopup.classList.remove('open');
+                });
+            }
+
+            const popupLogout = document.getElementById('popupLogout');
+            if (popupLogout) {
+                popupLogout.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    if (profilePopup) profilePopup.classList.remove('open');
+                    const { error } = await supabaseClient.auth.signOut();
+                    if (error) showToast('Logout failed: ' + error.message);
+                    else { showToast('Logged out successfully'); setTimeout(() => window.location.href = 'index.html', 1000); }
+                });
+            }
+
+            // Profile page elements
+            const profileNameDisplay = document.getElementById('profileNameDisplay');
+            const profileEmailDisplay = document.getElementById('profileEmailDisplay');
+            const profileNameInput = document.getElementById('profile-name');
+            const profileEmailInput = document.getElementById('profile-email');
+            const profilePhoneInput = document.getElementById('profile-phone');
+            const profileAddressInput = document.getElementById('profile-address');
+            const profileAvatarImg = document.getElementById('profileAvatarImg');
+            const profileAvatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
+            const profileAvatarInput = document.getElementById('profileAvatarInput');
+            const profileForm = document.getElementById('profile-form');
+            const profileCancelBtn = document.getElementById('profileCancelBtn');
+
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (!session) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                const user = session.user;
+                const userId = user.id;
+                const name = getUserDisplayName(user);
+                const email = user.email || '';
+                const initial = name.charAt(0).toUpperCase();
+
+                // Load profile data
+                const profileKey = `kappa_profile_${userId}`;
+                const storedProfile = localStorage.getItem(profileKey);
+                let profileData = { name, phone: '', address: '' };
+                if (storedProfile) {
+                    try {
+                        const parsed = JSON.parse(storedProfile);
+                        profileData = { ...profileData, ...parsed };
+                    } catch (_) { }
+                }
+
+                // Load avatar
+                const avatarKey = `kappa_avatar_${userId}`;
+                const avatarSrc = localStorage.getItem(avatarKey);
+                if (avatarSrc && profileAvatarImg && profileAvatarPlaceholder) {
+                    profileAvatarImg.src = avatarSrc;
+                    profileAvatarImg.style.display = 'block';
+                    profileAvatarPlaceholder.style.display = 'none';
+                } else if (profileAvatarPlaceholder) {
+                    profileAvatarPlaceholder.textContent = initial;
+                }
+
+                // Populate fields
+                if (profileNameDisplay) profileNameDisplay.textContent = profileData.name || name;
+                if (profileEmailDisplay) profileEmailDisplay.textContent = email;
+                if (profileNameInput) profileNameInput.value = profileData.name || name;
+                if (profileEmailInput) profileEmailInput.value = email;
+                if (profilePhoneInput) profilePhoneInput.value = profileData.phone || '';
+                if (profileAddressInput) profileAddressInput.value = profileData.address || '';
+
+                // Avatar upload
+                const avatarBtn = document.getElementById('profileAvatarBtn');
+                const cameraBtn = document.getElementById('profileAvatarCameraBtn');
+                const triggerFileSelect = () => {
+                    if (profileAvatarInput) profileAvatarInput.click();
+                };
+                if (avatarBtn) avatarBtn.addEventListener('click', triggerFileSelect);
+                if (cameraBtn) cameraBtn.addEventListener('click', triggerFileSelect);
+
+                if (profileAvatarInput) {
+                    profileAvatarInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        if (!file.type.startsWith('image/')) {
+                            showToast('Please select a valid image file');
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            const dataUrl = reader.result;
+                            localStorage.setItem(avatarKey, dataUrl);
+                            if (profileAvatarImg) {
+                                profileAvatarImg.src = dataUrl;
+                                profileAvatarImg.style.display = 'block';
+                            }
+                            if (profileAvatarPlaceholder) {
+                                profileAvatarPlaceholder.style.display = 'none';
+                            }
+                            if (profileNameDisplay) {
+                                profileNameDisplay.textContent = profileData.name || name;
+                            }
+                            showToast('Profile photo updated');
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                // Save profile
+                if (profileForm) {
+                    profileForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const nameVal = profileNameInput ? profileNameInput.value.trim() : '';
+                        const phoneVal = profilePhoneInput ? profilePhoneInput.value.trim() : '';
+                        const addressVal = profileAddressInput ? profileAddressInput.value.trim() : '';
+                        const profileDataToSave = { name: nameVal, phone: phoneVal, address: addressVal };
+                        localStorage.setItem(profileKey, JSON.stringify(profileDataToSave));
+                        if (profileNameDisplay) profileNameDisplay.textContent = nameVal || name;
+                        showToast('Profile saved successfully');
+                    });
+                }
+
+                // Cancel
+                if (profileCancelBtn) {
+                    profileCancelBtn.addEventListener('click', () => {
+                        if (profileNameInput) profileNameInput.value = profileData.name || name;
+                        if (profilePhoneInput) profilePhoneInput.value = profileData.phone || '';
+                        if (profileAddressInput) profileAddressInput.value = profileData.address || '';
+                        showToast('Changes discarded');
+                    });
+                }
+
+                // Logout
+                const profileLogoutBtn = document.getElementById('profileLogoutBtn');
+                if (profileLogoutBtn) {
+                    profileLogoutBtn.addEventListener('click', async () => {
+                        const { error } = await supabaseClient.auth.signOut();
+                        if (error) showToast('Logout failed: ' + error.message);
+                        else { showToast('Logged out successfully'); setTimeout(() => window.location.href = 'index.html', 1000); }
+                    });
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initProfilePage);
+
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => { if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 20); });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+    <script src="animations.js"></script>
+</body>
+</html>
+
