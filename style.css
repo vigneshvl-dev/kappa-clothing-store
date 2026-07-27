@@ -3064,15 +3064,19 @@ body.scrolled .marquee {
         padding: 16px 4vw;
     }
     .payment-partners-inner {
-        flex-direction: column;
-        gap: 16px;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
     }
     .payment-razorpay-block,
     .delivery-partner-block {
         align-items: center;
+        text-align: center;
     }
     .payment-divider {
-        display: none;
+        display: block;
+        height: 24px;
     }
 }
 
