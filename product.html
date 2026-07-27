@@ -1071,6 +1071,12 @@
         <div class="zara-grid-4" id="match-with-grid"></div>
     </section>
 
+    <!-- 5. SIMILAR ITEMS Layer -->
+    <section class="section-wrapper" id="similar-items-section" style="display: none; margin-top: 40px;">
+        <h3 class="section-title">SIMILAR ITEMS</h3>
+        <div class="zara-grid-4" id="similar-items-grid"></div>
+    </section>
+
 
     <!-- PAYMENT PARTNERS -->
     <div class="payment-partners-bar">
@@ -2180,15 +2186,38 @@ async function loadZaraGrids(categoryId, currentProductId) {
             query = query.in('category_id', targetCategoryIds);
         }
 
-        const { data: related, error } = await query;
+        let { data: related, error } = await query;
+        if (!related) related = [];
 
-        if (error || !related || related.length === 0) return;
+        // If we don't have enough category-matching items (less than 8), fill with other active products
+        if (related.length < 8) {
+            try {
+                const excludeIds = [currentProductId, ...related.map(r => r.id)];
+                const { data: filler } = await client
+                    .from('products')
+                    .select('*, product_images(url, position)')
+                    .notin('id', excludeIds)
+                    .eq('is_active', true)
+                    .limit(8 - related.length);
+                if (filler && filler.length > 0) {
+                    related = [...related, ...filler];
+                }
+            } catch (fillErr) {
+                console.error("Error loading related filler products:", fillErr);
+            }
+        }
+
+        if (related.length === 0) return;
 
         const matchWithItems = related.slice(0, 4);
         const similarItems = related.slice(4, 8);
 
         const renderGrid = (items, containerId, sectionId) => {
             if (items.length > 0) {
+                const container = document.getElementById(containerId);
+                const section = document.getElementById(sectionId);
+                if (!container || !section) return;
+
                 let html = items.map(item => {
                     let imgs = item.product_images || [];
                     imgs.sort((a, b) => a.position - b.position);
@@ -2203,8 +2232,8 @@ async function loadZaraGrids(categoryId, currentProductId) {
                         </div>
                     `;
                 }).join('');
-                document.getElementById(containerId).innerHTML = html;
-                document.getElementById(sectionId).style.display = 'block';
+                container.innerHTML = html;
+                section.style.display = 'block';
             }
         };
 
