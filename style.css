@@ -5330,6 +5330,11 @@ body > *:last-child{
     justify-content: center;
 }
 
+#accountOverlay .card {
+    padding: 44px 36px !important;
+    box-sizing: border-box;
+}
+
 #accountOverlay .panel {
     display: none;
 }
@@ -5340,23 +5345,34 @@ body > *:last-child{
 }
 
 #accountOverlay .headline {
-    font-family: 'Anton', 'Inter', sans-serif;
-    font-size: 30px;
-    font-weight: 800;
+    font-family: var(--font-body);
+    font-size: 22px;
+    font-weight: 700;
     color: #111111;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: normal;
     margin: 0 0 4px;
     text-align: left;
     background: none;
     -webkit-text-fill-color: initial;
+    animation: none;
+    display: block;
 }
 
 #accountOverlay .subline {
-    font-size: 13.5px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 400;
+    font-style: normal;
     color: #6b7280;
+    text-transform: none;
+    letter-spacing: normal;
     margin: 0 0 22px;
     text-align: left;
+    background: none;
+    -webkit-text-fill-color: initial;
+    animation: none;
+    display: block;
 }
 
 #accountOverlay .subline .link-highlight {
@@ -5605,7 +5621,7 @@ body > *:last-child{
     }
 
     .auth-form-side {
-        padding: 28px 24px;
+        padding: 44px 32px;
     }
 }
 
@@ -7467,12 +7483,8 @@ body.reels-page {
 
 /* ============ SQUARE SHAPE OVERRIDES FOR ACCOUNT SECTION ============ */
 #accountOverlay,
-#accountOverlay .card,
 #accountOverlay .logo-mark,
 #accountOverlay .logo-mark::after,
-#accountOverlay .field input,
-#accountOverlay .btn-primary,
-#accountOverlay .btn-google,
 #accountOverlay .dash-avatar-camera-btn {
     border-radius: 0 !important;
 }
