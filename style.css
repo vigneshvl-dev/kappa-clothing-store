@@ -5165,29 +5165,21 @@ body > *:last-child{
     }
 }
 
-/* ============ ACCOUNT OVERLAY & LOGIN/SIGNUP CARD ============ */
+/* ============ ACCOUNT OVERLAY & LOGIN/SIGNUP CARD (DESIGN REFERENCE MATCH) ============ */
 #accountOverlay {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    padding: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px;
     overflow-y: auto;
-    background: var(--white);
-    /* Ensure it is truly hidden when not open — fixes footer link blocking */
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     opacity: 0;
     pointer-events: none;
-    --bg-card: #ffffff;
-    --ink: #0a0a0a;
-    --ink-soft: #6b6b6b;
-    --yellow: #F5C518;
-    --yellow-deep: #E0AE00;
-    --line: #ececec;
-    --shadow-sm: 0 2px 8px rgba(10, 10, 10, 0.05);
-    --shadow-md: 0 12px 32px rgba(10, 10, 10, 0.08);
-    --shadow-lg: 0 24px 60px rgba(10, 10, 10, 0.12);
-    --radius: 16px;
-    --ease: cubic-bezier(.22, .61, .36, 1);
+    transition: opacity 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+    z-index: 9999;
 }
 
 #accountOverlay.open {
@@ -5202,510 +5194,419 @@ body > *:last-child{
 #accountOverlay .stage {
     position: relative;
     width: 100%;
-    max-width: 440px;
+    max-width: 840px;
     z-index: 1;
     margin: auto;
-    padding: 40px 20px;
+    padding: 0;
 }
 
-#accountOverlay .logo-wrap {
+#accountOverlay .card.auth-split-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.22);
+    overflow: hidden;
+    padding: 0;
+    width: 100%;
+    min-height: 520px;
+    border: none;
+    animation: cardIn .5s var(--ease) both;
+}
+
+/* LEFT HERO BANNER (YELLOW) */
+.auth-hero-banner {
+    background: #F8C715;
+    background: linear-gradient(135deg, #F8C715 0%, #F5BE00 100%);
+    padding: 48px 36px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 28px;
-    animation: dropIn .7s var(--ease) both;
-}
-
-#accountOverlay .logo-mark {
-    width: 64px;
-    height: 64px;
-    border-radius: 18px;
-    background: var(--ink);
-    display: flex;
-    align-items: center;
     justify-content: center;
-    box-shadow: var(--shadow-md);
-    margin-bottom: 14px;
-    position: relative;
-}
-
-#accountOverlay .logo-mark img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-    border-radius: inherit;
-    padding: 6px;
-}
-
-#accountOverlay .logo-mark::after {
-    content: "";
-    position: absolute;
-    inset: -3px;
-    border-radius: 21px;
-    border: 2px solid var(--yellow);
-    opacity: .9;
-}
-
-#accountOverlay .logo-mark span {
-    font-family: 'Georgia', serif;
-    font-weight: 700;
-    font-size: 26px;
-    color: var(--yellow);
-    letter-spacing: 1px;
-    line-height: 1;
-}
-
-#accountOverlay .logo-name {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--ink);
-}
-
-#accountOverlay .logo-name em {
-    font-style: normal;
-    color: var(--yellow-deep);
-}
-
-#accountOverlay .card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
-    padding: 40px 36px 32px;
+    text-align: center;
     position: relative;
     overflow: hidden;
-    animation: cardIn .6s var(--ease) both .1s;
-    width: 100%;
 }
 
-@media (max-width: 480px) {
-    #accountOverlay .card {
-        padding: 32px 22px 26px;
-    }
+.auth-hero-banner::before {
+    content: "";
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    pointer-events: none;
 }
 
-@media (max-width: 768px) {
-    #accountOverlay {
-        padding: 0;
-    }
+.auth-hero-banner::after {
+    content: "";
+    position: absolute;
+    bottom: -80px;
+    left: -80px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+}
 
-    .account-overlay-navbar {
-        height: 60px;
-        min-height: 60px;
-        padding: 0 16px;
-        background: var(--yellow) !important;
-        border-bottom: none !important;
-        position: relative !important;
-        top: 0 !important;
-        left: 0 !important;
-        z-index: 2;
-        display: flex !important;
-        align-items: center;
-        justify-content: flex-start;
-    }
+.auth-brand-head {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 28px;
+}
 
-    .account-overlay-navbar .about-nav-left,
-    .account-overlay-navbar .about-nav-right {
-        display: none !important;
-    }
+.auth-brand-logo {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+}
 
-    .account-nav-toggle {
-        display: flex !important;
-        flex-direction: column;
-        gap: 5px;
-        width: 40px;
-        height: 40px;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-    }
+.auth-hero-content {
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 2;
+}
 
-    .account-nav-toggle span {
-        width: 22px;
-        height: 2px;
-        background: var(--black);
-        border-radius: 2px;
-    }
+.auth-hero-headline {
+    font-family: 'Anton', 'Inter', sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    color: #111111;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.08;
+    margin: 0 0 8px;
+}
 
-    .account-overlay-navbar .about-nav-logo {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        top: 50%;
-        margin-top: -22px;
-        flex: 0 0 auto;
-        justify-content: center;
-    }
+.auth-hero-sub {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: 14.5px;
+    color: #222222;
+    margin: 0;
+}
 
-    .account-overlay-navbar .about-nav-logo img {
-        height: 44px;
-    }
+.auth-feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: flex-start;
+    position: relative;
+    z-index: 2;
+    align-self: flex-start;
+}
 
-    #accountOverlay .stage {
-        max-width: 100%;
-        width: 100%;
-        flex: 1 1 auto;
-        margin: 0;
-        padding: 24px 18px 32px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-    }
+.auth-feature-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #111111;
+}
 
-    #accountOverlay .card {
-        border-radius: 0;
-        box-shadow: none;
-        border: none;
-        background: transparent;
-        padding: 24px 4px 0;
-        flex: 1 1 auto;
-    }
+.auth-feature-list li svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    stroke-width: 2.2;
+    color: #111111;
+}
 
-    #accountOverlay .logo-wrap {
-        margin-bottom: 18px;
-    }
-
-    #accountOverlay .headline {
-        font-size: 24px;
-    }
-
-    #accountOverlay .subline {
-        font-size: 14px;
-        margin-bottom: 20px;
-    }
-
-    #accountOverlay .field input {
-        height: 50px;
-        font-size: 15px;
-        background: #fff;
-        border-color: #e3e3e3;
-    }
-
-    #accountOverlay .field input.has-toggle {
-        padding-right: 46px;
-    }
-
-    #accountOverlay .toggle-eye {
-        top: 32px;
-        transform: translateY(-50%);
-        padding: 8px;
-        right: 10px;
-    }
-
-    #accountOverlay .toggle-eye svg {
-        width: 21px;
-        height: 21px;
-    }
-
-    #accountOverlay .btn-primary,
-    #accountOverlay .btn-google {
-        height: 52px;
-        font-size: 15px;
-        border-radius: 12px;
-    }
+/* RIGHT FORM PANEL (WHITE) */
+.auth-form-side {
+    padding: 44px 44px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 #accountOverlay .panel {
     display: none;
-    border-radius: 4px;
 }
 
 #accountOverlay .panel.active {
     display: block;
-    animation: fadeSwap .45s var(--ease) both;
+    animation: fadeSwap .4s var(--ease) both;
 }
 
 #accountOverlay .headline {
-    font-size: 26px;
-    font-weight: 700;
+    font-family: 'Anton', 'Inter', sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    color: #111111;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin: 0 0 4px;
     text-align: left;
-    margin: 0 0 6px;
-    color: #000;
-    font-family: 'Inter', sans-serif;
     background: none;
-    -webkit-background-clip: unset;
-    -webkit-text-fill-color: unset;
-    background-clip: unset;
-    animation: none;
-    text-transform: none;
-    font-style: normal;
+    -webkit-text-fill-color: initial;
 }
 
 #accountOverlay .subline {
-    font-size: 14.5px;
-    color: #777;
+    font-size: 13.5px;
+    color: #6b7280;
+    margin: 0 0 22px;
     text-align: left;
-    margin: 0 0 25px;
-    font-family: 'Inter', sans-serif;
-    background: none;
-    -webkit-background-clip: unset;
-    -webkit-text-fill-color: initial;
-    background-clip: unset;
-    animation: none;
-    text-transform: none;
-    font-style: normal;
-    font-weight: 400;
-    letter-spacing: normal;
+}
+
+#accountOverlay .subline .link-highlight {
+    color: #111111;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: #F8C715;
+    text-underline-offset: 3px;
+    cursor: pointer;
 }
 
 #accountOverlay .field {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     position: relative;
 }
 
 #accountOverlay .field label {
-    display: block;
     font-size: 12.5px;
-    font-weight: 600;
-    letter-spacing: .02em;
-    margin-bottom: 7px;
-    color: var(--ink);
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 6px;
+    display: block;
     text-align: left;
 }
 
 #accountOverlay .input-shell {
     position: relative;
+    width: 100%;
     display: flex;
     align-items: center;
-    width: 100%;
+}
+
+.input-icon-left {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 17px;
+    height: 17px;
+    color: #9ca3af;
+    pointer-events: none;
+    z-index: 2;
 }
 
 #accountOverlay .field input {
     width: 100%;
-    padding: 13px 16px;
-    font-size: 14.5px;
-    border-radius: 12px;
-    border: 1.5px solid var(--line);
-    background: #fbfbfb;
-    color: var(--ink);
+    height: 44px;
+    padding: 0 14px 0 42px;
+    font-size: 13.5px;
+    border-radius: 10px;
+    border: 1.5px solid #E5E7EB;
+    background: #FAFAFA;
+    color: #111111;
     outline: none;
-    transition: border-color .25s var(--ease), box-shadow .25s var(--ease), background .25s var(--ease);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     font-family: inherit;
 }
 
 #accountOverlay .field input::placeholder {
-    color: #b7b7b7;
+    color: #9ca3af;
 }
 
 #accountOverlay .field input:focus {
-    border-color: var(--yellow);
-    background: #fff;
-    box-shadow: 0 0 0 4px rgba(245, 197, 24, 0.18);
+    border-color: #111111;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(248, 199, 21, 0.25);
 }
 
 #accountOverlay .field input.has-toggle {
-    padding-right: 44px;
+    padding-right: 42px;
 }
 
 #accountOverlay .toggle-eye {
     position: absolute;
-    right: 10px;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
+    color: #9ca3af;
     padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #9a9a9a;
-    transition: color .2s var(--ease);
 }
 
 #accountOverlay .toggle-eye:hover {
-    color: var(--ink);
+    color: #111111;
 }
 
 #accountOverlay .toggle-eye svg {
-    width: 19px;
-    height: 19px;
-    fill: none;
+    width: 17px;
+    height: 17px;
 }
 
 #accountOverlay .row-between {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
     margin-bottom: 20px;
-    font-size: 14px;
 }
 
 #accountOverlay .checkbox-line {
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 8px;
     cursor: pointer;
-    user-select: none;
-    color: #444;
     font-size: 13px;
+    color: #374151;
+    font-weight: 500;
 }
 
 #accountOverlay .checkbox-line input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    min-width: 18px;
-    border-radius: 5px;
-    border: 1.6px solid #d3d3d3;
-    display: inline-flex;
+    accent-color: #F8C715;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#accountOverlay .link-forgot {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #111111;
+    text-decoration: underline;
+    text-decoration-color: #F8C715;
+    text-underline-offset: 3px;
+}
+
+#accountOverlay .btn-primary.btn-sign-in {
+    width: 100%;
+    height: 46px;
+    border-radius: 10px;
+    background: #111111;
+    color: #F8C715;
+    font-size: 14.5px;
+    font-weight: 700;
+    display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: border-color .2s var(--ease), background .2s var(--ease);
-    position: relative;
-    top: 1px;
-    margin: 0;
-}
-
-#accountOverlay .checkbox-line input[type="checkbox"]:checked {
-    background: var(--yellow);
-    border-color: var(--yellow);
-}
-
-#accountOverlay .checkbox-line input[type="checkbox"]:checked::after {
-    content: "";
-    position: absolute;
-    left: 5px;
-    top: 1.5px;
-    width: 5px;
-    height: 9px;
-    border: solid var(--ink);
-    border-width: 0 2px 2px 0;
-    transform: rotate(40deg);
-}
-
-#accountOverlay .link {
-    color: var(--ink);
-    text-decoration: none;
-    font-weight: 600;
-    border-bottom: 1.5px solid var(--yellow);
-    padding-bottom: 1px;
-    transition: opacity .2s var(--ease);
-}
-
-#accountOverlay .link:hover {
-    opacity: .65;
-}
-
-#accountOverlay .terms-text a {
-    color: var(--ink);
-    font-weight: 600;
-    text-decoration: underline;
-    text-decoration-color: var(--yellow);
-    text-underline-offset: 2px;
-}
-
-#accountOverlay .btn-primary {
-    width: 100%;
-    padding: 12px;
+    gap: 8px;
     border: none;
-    border-radius: 6px;
-    background: #000;
-    color: #ffcc00;
-    font-size: 15px;
-    font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s;
-    position: relative;
-    overflow: hidden;
-    margin: 0;
+    transition: background 0.2s ease, transform 0.15s ease;
 }
 
-#accountOverlay .btn-primary:hover {
-    background: #222;
-    box-shadow: none;
-    transform: none;
-    color: #ffcc00;
-}
-
-#accountOverlay .btn-primary:active {
-    transform: none;
-    box-shadow: none;
+#accountOverlay .btn-primary.btn-sign-in:hover {
+    background: #222222;
+    color: #F8C715;
+    transform: translateY(-1px);
 }
 
 #accountOverlay .divider {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin: 25px 0;
-    color: #aaa;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: normal;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 18px 0;
+    letter-spacing: 0.05em;
 }
 
 #accountOverlay .divider::before,
 #accountOverlay .divider::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: 42%;
-    height: 1px;
-    background: #ddd;
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #E5E7EB;
 }
 
 #accountOverlay .divider::before {
-    left: 0;
+    margin-right: 12px;
 }
 
 #accountOverlay .divider::after {
-    right: 0;
-}
-
-#accountOverlay .divider {
-    position: relative;
+    margin-left: 12px;
 }
 
 #accountOverlay .btn-google {
     width: 100%;
+    height: 44px;
+    border-radius: 10px;
+    border: 1.5px solid #E5E7EB;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13.5px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    background: #fff;
-    color: #333;
-    font-size: 15px;
-    font-weight: 500;
     cursor: pointer;
-    transition: border-color .25s var(--ease), background .25s var(--ease);
+    transition: background 0.2s ease, border-color 0.2s ease;
     position: relative;
-    overflow: hidden;
-}
-
-#accountOverlay .btn-google:hover {
-    border-color: #ccc;
-    background: #fafafa;
-    box-shadow: none;
-    transform: none;
-}
-
-#accountOverlay .btn-google:active {
-    transform: none;
-    box-shadow: none;
+    z-index: 1;
 }
 
 #accountOverlay .btn-google svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
 }
 
-#accountOverlay .switch-line {
+#accountOverlay .btn-google:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.auth-legal-note {
+    font-size: 11px;
+    color: #6b7280;
     text-align: center;
-    margin-top: 26px;
-    font-size: 13.5px;
-    color: var(--ink-soft);
+    margin-top: 18px;
+    line-height: 1.4;
 }
 
-#accountOverlay footer .foot-links a {
-    color: #8a8a8a;
-    text-decoration: none;
-    margin: 0 4px;
-    transition: color .2s var(--ease);
+.auth-legal-note a {
+    color: #111111;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: #F8C715;
+    text-underline-offset: 2px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    #accountOverlay .card.auth-split-card {
+        grid-template-columns: 1fr;
+        border-radius: 18px;
+        min-height: auto;
+    }
+    
+    .auth-hero-banner {
+        padding: 28px 20px;
+        text-align: center;
+    }
+    
+    .auth-hero-headline {
+        font-size: 28px;
+    }
+
+    .auth-feature-list {
+        display: none;
+    }
+
+    .auth-form-side {
+        padding: 28px 24px;
+    }
 }
 
 #accountOverlay footer .foot-links a:hover {
