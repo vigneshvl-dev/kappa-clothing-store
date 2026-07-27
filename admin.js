@@ -592,6 +592,29 @@ window.deleteOrder = async function(orderId) {
     if (!confirm(`⚠️ Are you sure you want to permanently delete order #${orderId.toString().substring(0, 8)}?\nThis cannot be undone.`)) return;
 
     try {
+        // Step 1: Try deleting client-side first (with RLS check via .select())
+        const { data: itemsDeleted, error: itemsError } = await supabaseClient
+            .from('order_items')
+            .delete()
+            .eq('order_id', orderId)
+            .select();
+
+        const { data: orderDeleted, error: orderError } = await supabaseClient
+            .from('orders')
+            .delete()
+            .eq('id', orderId)
+            .select();
+
+        // If client-side delete succeeded and actually deleted the row
+        if (!orderError && orderDeleted && orderDeleted.length > 0) {
+            alert('🗑️ Order deleted successfully (Client-side)!');
+            await loadOrders();
+            return;
+        }
+
+        // If client-side was blocked by RLS or row wasn't found, fall back to API server
+        console.log("Client-side delete restricted by RLS or not found. Retrying via secure backend API...");
+
         const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
             ? 'http://localhost:3000'
             : '';
@@ -602,18 +625,21 @@ window.deleteOrder = async function(orderId) {
             body: JSON.stringify({ orderId })
         });
 
-        const result = await res.json();
-
         if (!res.ok) {
-            console.error("Delete order failed:", result);
-            alert("❌ Error deleting order: " + (result.error || "Unknown error"));
+            const result = await res.json().catch(() => ({}));
+            console.error("Backend delete order failed:", result);
+            alert("❌ Error deleting order: " + (result.error || "Permission Denied"));
         } else {
-            alert('🗑️ Order deleted successfully!');
+            alert('🗑️ Order deleted successfully (via Backend API)!');
             await loadOrders();
         }
     } catch (err) {
         console.error("Failed to delete order:", err);
-        alert("❌ Failed to delete order: " + err.message);
+        if (err.message && err.message.includes('fetch')) {
+            alert("❌ Failed to delete order. This table has Row-Level Security (RLS) enabled.\n\nPlease start your local backend server by running 'node server.js' on port 3000 to authorize this delete operation.");
+        } else {
+            alert("❌ Failed to delete order: " + err.message);
+        }
     }
 };
 
