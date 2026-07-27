@@ -1039,7 +1039,42 @@
             localStorage.setItem('kappa_active_order_id', newOrderId);
             localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
 
-            payNow(verifiedTotal, newOrderId);
+            const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * (item.qty || 1)), 0);
+            const discountAmt = Math.round(subtotal * discountPercent);
+            const total = Math.max(subtotal - discountAmt + shippingCost, 0);
+
+            const orderRecord = {
+                orderId: newOrderId,
+                customer: customerDetails,
+                shipping: shippingAddress,
+                items: cartItems.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    size: item.size || 'Default',
+                    color: item.color || 'N/A',
+                    qty: item.qty || 1,
+                    img: item.img || item.customImg || ''
+                })),
+                subtotal,
+                discount: discountAmt,
+                shippingCost,
+                total,
+                status: 'Order Placed',
+                date: new Date().toISOString()
+            };
+
+            const orders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
+            orders.unshift(orderRecord);
+            localStorage.setItem('kappa_orders', JSON.stringify(orders));
+
+            localStorage.removeItem('kappa_cart');
+            localStorage.removeItem('kappa_buy_now_item');
+            localStorage.removeItem('kappa_checkout_cart');
+            localStorage.removeItem('kappa_checkout_shipping');
+            localStorage.removeItem('kappa_checkout_discount');
+
+            window.location.href = 'my-orders.html';
         }
 
         async function payNow(secureTotal, dbOrderId) {

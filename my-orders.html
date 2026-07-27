@@ -468,6 +468,9 @@
                     </button>
                 </div>
 
+                <!-- Orders List -->
+                <div id="ordersList" style="display:none;"></div>
+
                 <!-- Empty State -->
                 <div class="empty-state" id="ordersEmptyState">
                     <div class="empty-state-illustration">🛍️</div>
@@ -565,6 +568,63 @@
                 window.location.href = 'index.html';
             });
         }
+
+        async function loadMyOrders() {
+            const ordersList = document.getElementById('ordersList');
+            const emptyState = document.getElementById('ordersEmptyState');
+
+            let orders = [];
+            try {
+                orders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
+            } catch (e) {
+                orders = [];
+            }
+
+            if (orders.length === 0) {
+                emptyState.style.display = 'flex';
+                ordersList.style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            ordersList.style.display = 'block';
+
+            ordersList.innerHTML = orders.map(order => `
+                <div style="padding: 24px 28px; border-bottom: 1px solid #f0f0ee;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 15px; color: #111;">Order #${order.orderId}</div>
+                            <div style="font-size: 12px; color: #999; margin-top: 4px;">${new Date(order.date).toLocaleString()}</div>
+                        </div>
+                        <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">${order.status}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        ${order.items.map(item => `
+                            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                                <img src="${item.img || 'https://placehold.co/50x65/eaeaea/999?text=?'}" alt="${item.name}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px; background: #fff; border: 1px solid #eee;" onerror="this.src='https://placehold.co/50x65/eaeaea/999?text=?'">
+                                <div style="flex-grow: 1; min-width: 150px;">
+                                    <div style="font-weight: 600; color: #111; font-size: 14px;">${item.name}</div>
+                                    <div style="font-size: 12px; color: #777; margin-top: 4px;">
+                                        <span style="background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 10px;">Size: ${item.size}</span>
+                                        <span style="background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 10px; margin-left: 6px;">Color: ${item.color}</span>
+                                        <span style="font-size: 10px; color: #555; margin-left: 6px;">Qty: ${item.qty}</span>
+                                    </div>
+                                </div>
+                                <div style="font-weight: 700; color: #111; font-size: 14px;">₹${((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 24px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0ee; flex-wrap: wrap;">
+                        <div style="font-size: 13px; color: #555;">Subtotal: <span style="font-weight: 600;">₹${order.subtotal.toLocaleString('en-IN')}</span></div>
+                        <div style="font-size: 13px; color: #555;">Discount: <span style="font-weight: 600;">− ₹${order.discount.toLocaleString('en-IN')}</span></div>
+                        <div style="font-size: 13px; color: #555;">Shipping: <span style="font-weight: 600;">₹${order.shippingCost.toLocaleString('en-IN')}</span></div>
+                        <div style="font-size: 16px; font-weight: 700; color: #111;">Total: ₹${order.total.toLocaleString('en-IN')}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        loadMyOrders();
     </script>
     <!-- GSAP & Lenis Smooth Scroll Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
