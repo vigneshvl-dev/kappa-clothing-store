@@ -5659,8 +5659,10 @@ body.scrolled .marquee {
 
 .auth-brand-logo {
     height: 40px;
+    max-height: 44px;
     width: auto;
     object-fit: contain;
+    mix-blend-mode: multiply;
 }
 
 .auth-hero-content {
@@ -5929,27 +5931,30 @@ body.scrolled .marquee {
     text-underline-offset: 3px;
 }
 
+#accountOverlay .btn-primary,
 #accountOverlay .btn-primary.btn-sign-in {
-    width: 100%;
-    height: 46px;
-    border-radius: 10px;
-    background: #111111;
-    color: #F8C715;
-    font-size: 14.5px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.15s ease;
+    width: 100% !important;
+    height: 46px !important;
+    border-radius: 10px !important;
+    background: #111111 !important;
+    color: #F8C715 !important;
+    font-size: 14.5px !important;
+    font-weight: 700 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease, transform 0.15s ease !important;
+    padding: 0 16px !important;
 }
 
+#accountOverlay .btn-primary:hover,
 #accountOverlay .btn-primary.btn-sign-in:hover {
-    background: #222222;
-    color: #F8C715;
-    transform: translateY(-1px);
+    background: #222222 !important;
+    color: #F8C715 !important;
+    transform: translateY(-1px) !important;
 }
 
 #accountOverlay .divider {
@@ -7534,17 +7539,7 @@ body {
 
 /* ============ ACCOUNT OVERLAY NAVBAR ============ */
 .account-overlay-navbar {
-    background: var(--yellow) !important;
-    border-bottom: none !important;
-    position: relative !important;
-    top: 0 !important;
-    left: 0 !important;
-}
-
-.account-overlay-navbar .about-nav-logo img {
-    height: 68px;
-    width: auto;
-    object-fit: contain;
+    display: none !important;
 }
 
 .account-nav-toggle {
