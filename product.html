@@ -1979,7 +1979,7 @@
                         availableSizes.add(sz);
                         const sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
                         if (sq !== null) {
-                            window.sizeStockMap[sz] = sq;
+                            window.sizeStockMap[sz] = (window.sizeStockMap[sz] !== undefined ? window.sizeStockMap[sz] : 0) + sq;
                             variantStockSum += sq;
                             hasVariantStockData = true;
                         }
