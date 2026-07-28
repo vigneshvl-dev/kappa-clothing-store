@@ -897,8 +897,8 @@ testDatabaseConnection();
     });
     if (accountClose) accountClose.addEventListener("click", () => closeOverlay(accountOverlay));
 
-    const accountNavToggle = document.getElementById("accountNavToggle");
-    if (accountNavToggle) accountNavToggle.addEventListener("click", () => closeOverlay(accountOverlay));
+    const cardCloseBtn = document.querySelector(".card-close-btn");
+    if (cardCloseBtn) cardCloseBtn.addEventListener("click", () => closeOverlay(accountOverlay));
 
     [cartOverlay, wishOverlay, searchOverlay, qvOverlay, accountOverlay].forEach(o => {
         if (o) {
