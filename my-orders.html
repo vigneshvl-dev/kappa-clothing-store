@@ -512,10 +512,120 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
+        let allOrdersData = [];
+
+        function getStatusColor(status) {
+            const s = (status || '').toLowerCase();
+            if (s.includes('cancel')) return { bg: '#fdecea', color: '#c62828' };
+            if (s.includes('return')) return { bg: '#fff3e0', color: '#e65100' };
+            if (s.includes('delivered') || s.includes('completed') || s.includes('paid')) return { bg: '#e8f5e9', color: '#2e7d32' };
+            if (s.includes('shipped')) return { bg: '#e3f2fd', color: '#1565c0' };
+            if (s.includes('out') && s.includes('delivery')) return { bg: '#f3e5f5', color: '#6a1b9a' };
+            return { bg: '#fff9c4', color: '#f57f17' };
+        }
+
+        function getFilterKey(status) {
+            const s = (status || '').toLowerCase();
+            if (s.includes('cancel')) return 'cancelled';
+            if (s.includes('return')) return 'returned';
+            if (s.includes('shipped')) return 'shipped';
+            if (s.includes('out') && s.includes('delivery')) return 'out_for_delivery';
+            if (s.includes('pending') || s === 'order placed') return 'pending_review';
+            return 'all';
+        }
+
         function filterOrders(type, el) {
             document.querySelectorAll('.order-filter-tab').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
-            // In a real app, filter orders list here
+            renderOrdersList(allOrdersData, type);
+        }
+
+        function renderOrderCard(order) {
+            const isCancelled = (order.status || '').toLowerCase().includes('cancel');
+            const isReturned = (order.status || '').toLowerCase().includes('return');
+            const statusStyle = getStatusColor(order.status);
+
+            const itemsHtml = (order.items || []).map(item => {
+                const imgSrc = item.img || 'https://placehold.co/50x65/eaeaea/999?text=?';
+                return `
+                    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        <div style="position: relative; width: 50px; height: 65px; flex-shrink: 0;">
+                            <img src="${imgSrc}" alt="${item.name}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px; background: #fff; border: 1px solid #eee; display: block;" onerror="this.src='https://placehold.co/50x65/eaeaea/999?text=?'">
+                            ${isCancelled ? `
+                            <div style="position: absolute; inset: 0; background: rgba(198,40,40,0.82); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                <span style="color:#fff; font-size:7px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; text-align:center; line-height:1.3; padding: 2px;">ORDER<br>CANCELLED</span>
+                            </div>` : ''}
+                            ${isReturned ? `
+                            <div style="position: absolute; inset: 0; background: rgba(230,81,0,0.82); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                <span style="color:#fff; font-size:7px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; text-align:center; line-height:1.3; padding: 2px;">RETURN<br>REQUESTED</span>
+                            </div>` : ''}
+                        </div>
+                        <div style="flex-grow: 1; min-width: 150px;">
+                            <div style="font-weight: 600; color: #111; font-size: 14px;">${item.name}</div>
+                            <div style="font-size: 12px; color: #777; margin-top: 4px;">
+                                <span style="background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 10px;">Size: ${item.size}</span>
+                                <span style="background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 10px; margin-left: 6px;">Color: ${item.color}</span>
+                                <span style="font-size: 10px; color: #555; margin-left: 6px;">Qty: ${item.qty}</span>
+                            </div>
+                        </div>
+                        <div style="font-weight: 700; color: #111; font-size: 14px;">₹${((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const actionButtonsHtml = (!isCancelled && !isReturned) ? `
+                <div style="margin-top: 10px; font-size: 12px; color: red; font-weight: 700;">The products will be delivered within 2 to 5 days.</div>
+                <div style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="cancelOrder('${order.orderId}', this)" style="padding: 8px 18px; background: #fff; color: #d32f2f; border: 1.5px solid #d32f2f; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.18s;">Cancel</button>
+                    <button onclick="returnOrder('${order.orderId}', this)" style="padding: 8px 18px; background: #fff; color: #f57c00; border: 1.5px solid #f57c00; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.18s;">Return</button>
+                </div>
+            ` : `
+                <div style="margin-top: 12px; padding: 8px 14px; border-radius: 6px; background: ${statusStyle.bg}; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: ${statusStyle.color};">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${isCancelled ? '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>' : '<polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.96"></path>'}</svg>
+                    ${isCancelled ? 'This order has been cancelled' : 'Return request submitted'}
+                </div>
+            `;
+
+            return `
+                <div style="padding: 24px 28px; border-bottom: 1px solid #f0f0ee;" data-status-key="${getFilterKey(order.status)}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                            <div style="font-size: 12px; color: #999; margin-top: 4px;">${new Date(order.date).toLocaleString()}</div>
+                        </div>
+                        <span style="background: ${statusStyle.bg}; color: ${statusStyle.color}; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">${order.status}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        ${itemsHtml}
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 24px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0ee; flex-wrap: wrap;">
+                        <div style="font-size: 13px; color: #555;">Subtotal: <span style="font-weight: 600;">₹${(order.subtotal || 0).toLocaleString('en-IN')}</span></div>
+                        <div style="font-size: 13px; color: #555;">Discount: <span style="font-weight: 600;">− ₹${(order.discount || 0).toLocaleString('en-IN')}</span></div>
+                        <div style="font-size: 13px; color: #555;">Shipping: <span style="font-weight: 600;">₹${(order.shippingCost || 0).toLocaleString('en-IN')}</span></div>
+                        <div style="font-size: 16px; font-weight: 700; color: #111;">Total: ₹${(order.total || 0).toLocaleString('en-IN')}</div>
+                    </div>
+                    ${actionButtonsHtml}
+                </div>
+            `;
+        }
+
+        function renderOrdersList(orders, filterType) {
+            const ordersList = document.getElementById('ordersList');
+            const emptyState = document.getElementById('ordersEmptyState');
+
+            let filtered = orders;
+            if (filterType && filterType !== 'all') {
+                filtered = orders.filter(o => getFilterKey(o.status) === filterType);
+            }
+
+            if (filtered.length === 0) {
+                emptyState.style.display = 'flex';
+                ordersList.style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            ordersList.style.display = 'block';
+            ordersList.innerHTML = filtered.map(order => renderOrderCard(order)).join('');
         }
 
         // Profile popup toggle
@@ -582,9 +692,6 @@
         }
 
         async function loadMyOrders() {
-            const ordersList = document.getElementById('ordersList');
-            const emptyState = document.getElementById('ordersEmptyState');
-
             let localOrders = [];
             try {
                 localOrders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
@@ -639,55 +746,12 @@
                 }
             });
 
-            const orders = Array.from(orderMap.values());
+            allOrdersData = Array.from(orderMap.values());
 
-            if (orders.length === 0) {
-                emptyState.style.display = 'flex';
-                ordersList.style.display = 'none';
-                return;
-            }
-
-            emptyState.style.display = 'none';
-            ordersList.style.display = 'block';
-
-            ordersList.innerHTML = orders.map(order => `
-                <div style="padding: 24px 28px; border-bottom: 1px solid #f0f0ee;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
-                        <div>
-                            <div style="font-size: 12px; color: #999; margin-top: 4px;">${new Date(order.date).toLocaleString()}</div>
-                        </div>
-                        <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">${order.status}</span>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        ${(order.items || []).map(item => `
-                            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                                <img src="${item.img || 'https://placehold.co/50x65/eaeaea/999?text=?'}" alt="${item.name}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px; background: #fff; border: 1px solid #eee;" onerror="this.src='https://placehold.co/50x65/eaeaea/999?text=?'">
-                                <div style="flex-grow: 1; min-width: 150px;">
-                                    <div style="font-weight: 600; color: #111; font-size: 14px;">${item.name}</div>
-                                    <div style="font-size: 12px; color: #777; margin-top: 4px;">
-                                        <span style="background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 10px;">Size: ${item.size}</span>
-                                        <span style="background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 10px; margin-left: 6px;">Color: ${item.color}</span>
-                                        <span style="font-size: 10px; color: #555; margin-left: 6px;">Qty: ${item.qty}</span>
-                                    </div>
-                                </div>
-                                <div style="font-weight: 700; color: #111; font-size: 14px;">₹${((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; gap: 24px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0ee; flex-wrap: wrap;">
-                        <div style="font-size: 13px; color: #555;">Subtotal: <span style="font-weight: 600;">₹${(order.subtotal || 0).toLocaleString('en-IN')}</span></div>
-                        <div style="font-size: 13px; color: #555;">Discount: <span style="font-weight: 600;">− ₹${(order.discount || 0).toLocaleString('en-IN')}</span></div>
-                        <div style="font-size: 13px; color: #555;">Shipping: <span style="font-weight: 600;">₹${(order.shippingCost || 0).toLocaleString('en-IN')}</span></div>
-                        <div style="font-size: 16px; font-weight: 700; color: #111;">Total: ₹${(order.total || 0).toLocaleString('en-IN')}</div>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 12px; color: red; font-weight: 700;">The products will be delivered within 2 to 5 days.</div>
-
-                    <div style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button onclick="cancelOrder('${order.orderId}', this)" style="padding: 8px 18px; background: #fff; color: #d32f2f; border: 1.5px solid #d32f2f; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.18s;">Cancel</button>
-                        <button onclick="returnOrder('${order.orderId}', this)" style="padding: 8px 18px; background: #fff; color: #f57c00; border: 1.5px solid #f57c00; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.18s;">Return</button>
-                    </div>
-                </div>
-            `).join('');
+            // Render with current active filter
+            const activeTab = document.querySelector('.order-filter-tab.active');
+            const activeFilter = activeTab?.getAttribute('onclick')?.match(/filterOrders\('([^']+)'/)?.[1] || 'all';
+            renderOrdersList(allOrdersData, activeFilter);
         }
 
         loadMyOrders();
