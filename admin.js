@@ -935,6 +935,9 @@ function initProductForm() {
                 }
 
                 alert(editingId ? "Product updated successfully!" : "Product published successfully!");
+                try {
+                    localStorage.removeItem("kappa_cached_products");
+                } catch (e) {}
                 clearProductForm();
 
             } catch (err) {

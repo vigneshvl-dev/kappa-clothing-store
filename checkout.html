@@ -923,24 +923,44 @@
                     const prodId = item.id;
                     const qty = item.qty || 1;
                     const size = item.size || null;
+                    const color = item.color || null;
 
                     try {
                         if (prodId && size && size !== 'Default' && size !== 'N/A') {
-                            const { data: variants } = await supabaseClient
-                                .from('product_variants')
-                                .select('id, stock_quantity')
-                                .eq('product_id', prodId)
-                                .eq('size', size);
+                            let variantsToUpdate = [];
 
-                            if (variants && variants.length > 0) {
-                                for (const v of variants) {
-                                    const currentStock = Number(v.stock_quantity || 0);
-                                    const newStock = Math.max(0, currentStock - qty);
-                                    await supabaseClient
-                                        .from('product_variants')
-                                        .update({ stock_quantity: newStock })
-                                        .eq('id', v.id);
+                            if (color && color !== 'Default' && color !== 'N/A') {
+                                const { data: colorVariants } = await supabaseClient
+                                    .from('product_variants')
+                                    .select('id, stock_quantity')
+                                    .eq('product_id', prodId)
+                                    .eq('size', size)
+                                    .eq('color', color);
+
+                                if (colorVariants && colorVariants.length > 0) {
+                                    variantsToUpdate = colorVariants;
                                 }
+                            }
+
+                            if (variantsToUpdate.length === 0) {
+                                const { data: sizeVariants } = await supabaseClient
+                                    .from('product_variants')
+                                    .select('id, stock_quantity')
+                                    .eq('product_id', prodId)
+                                    .eq('size', size);
+
+                                if (sizeVariants && sizeVariants.length > 0) {
+                                    variantsToUpdate = sizeVariants;
+                                }
+                            }
+
+                            for (const v of variantsToUpdate) {
+                                const currentStock = Number(v.stock_quantity || 0);
+                                const newStock = Math.max(0, currentStock - qty);
+                                await supabaseClient
+                                    .from('product_variants')
+                                    .update({ stock_quantity: newStock })
+                                    .eq('id', v.id);
                             }
                         }
 
@@ -963,6 +983,34 @@
                     } catch (err) {
                         console.error(`⚠️ Error updating stock for product ${prodId}:`, err);
                     }
+                }
+
+                // Update local cached products stock so website displays updated stock right away
+                try {
+                    const cachedStr = localStorage.getItem("kappa_cached_products");
+                    if (cachedStr) {
+                        const cached = JSON.parse(cachedStr);
+                        for (const item of items) {
+                            const prod = cached.find(p => String(p.id) === String(item.id));
+                            if (prod) {
+                                if (prod.stock_quantity !== undefined && prod.stock_quantity !== null) {
+                                    prod.stock_quantity = Math.max(0, Number(prod.stock_quantity) - (item.qty || 1));
+                                }
+                                if (prod.product_variants && Array.isArray(prod.product_variants)) {
+                                    prod.product_variants.forEach(v => {
+                                        if (v.size === item.size) {
+                                            if (!item.color || item.color === 'N/A' || v.color === item.color) {
+                                                v.stock_quantity = Math.max(0, Number(v.stock_quantity || 0) - (item.qty || 1));
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        localStorage.setItem("kappa_cached_products", JSON.stringify(cached));
+                    }
+                } catch (e) {
+                    console.warn("Could not update local cached stock:", e);
                 }
             }
 
@@ -1014,10 +1062,10 @@
             };
 
             // Launch Razorpay Payment Modal directly
-            await payNow(total, newOrderId, orderRecord);
+            await payNow(total, newOrderId, orderRecord, reduceStockForCart);
         }
 
-        async function payNow(secureTotal, dbOrderId, orderRecord) {
+        async function payNow(secureTotal, dbOrderId, orderRecord, reduceStockFn) {
             try {
                 // 1. Convert secure total to paise (Razorpay expects smallest currency unit)
                 const amountInPaise = Math.round(secureTotal * 100);
@@ -1056,6 +1104,9 @@
                     handler: async function (response) {
                         console.log("Razorpay Payment Successful! Response:", response);
                         try {
+                            if (typeof reduceStockFn === 'function') {
+                                await reduceStockFn(cartItems);
+                            }
                             if (apiOrigin && order && order.order_id) {
                                 const verifyRes = await fetch(`${apiOrigin}/api/verify-payment`, {
                                     method: "POST",
@@ -1127,6 +1178,9 @@
                     rzp.open();
                 } else {
                     console.warn("Razorpay SDK not loaded, saving order fallback...");
+                    if (typeof reduceStockFn === 'function') {
+                        await reduceStockFn(cartItems);
+                    }
                     if (orderRecord) {
                         const orders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
                         orders.unshift(orderRecord);
