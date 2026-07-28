@@ -5811,6 +5811,28 @@ body.scrolled .marquee {
     cursor: pointer;
 }
 
+.auth-error-alert {
+    background: #fff1f2;
+    border: 1.5px solid #fecdd3;
+    color: #e11d48;
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    line-height: 1.35;
+}
+
+.auth-error-alert svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    stroke: #e11d48;
+}
+
 #accountOverlay .field {
     margin-bottom: 16px;
     position: relative;

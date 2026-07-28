@@ -2128,25 +2128,49 @@ window.addToCart = addToCart;
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
 
+            let errorAlert = loginForm.querySelector('.auth-error-alert');
+            const displayError = (msg) => {
+                showToast(msg);
+                if (!errorAlert) {
+                    errorAlert = document.createElement('div');
+                    errorAlert.className = 'auth-error-alert';
+                    loginForm.prepend(errorAlert);
+                }
+                errorAlert.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span>${msg}</span>`;
+                errorAlert.style.display = 'flex';
+            };
+
+            if (errorAlert) errorAlert.style.display = 'none';
+
             if (!email || !password) {
-                showToast('Please enter your email and password');
+                displayError('Please enter both your email address and password.');
                 return;
             }
 
             const submitBtn = loginForm.querySelector('button[type="submit"]');
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Signing in...'; }
 
+            if (!supabaseClient) {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<span>Sign In</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'; }
+                displayError('Account not found! Please create an account first.');
+                return;
+            }
+
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Sign In &rarr;'; }
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Sign In</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+            }
 
             if (error) {
-                if (error.message.toLowerCase().includes('email not confirmed')) {
-                    showToast('Account not confirmed yet. Please check your inbox for the confirmation link.');
-                } else if (error.message.toLowerCase().includes('invalid login credentials') || error.message.toLowerCase().includes('invalid credentials')) {
-                    showToast('Incorrect email or password. Please try again.');
+                const errLower = error.message.toLowerCase();
+                if (errLower.includes('email not confirmed')) {
+                    displayError('Account not confirmed yet. Please check your inbox for the confirmation link.');
+                } else if (errLower.includes('invalid login credentials') || errLower.includes('invalid credentials') || errLower.includes('user not found')) {
+                    displayError('Account not found or incorrect password! If you don\'t have an account, please click "Create an account" first.');
                 } else {
-                    showToast('Login failed: ' + error.message);
+                    displayError('Sign in failed: ' + error.message);
                 }
                 return;
             }
