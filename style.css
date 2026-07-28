@@ -3810,6 +3810,233 @@ body > *:last-child{
     letter-spacing: -0.3px;
 }
 
+/* ============ CART & CARD MOBILE RESPONSIVENESS ============ */
+@media (max-width: 768px) {
+    .side-panel {
+        width: min(400px, 100vw);
+        padding: 24px 18px;
+    }
+    .side-head {
+        margin-bottom: 16px;
+    }
+    .side-head h3 {
+        font-size: 20px;
+    }
+    .cart-items {
+        gap: 14px;
+    }
+    .cart-item {
+        gap: 12px;
+        padding-bottom: 14px;
+    }
+    .cart-item img {
+        width: 75px;
+        height: 90px;
+        border-radius: 10px;
+    }
+    .ci-name {
+        font-size: 14px;
+    }
+    .ci-meta {
+        font-size: 12px;
+        margin: 2px 0 6px;
+    }
+    .ci-qty button {
+        width: 26px;
+        height: 26px;
+        font-size: 13px;
+    }
+    .ci-price {
+        font-size: 14px;
+    }
+    .cart-empty,
+    .wish-empty {
+        padding: 40px 16px;
+        font-size: 13.5px;
+    }
+    .cart-summary {
+        padding-top: 16px;
+        margin-top: 14px;
+    }
+    .promo-row {
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    .promo-row input {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+    .btn-mini {
+        padding: 10px 16px;
+        font-size: 12px;
+    }
+    .promo-msg {
+        font-size: 11.5px;
+        min-height: 14px;
+        margin-bottom: 8px;
+    }
+    .shipping-row {
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+    .shipping-row select {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    .summary-line {
+        font-size: 13.5px;
+        padding: 5px 0;
+    }
+    .summary-line.total {
+        font-size: 16px;
+        margin-top: 8px;
+        padding-top: 12px;
+    }
+    .side-panel .btn {
+        margin-top: 12px;
+        padding: 12px 18px;
+        font-size: 14px;
+    }
+    .cart-badges-row {
+        margin-top: 14px;
+        padding-top: 10px;
+        gap: 6px;
+    }
+    .cart-badge-item svg {
+        width: 18px;
+        height: 18px;
+    }
+    .cart-badge-item span {
+        font-size: 9px;
+    }
+    .cart-payment-partner {
+        margin-top: 10px;
+        padding-top: 8px;
+    }
+    .cpp-label {
+        font-size: 9px;
+    }
+    .cpp-glyph {
+        height: 16px;
+    }
+    .cpp-text {
+        font-size: 14px;
+    }
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .side-panel {
+        width: 100vw;
+        padding: 18px 16px;
+    }
+    .side-head {
+        margin-bottom: 12px;
+    }
+    .side-head h3 {
+        font-size: 18px;
+    }
+    .cart-empty,
+    .wish-empty {
+        padding: 28px 12px;
+        font-size: 13px;
+    }
+    .cart-items {
+        gap: 10px;
+    }
+    .cart-item {
+        gap: 10px;
+        padding-bottom: 10px;
+    }
+    .cart-item img {
+        width: 65px;
+        height: 80px;
+        border-radius: 8px;
+    }
+    .ci-name {
+        font-size: 13px;
+    }
+    .ci-meta {
+        font-size: 11px;
+        margin: 2px 0 4px;
+    }
+    .ci-qty button {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+    .ci-price {
+        font-size: 13px;
+    }
+    .cart-summary {
+        padding-top: 12px;
+        margin-top: 10px;
+    }
+    .promo-row input {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    .btn-mini {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+    .shipping-row {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    .shipping-row select {
+        padding: 6px 8px;
+        font-size: 11px;
+        max-width: 130px;
+    }
+    .summary-line {
+        font-size: 12.5px;
+        padding: 4px 0;
+    }
+    .summary-line.total {
+        font-size: 14.5px;
+        margin-top: 6px;
+        padding-top: 8px;
+    }
+    .side-panel .btn {
+        margin-top: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+    .cart-badges-row {
+        margin-top: 10px;
+        padding-top: 8px;
+        gap: 4px;
+    }
+    .cart-badge-item svg {
+        width: 15px;
+        height: 15px;
+    }
+    .cart-badge-item span {
+        font-size: 8.5px;
+    }
+    .cart-payment-partner {
+        margin-top: 8px;
+        padding-top: 6px;
+    }
+    .cpp-label {
+        font-size: 8.5px;
+    }
+    .cpp-glyph {
+        height: 14px;
+    }
+    .cpp-text {
+        font-size: 13px;
+    }
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+}
+
 .qv-panel {
     margin: auto;
     width: min(860px, 92vw);
@@ -8764,6 +8991,15 @@ form .btn-submit:active {
     .promo-block {
         flex-wrap: wrap;
     }
+
+    .testimonials {
+        padding: 40px 16px;
+    }
+
+    .testimonials h2 {
+        font-size: 1.5rem;
+        margin-bottom: 24px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -8777,5 +9013,14 @@ form .btn-submit:active {
 
     .info-page-section h2 {
         font-size: 16px;
+    }
+
+    .testimonials {
+        padding: 30px 12px;
+    }
+
+    .testimonials h2 {
+        font-size: 1.25rem;
+        margin-bottom: 16px;
     }
 }
