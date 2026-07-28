@@ -654,7 +654,7 @@
     <script>
         let cartItems = [];
         let shippingCost = 0;
-        let discountPercent = 0;
+        let discountAmount = 0; // Absolute INR amount
 
         async function autoSubmitIfPending() {
             const isPending = localStorage.getItem('kappa_pending_checkout') === '1';
@@ -718,7 +718,19 @@
                     cartItems = merged;
                 }
                 shippingCost = Number(localStorage.getItem("kappa_checkout_shipping") || 0);
-                discountPercent = Number(localStorage.getItem("kappa_checkout_discount") || 0);
+                discountAmount = Number(localStorage.getItem("kappa_checkout_discount") || 0);
+
+                // Pre-fill promo code if one was applied in the cart
+                const savedPromoCode = localStorage.getItem("kappa_checkout_promo_code") || "";
+                if (savedPromoCode && discountAmount > 0) {
+                    const promoInput = document.getElementById("promo-input");
+                    const promoStatus = document.getElementById("promo-status");
+                    if (promoInput) promoInput.value = savedPromoCode;
+                    if (promoStatus) {
+                        promoStatus.textContent = `\u20b9${discountAmount.toLocaleString('en-IN')} off applied \u2713`;
+                        promoStatus.style.color = "green";
+                    }
+                }
             } catch (e) {
                 cartItems = [];
             }
@@ -842,34 +854,51 @@
             `).join('');
 
             const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * (item.qty || 1)), 0);
-            const discountAmt = Math.round(subtotal * discountPercent);
-            const total = Math.max(subtotal - discountAmt + shippingCost, 0);
+            const discAmt = Math.min(discountAmount, subtotal); // Absolute INR cap
+            const total = Math.max(subtotal - discAmt + shippingCost, 0);
 
             document.getElementById("sum-subtotal").textContent = "₹" + subtotal.toLocaleString('en-IN');
-            document.getElementById("sum-discount").textContent = "− ₹" + discountAmt.toLocaleString('en-IN');
+            document.getElementById("sum-discount").textContent = "− ₹" + discAmt.toLocaleString('en-IN');
             document.getElementById("sum-shipping").textContent = "₹" + shippingCost.toLocaleString('en-IN');
             document.getElementById("sum-total").textContent = "₹" + total.toLocaleString('en-IN');
         }
 
-        function applyPromo() {
+        async function applyPromo() {
             const code = document.getElementById("promo-input").value.trim().toUpperCase();
             const status = document.getElementById("promo-status");
-
-            if (code === "KAPPA10") {
-                discountPercent = 0.10;
-                status.textContent = "10% OFF APPLIED ✓";
-                status.style.color = "green";
-            } else if (code === "KAPPA20") {
-                discountPercent = 0.20;
-                status.textContent = "20% OFF APPLIED ✓";
-                status.style.color = "green";
-            } else {
-                discountPercent = 0;
-                status.textContent = "INVALID PROMO CODE";
+            if (!code) {
+                discountAmount = 0;
+                status.textContent = "";
+                localStorage.setItem("kappa_checkout_discount", 0);
+                localStorage.setItem("kappa_checkout_promo_code", "");
+                renderSummary();
+                return;
+            }
+            status.textContent = "Checking code...";
+            status.style.color = "#555";
+            try {
+                const resp = await fetch('https://ugphxapfbzcrauchwlef.supabase.co/storage/v1/object/public/product-images/promocodes.json?t=' + Date.now());
+                if (!resp.ok) throw new Error('Could not fetch promo codes');
+                const promos = await resp.json();
+                const promo = promos.find(p => p.code.toUpperCase() === code);
+                if (promo) {
+                    discountAmount = Number(promo.amount);
+                    status.textContent = `\u20b9${promo.amount} off applied \u2713`;
+                    status.style.color = "green";
+                    localStorage.setItem("kappa_checkout_promo_code", code);
+                } else {
+                    discountAmount = 0;
+                    status.textContent = "Invalid promo code";
+                    status.style.color = "red";
+                    localStorage.setItem("kappa_checkout_promo_code", "");
+                }
+            } catch (err) {
+                console.error('Promo error:', err);
+                discountAmount = 0;
+                status.textContent = "Error checking code. Try again.";
                 status.style.color = "red";
             }
-            // Save the updated discount so the payment page gets the right total
-            localStorage.setItem("kappa_checkout_discount", discountPercent);
+            localStorage.setItem("kappa_checkout_discount", discountAmount);
             renderSummary();
         }
 
@@ -1037,7 +1066,7 @@
             localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
 
             const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * (item.qty || 1)), 0);
-            const discountAmt = Math.round(subtotal * discountPercent);
+            const discountAmt = Math.min(discountAmount, subtotal); // Absolute INR cap
             const total = Math.max(subtotal - discountAmt + shippingCost, 0);
 
             const orderRecord = {

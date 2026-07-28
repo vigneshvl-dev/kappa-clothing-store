@@ -930,9 +930,11 @@ testDatabaseConnection();
             });
             const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
             const discPercent = discount || 0;
+            const appliedPromo = discount > 0 ? (document.getElementById("promoInput")?.value || "") : "";
             localStorage.setItem("kappa_checkout_cart", JSON.stringify(cartDetails));
             localStorage.setItem("kappa_checkout_shipping", shipCost);
             localStorage.setItem("kappa_checkout_discount", discPercent);
+            localStorage.setItem("kappa_checkout_promo_code", appliedPromo.trim().toUpperCase());
             window.location.href = "checkout.html";
         });
     }
@@ -1073,26 +1075,34 @@ window.addToCart = addToCart;
             const price = (p ? p.price : null) ?? c.price ?? 0;
             return a + price * c.qty;
         }, 0);
-        const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
-        const discAmt = Math.round(subtotal * discount);
-        const total = Math.max(subtotal - discAmt + (subtotal > 0 ? shipCost : 0), 0);
+        let discAmt = discount; // discount now stores absolute amount
+        if (discAmt > subtotal) discAmt = subtotal;
+        const total = Math.max(subtotal - discAmt, 0);
         if (document.getElementById("cartSubtotal")) {
-    document.getElementById("cartSubtotal").textContent = fmt(subtotal);
-    document.getElementById("cartDiscount").textContent = "- ₹ " + fmt(discAmt);
-    document.getElementById("cartShipping").textContent = subtotal > 0 ? fmt(shipCost) : fmt(0);
-    document.getElementById("cartTotal").textContent = fmt(total);
-}}
-    if (document.getElementById("shipSelect")) {
-        document.getElementById("shipSelect").addEventListener("change", updateSummary);
+            document.getElementById("cartSubtotal").textContent = fmt(subtotal);
+            document.getElementById("cartDiscount").textContent = "- ₹ " + fmt(discAmt);
+            document.getElementById("cartTotal").textContent = fmt(total);
+        }
     }
 
     if (document.getElementById("promoApply")) {
-        document.getElementById("promoApply").addEventListener("click", () => {
+        document.getElementById("promoApply").addEventListener("click", async () => {
             const code = document.getElementById("promoInput").value.trim().toUpperCase();
             const msg = document.getElementById("promoMsg");
-            if (code === "KAPPA10") { discount = 0.10; msg.textContent = "10% off applied ✓"; }
-            else if (code === "KAPPA20") { discount = 0.20; msg.textContent = "20% off applied ✓"; }
-            else { discount = 0; msg.textContent = code ? "Invalid code" : ""; }
+            if (!code) { discount = 0; msg.textContent = ""; updateSummary(); return; }
+            msg.textContent = "Checking code...";
+            try {
+                const response = await fetch('https://ugphxapfbzcrauchwlef.supabase.co/storage/v1/object/public/product-images/promocodes.json?t=' + Date.now());
+                if (!response.ok) throw new Error("Could not fetch promo codes");
+                const data = await response.json();
+                const promo = data.find(p => p.code.toUpperCase() === code);
+                if (promo) { discount = Number(promo.amount); msg.textContent = `₹${promo.amount} off applied ✓`; }
+                else { discount = 0; msg.textContent = "Invalid code"; }
+            } catch (err) {
+                console.error("Promo code error:", err);
+                discount = 0;
+                msg.textContent = "Error applying code";
+            }
             updateSummary();
         });
     }
@@ -1630,7 +1640,26 @@ window.addToCart = addToCart;
         const profilePopup = document.getElementById('profilePopup');
         if (session && session.user) {
             if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
-            if (event === 'SIGNED_IN') showToast('Welcome back, ' + getUserDisplayName(session.user) + '!');
+
+            if (event === 'SIGNED_IN') {
+                const isNewSignup = sessionStorage.getItem('kappa_just_signed_up') === '1';
+                const displayName = getUserDisplayName(session.user);
+                if (isNewSignup) {
+                    sessionStorage.removeItem('kappa_just_signed_up');
+                    showToast('Welcome, ' + displayName + '! 🎉');
+                } else {
+                    showToast('Welcome back, ' + displayName + '!');
+                }
+
+                // Close the account overlay smoothly after showing the toast
+                setTimeout(() => {
+                    const ov = document.getElementById('accountOverlay');
+                    if (ov && ov.classList.contains('open')) {
+                        ov.classList.remove('open');
+                        document.body.style.overflow = '';
+                    }
+                }, 1000);
+            }
 
             // If we have a pending checkout, redirect back to checkout.html
             if (localStorage.getItem('kappa_pending_checkout') === '1') {
@@ -2104,21 +2133,23 @@ window.addToCart = addToCart;
                 return;
             }
 
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Signing in...'; }
+
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Sign In &rarr;'; }
+
             if (error) {
-                // Special case: account exists but email not confirmed yet
                 if (error.message.toLowerCase().includes('email not confirmed')) {
-                    // Removed auto-resend to prevent hitting strict email rate limits
                     showToast('Account not confirmed yet. Please check your inbox for the confirmation link.');
+                } else if (error.message.toLowerCase().includes('invalid login credentials') || error.message.toLowerCase().includes('invalid credentials')) {
+                    showToast('Incorrect email or password. Please try again.');
                 } else {
                     showToast('Login failed: ' + error.message);
                 }
                 return;
             }
-
-            showToast('Welcome back, ' + getUserDisplayName(data.user) + '!');
-            setTimeout(closeAccountOverlay, 1200);
         });
     }
 
@@ -2146,11 +2177,16 @@ window.addToCart = addToCart;
                 return;
             }
 
+            const submitBtn = signupForm.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating account...'; }
+
             const { data, error } = await supabaseClient.auth.signUp({
                 email,
                 password,
                 options: { data: { full_name: fullName } }
             });
+
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
 
             if (error) {
                 showToast('Sign up failed: ' + error.message);
@@ -2159,11 +2195,9 @@ window.addToCart = addToCart;
 
             if (data.session) {
                 // Email confirmation disabled — user is instantly logged in
-                showToast('Account created! You are now signed in.');
-                setTimeout(() => {
-                    const ov = document.getElementById('accountOverlay');
-                    if (ov) { ov.classList.remove('open'); document.body.style.overflow = ''; }
-                }, 1200);
+                // Set flag so onAuthStateChange shows "Welcome" not "Welcome back"
+                sessionStorage.setItem('kappa_just_signed_up', '1');
+                // onAuthStateChange handles the toast and overlay close
             } else {
                 // Email confirmation is ON — guide them clearly
                 showToast('✉️ Check your email and click the confirmation link, then sign in.');

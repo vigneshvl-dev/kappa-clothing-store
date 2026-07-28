@@ -58,6 +58,7 @@ function initSidebar() {
                     case 'settings': await loadSettings(); break;
                     case 'products': clearProductForm(); break; 
                     case 'homepage': await loadHomepageSettings(); break; 
+                    case 'promocodes': await loadPromoCodes(); break;
                 }
             }
         });
@@ -1456,3 +1457,119 @@ window.showOrderDetails = async function(orderId) {
     
     content.innerHTML = htmlContent;
 }
+
+// ==========================================
+// 12. PROMO CODES LOGIC
+// ==========================================
+let activePromoCodes = [];
+
+async function loadPromoCodes() {
+    const container = document.getElementById('promocodes-list-container');
+    if (!container) return;
+    container.innerHTML = '<p>Loading promo codes...</p>';
+    try {
+        const response = await fetch('https://ugphxapfbzcrauchwlef.supabase.co/storage/v1/object/public/product-images/promocodes.json?t=' + Date.now());
+        if (response.ok) {
+            activePromoCodes = await response.json();
+        } else {
+            activePromoCodes = [];
+        }
+    } catch (err) {
+        console.error("Failed to load promo codes:", err);
+        activePromoCodes = [];
+    }
+    renderPromoCodes();
+}
+
+function renderPromoCodes() {
+    const container = document.getElementById('promocodes-list-container');
+    if (!container) return;
+    if (!activePromoCodes || activePromoCodes.length === 0) {
+        container.innerHTML = '<p>No active promo codes.</p>';
+        return;
+    }
+
+    let html = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Discount Amount (₹)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    activePromoCodes.forEach((promo, index) => {
+        html += `
+            <tr>
+                <td><strong>${promo.code}</strong></td>
+                <td>₹${promo.amount}</td>
+                <td>
+                    <button class="btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deletePromoCode(${index})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+window.addPromoCode = async function() {
+    const codeInput = document.getElementById('new-promo-code');
+    const amountInput = document.getElementById('new-promo-amount');
+    const code = codeInput.value.trim().toUpperCase();
+    const amount = Number(amountInput.value);
+
+    if (!code || amount <= 0) {
+        alert("Please provide a valid code and amount.");
+        return;
+    }
+    if (activePromoCodes.find(p => p.code === code)) {
+        alert("Promo code already exists!");
+        return;
+    }
+
+    activePromoCodes.push({ code, amount });
+
+    try {
+        const configBlob = new Blob([JSON.stringify(activePromoCodes, null, 2)], { type: 'application/json' });
+        const { error } = await supabaseClient.storage.from('product-images').upload('promocodes.json', configBlob, {
+            upsert: true,
+            cacheControl: '0'
+        });
+
+        if (error) throw error;
+        codeInput.value = '';
+        amountInput.value = '';
+        renderPromoCodes();
+        setTimeout(() => alert('✅ Promo code added successfully!'), 50);
+    } catch (err) {
+        console.error("Failed to save promo code:", err);
+        alert("❌ Error saving promo code: " + err.message);
+        activePromoCodes.pop();
+    }
+};
+
+window.deletePromoCode = async function(index) {
+    if (!confirm("Are you sure you want to delete this promo code?")) return;
+    
+    const removed = activePromoCodes.splice(index, 1)[0];
+
+    try {
+        const configBlob = new Blob([JSON.stringify(activePromoCodes, null, 2)], { type: 'application/json' });
+        const { error } = await supabaseClient.storage.from('product-images').upload('promocodes.json', configBlob, {
+            upsert: true,
+            cacheControl: '0'
+        });
+
+        if (error) throw error;
+        renderPromoCodes();
+    } catch (err) {
+        console.error("Failed to delete promo code:", err);
+        alert("❌ Error deleting promo code: " + err.message);
+        activePromoCodes.splice(index, 0, removed); // revert
+    }
+};

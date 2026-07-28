@@ -441,16 +441,10 @@
                     <button class="btn-mini" id="promoApply">Apply</button>
                 </div>
                 <p class="promo-msg" id="promoMsg"></p>
-                <div class="shipping-row">
-                    <span>Shipping estimate</span>
-                    <select id="shipSelect">
-                        <option value="0">India — Free</option>
-                        <option value="1500">International — ₹1500</option>
-                    </select>
-                </div>
+
                 <div class="summary-line"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
                 <div class="summary-line"><span>Discount</span><span id="cartDiscount">− ₹0</span></div>
-                <div class="summary-line"><span>Shipping</span><span id="cartShipping">₹0</span></div>
+
                 <div class="summary-line total"><span>Total</span><span id="cartTotal">₹0</span></div>
                 <button class="btn btn-primary full magnetic" id="checkoutBtn"><span>Checkout</span></button>
                 <div class="cart-badges-row">
@@ -870,18 +864,22 @@
         });
 
         function updateSummary() {
-            const subtotal = cart.reduce((a, c) => a + (c.price || 0) * (c.qty || 1), 0);
-            const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
-            const discAmt = Math.round(subtotal * discount);
-            const total = Math.max(subtotal - discAmt + (subtotal > 0 ? shipCost : 0), 0);
-            const subEl = document.getElementById('cartSubtotal');
-            const discEl = document.getElementById('cartDiscount');
-            const shipEl = document.getElementById('cartShipping');
-            const totalEl = document.getElementById('cartTotal');
-            if (subEl) subEl.textContent = fmt(subtotal);
-            if (discEl) discEl.textContent = '- ' + fmt(discAmt);
-            if (shipEl) shipEl.textContent = subtotal > 0 ? fmt(shipCost) : fmt(0);
-            if (totalEl) totalEl.textContent = fmt(total);
+            const subtotal = cart.reduce((a, c) => {
+                const p = window.PRODUCTS ? window.PRODUCTS.find(x => x.id === c.id) : null;
+                const price = (p ? p.price : null) ?? c.price ?? 0;
+                return a + price * c.qty;
+            }, 0);
+            let discAmt = discount; // discount now stores absolute amount
+            if (discAmt > subtotal) discAmt = subtotal;
+            const total = Math.max(subtotal - discAmt, 0);
+
+            const s = document.getElementById('cartSubtotal');
+            const d = document.getElementById('cartDiscount');
+            const t = document.getElementById('cartTotal');
+
+            if (s) s.textContent = fmt(subtotal);
+            if (d) d.textContent = "- " + fmt(discAmt);
+            if (t) t.textContent = fmt(total);
         }
 
         function renderCart() {
@@ -940,18 +938,25 @@
         const promoInput = document.getElementById('promoInput');
         const promoMsg = document.getElementById('promoMsg');
         if (promoApply) {
-            promoApply.addEventListener('click', () => {
+            promoApply.addEventListener('click', async () => {
                 const code = promoInput?.value.trim().toUpperCase() || '';
-                if (code === 'KAPPA10') { discount = 0.10; if (promoMsg) promoMsg.textContent = '10% off applied ✓'; }
-                else if (code === 'KAPPA20') { discount = 0.20; if (promoMsg) promoMsg.textContent = '20% off applied ✓'; }
-                else { discount = 0; if (promoMsg) promoMsg.textContent = code ? 'Invalid code' : ''; }
+                if (!code) { discount = 0; if (promoMsg) promoMsg.textContent = ""; updateSummary(); return; }
+                if (promoMsg) promoMsg.textContent = "Checking code...";
+                try {
+                    const response = await fetch('https://ugphxapfbzcrauchwlef.supabase.co/storage/v1/object/public/product-images/promocodes.json?t=' + Date.now());
+                    if (!response.ok) throw new Error("Could not fetch promo codes");
+                    const data = await response.json();
+                    const promo = data.find(p => p.code.toUpperCase() === code);
+                    if (promo) { discount = Number(promo.amount); if (promoMsg) promoMsg.textContent = `₹${promo.amount} off applied ✓`; }
+                    else { discount = 0; if (promoMsg) promoMsg.textContent = "Invalid code"; }
+                } catch (err) {
+                    console.error("Promo code error:", err);
+                    discount = 0;
+                    if (promoMsg) promoMsg.textContent = "Error applying code";
+                }
                 updateSummary();
             });
         }
-
-        // Shipping select
-        const shipSelect = document.getElementById('shipSelect');
-        if (shipSelect) shipSelect.addEventListener('change', updateSummary);
 
         // Checkout button
         const checkoutBtn = document.getElementById('checkoutBtn');
@@ -971,9 +976,11 @@
                     img: c.customImg || c.img || 'assets/sleeping sis.png'
                 }));
                 const shipCost = Number(document.getElementById('shipSelect')?.value || 0);
+                const appliedPromo = discount > 0 ? (document.getElementById("promoInput")?.value || "") : "";
                 localStorage.setItem('kappa_checkout_cart', JSON.stringify(cartDetails));
                 localStorage.setItem('kappa_checkout_shipping', shipCost);
                 localStorage.setItem('kappa_checkout_discount', discount);
+                localStorage.setItem("kappa_checkout_promo_code", appliedPromo.trim().toUpperCase());
                 window.location.href = 'checkout.html';
             });
         }
