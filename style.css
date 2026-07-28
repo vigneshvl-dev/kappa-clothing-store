@@ -5564,15 +5564,16 @@ body.scrolled .marquee {
 
 /* ============ ACCOUNT OVERLAY & LOGIN/SIGNUP CARD (DESIGN REFERENCE MATCH) ============ */
 #accountOverlay {
+    position: fixed;
+    inset: 0;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 24px 20px;
     overflow-y: auto;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -5591,7 +5592,7 @@ body.scrolled .marquee {
 #accountOverlay .stage {
     position: relative;
     width: 100%;
-    max-width: 840px;
+    max-width: 860px;
     z-index: 1;
     margin: auto;
     padding: 0;
@@ -5599,14 +5600,14 @@ body.scrolled .marquee {
 
 #accountOverlay .card.auth-split-card {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1.2fr;
     background: #ffffff;
     border-radius: 24px;
-    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.22);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
     overflow: hidden;
-    padding: 0;
+    padding: 0 !important;
     width: 100%;
-    min-height: 520px;
+    min-height: 540px;
     border: none;
     animation: cardIn .5s var(--ease) both;
 }
@@ -5720,22 +5721,23 @@ body.scrolled .marquee {
 
 /* RIGHT FORM PANEL (WHITE) */
 .auth-form-side {
-    padding: 44px 44px;
+    padding: 40px 44px;
     background: #ffffff;
     display: flex;
     flex-direction: column;
     justify-content: center;
     position: relative;
+    overflow-y: auto;
 }
 
 .card-close-btn {
     position: absolute;
-    top: -40px;
-    right: -32px;
+    top: 16px;
+    right: 16px;
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #fff;
+    background: #f3f4f6;
     border: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     display: flex;
@@ -5743,23 +5745,19 @@ body.scrolled .marquee {
     justify-content: center;
     cursor: pointer;
     z-index: 10;
-    transition: transform .2s ease, box-shadow .2s ease;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
 }
 
 .card-close-btn:hover {
     transform: scale(1.1);
+    background: #e5e7eb;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .card-close-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
     stroke: #111;
-}
-
-#accountOverlay .card {
-    padding: 44px 36px !important;
-    box-sizing: border-box;
 }
 
 #accountOverlay .panel {
@@ -6028,6 +6026,15 @@ body.scrolled .marquee {
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
+    #accountOverlay {
+        padding: 16px;
+        align-items: flex-start;
+    }
+
+    #accountOverlay .stage {
+        margin: auto 0;
+    }
+
     #accountOverlay .card.auth-split-card {
         grid-template-columns: 1fr;
         border-radius: 18px;
@@ -6035,20 +6042,58 @@ body.scrolled .marquee {
     }
 
     .auth-hero-banner {
-        padding: 28px 20px;
+        padding: 24px 20px 20px;
         text-align: center;
     }
 
     .auth-hero-headline {
-        font-size: 28px;
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+
+    .auth-hero-content {
+        margin-bottom: 0;
     }
 
     .auth-feature-list {
         display: none;
     }
 
+    .auth-brand-head {
+        margin-bottom: 14px;
+    }
+
+    .auth-brand-logo {
+        height: 32px;
+    }
+
     .auth-form-side {
-        padding: 44px 32px;
+        padding: 36px 24px 28px;
+    }
+
+    .card-close-btn {
+        top: 12px;
+        right: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    #accountOverlay {
+        padding: 12px;
+    }
+
+    .auth-form-side {
+        padding: 32px 20px 24px;
+    }
+
+    #accountOverlay .btn-primary.btn-sign-in,
+    #accountOverlay .btn-google {
+        height: 48px;
+        font-size: 14px;
+    }
+
+    #accountOverlay .field input {
+        height: 46px;
     }
 }
 
