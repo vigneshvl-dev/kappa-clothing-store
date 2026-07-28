@@ -1031,6 +1031,10 @@ body.home-page .navbar.scrolled {
     align-items: center;
     gap: 3px;
     transition: color .25s ease, transform .25s ease;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
 }
 
 .bnav-item svg {
@@ -1053,6 +1057,21 @@ body.home-page .navbar.scrolled {
     body {
         padding-bottom: 80px;
     }
+
+    .bottom-nav {
+        display: flex;
+        gap: 20px;
+        padding: 10px 18px;
+    }
+}
+
+@media(max-width:480px) {
+    .bottom-nav {
+        gap: 14px;
+        padding: 8px 14px;
+        bottom: 12px;
+    }
+}
 
     .toast {
         bottom: 90px;

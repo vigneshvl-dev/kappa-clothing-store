@@ -752,6 +752,7 @@ testDatabaseConnection();
     safeAddListener("wishBtn", "click", () => openOverlay(wishOverlay));
     safeAddListener("bnavWish", "click", () => openOverlay(wishOverlay));
     safeAddListener("wishClose", "click", () => closeOverlay(wishOverlay));
+    safeAddListener("bnavAccount", "click", () => openOverlay(accountOverlay));
 
     safeAddListener("searchBtn", "click", () => { openOverlay(searchOverlay); const s = document.getElementById("searchInput"); if (s) s.focus(); });
     safeAddListener("bnavSearch", "click", () => { openOverlay(searchOverlay); const s = document.getElementById("searchInput"); if (s) s.focus(); });
