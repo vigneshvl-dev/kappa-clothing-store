@@ -1035,7 +1035,15 @@ window.addToCart = addToCart;
         const heroCartCount = document.getElementById("heroCartCount");
         if (heroCartCount) heroCartCount.textContent = cartTotal;
         const cartBtnBadge = document.querySelector("#cartBtn .badge");
-        if (cartBtnBadge) cartBtnBadge.textContent = cartTotal;
+        if (cartBtnBadge) {
+            cartBtnBadge.textContent = cartTotal;
+            cartBtnBadge.style.display = cartTotal > 0 ? "flex" : "none";
+        }
+        const bnavCartBadge = document.querySelector("#bnavCart .badge");
+        if (bnavCartBadge) {
+            bnavCartBadge.textContent = cartTotal;
+            bnavCartBadge.style.display = cartTotal > 0 ? "flex" : "none";
+        }
         if (!cart.length) {
             if (wrap) wrap.innerHTML = `<div class="cart-empty">Your cart is empty.<br>Start adding items.</div>`;
             if (summary) summary.style.display = "none";
