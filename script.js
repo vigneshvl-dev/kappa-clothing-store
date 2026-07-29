@@ -1028,6 +1028,7 @@ window.addToCart = addToCart;
     function renderCart() {
         localStorage.setItem("kappa_cart", JSON.stringify(cart));
         const wrap = document.getElementById("cartItems");
+        const summary = document.querySelector(".cart-summary");
         const cartTotal = cart.reduce((a, c) => a + c.qty, 0);
         const cartCountEl = document.getElementById("cartCount");
         if (cartCountEl) cartCountEl.textContent = cartTotal;
@@ -1044,29 +1045,33 @@ window.addToCart = addToCart;
             bnavCartBadge.style.display = cartTotal > 0 ? "flex" : "none";
         }
         if (!cart.length) {
-            wrap.innerHTML = `<div class="cart-empty">Your cart is empty.<br>Start adding icons.</div>`;
+            if (wrap) wrap.innerHTML = `<div class="cart-empty">Your cart is empty.<br>Start adding items.</div>`;
+            if (summary) summary.style.display = "none";
         } else {
-            wrap.innerHTML = cart.map((c, idx) => {
-                const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
-                const name = (p ? p.name : null) || c.name || 'Product';
-                const img = c.customImg || (p ? p.img : null) || 'assets/sleeping sis.png';
-                const price = (p ? p.price : null) ?? c.price ?? 0;
-                return `
-      <div class="cart-item">
-        <img src="${img}" alt="${name}">
-        <div class="ci-info">
-          <div class="ci-name">${name}</div>
-          <div class="ci-meta">Size: ${c.size || 'Default'} | Color: ${c.color || 'N/A'}</div>
-          <div class="ci-qty">
-            <button data-dec="${idx}">−</button>
-            <span>${c.qty}</span>
-            <button data-inc="${idx}">+</button>
-          </div>
-          <span class="ci-remove" data-remove="${idx}">Remove</span>
-        </div>
-        <div class="ci-price">${fmt(price * c.qty)}</div>
-      </div>`;
-            }).join('');
+            if (summary) summary.style.display = "";
+            if (wrap) {
+                wrap.innerHTML = cart.map((c, idx) => {
+                    const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
+                    const name = (p ? p.name : null) || c.name || 'Product';
+                    const img = c.customImg || (p ? p.img : null) || 'assets/sleeping sis.png';
+                    const price = (p ? p.price : null) ?? c.price ?? 0;
+                    return `
+          <div class="cart-item">
+            <img src="${img}" alt="${name}">
+            <div class="ci-info">
+              <div class="ci-name">${name}</div>
+              <div class="ci-meta">Size: ${c.size || 'Default'} | Color: ${c.color || 'N/A'}</div>
+              <div class="ci-qty">
+                <button data-dec="${idx}">−</button>
+                <span>${c.qty}</span>
+                <button data-inc="${idx}">+</button>
+              </div>
+              <span class="ci-remove" data-remove="${idx}">Remove</span>
+            </div>
+            <div class="ci-price">${fmt(price * c.qty)}</div>
+          </div>`;
+                }).join('');
+            }
         }
         updateSummary();
     }
@@ -2192,10 +2197,15 @@ window.addToCart = addToCart;
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const fullName = document.getElementById('su-name').value.trim();
-            const email = document.getElementById('su-email').value.trim();
-            const password = document.getElementById('su-password').value;
-            const confirmPassword = document.getElementById('su-confirm').value;
+            const fullNameInput = document.getElementById('su-name');
+            const emailInput = document.getElementById('su-email');
+            const passwordInput = document.getElementById('su-password');
+            const confirmInput = document.getElementById('su-confirm');
+
+            const fullName = fullNameInput ? fullNameInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
+            const password = passwordInput ? passwordInput.value : '';
+            const confirmPassword = confirmInput ? confirmInput.value : password;
 
             if (!fullName || !email || !password) {
                 showToast('Please fill in all required fields');
@@ -2211,36 +2221,109 @@ window.addToCart = addToCart;
             }
 
             const submitBtn = signupForm.querySelector('button[type="submit"]');
-            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating account...'; }
-
-            const { data, error } = await supabaseClient.auth.signUp({
-                email,
-                password,
-                options: { data: { full_name: fullName } }
-            });
-
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
-
-            if (error) {
-                showToast('Sign up failed: ' + error.message);
-                return;
+            const originalBtnContent = submitBtn ? submitBtn.innerHTML : '<span>Create Account</span>';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating account...';
             }
 
-            if (data.session) {
-                // Email confirmation disabled — user is instantly logged in
-                // Set flag so onAuthStateChange shows "Welcome" not "Welcome back"
-                sessionStorage.setItem('kappa_just_signed_up', '1');
-                // onAuthStateChange handles the toast and overlay close
-            } else {
-                // Email confirmation is ON — guide them clearly
-                showToast('✉️ Check your email and click the confirmation link, then sign in.');
-                // Switch back to the login panel so they know to sign in after confirming
-                setTimeout(() => {
-                    const panelSignup = document.getElementById('panel-signup');
-                    const panelLogin = document.getElementById('panel-login');
-                    if (panelSignup) panelSignup.classList.remove('active');
-                    if (panelLogin) panelLogin.classList.add('active');
-                }, 1500);
+            try {
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: fullName
+                        }
+                    }
+                });
+
+                if (error) {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnContent;
+                    }
+                    showToast('Sign up failed: ' + error.message);
+                    return;
+                }
+
+                // Check if user already existed (identities array empty)
+                if (data && data.user && data.user.identities && data.user.identities.length === 0) {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnContent;
+                    }
+                    showToast('An account with this email already exists! Please sign in.');
+                    setTimeout(() => {
+                        const panelSignup = document.getElementById('panel-signup');
+                        const panelLogin = document.getElementById('panel-login');
+                        if (panelSignup) panelSignup.classList.remove('active');
+                        if (panelLogin) panelLogin.classList.add('active');
+                        const loginEmailInput = document.getElementById('login-email');
+                        if (loginEmailInput) loginEmailInput.value = email;
+                    }, 1500);
+                    return;
+                }
+
+                let activeSession = data ? data.session : null;
+
+                // If session is null, try automatic sign-in (in case auto-confirm is active)
+                if (!activeSession && data && data.user) {
+                    try {
+                        const loginRes = await supabaseClient.auth.signInWithPassword({ email, password });
+                        if (loginRes.data && loginRes.data.session) {
+                            activeSession = loginRes.data.session;
+                        }
+                    } catch (_) {}
+                }
+
+                // Upsert customer profile row in Supabase database
+                if (data && data.user) {
+                    try {
+                        await supabaseClient.from('profiles').upsert({
+                            id: data.user.id,
+                            full_name: fullName,
+                            role: 'customer',
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'id' });
+                    } catch (pErr) {
+                        console.warn('Profile creation warning:', pErr);
+                    }
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnContent;
+                }
+
+                if (activeSession) {
+                    sessionStorage.setItem('kappa_just_signed_up', '1');
+                    showToast('Account created successfully! Welcome, ' + fullName + '! 🎉');
+                    setTimeout(() => {
+                        const ov = document.getElementById('accountOverlay');
+                        if (ov && ov.classList.contains('open')) {
+                            ov.classList.remove('open');
+                            document.body.style.overflow = '';
+                        }
+                    }, 800);
+                } else {
+                    showToast('Account created! ✉️ Please check your email to confirm, then sign in.');
+                    setTimeout(() => {
+                        const panelSignup = document.getElementById('panel-signup');
+                        const panelLogin = document.getElementById('panel-login');
+                        if (panelSignup) panelSignup.classList.remove('active');
+                        if (panelLogin) panelLogin.classList.add('active');
+                        const loginEmailInput = document.getElementById('login-email');
+                        if (loginEmailInput) loginEmailInput.value = email;
+                    }, 1500);
+                }
+            } catch (err) {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnContent;
+                }
+                console.error('Sign up error:', err);
+                showToast('Error creating account: ' + (err.message || 'Something went wrong'));
             }
         });
     }
