@@ -1096,6 +1096,45 @@
                 return;
             }
 
+            // 0. AUTH GUARD: Check if user is logged in BEFORE proceeding
+            let user = null;
+            try {
+                const { data } = await supabaseClient.auth.getUser();
+                user = data?.user || null;
+            } catch (e) {
+                console.error('Auth check failed:', e);
+            }
+
+            if (!user) {
+                // Save form fields as backup so we can restore after login
+                const formBackup = {
+                    name: document.getElementById('bill-name').value,
+                    email: document.getElementById('bill-email').value,
+                    phone: document.getElementById('bill-phone').value,
+                    address: document.getElementById('bill-address').value,
+                    state: document.getElementById('bill-state').value,
+                    zip: document.getElementById('bill-zip').value
+                };
+                localStorage.setItem('kappa_checkout_form', JSON.stringify(formBackup));
+                localStorage.setItem('kappa_pending_checkout', '1');
+
+                // Open the login overlay and show a toast
+                const ov = document.getElementById('accountOverlay');
+                if (ov) {
+                    ov.classList.add('open');
+                    document.body.style.overflow = 'hidden';
+                }
+                const toastEl = document.getElementById('toast');
+                if (toastEl) {
+                    toastEl.textContent = 'Please sign in to place your order';
+                    toastEl.classList.add('show');
+                    setTimeout(() => toastEl.classList.remove('show'), 3000);
+                } else {
+                    alert('Please sign in to place your order');
+                }
+                return; // ⛔️ Stop here — order is NOT placed
+            }
+
             // 1. Gather all data from the form fields
             const customerDetails = {
                 name: document.getElementById('bill-name').value,
@@ -1108,14 +1147,6 @@
                 state: document.getElementById('bill-state').value,
                 zip: document.getElementById('bill-zip').value
             };
-
-            let user = null;
-            try {
-                const { data } = await supabaseClient.auth.getUser();
-                user = data?.user || null;
-            } catch (e) {
-                console.error('Auth check failed:', e);
-            }
 
             // 2. Prepare order payload
             const orderPayload = {
