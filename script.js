@@ -1663,6 +1663,10 @@ testDatabaseConnection();
 
     // Listen for auth state changes (covers Google OAuth redirect)
     supabaseClient.auth.onAuthStateChange((event, session) => {
+        // If the congratulations popup is currently showing, ignore any further auth state events
+        if (document.querySelector('.success-card')) {
+            return;
+        }
         currentUserSession = session;
         authInitResolved = true;
         const profileBtn = document.getElementById('profileBtn');
@@ -1670,24 +1674,103 @@ testDatabaseConnection();
         if (session && session.user) {
             if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
 
-            if (event === 'SIGNED_IN') {
-                const isNewSignup = sessionStorage.getItem('kappa_just_signed_up') === '1';
+            if (event === 'SIGNED_IN' && sessionStorage.getItem('kappa_login_in_progress') === 'true') {
+                sessionStorage.removeItem('kappa_login_in_progress');
                 const displayName = getUserDisplayName(session.user);
-                if (isNewSignup) {
-                    sessionStorage.removeItem('kappa_just_signed_up');
-                    showToast('Welcome, ' + displayName + '! 🎉');
-                } else {
-                    showToast('Welcome back, ' + displayName + '!');
-                }
-
-                // Close the account overlay smoothly after showing the toast
-                setTimeout(() => {
-                    const ov = document.getElementById('accountOverlay');
-                    if (ov && ov.classList.contains('open')) {
-                        ov.classList.remove('open');
-                        document.body.style.overflow = '';
+                const accountOverlay = document.getElementById('accountOverlay');
+                if (accountOverlay) {
+                    openOverlay(accountOverlay);
+                    const stage = accountOverlay.querySelector('.stage');
+                    if (stage) {
+                        stage.innerHTML = `
+                            <div class="card success-card" style="
+                                background: linear-gradient(135deg, #F8C715 0%, #F5BE00 100%);
+                                border-radius: 24px;
+                                box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+                                padding: 60px 40px;
+                                text-align: center;
+                                color: #111111;
+                                max-width: 500px;
+                                margin: 0 auto;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 20px;
+                                position: relative;
+                                animation: cardIn 0.5s ease both;
+                            ">
+                                <button type="button" class="card-close-btn" aria-label="Close" onclick="closeOverlay(document.getElementById('accountOverlay')); setTimeout(() => window.location.reload(), 100);" style="
+                                    position: absolute;
+                                    top: 16px;
+                                    right: 16px;
+                                    width: 32px;
+                                    height: 32px;
+                                    border-radius: 50%;
+                                    background: rgba(255, 255, 255, 0.3);
+                                    border: 1px solid rgba(0, 0, 0, 0.08);
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    cursor: pointer;
+                                ">
+                                    <span style="font-size: 16px; font-weight: bold; color: #111;">✕</span>
+                                </button>
+                                
+                                <div class="success-icon-wrap" style="
+                                    width: 220px;
+                                    height: 60px;
+                                    background: none;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    margin-bottom: 10px;
+                                    overflow: hidden;
+                                ">
+                                    <img src="assets/IMG_4646-removebg-preview.png" style="width: 100%; height: 100%; object-fit: contain;" />
+                                </div>
+                                
+                                <h2 style="
+                                    font-family: 'Anton', 'Inter', sans-serif;
+                                    font-size: 32px;
+                                    font-weight: 800;
+                                    margin: 0;
+                                    text-transform: uppercase;
+                                    line-height: 1.2;
+                                    letter-spacing: 0.02em;
+                                    color: #111111;
+                                ">Congratulations!</h2>
+                                
+                                <p style="
+                                    font-size: 16.5px;
+                                    font-weight: 600;
+                                    margin: 0;
+                                    line-height: 1.5;
+                                    color: #111111;
+                                ">Welcome back to Kappa Fashion Store, <span style="text-decoration: underline; font-weight: 800;">${displayName}</span>!</p>
+                                
+                                <a href="index.html" style="
+                                    display: inline-block;
+                                    text-decoration: none;
+                                    background: #111111;
+                                    color: #F8C715;
+                                    border: none;
+                                    padding: 14px 28px;
+                                    border-radius: 12px;
+                                    font-size: 14.5px;
+                                    font-weight: 700;
+                                    cursor: pointer;
+                                    margin-top: 15px;
+                                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+                                    transition: background 0.2s, transform 0.15s;
+                                " onmouseover="this.style.background='#222'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#111'; this.style.transform='none'">
+                                    Back to Home
+                                </a>
+                            </div>
+                        `;
                     }
-                }, 1000);
+                }
+                return;
             }
 
             // If we have a pending checkout, redirect back to checkout.html
@@ -1796,62 +1879,9 @@ testDatabaseConnection();
 
         const dashboardHtml = `
             <section class="panel" id="panel-dashboard">
-                <div class="dash-header">
+                <div class="dash-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
                     <h2 class="dash-title">My Account</h2>
                     <button type="button" class="dash-logout-btn" id="dashLogoutBtn">Sign Out</button>
-                </div>
-
-                <!-- PROFILE INFO -->
-                <div class="dash-profile-card">
-                    <div class="dash-profile-top">
-                        <div style="position: relative; flex-shrink: 0;">
-                            <div class="dash-avatar-wrapper" id="dashAvatarBtn" title="Choose profile picture">
-                                <img src="" id="dashAvatarImg" class="dash-avatar-img" style="display:none;" />
-                                <div id="dashAvatarPlaceholder" class="dash-avatar-placeholder">U</div>
-                            </div>
-                            <button type="button" class="dash-avatar-camera-btn" id="dashAvatarCameraBtn" title="Choose profile picture">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                                    <circle cx="12" cy="13" r="4"></circle>
-                                </svg>
-                            </button>
-                            <input type="file" id="dashAvatarFileInput" accept="image/*" style="display:none;" />
-                        </div>
-                        <div class="dash-profile-meta">
-                            <div class="dash-profile-name" id="dashProfileNameDisplay">User</div>
-                            <div class="dash-profile-email" id="dashProfileEmailDisplay">user@example.com</div>
-                            <a href="profile.html" class="profile-link" style="margin-top:6px;display:inline-block;">View Full Profile →</a>
-                        </div>
-                    </div>
-
-                    <form id="dash-profile-form">
-                        <div class="dash-profile-fields">
-                           <div class="dash-field">
-                               <label for="dash-name">Full Name</label>
-                               <input type="text" id="dash-name" class="dash-input" placeholder="Your Name" />
-                           </div>
-                           <div class="dash-field">
-                               <label for="dash-phone">Mobile Number</label>
-                               <input type="tel" id="dash-phone" class="dash-input" placeholder="Enter Mobile Number" />
-                           </div>
-                           <div class="dash-field">
-                               <label for="dash-address">Shipping Address</label>
-                               <textarea id="dash-address" class="dash-input dash-textarea" placeholder="Enter Shipping Address"></textarea>
-                           </div>
-                        </div>
-                        <button type="submit" class="dash-save-btn">Save Profile</button>
-                    </form>
-                </div>
-
-                <!-- ORDER TRACKING -->
-                <h3 class="dash-tracking-title">Track My Orders</h3>
-                <div class="dash-track-search">
-                    <input type="text" id="dashTrackSearchInput" placeholder="Enter Order ID (e.g. SP-883719, OD402948194)" />
-                    <button type="button" class="dash-track-search-btn" id="dashTrackSearchBtn">Track</button>
-                </div>
-                
-                <div class="dash-orders-list" id="dashOrdersList">
-                    <!-- Orders dynamically loaded -->
                 </div>
             </section>
         `;
@@ -2369,11 +2399,15 @@ testDatabaseConnection();
     /* --- GOOGLE OAUTH --- */
     document.querySelectorAll('.btn-google').forEach(btn => {
         btn.addEventListener('click', async () => {
+            sessionStorage.setItem('kappa_login_in_progress', 'true');
             const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: { redirectTo: window.location.origin + window.location.pathname }
             });
-            if (error) showToast('Google sign-in failed: ' + error.message);
+            if (error) {
+                sessionStorage.removeItem('kappa_login_in_progress');
+                showToast('Google sign-in failed: ' + error.message);
+            }
         });
     });
 

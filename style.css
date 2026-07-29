@@ -5698,8 +5698,8 @@ body.scrolled .marquee {
 }
 
 .auth-brand-logo {
-    height: 40px;
-    max-height: 44px;
+    height: 60px;
+    max-height: 65px;
     width: auto;
     object-fit: contain;
     mix-blend-mode: multiply;
@@ -6133,7 +6133,7 @@ body.scrolled .marquee {
     }
 
     .auth-brand-logo {
-        height: 32px;
+        height: 48px;
     }
 
     .auth-form-side {
