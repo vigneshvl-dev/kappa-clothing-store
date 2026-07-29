@@ -611,6 +611,20 @@
     <script>
         function handleContactSubmit(event) {
             event.preventDefault();
+
+            // Extract input values
+            const name = document.getElementById('c-name')?.value || '';
+            const email = document.getElementById('c-email')?.value || '';
+            const subject = document.getElementById('c-subject')?.value || 'Message from Kappa Clothing Store Contact Form';
+            const message = document.getElementById('c-message')?.value || '';
+
+            // Construct mailto link
+            const bodyText = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
+            const mailtoUrl = `mailto:kappatvm@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+
+            // Open mail app
+            window.location.href = mailtoUrl;
+
             // Show toast message
             const toast = document.getElementById('success-toast');
             toast.style.display = 'block';
