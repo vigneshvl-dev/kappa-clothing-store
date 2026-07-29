@@ -8,6 +8,53 @@ const supabaseClient = window.supabase.createClient(
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
 );
 
+// ==========================================
+// 1b. AUTO SESSION REFRESH (Fixes JWT expired)
+// ==========================================
+// Listen for auth state changes to auto-refresh tokens
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'TOKEN_REFRESHED') {
+        console.log('Session token refreshed successfully.');
+    }
+    if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
+        window.location.replace('index.html');
+    }
+});
+
+/**
+ * Ensures the Supabase session is fresh before performing write operations.
+ * If the session is expired or missing, it attempts to refresh it.
+ * Returns the refreshed session or null if refresh fails.
+ */
+async function ensureFreshSession() {
+    let { data: { session } } = await supabaseClient.auth.getSession();
+    
+    if (!session) {
+        // Try to refresh
+        const { data, error } = await supabaseClient.auth.refreshSession();
+        if (error || !data.session) {
+            alert('Your session has expired. Please log in again.');
+            window.location.replace('index.html');
+            return null;
+        }
+        session = data.session;
+    } else {
+        // Check if the token is about to expire (within 60 seconds)
+        const expiresAt = session.expires_at; // Unix timestamp in seconds
+        const now = Math.floor(Date.now() / 1000);
+        if (expiresAt && (expiresAt - now) < 60) {
+            const { data, error } = await supabaseClient.auth.refreshSession();
+            if (error || !data.session) {
+                alert('Your session has expired. Please log in again.');
+                window.location.replace('index.html');
+                return null;
+            }
+            session = data.session;
+        }
+    }
+    return session;
+}
+
 function generateSlug(text) {
     return text.toString().toLowerCase().trim()
         .replace(/\s+/g, '-')
@@ -83,7 +130,7 @@ function clearProductForm() {
 // 4. TRUE DATABASE SECURITY BOUNCER
 // ==========================================
 async function verifyAdmin() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const session = await ensureFreshSession();
     if (!session) { window.location.replace('index.html'); return; }
 
     const { data: profile } = await supabaseClient
@@ -371,6 +418,9 @@ window.addProductInCategory = function() {
 };
 
 window.addCategory = async function() {
+    const session = await ensureFreshSession();
+    if (!session) return;
+
     const nameInput = document.getElementById('new-cat-name');
     const parentSelect = document.getElementById('parent-cat-select');
     const name = nameInput.value.trim();
@@ -437,6 +487,9 @@ window.addCategory = async function() {
 
 window.deleteCategory = async function(id) {
     if (!confirm('Are you sure you want to delete this category? Products inside it will become uncategorized.')) return;
+    const session = await ensureFreshSession();
+    if (!session) return;
+
     const { error } = await supabaseClient.from('categories').delete().eq('id', id);
     if (error) alert('Error deleting: ' + error.message);
     else {

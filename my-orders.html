@@ -884,6 +884,7 @@
 
         function renderCart() {
             const wrap = document.getElementById('cartItems');
+            const summary = document.querySelector('.cart-summary');
             if (!wrap) return;
             const totalItems = cart.reduce((a, c) => a + (c.qty || 1), 0);
             const badge = document.querySelector('#cartBtn .badge');
@@ -898,7 +899,9 @@
             }
             if (!cart.length) {
                 wrap.innerHTML = '<div class="cart-empty">Your cart is empty.<br>Start adding items.</div>';
+                if (summary) summary.style.display = 'none';
             } else {
+                if (summary) summary.style.display = '';
                 wrap.innerHTML = cart.map((c, idx) => {
                     const name = c.name || 'Product';
                     const img = c.customImg || c.img || 'assets/sleeping sis.png';
