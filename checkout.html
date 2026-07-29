@@ -810,7 +810,7 @@
                     });
                     cartItems = merged;
                 }
-                shippingCost = Number(localStorage.getItem("kappa_checkout_shipping") || 0);
+                shippingCost = 0; // Forced to 0 (do not add 1500 shipping charge)
                 discountAmount = Number(localStorage.getItem("kappa_checkout_discount") || 0);
 
                 // Pre-fill promo code if one was applied in the cart

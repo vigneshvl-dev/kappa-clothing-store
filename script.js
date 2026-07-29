@@ -128,6 +128,7 @@ testDatabaseConnection();
     let discount = 0;
     let PRODUCTS = []; // Will be populated by storefront loader
     let currentUserSession = null;
+    let authInitResolved = false;
 
     async function loadStorefrontProducts() {
         try {
@@ -1663,6 +1664,7 @@ testDatabaseConnection();
     // Listen for auth state changes (covers Google OAuth redirect)
     supabaseClient.auth.onAuthStateChange((event, session) => {
         currentUserSession = session;
+        authInitResolved = true;
         const profileBtn = document.getElementById('profileBtn');
         const profilePopup = document.getElementById('profilePopup');
         if (session && session.user) {
@@ -1758,6 +1760,29 @@ testDatabaseConnection();
                 }
             }
         }
+    });
+
+    // Scroll event listener: prompt user to sign in if not logged in
+    let hasShownScrollPopup = false;
+    let scrollPopupThrottle = null;
+
+    window.addEventListener('scroll', () => {
+        if (scrollPopupThrottle) return;
+        scrollPopupThrottle = setTimeout(() => {
+            scrollPopupThrottle = null;
+
+            if (authInitResolved && !currentUserSession && !hasShownScrollPopup && 
+                !window.location.pathname.includes('checkout.html') && 
+                !window.location.pathname.includes('admin.html')) {
+                if (window.scrollY > 300) {
+                    const accountOverlay = document.getElementById('accountOverlay');
+                    if (accountOverlay && !accountOverlay.classList.contains('open')) {
+                        openOverlay(accountOverlay);
+                        hasShownScrollPopup = true;
+                    }
+                }
+            }
+        }, 200);
     });
 
     const DEFAULT_MOCK_ORDERS = [];
