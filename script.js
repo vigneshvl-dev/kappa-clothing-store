@@ -18,7 +18,14 @@ const supabaseClient = (() => {
         }
         const client = window.supabase.createClient(
             'https://ugphxapfbzcrauchwlef.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38'
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38',
+            {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            }
         );
         window.supabaseClient = client;
         return client;
@@ -49,7 +56,7 @@ testDatabaseConnection();
 (() => {
     "use strict";
 
-    
+
 
     const INSTA = [
         "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=400&auto=format&fit=crop",
@@ -224,7 +231,7 @@ testDatabaseConnection();
                             return `<div class="hero-slide ${activeClass}" style="background-image:url('${slide.desktop}')" data-mobile-bg="${slide.mobile || slide.desktop}"></div>`;
                         }
                     }).join('');
-                    
+
                     // Reset slideshow state
                     if (heroSlideshowInterval) {
                         clearInterval(heroSlideshowInterval);
@@ -266,7 +273,7 @@ testDatabaseConnection();
                             </div>
                         `;
                     }).join('');
-                    
+
                     initReelsSlider();
                 }
             }
@@ -920,14 +927,14 @@ testDatabaseConnection();
             const cartDetails = cart.map(c => {
                 const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
                 return {
-                 id: c.id,
-                 name: p ? p.name : (c.name || 'Product'),
-                 price: p ? p.price : (c.price || 0),
-                 size: c.size,
-                 color: c.color || 'N/A', // ADD THIS LINE RIGHT HERE
-                 qty: c.qty,
-                 img: c.customImg || (p ? p.img : 'assets/sleeping sis.png')
-        };
+                    id: c.id,
+                    name: p ? p.name : (c.name || 'Product'),
+                    price: p ? p.price : (c.price || 0),
+                    size: c.size,
+                    color: c.color || 'N/A', // ADD THIS LINE RIGHT HERE
+                    qty: c.qty,
+                    img: c.customImg || (p ? p.img : 'assets/sleeping sis.png')
+                };
             });
             const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
             const discPercent = discount || 0;
@@ -972,58 +979,58 @@ testDatabaseConnection();
     }
 
 
-   function addToCart(id, size = 'Default', color = 'N/A', price, img, passedName) {
-    let actualSize = size;
-    let actualColor = color;
-    let actualPrice = price;
-    let actualImg = img;
-    let actualName = passedName;
+    function addToCart(id, size = 'Default', color = 'N/A', price, img, passedName) {
+        let actualSize = size;
+        let actualColor = color;
+        let actualPrice = price;
+        let actualImg = img;
+        let actualName = passedName;
 
-    // Detect if called from the homepage grid (where arguments are shifted to: id, name, price, img)
-    if (typeof color === 'number' || (typeof color === 'string' && !isNaN(Number(color)) && price === undefined)) {
-        actualName = size;               // 'size' slot actually holds the Name
-        actualPrice = Number(color);     // 'color' slot actually holds the Price
-        actualImg = price;               // 'price' slot actually holds the Image URL
-        actualSize = 'Default';
-        actualColor = 'N/A';
+        // Detect if called from the homepage grid (where arguments are shifted to: id, name, price, img)
+        if (typeof color === 'number' || (typeof color === 'string' && !isNaN(Number(color)) && price === undefined)) {
+            actualName = size;               // 'size' slot actually holds the Name
+            actualPrice = Number(color);     // 'color' slot actually holds the Price
+            actualImg = price;               // 'price' slot actually holds the Image URL
+            actualSize = 'Default';
+            actualColor = 'N/A';
+        }
+
+        // Find product or create fallback
+        let p = PRODUCTS.find(x => x.id === id || x.id == id);
+        if (!p) {
+            p = {
+                id: id,
+                name: actualName || 'Product',
+                price: actualPrice || 0,
+                img: actualImg || 'assets/sleeping sis.png',
+                sizes: ['Default'],
+                colors: ['N/A']
+            };
+            PRODUCTS.push(p);
+        }
+
+        const finalSize = actualSize || 'Default';
+        const finalColor = actualColor || 'N/A';
+        const finalName = actualName || p.name || 'Product';
+
+        const existing = cart.find(c => c.id === id && c.size === finalSize && c.color === finalColor);
+        if (existing) {
+            existing.qty++;
+        } else {
+            cart.push({
+                id,
+                size: finalSize,
+                color: finalColor,
+                qty: 1,
+                name: finalName,
+                price: actualPrice || p.price,
+                customImg: actualImg || p.img
+            });
+        }
+        renderCart();
+        showToast(`${finalName} added to cart`);
     }
-
-    // Find product or create fallback
-    let p = PRODUCTS.find(x => x.id === id || x.id == id);
-    if (!p) {
-        p = {
-            id: id,
-            name: actualName || 'Product',
-            price: actualPrice || 0,
-            img: actualImg || 'assets/sleeping sis.png',
-            sizes: ['Default'],
-            colors: ['N/A']
-        };
-        PRODUCTS.push(p);
-    }
-
-    const finalSize = actualSize || 'Default';
-    const finalColor = actualColor || 'N/A';
-    const finalName = actualName || p.name || 'Product'; 
-
-    const existing = cart.find(c => c.id === id && c.size === finalSize && c.color === finalColor);
-    if (existing) {
-        existing.qty++;
-    } else {
-        cart.push({ 
-            id, 
-            size: finalSize, 
-            color: finalColor, 
-            qty: 1, 
-            name: finalName, 
-            price: actualPrice || p.price, 
-            customImg: actualImg || p.img 
-        });
-    }
-    renderCart();
-    showToast(`${finalName} added to cart`);
-}
-window.addToCart = addToCart;
+    window.addToCart = addToCart;
 
     function renderCart() {
         localStorage.setItem("kappa_cart", JSON.stringify(cart));
@@ -1161,9 +1168,9 @@ window.addToCart = addToCart;
 
     /* ---------- QUICK VIEW ---------- */
     function openQuickView(id) {
-    const p = PRODUCTS.find(x => x.id === id);
-    const panel = document.getElementById("qvPanel");
-    panel.innerHTML = `
+        const p = PRODUCTS.find(x => x.id === id);
+        const panel = document.getElementById("qvPanel");
+        panel.innerHTML = `
 <button class="overlay-close" id="qvClose">✕</button>
 <div class="qv-img" style="background-image:url('${p.img}')"></div>
 <div class="qv-body">
@@ -1182,39 +1189,39 @@ window.addToCart = addToCart;
   <button class="btn btn-primary full magnetic" id="qvAdd"><span>Add to Cart</span></button>
 </div>
 `;
-    let qty = 1, selectedSize = p.sizes ? p.sizes[0] : 'Default', selectedColor = p.colors ? p.colors[0] : 'N/A';
-    
-    panel.querySelectorAll(".qv-size").forEach(el => el.addEventListener("click", () => {
-        panel.querySelectorAll(".qv-size").forEach(x => x.classList.remove("active"));
-        el.classList.add("active"); selectedSize = el.dataset.size;
-    }));
-    panel.querySelectorAll(".qv-color").forEach(el => el.addEventListener("click", () => {
-        panel.querySelectorAll(".qv-color").forEach(x => x.classList.remove("active"));
-        el.classList.add("active"); selectedColor = el.dataset.color;
-    }));
-    panel.querySelector("#qvInc").addEventListener("click", () => { qty++; panel.querySelector("#qvQty").textContent = qty; });
-    panel.querySelector("#qvDec").addEventListener("click", () => { qty = Math.max(1, qty - 1); panel.querySelector("#qvQty").textContent = qty; });
-    
-    panel.querySelector("#qvAdd").addEventListener("click", () => {
-        for (let i = 0; i < qty; i++) addToCart(id, selectedSize, selectedColor);
-        closeOverlay(qvOverlay);
-    });
-    panel.querySelector("#qvClose").addEventListener("click", () => closeOverlay(qvOverlay));
-    openOverlay(qvOverlay);
-}
+        let qty = 1, selectedSize = p.sizes ? p.sizes[0] : 'Default', selectedColor = p.colors ? p.colors[0] : 'N/A';
+
+        panel.querySelectorAll(".qv-size").forEach(el => el.addEventListener("click", () => {
+            panel.querySelectorAll(".qv-size").forEach(x => x.classList.remove("active"));
+            el.classList.add("active"); selectedSize = el.dataset.size;
+        }));
+        panel.querySelectorAll(".qv-color").forEach(el => el.addEventListener("click", () => {
+            panel.querySelectorAll(".qv-color").forEach(x => x.classList.remove("active"));
+            el.classList.add("active"); selectedColor = el.dataset.color;
+        }));
+        panel.querySelector("#qvInc").addEventListener("click", () => { qty++; panel.querySelector("#qvQty").textContent = qty; });
+        panel.querySelector("#qvDec").addEventListener("click", () => { qty = Math.max(1, qty - 1); panel.querySelector("#qvQty").textContent = qty; });
+
+        panel.querySelector("#qvAdd").addEventListener("click", () => {
+            for (let i = 0; i < qty; i++) addToCart(id, selectedSize, selectedColor);
+            closeOverlay(qvOverlay);
+        });
+        panel.querySelector("#qvClose").addEventListener("click", () => closeOverlay(qvOverlay));
+        openOverlay(qvOverlay);
+    }
 
     /* ---------- GLOBAL CLICK DELEGATION (product cards) ---------- */
     document.addEventListener("click", e => {
-    const addId = e.target.dataset.add;
-    const viewId = e.target.dataset.view;
-    if (addId) {
-        const p = PRODUCTS.find(x => x.id === Number(addId) || x.id == addId);
-        const defaultSize = (p && p.sizes && p.sizes.length > 0) ? p.sizes[0] : 'Default';
-        const defaultColor = (p && p.colors && p.colors.length > 0) ? p.colors[0] : 'N/A';
-        addToCart(Number(addId), defaultSize, defaultColor);
-    }
-    if (viewId) openQuickView(Number(viewId));
-});
+        const addId = e.target.dataset.add;
+        const viewId = e.target.dataset.view;
+        if (addId) {
+            const p = PRODUCTS.find(x => x.id === Number(addId) || x.id == addId);
+            const defaultSize = (p && p.sizes && p.sizes.length > 0) ? p.sizes[0] : 'Default';
+            const defaultColor = (p && p.colors && p.colors.length > 0) ? p.colors[0] : 'N/A';
+            addToCart(Number(addId), defaultSize, defaultColor);
+        }
+        if (viewId) openQuickView(Number(viewId));
+    });
 
     /* ---------- SEARCH ---------- */
     const searchInput = document.getElementById("searchInput");
@@ -1247,16 +1254,16 @@ window.addToCart = addToCart;
             const emailInput = document.getElementById("newsletterEmail");
             const messageInput = document.getElementById("newsletterMessage");
             const note = document.getElementById("newsletterNote");
-            
+
             const name = nameInput ? nameInput.value.trim() : "";
-            
+
             if (note) note.textContent = `Thank you, ${name || "there"}! Your message has been received.`;
-            
+
             if (nameInput) nameInput.value = "";
             if (phoneInput) phoneInput.value = "";
             if (emailInput) emailInput.value = "";
             if (messageInput) messageInput.value = "";
-            
+
             showToast("Message sent successfully!");
         });
     }
@@ -1290,7 +1297,7 @@ window.addToCart = addToCart;
         // Center card index or fallback
         let currentIndex = Math.min(2, cards.length - 1);
         if (currentIndex < 0) currentIndex = 0;
-        
+
         let reelsInView = false;
 
         /* ---- Helpers ---- */
@@ -1402,7 +1409,7 @@ window.addToCart = addToCart;
         }
         resizeHandler = updateSlider;
         window.addEventListener("resize", resizeHandler);
-        
+
         setTimeout(updateSlider, 100);
         setTimeout(updateSlider, 500);
         setTimeout(updateSlider, 1500);
@@ -2274,7 +2281,7 @@ window.addToCart = addToCart;
                         if (loginRes.data && loginRes.data.session) {
                             activeSession = loginRes.data.session;
                         }
-                    } catch (_) {}
+                    } catch (_) { }
                 }
 
                 // Upsert customer profile row in Supabase database
@@ -2351,14 +2358,14 @@ async function initStorefront() {
     const womensContainer = document.getElementById('womens-arrival-container');
 
     // Stop if containers don't exist
-    if (!boysContainer && !womensContainer) return; 
+    if (!boysContainer && !womensContainer) return;
 
     try {
         // 1. FETCH CATEGORIES FIRST to map the Parent/Child relationships
         const { data: categories, error: catError } = await supabaseClient
             .from('categories')
             .select('*');
-            
+
         if (catError) throw catError;
 
         let menCategoryIds = [];
@@ -2370,7 +2377,7 @@ async function initStorefront() {
                 const name = (c.name || '').toLowerCase();
                 return name === 'women' || name === "women's" || name === 'girls';
             });
-            
+
             const menRoot = categories.find(c => {
                 const name = (c.name || '').toLowerCase();
                 return name === 'men' || name === "men's" || name === 'boys';
@@ -2389,7 +2396,7 @@ async function initStorefront() {
             .from('products')
             .select('*, product_images(url, position), product_variants(stock_quantity)')
             .eq('is_active', true)
-            .order('created_at', { ascending: false }); 
+            .order('created_at', { ascending: false });
 
         if (prodError) throw prodError;
 
@@ -2515,7 +2522,7 @@ async function initStorefront() {
 }
 
 // --- COLOR / IMAGE SWITCHER ACTION ---
-window.changeCardColor = function(thumbElement, colorName, imageUrl) {
+window.changeCardColor = function (thumbElement, colorName, imageUrl) {
     const card = thumbElement.closest('.boys-card');
     if (!card) return;
 
@@ -2567,4 +2574,4 @@ if (document.readyState === "interactive" || document.readyState === "complete")
 } else {
     document.addEventListener('DOMContentLoaded', initStorefront);
 }
-
+
