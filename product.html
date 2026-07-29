@@ -166,11 +166,14 @@
         }
 
         .hero-title {
-            font-size: 20px;
-            font-weight: 700;
+            font-family: var(--font-body);
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.4;
             text-transform: uppercase;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             letter-spacing: 0.5px;
+            color: #111;
         }
 
         .hero-price {
@@ -1767,7 +1770,17 @@
             }
 
             const descEl = document.getElementById('pdp-description');
-            if (descEl) descEl.innerText = product.description || 'Details unavailable.';
+            if (descEl) {
+                const desc = product.description || 'Details unavailable.';
+                const lines = desc.split('\n');
+                if (lines.length > 0 && lines[0].trim() !== '') {
+                    const heading = lines[0].trim();
+                    const remaining = lines.slice(1).join('\n');
+                    descEl.innerHTML = `<strong>${heading}</strong><br>${remaining}`;
+                } else {
+                    descEl.innerText = desc;
+                }
+            }
 
             const priceEl = document.getElementById('pdp-price');
             if (priceEl) priceEl.innerText = `Rs. ${Number(product.price).toLocaleString('en-IN')}`;
@@ -2045,17 +2058,34 @@
 
         function buildColorSwatches(container, colors, colorImageMap, allImages) {
             container.innerHTML = colors.map((color, idx) => {
-                const imgUrl = colorImageMap[color.toLowerCase()] || (allImages.length > 0 ? allImages[0].url.split('#')[0] : 'assets/sleeping sis.png');
+                let imgUrl = colorImageMap[color.toLowerCase()];
+                if (!imgUrl) {
+                    if (allImages && allImages[idx]) {
+                        imgUrl = allImages[idx].url.split('#')[0];
+                    } else if (allImages && allImages.length > 0) {
+                        imgUrl = allImages[0].url.split('#')[0];
+                    } else {
+                        imgUrl = 'assets/sleeping sis.png';
+                    }
+                }
                 const safeColor = color.replace(/'/g, "\\'");
                 const safeImg = imgUrl.replace(/'/g, "\\'");
                 const activeClass = idx === 0 ? ' selected' : '';
                 return `<div class="color-img-swatch${activeClass}" title="${color}" onclick="selectColor(this, '${safeColor}', '${safeImg}')">
                     <img src="${imgUrl}" alt="${color}">
+                    <div class="swatch-label">${color}</div>
                 </div>`;
             }).join('');
 
             const firstColor = colors[0];
-            const firstImg = colorImageMap[firstColor.toLowerCase()] || (allImages.length > 0 ? allImages[0].url.split('#')[0] : null);
+            let firstImg = colorImageMap[firstColor.toLowerCase()];
+            if (!firstImg) {
+                if (allImages && allImages[0]) {
+                    firstImg = allImages[0].url.split('#')[0];
+                } else if (allImages && allImages.length > 0) {
+                    firstImg = allImages[0].url.split('#')[0];
+                }
+            }
             window.selectedColor = firstColor;
             if (firstImg) {
                 window.currentMainImageUrl = firstImg;
