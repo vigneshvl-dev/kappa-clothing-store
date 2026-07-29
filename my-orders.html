@@ -807,6 +807,11 @@
         }
 
         // ── CART FUNCTIONALITY ──
+        // Clear cart on fresh session load (when user first opens the website)
+        if (!sessionStorage.getItem("kappa_session_active")) {
+            localStorage.removeItem("kappa_cart");
+            sessionStorage.setItem("kappa_session_active", "true");
+        }
         let cart = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
         let discount = 0;
         let PRODUCTS = [];

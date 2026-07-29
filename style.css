@@ -5819,7 +5819,7 @@ body.scrolled .marquee {
     text-transform: uppercase;
     letter-spacing: normal;
     margin: 0 0 4px;
-    text-align: left;
+    text-align: center;
     background: none;
     -webkit-text-fill-color: initial;
     animation: none;
@@ -6047,6 +6047,8 @@ body.scrolled .marquee {
 
 #accountOverlay .btn-google {
     width: 100%;
+    max-width: 360px;
+    align-self: center;
     height: 44px;
     border-radius: 10px;
     border: 1.5px solid #E5E7EB;

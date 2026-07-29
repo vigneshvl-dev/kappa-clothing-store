@@ -116,6 +116,12 @@ testDatabaseConnection();
         localStorage.removeItem('kappa_buy_now_item');
     }
 
+    // Clear cart on fresh session load (when user first opens the website)
+    if (!sessionStorage.getItem("kappa_session_active")) {
+        localStorage.removeItem("kappa_cart");
+        sessionStorage.setItem("kappa_session_active", "true");
+    }
+
     /* ---------- STATE ---------- */
     let cart = JSON.parse(localStorage.getItem("kappa_cart") || "[]");     // {id, size, qty}
     let wishlist = []; // [id]
