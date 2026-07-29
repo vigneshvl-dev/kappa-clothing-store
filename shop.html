@@ -193,27 +193,7 @@
                 margin-bottom: 20px;
             }
 
-            /* Show hamburger, hide inline nav & cart text on mobile */
-            #shopHamburger {
-                display: flex !important;
-                order: 1;
-            }
-
-            header>div>nav {
-                display: none !important;
-            }
-
-            header>div>div:last-child {
-                order: 3;
-                margin-left: auto;
-            }
-
-            header>div>a[href="index.html"] {
-                order: 2;
-                position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
-            }
+            /* Mobile navbar layout handled by style.css */
         }
 
         .btn-back-home {
@@ -497,7 +477,107 @@
             <p>Designed by Hyna Studio</p>
         </div>
     </footer>
+    <!-- CART SIDEBAR -->
+    <div class="overlay overlay-right" id="cartOverlay">
+        <div class="side-panel">
+            <div class="side-head">
+                <h3 data-i18n="cart_title">Your Cart</h3>
+                <button class="overlay-close" id="cartClose">✕</button>
+            </div>
+            <div class="cart-items" id="cartItems"></div>
+            <div class="cart-summary">
+                <div class="promo-row">
+                    <input type="text" id="promoInput" data-i18n-placeholder="cart_promo" placeholder="Promo code">
+                    <button class="btn-mini" id="promoApply" data-i18n="cart_apply">Apply</button>
+                </div>
+                <p class="promo-msg" id="promoMsg"></p>
+                <div class="summary-line"><span data-i18n="cart_subtotal">Subtotal</span><span id="cartSubtotal">₹0</span></div>
+                <div class="summary-line"><span data-i18n="cart_discount">Discount</span><span id="cartDiscount">− ₹0</span></div>
+                <div class="summary-line total"><span data-i18n="cart_total">Total</span><span id="cartTotal">₹0</span></div>
+                <button class="btn btn-primary full magnetic"><span data-i18n="cart_checkout">Checkout</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEARCH OVERLAY -->
+    <div class="overlay" id="searchOverlay">
+        <div class="search-panel">
+            <input type="text" id="searchInput" data-i18n-placeholder="search_placeholder" placeholder="Search for products..." autocomplete="off">
+            <button class="overlay-close" id="searchClose">✕</button>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- WISHLIST OVERLAY -->
+    <div class="overlay overlay-right" id="wishOverlay">
+        <div class="side-panel">
+            <div class="side-head">
+                <h3 data-i18n="wishlist_title">Wishlist</h3>
+                <button class="overlay-close" id="wishClose">✕</button>
+            </div>
+            <div class="cart-items" id="wishItems"></div>
+        </div>
+    </div>
+
+    <!-- ACCOUNT OVERLAY -->
+    <div class="overlay" id="accountOverlay">
+        <button class="overlay-close" id="accountClose" aria-label="Close overlay" style="display: none;">✕</button>
+        <div class="stage">
+            <div class="card auth-split-card">
+                <div class="auth-hero-banner">
+                    <div class="auth-brand-head">
+                        <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store" class="auth-brand-logo">
+                    </div>
+                    <div class="auth-hero-content">
+                        <h2 class="auth-hero-headline">WELCOME BACK</h2>
+                        <p class="auth-hero-sub">Premium Streetwear, Unmatched Style</p>
+                    </div>
+                    <ul class="auth-feature-list">
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 11l2 2 4-4"></path></svg>
+                            <span>Secure &amp; Fast Checkout</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                            <span>Free Shipping Over ₹4000</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.96"></path></svg>
+                            <span>Easy 7-Day Returns</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="auth-form-side">
+                    <button type="button" class="card-close-btn" aria-label="Close">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    <section class="panel active" id="panel-login">
+                        <h1 class="headline" data-i18n="acc_welcome" style="margin-bottom: 24px;">SIGN IN</h1>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <button type="button" class="btn-google">
+                                <svg viewBox="0 0 48 48">
+                                    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z"></path>
+                                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"></path>
+                                    <path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.4C29.6 35.4 26.9 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.6 5.1C9.6 39.6 16.2 44 24 44z"></path>
+                                    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.6 35.6 44 30.2 44 24c0-1.2-.1-2.4-.4-3.5z"></path>
+                                </svg>
+                                <span data-i18n="acc_google">Continue with Google</span>
+                            </button>
+                            <p class="auth-legal-note" style="margin-top: 12px; text-align: center;">
+                                By signing in, you agree to our <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a>
+                            </p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- EXECUTION LOGIC SCRIPTS -->
+    <script src="script.js"></script>
     <script>
         const supabaseUrl = 'https://ugphxapfbzcrauchwlef.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38';
@@ -752,47 +832,7 @@
 
         document.addEventListener('DOMContentLoaded', initShop);
 
-        /* ---------- MOBILE MENU TOGGLE ---------- */
-        const shopHamburger = document.getElementById('shopHamburger');
-        const shopMobileMenu = document.getElementById('shopMobileMenu');
-        const shopMobileMenuClose = document.getElementById('shopMobileMenuClose');
 
-        function openShopMenu() {
-            if (shopMobileMenu) shopMobileMenu.classList.add('open');
-            if (shopHamburger) shopHamburger.classList.add('open');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeShopMenu() {
-            if (shopMobileMenu) shopMobileMenu.classList.remove('open');
-            if (shopHamburger) shopHamburger.classList.remove('open');
-            document.body.style.overflow = '';
-            if (shopMobileMenu) void shopMobileMenu.offsetHeight;
-        }
-        if (shopHamburger) shopHamburger.addEventListener('click', () => {
-            if (shopMobileMenu.classList.contains('open')) closeShopMenu();
-            else openShopMenu();
-        });
-        if (shopMobileMenuClose) shopMobileMenuClose.addEventListener('click', closeShopMenu);
-        if (shopMobileMenu) shopMobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeShopMenu));
-
-        const shopMobileOrdersLink = document.getElementById('shopMobileOrdersLink');
-        if (shopMobileOrdersLink) {
-            shopMobileOrdersLink.addEventListener('click', e => {
-                e.preventDefault();
-                closeShopMenu();
-                const overlay = document.getElementById('accountOverlay');
-                if (overlay) { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
-            });
-        }
-
-        const shopMobileAccountLink = document.getElementById('shopMobileAccountLink');
-        if (shopMobileAccountLink) {
-            shopMobileAccountLink.addEventListener('click', e => {
-                e.preventDefault();
-                closeShopMenu();
-                setTimeout(() => { window.location.href = 'index.html'; }, 300);
-            });
-        }
     </script>
     <!-- GSAP & Lenis Smooth Scroll Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
