@@ -2303,34 +2303,38 @@ testDatabaseConnection();
             const submitBtn = signupForm.querySelector('button[type="submit"]');
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating account...'; }
 
-            const { data, error } = await supabaseClient.auth.signUp({
-                email,
-                password,
-                options: { data: { full_name: fullName } }
-            });
-
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
-
-            if (error) {
-                showToast('Sign up failed: ' + error.message);
+            let signupResult;
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, fullName })
+                });
+                signupResult = await response.json();
+                if (!response.ok) {
+                    throw new Error(signupResult.error || 'Failed to create account');
+                }
+            } catch (err) {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
+                showToast('Sign up failed: ' + err.message);
                 return;
             }
 
-            if (data.session) {
-                // Email confirmation disabled — user is instantly logged in
-                // Set flag so onAuthStateChange shows "Welcome" not "Welcome back"
-                sessionStorage.setItem('kappa_just_signed_up', '1');
-                // onAuthStateChange handles the toast and overlay close
-            } else {
-                // Email confirmation is ON — guide them clearly
-                showToast('✉️ Check your email and click the confirmation link, then sign in.');
-                // Switch back to the login panel so they know to sign in after confirming
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
+
+            // Set flag so onAuthStateChange shows "Welcome" toast and handles interface activation
+            sessionStorage.setItem('kappa_just_signed_up', '1');
+
+            // Log in the user immediately with their new credentials
+            const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (signInError) {
+                showToast('Sign in failed: ' + signInError.message);
                 setTimeout(() => {
                     const panelSignup = document.getElementById('panel-signup');
                     const panelLogin = document.getElementById('panel-login');
                     if (panelSignup) panelSignup.classList.remove('active');
                     if (panelLogin) panelLogin.classList.add('active');
-                }, 1500);
+                }, 1000);
             }
         });
     }
