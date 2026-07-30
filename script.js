@@ -1677,6 +1677,13 @@ testDatabaseConnection();
             if (event === 'SIGNED_IN' && sessionStorage.getItem('kappa_login_in_progress') === 'true') {
                 sessionStorage.removeItem('kappa_login_in_progress');
                 const displayName = getUserDisplayName(session.user);
+                const returningKey = `kappa_has_visited_${session.user.id}`;
+                const isReturningUser = !!localStorage.getItem(returningKey);
+                // Mark this user as a returning user from now on
+                localStorage.setItem(returningKey, 'true');
+                const welcomeMsg = isReturningUser
+                    ? `Welcome back to Kappa Fashion Store, <span style="text-decoration: underline; font-weight: 800;">${displayName}</span>!`
+                    : `Welcome to Kappa Fashion Store, <span style="text-decoration: underline; font-weight: 800;">${displayName}</span>!`;
                 const accountOverlay = document.getElementById('accountOverlay');
                 if (accountOverlay) {
                     openOverlay(accountOverlay);
@@ -1747,7 +1754,7 @@ testDatabaseConnection();
                                     margin: 0;
                                     line-height: 1.5;
                                     color: #111111;
-                                ">Welcome  to Kappa Fashion Store, <span style="text-decoration: underline; font-weight: 800;">${displayName}</span>!</p>
+                                ">${welcomeMsg}</p>
                                 
                                 <a href="index.html" style="
                                     display: inline-block;
