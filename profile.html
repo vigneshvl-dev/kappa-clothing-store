@@ -555,7 +555,7 @@
             const profileForm = document.getElementById('profile-form');
             const profileCancelBtn = document.getElementById('profileCancelBtn');
 
-            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            supabaseClient.auth.getSession().then(async ({ data: { session } }) => {
                 if (!session) {
                     window.location.href = 'index.html';
                     return;
@@ -576,6 +576,48 @@
                         const parsed = JSON.parse(storedProfile);
                         profileData = { ...profileData, ...parsed };
                     } catch (_) { }
+                }
+
+                // Fetch from Supabase profiles/addresses if possible
+                if (supabaseClient) {
+                    try {
+                        const { data: dbProfile } = await supabaseClient
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', userId)
+                            .single();
+
+                        if (dbProfile) {
+                            profileData.name = dbProfile.full_name || profileData.name;
+                            profileData.phone = dbProfile.phone || profileData.phone;
+                        } else {
+                            // Create default profile
+                            await supabaseClient
+                                .from('profiles')
+                                .insert([{
+                                    id: userId,
+                                    full_name: profileData.name,
+                                    phone: profileData.phone,
+                                    role: 'customer'
+                                }]);
+                        }
+
+                        const { data: existingAddr } = await supabaseClient
+                            .from('addresses')
+                            .select('line1')
+                            .eq('user_id', userId)
+                            .eq('is_default', true)
+                            .limit(1);
+
+                        if (existingAddr && existingAddr.length > 0) {
+                            profileData.address = existingAddr[0].line1 || profileData.address;
+                        }
+
+                        // Update local cache
+                        localStorage.setItem(profileKey, JSON.stringify(profileData));
+                    } catch (err) {
+                        console.error("Exception loading profile from database in profile.html:", err);
+                    }
                 }
 
                 // Load avatar
@@ -636,7 +678,7 @@
 
                 // Save profile
                 if (profileForm) {
-                    profileForm.addEventListener('submit', (e) => {
+                    profileForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
                         const nameVal = profileNameInput ? profileNameInput.value.trim() : '';
                         const phoneVal = profilePhoneInput ? profilePhoneInput.value.trim() : '';
@@ -644,7 +686,61 @@
                         const profileDataToSave = { name: nameVal, phone: phoneVal, address: addressVal };
                         localStorage.setItem(profileKey, JSON.stringify(profileDataToSave));
                         if (profileNameDisplay) profileNameDisplay.textContent = nameVal || name;
+                        
+                        profileData = profileDataToSave;
                         showToast('Profile saved successfully');
+
+                        if (supabaseClient) {
+                            try {
+                                const { data: existing } = await supabaseClient
+                                    .from('profiles')
+                                    .select('role')
+                                    .eq('id', userId)
+                                    .single();
+
+                                const { error: profileErr } = await supabaseClient
+                                    .from('profiles')
+                                    .upsert({
+                                        id: userId,
+                                        full_name: nameVal,
+                                        phone: phoneVal,
+                                        role: existing ? existing.role : 'customer'
+                                    });
+
+                                if (profileErr) console.error("Error updating profile in Supabase:", profileErr.message);
+
+                                if (addressVal !== '') {
+                                    const { data: existingAddr } = await supabaseClient
+                                        .from('addresses')
+                                        .select('id')
+                                        .eq('user_id', userId)
+                                        .eq('is_default', true)
+                                        .limit(1);
+
+                                    const addressData = {
+                                        user_id: userId,
+                                        line1: addressVal,
+                                        city: '.',
+                                        state: '.',
+                                        pincode: '.',
+                                        is_default: true
+                                    };
+
+                                    if (existingAddr && existingAddr.length > 0) {
+                                        await supabaseClient
+                                            .from('addresses')
+                                            .update({ line1: addressVal })
+                                            .eq('id', existingAddr[0].id);
+                                    } else {
+                                        await supabaseClient
+                                            .from('addresses')
+                                            .insert([addressData]);
+                                    }
+                                }
+                            } catch (err) {
+                                console.error("Exception syncing profile to Supabase in profile.html:", err);
+                            }
+                        }
                     });
                 }
 

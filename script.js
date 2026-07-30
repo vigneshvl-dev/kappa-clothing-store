@@ -1981,7 +1981,7 @@ testDatabaseConnection();
         showToast(`Order ${orderId} registered and tracked!`);
     }
 
-    function saveProfile(userId, name, phone, address) {
+    async function saveProfile(userId, name, phone, address) {
         const profileKey = `kappa_profile_${userId}`;
         const profileData = { name, phone, address };
         localStorage.setItem(profileKey, JSON.stringify(profileData));
@@ -1996,9 +1996,65 @@ testDatabaseConnection();
         if (popupAvatarPlaceholder && (!localStorage.getItem(`kappa_avatar_${userId}`))) {
             popupAvatarPlaceholder.textContent = (name ? name.charAt(0).toUpperCase() : "U");
         }
+
+        if (userId !== 'guest' && supabaseClient) {
+            try {
+                // Fetch the existing user's role to prevent demoting admins
+                const { data: existing } = await supabaseClient
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', userId)
+                    .single();
+
+                const { error: profileErr } = await supabaseClient
+                    .from('profiles')
+                    .upsert({
+                        id: userId,
+                        full_name: name,
+                        phone: phone,
+                        role: existing ? existing.role : 'customer'
+                    });
+
+                if (profileErr) console.error("Error saving profile to Supabase:", profileErr.message);
+
+                if (address && address.trim() !== '') {
+                    // Fetch existing default address
+                    const { data: existingAddr } = await supabaseClient
+                        .from('addresses')
+                        .select('id')
+                        .eq('user_id', userId)
+                        .eq('is_default', true)
+                        .limit(1);
+
+                    const addressData = {
+                        user_id: userId,
+                        line1: address,
+                        city: '.',
+                        state: '.',
+                        pincode: '.',
+                        is_default: true
+                    };
+
+                    if (existingAddr && existingAddr.length > 0) {
+                        const { error: addrErr } = await supabaseClient
+                            .from('addresses')
+                            .update({ line1: address })
+                            .eq('id', existingAddr[0].id);
+                        if (addrErr) console.error("Error updating address in Supabase:", addrErr.message);
+                    } else {
+                        const { error: addrErr } = await supabaseClient
+                            .from('addresses')
+                            .insert([addressData]);
+                        if (addrErr) console.error("Error inserting address in Supabase:", addrErr.message);
+                    }
+                }
+            } catch (err) {
+                console.error("Exception in saveProfile database sync:", err);
+            }
+        }
     }
 
-    function loadProfile(userId, defaultEmail, defaultName) {
+    async function loadProfile(userId, defaultEmail, defaultName) {
         const profileKey = `kappa_profile_${userId}`;
         const stored = localStorage.getItem(profileKey);
         let name = defaultName || "User";
@@ -2012,6 +2068,49 @@ testDatabaseConnection();
                 phone = parsed.phone || "";
                 address = parsed.address || "";
             } catch (_) { }
+        }
+
+        // Fetch from Supabase profiles if possible
+        if (userId !== 'guest' && supabaseClient) {
+            try {
+                const { data: profile, error: profileErr } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (profile) {
+                    name = profile.full_name || name;
+                    phone = profile.phone || phone;
+                } else {
+                    // Profile does not exist, let's create a default profile row!
+                    const { error: insertErr } = await supabaseClient
+                        .from('profiles')
+                        .insert([{
+                            id: userId,
+                            full_name: name,
+                            phone: phone,
+                            role: 'customer'
+                        }]);
+                    if (insertErr) console.error("Error creating default profile row:", insertErr.message);
+                }
+
+                const { data: existingAddr } = await supabaseClient
+                    .from('addresses')
+                    .select('line1')
+                    .eq('user_id', userId)
+                    .eq('is_default', true)
+                    .limit(1);
+
+                if (existingAddr && existingAddr.length > 0) {
+                    address = existingAddr[0].line1 || address;
+                }
+
+                // Update local storage cache
+                localStorage.setItem(profileKey, JSON.stringify({ name, phone, address }));
+            } catch (err) {
+                console.error("Exception loading profile from Supabase:", err);
+            }
         }
 
         const nameInput = document.getElementById('dash-name');
