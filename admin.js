@@ -743,10 +743,59 @@ window.deleteReview = async function(reviewId) {
 
 async function loadCustomers() {
     const container = document.querySelector('#view-customers .card');
-    const { data } = await supabaseClient.from('profiles').select('*').eq('role', 'customer');
-    let html = `<h2>Registered Customers</h2><table class="stock-table"><thead><tr><th>Name</th></tr></thead><tbody>`;
-    if(data) data.forEach(u => html += `<tr><td>${u.full_name || 'N/A'}</td></tr>`);
-    html += `</tbody></table>`;
+    if (!container) return;
+
+    container.innerHTML = '<h2>Registered Customers</h2><p style="color:#666;">Loading customer profiles...</p>';
+
+    const { data: profiles, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        container.innerHTML = `<h2>Registered Customers</h2><p style="color:red;">Error loading customers: ${error.message}</p>`;
+        return;
+    }
+
+    let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+            <h2 style="margin:0;">Registered Customers</h2>
+            <span style="background:#FFD700; color:#111; padding:6px 14px; border-radius:20px; font-weight:bold; font-size:13px;">Total: ${profiles ? profiles.length : 0} Users</span>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="stock-table" style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f8f9fa; text-align:left; border-bottom:2px solid #eee;">
+                        <th style="padding:12px 16px;">Customer Name</th>
+                        <th style="padding:12px 16px;">Phone</th>
+                        <th style="padding:12px 16px;">Role</th>
+                        <th style="padding:12px 16px;">Joined Date</th>
+                        <th style="padding:12px 16px;">User ID</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (!profiles || profiles.length === 0) {
+        html += `<tr><td colspan="5" style="padding:24px; text-align:center; color:#888;">No registered customers found in database.</td></tr>`;
+    } else {
+        profiles.forEach(u => {
+            const joinedDate = u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+            const roleBadge = u.role === 'admin' 
+                ? `<span style="background:#e74c3c; color:white; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:bold; text-transform:uppercase;">ADMIN</span>`
+                : `<span style="background:#2ecc71; color:white; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:bold; text-transform:uppercase;">CUSTOMER</span>`;
+            
+            html += `
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:12px 16px; font-weight:600; color:#111;">${u.full_name || 'N/A'}</td>
+                    <td style="padding:12px 16px; color:#555;">${u.phone || 'N/A'}</td>
+                    <td style="padding:12px 16px;">${roleBadge}</td>
+                    <td style="padding:12px 16px; color:#666; font-size:13px;">${joinedDate}</td>
+                    <td style="padding:12px 16px; font-family:monospace; font-size:11px; color:#888;">${u.id || 'N/A'}</td>
+                </tr>`;
+        });
+    }
+
+    html += `</tbody></table></div>`;
     container.innerHTML = html;
 }
 

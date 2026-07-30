@@ -19,17 +19,21 @@ module.exports = async (req, res) => {
 
     try {
         console.log(`Creating user ${email} in Supabase Auth via admin API...`);
+
+        // Build auth headers — works with both old JWT (eyJ...) and new sb_secret keys
+        const authHeaders = {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        };
+
         const signupRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-                'apikey': SUPABASE_SERVICE_KEY,
-                'Content-Type': 'application/json'
-            },
+            headers: authHeaders,
             body: JSON.stringify({
                 email: email,
                 password: password,
-                email_confirm: true,
+                email_confirm: true,   // skip email confirmation
                 user_metadata: {
                     full_name: fullName
                 }
@@ -40,19 +44,23 @@ module.exports = async (req, res) => {
 
         if (!signupRes.ok) {
             console.error("Failed to create user in Supabase auth:", signupRes.status, signupData);
-            return res.status(signupRes.status).json({ error: signupData.error_description || signupData.message || "Failed to create user" });
+            const errMsg = signupData.msg || signupData.error_description || signupData.message || signupData.error || "Failed to create user";
+            // Normalise duplicate user errors
+            if (signupRes.status === 422 || (typeof errMsg === 'string' && (errMsg.toLowerCase().includes('already') || errMsg.toLowerCase().includes('duplicate')))) {
+                return res.status(409).json({ error: "Email is already registered. Please log in instead." });
+            }
+            return res.status(signupRes.status).json({ error: errMsg });
         }
 
-        console.log(`✅ User ${email} successfully created and email marked as confirmed.`);
-        
-        // Also insert profile in public.profiles table
+        console.log(`✅ User ${email} created and email auto-confirmed.`);
+
+        // Insert/upsert profile row in public.profiles
+        // (The DB trigger also handles this, but we do it explicitly as a safety net)
         const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-                'apikey': SUPABASE_SERVICE_KEY,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=minimal'
+                ...authHeaders,
+                'Prefer': 'resolution=merge-duplicates,return=minimal'
             },
             body: JSON.stringify({
                 id: signupData.id,
@@ -63,10 +71,12 @@ module.exports = async (req, res) => {
 
         if (!profileRes.ok) {
             const profileErr = await profileRes.text();
-            console.warn("Failed to create profile row in database (might already exist or be handled by trigger):", profileRes.status, profileErr);
+            console.warn("Profile upsert warning (trigger may have handled it):", profileRes.status, profileErr);
+        } else {
+            console.log(`✅ Profile row created for ${email}`);
         }
 
-        return res.status(200).json({ success: true, user: signupData });
+        return res.status(200).json({ success: true, user: { id: signupData.id, email: signupData.email } });
 
     } catch (err) {
         console.error("Error in signup endpoint:", err);

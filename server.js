@@ -29,6 +29,9 @@ app.post("/api/delete-order", deleteOrder);
 const cancelOrder = require("./api/cancel-order");
 app.post("/api/cancel-order", cancelOrder);
 
+const signup = require("./api/signup");
+app.post("/api/signup", signup);
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`✅ Server running → http://localhost:${PORT}`);

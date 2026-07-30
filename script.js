@@ -1646,9 +1646,9 @@ testDatabaseConnection();
                 const displayName = getUserDisplayName(session.user);
                 if (isNewSignup) {
                     sessionStorage.removeItem('kappa_just_signed_up');
-                    showToast('Welcome, ' + displayName + '! 🎉');
+                    showToast('Congratulations, ' + displayName + '! 🎉');
                 } else {
-                    showToast('Welcome back, ' + displayName + '!');
+                    showToast('Congratulations, ' + displayName + '!');
                 }
 
                 // Close the account overlay smoothly after showing the toast
@@ -1744,8 +1744,7 @@ testDatabaseConnection();
 
         const dashboardHtml = `
             <section class="panel" id="panel-dashboard">
-                <div class="dash-header">
-                    <h2 class="dash-title">My Account</h2>
+                <div class="dash-header" style="justify-content: flex-end;">
                     <button type="button" class="dash-logout-btn" id="dashLogoutBtn">Sign Out</button>
                 </div>
 
@@ -2287,37 +2286,115 @@ testDatabaseConnection();
             const password = document.getElementById('su-password').value;
             const confirmPassword = document.getElementById('su-confirm').value;
 
+            let errorAlert = signupForm.querySelector('.auth-error-alert');
+            const displayError = (msg) => {
+                showToast(msg);
+                if (!errorAlert) {
+                    errorAlert = document.createElement('div');
+                    errorAlert.className = 'auth-error-alert';
+                    signupForm.prepend(errorAlert);
+                }
+                errorAlert.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span>${msg}</span>`;
+                errorAlert.style.display = 'flex';
+            };
+            if (errorAlert) errorAlert.style.display = 'none';
+
             if (!fullName || !email || !password) {
-                showToast('Please fill in all required fields');
+                displayError('Please fill in all required fields.');
                 return;
             }
             if (password.length < 6) {
-                showToast('Password must be at least 6 characters');
+                displayError('Password must be at least 6 characters.');
                 return;
             }
             if (password !== confirmPassword) {
-                showToast('Passwords do not match');
+                displayError('Passwords do not match. Please try again.');
                 return;
             }
 
             const submitBtn = signupForm.querySelector('button[type="submit"]');
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating account...'; }
 
-            let signupResult;
+            if (!supabaseClient) {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
+                displayError('Connection error. Please refresh the page and try again.');
+                return;
+            }
+
+            // PRIMARY: Try the backend server API (auto-confirms email, no verification needed)
+            let usedBackend = false;
+            const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+            const apiOrigin = isLocalhost && window.location.port !== '3000' ? 'http://localhost:3000' : (isLocalhost ? '' : '');
+
             try {
-                const response = await fetch('/api/signup', {
+                const response = await fetch(`${apiOrigin}/api/signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, fullName })
+                    body: JSON.stringify({ email, password, fullName }),
+                    signal: AbortSignal.timeout(8000)
                 });
-                signupResult = await response.json();
-                if (!response.ok) {
-                    throw new Error(signupResult.error || 'Failed to create account');
+                const signupResult = await response.json();
+                if (response.ok && signupResult.success) {
+                    usedBackend = true;
+                    console.log('✅ Account created via backend API (email auto-confirmed).');
+                } else if (!response.ok) {
+                    const errMsg = (signupResult.error || '').toLowerCase();
+                    if (errMsg.includes('already registered') || errMsg.includes('already exists') || errMsg.includes('duplicate') || errMsg.includes('unique')) {
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
+                        displayError('This email is already registered. Please log in instead.');
+                        return;
+                    }
+                    // For other backend errors, fall through to direct signup
+                    console.warn('Backend signup failed, trying direct signup:', signupResult.error);
                 }
-            } catch (err) {
-                if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
-                showToast('Sign up failed: ' + err.message);
-                return;
+            } catch (fetchErr) {
+                // Backend not available (Live Server, file://, etc.) — fall through to direct signup
+                console.warn('Backend server not reachable, using direct Supabase signup:', fetchErr.message);
+            }
+
+            if (!usedBackend) {
+                // FALLBACK: Direct Supabase signUp (may require email confirmation depending on Supabase settings)
+                const { data: signupData, error: signupError } = await supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: { full_name: fullName }
+                    }
+                });
+
+                if (signupError) {
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
+                    const errLower = signupError.message.toLowerCase();
+                    if (errLower.includes('already registered') || errLower.includes('already exists') || errLower.includes('user already')) {
+                        displayError('This email is already registered. Please log in instead.');
+                    } else {
+                        displayError('Sign up failed: ' + signupError.message);
+                    }
+                    return;
+                }
+
+                // Insert profile row immediately (trigger should handle it, but just in case)
+                if (signupData?.user) {
+                    try {
+                        const { error: profileErr } = await supabaseClient
+                            .from('profiles')
+                            .upsert({ id: signupData.user.id, full_name: fullName, role: 'customer' }, { onConflict: 'id' });
+                        if (profileErr) console.warn('Profile upsert warning:', profileErr.message);
+                    } catch (pe) { /* ignore */ }
+                }
+
+                // If email confirmation is required, inform the user
+                if (signupData?.user && !signupData.session) {
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
+                    showToast('✅ Account created! Please check your email to confirm your account, then log in.');
+                    setTimeout(() => {
+                        const panelSignup = document.getElementById('panel-signup');
+                        const panelLogin = document.getElementById('panel-login');
+                        if (panelSignup) panelSignup.classList.remove('active');
+                        if (panelLogin) panelLogin.classList.add('active');
+                    }, 2500);
+                    return;
+                }
             }
 
             if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
@@ -2328,13 +2405,18 @@ testDatabaseConnection();
             // Log in the user immediately with their new credentials
             const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (signInError) {
-                showToast('Sign in failed: ' + signInError.message);
+                const errLower = signInError.message.toLowerCase();
+                if (errLower.includes('email not confirmed')) {
+                    showToast('✅ Account created! Please check your email to confirm, then log in.');
+                } else {
+                    showToast('Account created! Please log in with your new credentials.');
+                }
                 setTimeout(() => {
                     const panelSignup = document.getElementById('panel-signup');
                     const panelLogin = document.getElementById('panel-login');
                     if (panelSignup) panelSignup.classList.remove('active');
                     if (panelLogin) panelLogin.classList.add('active');
-                }, 1000);
+                }, 1500);
             }
         });
     }
