@@ -1747,7 +1747,7 @@ testDatabaseConnection();
                                     margin: 0;
                                     line-height: 1.5;
                                     color: #111111;
-                                ">Welcome back to Kappa Fashion Store, <span style="text-decoration: underline; font-weight: 800;">${displayName}</span>!</p>
+                                ">Welcome  to Kappa Fashion Store, <span style="text-decoration: underline; font-weight: 800;">${displayName}</span>!</p>
                                 
                                 <a href="index.html" style="
                                     display: inline-block;
