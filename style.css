@@ -9417,3 +9417,44 @@ form .btn-submit:active {
         margin-bottom: 16px;
     }
 }
+
+/* ============ GLOBAL BACK TO HOME BUTTON ============ */
+.btn-back-home {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: 1.5px solid var(--black, #0a0a0a);
+    border-radius: 8px;
+    color: var(--black, #0a0a0a);
+    background: transparent;
+    text-decoration: none;
+    font-family: var(--font-body), 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    margin: 20px auto;
+    width: auto;
+    min-width: 180px;
+    box-sizing: border-box;
+}
+
+.btn-back-home:hover {
+    background: var(--black, #0a0a0a);
+    color: var(--white, #fdfdfb);
+}
+
+.btn-back-home:active {
+    transform: scale(0.98);
+}
+
+/* Sidebar specific back button override */
+.sidebar .btn-back-home {
+    display: flex;
+    width: 100%;
+    margin: 10px 0 0;
+}

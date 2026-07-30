@@ -196,36 +196,6 @@
             /* Mobile navbar layout handled by style.css */
         }
 
-        .btn-back-home {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 12px;
-            border: 1.5px solid #111;
-            border-radius: 4px;
-            color: #111;
-            background: transparent;
-            text-decoration: none;
-            font-family: 'Jost', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .btn-back-home:hover {
-            background: #111;
-            color: #fff;
-        }
-
-        .btn-back-home:active {
-            transform: scale(0.98);
-        }
     </style>
 </head>
 
@@ -399,6 +369,17 @@
             </div>
             <div class="shop-grid" id="shop-product-grid">
                 <!-- Products loaded via JS -->
+            </div>
+
+            <div style="margin-top: 50px; display: flex; justify-content: center; width: 100%;">
+                <a href="index.html" class="btn-back-home">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                        stroke-linejoin="round" width="14" height="14">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Back to Home
+                </a>
             </div>
         </main>
     </div>
@@ -581,7 +562,7 @@
     <script>
         const supabaseUrl = 'https://ugphxapfbzcrauchwlef.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncGh4YXBmYnpjcmF1Y2h3bGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MDE2NjQsImV4cCI6MjA5OTE3NzY2NH0.C9NiffVu_8sqPrXgOwCcXG1ok6atJLTg1Qt8N1_Kd38';
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const shopSupabaseClient = window.supabaseClient || window.supabase.createClient(supabaseUrl, supabaseKey);
 
         let allCategoriesData = [];
         let currentProductsLoaded = [];
@@ -612,7 +593,7 @@
         }
 
         async function fetchCategories() {
-            const { data, error } = await supabaseClient
+            const { data, error } = await shopSupabaseClient
                 .from('categories')
                 .select('*')
                 .order('name', { ascending: true });
@@ -677,7 +658,7 @@
                 });
             }
 
-            let query = supabaseClient
+            let query = shopSupabaseClient
                 .from('products')
                 .select('*, product_images(url, position), product_variants(size, stock_quantity)')
                 .eq('is_active', true)

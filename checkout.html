@@ -112,19 +112,20 @@
         }
 
         .form-group label {
-            font-size: 11px;
+            font-size: 12px;
             text-transform: uppercase;
             font-weight: 700;
             margin-bottom: 8px;
             color: #333;
+            letter-spacing: 0.5px;
         }
 
         .form-group input,
         .form-group select {
             padding: 12px;
-            font-size: 13px;
+            font-size: 16px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 6px;
             font-family: inherit;
         }
 
@@ -491,9 +492,14 @@
                         <input type="tel" id="bill-phone" placeholder="10-digit mobile number" required>
                     </div>
                     <div class="form-group">
+                        <!-- Intentionally empty to keep Phone Number at 50% width on desktop -->
+                    </div>
+                </div>
+
+                <div class="form-row" style="grid-template-columns: 1fr;">
+                    <div class="form-group">
                         <label for="bill-address">Shipping Address *</label>
-                        <input type="text" id="bill-address" placeholder="Apartment, suite, unit, street address"
-                            required>
+                        <input type="text" id="bill-address" placeholder="Apartment, suite, unit, street address" required style="width: 100%;">
                     </div>
                 </div>
 

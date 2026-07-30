@@ -132,6 +132,17 @@ testDatabaseConnection();
 
     async function loadStorefrontProducts() {
         try {
+            // Fetch categories first to map category names
+            const { data: catData } = await supabaseClient
+                .from('categories')
+                .select('id, name');
+            const catMap = {};
+            if (catData) {
+                catData.forEach(c => {
+                    catMap[c.id] = c.name;
+                });
+            }
+
             const { data, error } = await supabaseClient
                 .from('products')
                 .select('*, product_images(url, position), product_variants(*)');
@@ -149,7 +160,8 @@ testDatabaseConnection();
                         ...p,
                         sizes: Array.from(sizesSet),
                         colors: Array.from(colorsSet),
-                        img: (p.product_images && p.product_images.length > 0) ? p.product_images[0].url : 'assets/sleeping sis.png'
+                        img: (p.product_images && p.product_images.length > 0) ? p.product_images[0].url : 'assets/sleeping sis.png',
+                        cat: catMap[p.category_id] || ''
                     };
                 });
                 window.PRODUCTS = PRODUCTS;
@@ -1236,13 +1248,13 @@ testDatabaseConnection();
     searchInput.addEventListener("input", () => {
         const q = searchInput.value.trim().toLowerCase();
         if (!q) { searchResults.innerHTML = ''; return; }
-        const matches = PRODUCTS.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q));
+        const matches = PRODUCTS.filter(p => p.name.toLowerCase().includes(q) || (p.cat || '').toLowerCase().includes(q));
         searchResults.innerHTML = matches.length ? matches.map(p => `
     <div class="sr-item" data-slug="${p.slug || p.id}">
       <img src="${p.img}" alt="${p.name}">
       <div>
         <div class="sr-name">${p.name}</div>
-        <div class="sr-price">${p.cat} · ${fmt(p.price)}</div>
+        <div class="sr-price">${p.cat ? p.cat + ' · ' : ''}${fmt(p.price)}</div>
       </div>
     </div>`).join('') : `<div class="sr-empty">No results for "${q}"</div>`;
     });
