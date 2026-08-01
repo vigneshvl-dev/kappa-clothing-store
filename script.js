@@ -727,7 +727,20 @@ testDatabaseConnection();
     const qvOverlay = document.getElementById("quickViewOverlay");
     const accountOverlay = document.getElementById("accountOverlay");
 
-    function openOverlay(el) { if (el) { el.classList.add("open"); document.body.style.overflow = "hidden"; } }
+    function openOverlay(el) {
+        if (el) {
+            el.classList.add("open");
+            document.body.style.overflow = "hidden";
+            if (el === accountOverlay) {
+                setTimeout(() => {
+                    const loginEmail = document.getElementById('login-email');
+                    const loginPass = document.getElementById('login-password');
+                    if (loginEmail) loginEmail.value = '';
+                    if (loginPass) loginPass.value = '';
+                }, 50);
+            }
+        }
+    }
     function closeOverlay(el) {
         if (el) {
             el.classList.remove("open");
@@ -2426,7 +2439,7 @@ testDatabaseConnection();
 
             if (!supabaseClient) {
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<span>Sign In</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'; }
-                displayError('Account not found! Please check your credentials.');
+                displayError('Account not found! Please create an account first.');
                 return;
             }
 
@@ -2442,7 +2455,7 @@ testDatabaseConnection();
                 if (errLower.includes('email not confirmed')) {
                     displayError('Account not confirmed yet. Please check your inbox for the confirmation link.');
                 } else if (errLower.includes('invalid login credentials') || errLower.includes('invalid credentials') || errLower.includes('user not found')) {
-                    displayError('Account not found or incorrect password!');
+                    displayError('Account not found or incorrect password! If you don\'t have an account, please click "Create an account" first.');
                 } else {
                     displayError('Sign in failed: ' + error.message);
                 }
@@ -2630,6 +2643,14 @@ testDatabaseConnection();
 
     // Run renderCart initially to load the cart from localStorage
     setTimeout(renderCart, 100);
+
+    // Clear login inputs on page load after a short delay to bypass browser autofill
+    setTimeout(() => {
+        const loginEmail = document.getElementById('login-email');
+        const loginPass = document.getElementById('login-password');
+        if (loginEmail) loginEmail.value = '';
+        if (loginPass) loginPass.value = '';
+    }, 200);
 })();
 
 // --- AUTO-RUNNING CATEGORY SEPARATED INJECTION (STRICT 4-LIMIT) ---
