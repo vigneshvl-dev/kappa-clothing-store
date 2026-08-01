@@ -1633,6 +1633,168 @@ testDatabaseConnection();
         return "User";
     }
 
+    function saveUserToLocalStorage(userObj) {
+        if (!userObj) return;
+        localStorage.setItem('kappa_logged_in', 'true');
+        localStorage.setItem('kappa_user', JSON.stringify(userObj));
+        if (userObj.email) localStorage.setItem('kappa_user_email', userObj.email);
+        const name = userObj.fullName || userObj.name;
+        if (name) {
+            localStorage.setItem('kappa_user_name', name);
+            if (userObj.id) {
+                localStorage.setItem(`kappa_profile_${userObj.id}`, JSON.stringify({ name: name, email: userObj.email }));
+            }
+        }
+    }
+
+    function clearUserFromLocalStorage() {
+        localStorage.removeItem('kappa_logged_in');
+        localStorage.removeItem('kappa_user');
+        localStorage.removeItem('kappa_user_email');
+        localStorage.removeItem('kappa_user_name');
+    }
+
+    /* ---------- CONGRATULATIONS POPUP MODAL SYSTEM ---------- */
+    function injectCongratsModal() {
+        if (document.getElementById('congratsModalOverlay')) return;
+        const modalHtml = `
+            <div class="congrats-modal-overlay" id="congratsModalOverlay">
+                <div class="congrats-modal-card">
+                    <button type="button" class="congrats-close-btn" id="closeCongratsModal" aria-label="Close">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="congrats-icon-wrap">
+                        <span class="congrats-emoji">🎉</span>
+                    </div>
+                    <h2 class="congrats-title">CONGRATULATIONS!</h2>
+                    <p class="congrats-subtitle">Account Created Successfully</p>
+                    <p class="congrats-message">
+                        Welcome to KAPPA Clothing Store, <strong id="congratsUserName">Valued Customer</strong>! Your account is now active and saved securely.
+                    </p>
+                    <div class="congrats-offer-box">
+                        <div class="congrats-offer-header">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v10H4V12"></path><path d="M2 7h20v5H2z"></path><path d="M12 22V7"></path><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
+                            <span>EXCLUSIVE WELCOME GIFT</span>
+                        </div>
+                        <div class="congrats-discount">10% OFF YOUR FIRST ORDER</div>
+                        <div class="congrats-code-wrapper">
+                            <span class="congrats-code" id="congratsCouponCode">WELCOME10</span>
+                            <button type="button" class="congrats-copy-btn" id="copyCongratsCodeBtn">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="congrats-action-btn" id="congratsShopNowBtn">
+                        <span>START SHOPPING NOW</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        const overlay = document.getElementById('congratsModalOverlay');
+        const closeBtn = document.getElementById('closeCongratsModal');
+        const shopBtn = document.getElementById('congratsShopNowBtn');
+        const copyBtn = document.getElementById('copyCongratsCodeBtn');
+
+        const closeModal = () => {
+            if (overlay) overlay.classList.remove('open');
+        };
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (overlay) {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeModal();
+            });
+        }
+        if (shopBtn) {
+            shopBtn.addEventListener('click', () => {
+                closeModal();
+                const shopSection = document.getElementById('products') || document.getElementById('shop') || document.querySelector('.products-grid');
+                if (shopSection) {
+                    shopSection.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    window.location.href = 'shop.html';
+                }
+            });
+        }
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText('WELCOME10').then(() => {
+                    showToast('🎉 Promo code WELCOME10 copied!');
+                }).catch(() => {
+                    showToast('Promo code: WELCOME10');
+                });
+            });
+        }
+    }
+
+    function triggerCongratsPopup(userName) {
+        injectCongratsModal();
+        const nameSpan = document.getElementById('congratsUserName');
+        if (nameSpan && userName) {
+            nameSpan.textContent = userName;
+        }
+        const overlay = document.getElementById('congratsModalOverlay');
+        if (overlay) {
+            overlay.classList.add('open');
+        }
+        fireCongratsConfetti();
+    }
+
+    function checkAndShowCongratsPopup() {
+        if (localStorage.getItem('kappa_show_congrats_popup') === '1') {
+            const userName = localStorage.getItem('kappa_congrats_user_name') || 'Valued Customer';
+            localStorage.removeItem('kappa_show_congrats_popup');
+            localStorage.removeItem('kappa_congrats_user_name');
+            
+            closeAccountOverlay();
+            
+            setTimeout(() => {
+                triggerCongratsPopup(userName);
+            }, 350);
+        }
+    }
+
+    function fireCongratsConfetti() {
+        const colors = ['#F5C518', '#ffffff', '#ffd700', '#ff4757', '#2ed573', '#1e90ff'];
+        for (let i = 0; i < 35; i++) {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.zIndex = '999999';
+            confetti.style.left = (Math.random() * 100) + 'vw';
+            confetti.style.top = '-10px';
+            confetti.style.width = (Math.random() * 8 + 6) + 'px';
+            confetti.style.height = (Math.random() * 12 + 6) + 'px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.borderRadius = (Math.random() > 0.5 ? '50%' : '2px');
+            confetti.style.opacity = '1';
+            confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+            confetti.style.transition = `all ${Math.random() * 2.5 + 1.5}s cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+            
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => {
+                confetti.style.top = (Math.random() * 40 + 60) + 'vh';
+                confetti.style.left = (parseFloat(confetti.style.left) + (Math.random() * 100 - 50)) + 'vw';
+                confetti.style.opacity = '0';
+                confetti.style.transform = `rotate(${Math.random() * 720}deg) scale(0.5)`;
+            }, 50);
+
+            setTimeout(() => {
+                confetti.remove();
+            }, 4000);
+        }
+    }
+
+    // Check for congratulations popup on page load
+    setTimeout(checkAndShowCongratsPopup, 300);
+
     // Listen for auth state changes (covers Google OAuth redirect)
     supabaseClient.auth.onAuthStateChange((event, session) => {
         currentUserSession = session;
@@ -1641,14 +1803,25 @@ testDatabaseConnection();
         if (session && session.user) {
             if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
 
+            const displayName = getUserDisplayName(session.user);
+            saveUserToLocalStorage({
+                id: session.user.id,
+                email: session.user.email,
+                fullName: displayName,
+                loggedIn: true
+            });
+
             if (event === 'SIGNED_IN') {
-                const isNewSignup = sessionStorage.getItem('kappa_just_signed_up') === '1';
-                const displayName = getUserDisplayName(session.user);
-                if (isNewSignup) {
-                    sessionStorage.removeItem('kappa_just_signed_up');
-                    showToast('Congratulations, ' + displayName + '! 🎉');
+                if (localStorage.getItem('kappa_show_congrats_popup') === '1') {
+                    checkAndShowCongratsPopup();
                 } else {
-                    showToast('Congratulations, ' + displayName + '!');
+                    const isNewSignup = sessionStorage.getItem('kappa_just_signed_up') === '1';
+                    if (isNewSignup) {
+                        sessionStorage.removeItem('kappa_just_signed_up');
+                        showToast('Congratulations, ' + displayName + '! 🎉');
+                    } else {
+                        showToast('Welcome back, ' + displayName + '! 🎉');
+                    }
                 }
 
                 // Close the account overlay smoothly after showing the toast
@@ -1709,6 +1882,7 @@ testDatabaseConnection();
             if (panelSignup) panelSignup.classList.remove('active');
             if (panelDashboard) panelDashboard.classList.add('active');
         } else {
+            clearUserFromLocalStorage();
             if (profileBtn) profileBtn.style.color = '';
             if (profilePopup) profilePopup.classList.remove('open');
 
@@ -1811,9 +1985,11 @@ testDatabaseConnection();
         const logoutBtn = document.getElementById('dashLogoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
+                clearUserFromLocalStorage();
                 const { error } = await supabaseClient.auth.signOut();
                 if (error) showToast('Logout failed: ' + error.message);
                 else showToast('Logged out successfully');
+                window.location.href = 'index.html';
             });
         }
 
@@ -2250,7 +2426,7 @@ testDatabaseConnection();
 
             if (!supabaseClient) {
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<span>Sign In</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'; }
-                displayError('Account not found! Please create an account first.');
+                displayError('Account not found! Please check your credentials.');
                 return;
             }
 
@@ -2266,11 +2442,36 @@ testDatabaseConnection();
                 if (errLower.includes('email not confirmed')) {
                     displayError('Account not confirmed yet. Please check your inbox for the confirmation link.');
                 } else if (errLower.includes('invalid login credentials') || errLower.includes('invalid credentials') || errLower.includes('user not found')) {
-                    displayError('Account not found or incorrect password! If you don\'t have an account, please click "Create an account" first.');
+                    displayError('Account not found or incorrect password!');
                 } else {
                     displayError('Sign in failed: ' + error.message);
                 }
                 return;
+            }
+
+            // On Login Success: Save user to localStorage
+            const user = data.user;
+            const displayName = getUserDisplayName(user);
+            saveUserToLocalStorage({
+                id: user.id,
+                email: user.email,
+                fullName: displayName,
+                loggedIn: true,
+                loginTime: Date.now()
+            });
+
+            // Handle Navigation after Login
+            const pathname = window.location.pathname;
+            const isHomePage = pathname.endsWith('index.html') || pathname.endsWith('/') || pathname === '';
+            const isPendingCheckout = localStorage.getItem('kappa_pending_checkout') === '1';
+
+            if (isPendingCheckout) {
+                window.location.href = 'checkout.html';
+            } else if (!isHomePage) {
+                window.location.href = 'index.html';
+            } else {
+                closeAccountOverlay();
+                showToast('Welcome back, ' + displayName + '! 🎉');
             }
         });
     }
@@ -2321,6 +2522,8 @@ testDatabaseConnection();
                 return;
             }
 
+            let createdUserId = 'usr_' + Date.now();
+
             // PRIMARY: Try the backend server API (auto-confirms email, no verification needed)
             let usedBackend = false;
             const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -2336,6 +2539,7 @@ testDatabaseConnection();
                 const signupResult = await response.json();
                 if (response.ok && signupResult.success) {
                     usedBackend = true;
+                    if (signupResult.user?.id) createdUserId = signupResult.user.id;
                     console.log('✅ Account created via backend API (email auto-confirmed).');
                 } else if (!response.ok) {
                     const errMsg = (signupResult.error || '').toLowerCase();
@@ -2344,16 +2548,14 @@ testDatabaseConnection();
                         displayError('This email is already registered. Please log in instead.');
                         return;
                     }
-                    // For other backend errors, fall through to direct signup
                     console.warn('Backend signup failed, trying direct signup:', signupResult.error);
                 }
             } catch (fetchErr) {
-                // Backend not available (Live Server, file://, etc.) — fall through to direct signup
                 console.warn('Backend server not reachable, using direct Supabase signup:', fetchErr.message);
             }
 
             if (!usedBackend) {
-                // FALLBACK: Direct Supabase signUp (may require email confirmation depending on Supabase settings)
+                // FALLBACK: Direct Supabase signUp
                 const { data: signupData, error: signupError } = await supabaseClient.auth.signUp({
                     email,
                     password,
@@ -2373,50 +2575,44 @@ testDatabaseConnection();
                     return;
                 }
 
-                // Insert profile row immediately (trigger should handle it, but just in case)
+                if (signupData?.user?.id) createdUserId = signupData.user.id;
+
                 if (signupData?.user) {
                     try {
-                        const { error: profileErr } = await supabaseClient
+                        await supabaseClient
                             .from('profiles')
                             .upsert({ id: signupData.user.id, full_name: fullName, role: 'customer' }, { onConflict: 'id' });
-                        if (profileErr) console.warn('Profile upsert warning:', profileErr.message);
                     } catch (pe) { /* ignore */ }
-                }
-
-                // If email confirmation is required, inform the user
-                if (signupData?.user && !signupData.session) {
-                    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
-                    showToast('✅ Account created! Please check your email to confirm your account, then log in.');
-                    setTimeout(() => {
-                        const panelSignup = document.getElementById('panel-signup');
-                        const panelLogin = document.getElementById('panel-login');
-                        if (panelSignup) panelSignup.classList.remove('active');
-                        if (panelLogin) panelLogin.classList.add('active');
-                    }, 2500);
-                    return;
                 }
             }
 
             if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Create Account &rarr;'; }
 
-            // Set flag so onAuthStateChange shows "Welcome" toast and handles interface activation
-            sessionStorage.setItem('kappa_just_signed_up', '1');
+            // ALWAYS SAVE TO LOCAL STORAGE
+            saveUserToLocalStorage({
+                id: createdUserId,
+                email: email,
+                fullName: fullName,
+                loggedIn: true,
+                createdAt: Date.now()
+            });
 
-            // Log in the user immediately with their new credentials
-            const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (signInError) {
-                const errLower = signInError.message.toLowerCase();
-                if (errLower.includes('email not confirmed')) {
-                    showToast('✅ Account created! Please check your email to confirm, then log in.');
-                } else {
-                    showToast('Account created! Please log in with your new credentials.');
-                }
-                setTimeout(() => {
-                    const panelSignup = document.getElementById('panel-signup');
-                    const panelLogin = document.getElementById('panel-login');
-                    if (panelSignup) panelSignup.classList.remove('active');
-                    if (panelLogin) panelLogin.classList.add('active');
-                }, 1500);
+            // Set flags for Congratulations Popup Modal on Home Page
+            localStorage.setItem('kappa_show_congrats_popup', '1');
+            localStorage.setItem('kappa_congrats_user_name', fullName);
+
+            // Log in user immediately
+            await supabaseClient.auth.signInWithPassword({ email, password }).catch(() => {});
+
+            // DIRECTLY NAVIGATE TO HOME PAGE & POPUP CONGRATULATIONS
+            const pathname = window.location.pathname;
+            const isHomePage = pathname.endsWith('index.html') || pathname.endsWith('/') || pathname === '';
+
+            if (!isHomePage) {
+                window.location.href = 'index.html';
+            } else {
+                closeAccountOverlay();
+                checkAndShowCongratsPopup();
             }
         });
     }

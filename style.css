@@ -9458,3 +9458,231 @@ form .btn-submit:active {
     width: 100%;
     margin: 10px 0 0;
 }
+
+/* ============ CONGRATULATIONS POPUP MODAL ============ */
+.congrats-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.congrats-modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.congrats-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: #0f0f11;
+    color: #ffffff;
+    border-radius: 24px;
+    padding: 38px 28px 32px;
+    text-align: center;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(245, 197, 24, 0.3);
+    transform: scale(0.85) translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+}
+
+.congrats-modal-overlay.open .congrats-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+.congrats-modal-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #F5C518, transparent);
+    border-radius: 2px;
+}
+
+.congrats-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: #aaaaaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.congrats-close-btn:hover {
+    background: #F5C518;
+    color: #000000;
+    transform: rotate(90deg);
+}
+
+.congrats-icon-wrap {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, rgba(245, 197, 24, 0.25) 0%, rgba(245, 197, 24, 0.05) 70%);
+    border-radius: 50%;
+    border: 2px solid rgba(245, 197, 24, 0.5);
+    animation: congratsPulse 2s infinite ease-in-out;
+}
+
+@keyframes congratsPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 197, 24, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 25px 8px rgba(245, 197, 24, 0.2); }
+}
+
+.congrats-emoji {
+    font-size: 38px;
+    line-height: 1;
+}
+
+.congrats-title {
+    font-family: var(--font-heading, 'Outfit', sans-serif);
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #F5C518;
+    margin: 0 0 4px;
+    text-transform: uppercase;
+}
+
+.congrats-subtitle {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    margin: 0 0 16px;
+    text-transform: uppercase;
+}
+
+.congrats-message {
+    font-size: 14px;
+    color: #cccccc;
+    line-height: 1.5;
+    margin: 0 0 24px;
+    padding: 0 10px;
+}
+
+.congrats-message strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.congrats-offer-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(245, 197, 24, 0.4);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.congrats-offer-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #F5C518;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.congrats-discount {
+    font-size: 15px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+.congrats-code-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #000000;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.congrats-code {
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #F5C518;
+}
+
+.congrats-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #F5C518;
+    color: #000000;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.congrats-copy-btn:hover {
+    background: #ffffff;
+}
+
+.congrats-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #F5C518 0%, #d4a307 100%);
+    color: #000000;
+    border: none;
+    border-radius: 14px;
+    font-family: var(--font-heading, 'Outfit', sans-serif);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(245, 197, 24, 0.3);
+    transition: all 0.25s ease;
+}
+
+.congrats-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(245, 197, 24, 0.45);
+    background: linear-gradient(135deg, #ffd700 0%, #F5C518 100%);
+}
+
+.congrats-action-btn:active {
+    transform: translateY(0);
+}
