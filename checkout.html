@@ -181,6 +181,8 @@
             border-radius: 8px;
             padding: 30px;
             border: 1px solid #eee;
+            box-sizing: border-box;
+            width: 100%;
         }
 
         .checkout-section h2 {
@@ -211,15 +213,22 @@
                 grid-template-columns: 1fr;
                 padding: 0 15px;
                 gap: 30px;
+                display: flex;
+                flex-direction: column;
+                box-sizing: border-box;
+                width: 100%;
+                overflow: hidden;
             }
 
-            /* Natural HTML order places Shipping first, then Order Summary */
-            .checkout-section {
-                padding: 20px 15px;
-            }
-
+            /* Place Order Summary first, Shipping second */
             .order-summary-sidebar {
-                padding: 20px 15px;
+                order: 1;
+                padding: 25px 20px;
+            }
+
+            .checkout-section {
+                order: 2;
+                padding: 25px 20px;
             }
         }
 
@@ -239,6 +248,8 @@
 
         .form-group input,
         .form-group select {
+            width: 100%;
+            box-sizing: border-box;
             padding: 12px;
             font-size: 16px;
             border: 1px solid #ddd;
