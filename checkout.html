@@ -1,4 +1,43 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - KAPPA</title>
+    <link rel="icon" type="image/png" href="assets/kappalogo_favion.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Cormorant+Garamond:ital,wght@1,500&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.18/dist/lenis.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        @media (max-width: 768px) {
+            .marquee {
+                display: none !important;
+            }
+
+            body {
+                padding-top: var(--nav-h) !important;
+            }
+
+            .navbar {
+                top: 0 !important;
+            }
+        }
+
+        body {
+            padding-top: calc(var(--marquee-h) + var(--nav-h));
+        }
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -44,6 +83,82 @@
         }
     </style>
     <style>
+        /* Success Modal */
+        .success-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .success-modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .success-modal-box {
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .success-modal-overlay.show .success-modal-box {
+            transform: translateY(0);
+        }
+        .success-modal-icon {
+            width: 70px;
+            height: 70px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .success-modal-icon svg {
+            width: 35px;
+            height: 35px;
+        }
+        .success-modal-title {
+            font-family: var(--font-heading);
+            font-size: 26px;
+            color: #111;
+            margin-bottom: 10px;
+        }
+        .success-modal-text {
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        .success-modal-btn {
+            background: #111;
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 100px;
+            font-family: var(--font-ui);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .success-modal-btn:hover {
+            background: #333;
+        }
+
         .checkout-layout {
             max-width: 1200px;
             margin: 45px auto;
@@ -94,15 +209,17 @@
 
             .checkout-layout {
                 grid-template-columns: 1fr;
-                padding: 0 20px;
+                padding: 0 15px;
+                gap: 30px;
             }
 
+            /* Natural HTML order places Shipping first, then Order Summary */
             .checkout-section {
-                order: 2;
+                padding: 20px 15px;
             }
 
             .order-summary-sidebar {
-                order: 1;
+                padding: 20px 15px;
             }
         }
 
@@ -1230,6 +1347,31 @@
             await payNow(total, newOrderId, orderRecord, reduceStockForCart);
         }
 
+        // Save orders logic
+        async function saveOrderDataAndCleanUp(orderRecord) {
+            if (orderRecord) {
+                const orders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
+                orders.unshift(orderRecord);
+                localStorage.setItem('kappa_orders', JSON.stringify(orders));
+            }
+
+            localStorage.removeItem('kappa_cart');
+            localStorage.removeItem('kappa_checkout_cart');
+            localStorage.removeItem('kappa_buy_now_item');
+            localStorage.removeItem('kappa_checkout_shipping');
+            localStorage.removeItem('kappa_checkout_discount');
+        }
+
+        // Show custom success modal
+        function showSuccessModal() {
+            const overlay = document.getElementById('paymentSuccessModal');
+            if(overlay) overlay.classList.add('show');
+        }
+
+        window.closeSuccessModal = function() {
+            window.location.href = 'index.html';
+        };
+
         async function payNow(secureTotal, dbOrderId, orderRecord, reduceStockFn) {
             try {
                 // 1. Convert secure total to paise (Razorpay expects smallest currency unit)
@@ -1306,19 +1448,10 @@
 
                         if (orderRecord) {
                             orderRecord.paymentId = response.razorpay_payment_id || ('pay_' + Date.now());
-                            const orders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
-                            orders.unshift(orderRecord);
-                            localStorage.setItem('kappa_orders', JSON.stringify(orders));
                         }
 
-                        localStorage.removeItem('kappa_cart');
-                        localStorage.removeItem('kappa_checkout_cart');
-                        localStorage.removeItem('kappa_buy_now_item');
-                        localStorage.removeItem('kappa_checkout_shipping');
-                        localStorage.removeItem('kappa_checkout_discount');
-
-                        alert("✅ Payment Successful!\nPayment ID: " + (response.razorpay_payment_id || 'Success'));
-                        window.location.href = 'my-orders.html';
+                        saveOrderDataAndCleanUp(orderRecord);
+                        showSuccessModal();
                     },
                     prefill: {
                         name: document.getElementById("bill-name") ? document.getElementById("bill-name").value : "",
@@ -1346,14 +1479,8 @@
                     if (typeof reduceStockFn === 'function') {
                         await reduceStockFn(cartItems);
                     }
-                    if (orderRecord) {
-                        const orders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
-                        orders.unshift(orderRecord);
-                        localStorage.setItem('kappa_orders', JSON.stringify(orders));
-                    }
-                    localStorage.removeItem('kappa_cart');
-                    localStorage.removeItem('kappa_buy_now_item');
-                    window.location.href = 'my-orders.html';
+                    saveOrderDataAndCleanUp(orderRecord);
+                    showSuccessModal();
                 }
 
             } catch (err) {
@@ -1368,6 +1495,20 @@
             loadCheckoutDetails();
         }
     </script>
+
+    <!-- Success Modal HTML -->
+    <div class="success-modal-overlay" id="paymentSuccessModal">
+        <div class="success-modal-box">
+            <div class="success-modal-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h2 class="success-modal-title">Thank You!</h2>
+            <p class="success-modal-text">Your payment was successful and your order has been placed. Thank you for shopping with KAPPA.</p>
+            <button class="success-modal-btn" onclick="closeSuccessModal()">Back to Home Page</button>
+        </div>
+    </div>
 </body>
 
 </html>

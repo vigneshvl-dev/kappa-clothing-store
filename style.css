@@ -4313,7 +4313,10 @@ body.scrolled .marquee {
     background: var(--black);
     color: var(--white);
     padding: 16px 26px;
-    border-radius: 100px;
+    border-radius: 8px; /* Changed from 100px to avoid weird shape on wrapping text */
+    max-width: 90vw;
+    width: max-content;
+    text-align: left;
     font-size: 13.5px;
     font-weight: 600;
     z-index: 3000;
@@ -4322,7 +4325,7 @@ body.scrolled .marquee {
     transition: all .4s var(--ease);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     box-shadow: 0 20px 40px -14px rgba(0, 0, 0, .5);
 }
 
