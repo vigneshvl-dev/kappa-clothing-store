@@ -892,9 +892,14 @@ testDatabaseConnection();
     }
     if (mobileAccountLink) mobileAccountLink.addEventListener("click", e => {
         e.preventDefault();
-        if (heroHamburger) heroHamburger.classList.remove("open");
-        if (mobileMenu) mobileMenu.classList.remove("open");
-        openOverlay(accountOverlay);
+        if (currentUserSession && currentUserSession.user) {
+            // Already logged in — go to profile page
+            window.location.href = 'profile.html';
+        } else {
+            if (heroHamburger) heroHamburger.classList.remove("open");
+            if (mobileMenu) mobileMenu.classList.remove("open");
+            openOverlay(accountOverlay);
+        }
     });
     if (mobileOrdersLink) mobileOrdersLink.addEventListener("click", e => {
         e.preventDefault();
@@ -1824,6 +1829,17 @@ testDatabaseConnection();
         if (session && session.user) {
             if (profileBtn) profileBtn.style.color = 'var(--yellow, #F5C518)';
 
+            // Mobile menu: show "View Profile", hide "Login / Register"
+            const mobileAccountLink = document.getElementById('mobileAccountLink');
+            const mobileViewProfileLink = document.getElementById('mobileViewProfileLink');
+            const mobileViewProfileName = document.getElementById('mobileViewProfileName');
+            if (mobileAccountLink) mobileAccountLink.style.display = 'none';
+            if (mobileViewProfileLink) mobileViewProfileLink.style.display = 'flex';
+            if (mobileViewProfileName) {
+                const displayName = getUserDisplayName(session.user);
+                mobileViewProfileName.textContent = displayName ? displayName : 'View Profile';
+            }
+
             const displayName = getUserDisplayName(session.user);
             saveUserToLocalStorage({
                 id: session.user.id,
@@ -1906,6 +1922,12 @@ testDatabaseConnection();
             clearUserFromLocalStorage();
             if (profileBtn) profileBtn.style.color = '';
             if (profilePopup) profilePopup.classList.remove('open');
+
+            // Mobile menu: show "Login / Register", hide "View Profile"
+            const mobileAccountLink = document.getElementById('mobileAccountLink');
+            const mobileViewProfileLink = document.getElementById('mobileViewProfileLink');
+            if (mobileAccountLink) mobileAccountLink.style.display = 'flex';
+            if (mobileViewProfileLink) mobileViewProfileLink.style.display = 'none';
 
             // Remove dashboard active class from overlay
             const accountOverlay = document.getElementById('accountOverlay');
