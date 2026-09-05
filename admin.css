@@ -10,7 +10,9 @@
 body {
     background-color: #f7f5f0; 
     color: #1a1a1a;
+    overflow: hidden;
 }
+
 
 .dashboard-wrapper {
     display: flex;
