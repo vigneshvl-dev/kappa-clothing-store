@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -393,35 +393,87 @@
         }
 
         .size-box {
-            min-width: 44px;
+            min-width: 52px;
             height: auto;
-            min-height: 40px;
-            padding: 4px 6px;
-            border: 1px solid #ddd;
+            min-height: 48px;
+            padding: 5px 8px;
+            border: 1.5px solid #ddd;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
             background: #fff;
             text-transform: uppercase;
-            transition: 0.2s;
+            transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+            border-radius: 6px;
+            gap: 2px;
+        }
+
+        .size-box.out-of-stock-box {
+            opacity: 0.42;
+            cursor: not-allowed;
+            background: #f5f5f5;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .size-box.out-of-stock-box::after {
+            content: '';
+            position: absolute;
+            left: 6px; right: 6px;
+            top: 50%; height: 1.5px;
+            background: #bbb;
+            transform: rotate(-15deg);
         }
 
         .size-stock-tag {
             font-size: 9px;
             font-weight: 700;
             line-height: 1;
-            margin-top: 2px;
+            letter-spacing: 0.2px;
+        }
+
+        .size-stock-tag.plenty {
+            color: #2e7d32;
         }
 
         .size-stock-tag.low {
-            color: #e00;
+            color: #e65100;
         }
 
         .size-stock-tag.out {
             color: #999;
+        }
+
+        /* Stock info bar that shows on size click */
+        #size-stock-info {
+            display: none;
+            margin-top: 8px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            border: 1px solid;
+            transition: all 0.2s ease;
+        }
+        #size-stock-info.info-in-stock {
+            background: #e8f5e9;
+            border-color: #a5d6a7;
+            color: #1b5e20;
+        }
+        #size-stock-info.info-low-stock {
+            background: #fff3e0;
+            border-color: #ffcc80;
+            color: #e65100;
+        }
+        #size-stock-info.info-out-stock {
+            background: #f5f5f5;
+            border-color: #e0e0e0;
+            color: #757575;
         }
 
         .pdp-sold-badge {
@@ -1007,6 +1059,7 @@
                     <span class="link-dark" onclick="openSizeGuide()">SIZE GUIDE</span>
                 </div>
                 <div class="size-grid" id="pdp-sizes"></div>
+                <div id="size-stock-info"></div>
                 <div id="size-error-msg" style="display:none; color:#e00; font-size:12px; font-weight:600; margin-top:6px; letter-spacing:0.3px;">⚠ Please select a size to continue.</div>
             </div>
 
@@ -1904,12 +1957,20 @@
                     pdpSizes.innerHTML = sizes.map(size => {
                         const st = window.sizeStockMap ? window.sizeStockMap[size] : null;
                         let stockBadge = '';
-                        if (st !== null && st !== undefined && st > 0 && st <= 5) {
-                            stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
-                        } else if (st === 0) {
-                            stockBadge = `<span class="size-stock-tag out">Out</span>`;
+                        let outClass = '';
+                        if (st !== null && st !== undefined) {
+                            if (st === 0) {
+                                stockBadge = `<span class="size-stock-tag out">Out</span>`;
+                                outClass = ' out-of-stock-box';
+                            } else if (st <= 3) {
+                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                            } else if (st <= 10) {
+                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                            } else {
+                                stockBadge = `<span class="size-stock-tag plenty">In Stock</span>`;
+                            }
                         }
-                        return `<div class="size-box" onclick="selectSize(this, '${size}')" data-size="${size}">
+                        return `<div class="size-box${outClass}" onclick="selectSize(this, '${size}')" data-size="${size}" data-stock="${st !== null && st !== undefined ? st : ''}">
                             <span>${size}</span>
                             ${stockBadge}
                         </div>`;
@@ -2267,6 +2328,25 @@ window.selectSize = function selectSize(element, size) {
     // Clear error message
     const sizeErr = document.getElementById('size-error-msg');
     if (sizeErr) sizeErr.style.display = 'none';
+
+    // Show stock info bar for selected size
+    const infoBar = document.getElementById('size-stock-info');
+    if (infoBar && window.sizeStockMap && window.sizeStockMap[size] !== undefined) {
+        const stock = window.sizeStockMap[size];
+        infoBar.style.display = 'block';
+        if (stock === 0) {
+            infoBar.className = 'info-out-stock';
+            infoBar.textContent = `Size ${size}: Out of Stock`;
+        } else if (stock <= 5) {
+            infoBar.className = 'info-low-stock';
+            infoBar.textContent = `⚡ Hurry! Only ${stock} left in size ${size}`;
+        } else {
+            infoBar.className = 'info-in-stock';
+            infoBar.textContent = `✓ ${stock} available in size ${size}`;
+        }
+    } else if (infoBar) {
+        infoBar.style.display = 'none';
+    }
 
     // Update stock alert for selected size if stock mapping exists
     if (window.sizeStockMap && window.sizeStockMap[size] !== undefined) {
