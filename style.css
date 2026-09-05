@@ -442,25 +442,8 @@ body.home-page .navbar.scrolled {
     box-sizing: border-box;
 }
 
-.bnav-item .badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-    background: #ff4d4f;
-    color: #ffffff;
-    font-size: 9px;
-    font-weight: 700;
-    border-radius: 50%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    letter-spacing: normal;
-    box-sizing: border-box;
-}
+
+
 
 .icon-btn:hover {
     background: rgba(0, 0, 0, 0.05);
