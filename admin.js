@@ -2250,14 +2250,18 @@ async function loadDashboard() {
         const { data: orders } = await supabaseClient.from('orders').select('total_amount, status');
         if (orders) {
             let totalRevenue = 0;
+            let count = 0;
             orders.forEach(o => {
-                const st = (o.status || '').toLowerCase();
-                if (!st.includes('cancel')) {
-                    totalRevenue += (Number(o.total_amount) || 0);
+                const st = (o.status || '').toLowerCase().trim();
+                if (st !== 'pending') {
+                    count++;
+                    if (!st.includes('cancel')) {
+                        totalRevenue += (Number(o.total_amount) || 0);
+                    }
                 }
             });
             if (revEl) revEl.textContent = `₹${totalRevenue.toLocaleString('en-IN')}`;
-            if (ordEl) ordEl.textContent = orders.length;
+            if (ordEl) ordEl.textContent = count;
         }
 
         const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
@@ -2284,14 +2288,20 @@ async function loadOrders() {
 
         if (error) throw error;
 
-        if (!orders || orders.length === 0) {
-            card.innerHTML = '<h2 class="card-title">Customer Orders</h2><p style="color:#888;">No orders placed yet.</p>';
+        // Filter out incomplete/abandoned 'pending' status orders
+        const validOrders = (orders || []).filter(ord => {
+            const st = (ord.status || '').toLowerCase().trim();
+            return st !== 'pending';
+        });
+
+        if (validOrders.length === 0) {
+            card.innerHTML = '<h2 class="card-title">Customer Orders</h2><p style="color:#888;">No customer orders found.</p>';
             return;
         }
 
         let html = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-            <h2 class="card-title" style="margin:0;">Customer Orders (${orders.length})</h2>
+            <h2 class="card-title" style="margin:0;">Customer Orders (${validOrders.length})</h2>
         </div>
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
@@ -2307,7 +2317,7 @@ async function loadOrders() {
                 </thead>
                 <tbody>`;
 
-        orders.forEach(ord => {
+        validOrders.forEach(ord => {
             const cust = ord.customer_details || {};
             const status = (ord.status || 'pending').toLowerCase();
             const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
