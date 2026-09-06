@@ -1540,13 +1540,6 @@ window.showOrderDetails = async function(orderId) {
     const paymentStatus = (data.payment_status || 'pending').toLowerCase();
     const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!data.razorpay_payment_id;
     const rzpId = data.razorpay_payment_id || data.payment_id || '';
-
-    const cust = data.customer_details || {};
-    const addr = data.shipping_address || {};
-    const currentStatus = (data.status || 'pending').toLowerCase();
-    const paymentStatus = (data.payment_status || 'pending').toLowerCase();
-    const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!data.razorpay_payment_id;
-    const rzpId = data.razorpay_payment_id || data.payment_id || '';
     const isCancelled = currentStatus.includes('cancel') || (data.status || '').toLowerCase().includes('cancel');
     const isReturned = currentStatus.includes('return') || (data.status || '').toLowerCase().includes('return');
     const refundInfo = data.refund_details || cust.refund_details || cust.cancellation_details || data.cancellation_details || null;
