@@ -567,25 +567,50 @@ async function loadOrders() {
         return currentStatus === 'paid' || currentStatus.includes('cancel') || currentStatus.includes('refund') || !!order.razorpay_payment_id;
     });
 
+    const recycled = getRecycledOrders();
+
     if (paidOrders.length === 0) {
-        container.innerHTML = `<h2>Orders</h2><p>No paid orders found.</p>`;
+        container.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+                <h2 style="margin:0;">Orders</h2>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-secondary" onclick="loadOrders()" style="padding:8px 16px; font-weight:700; background:#000; color:#fff; border-radius:8px; cursor:pointer;">
+                        📦 Active Orders (0)
+                    </button>
+                    <button class="btn-secondary" onclick="renderRecycleBinView()" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
+                        🗑️ Recycle Bin (${recycled.length})
+                    </button>
+                </div>
+            </div>
+            <p style="color:#666; padding:20px 0;">No active paid orders found.</p>`;
         return;
     }
 
-    let html = `<h2>Orders</h2>
-                <table class="stock-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Ordered Items (Name, Size, Color, Qty)</th>
-                            <th>Payment Status</th>
-                            <th>Total</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+    let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+            <h2 style="margin:0;">Orders</h2>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-secondary" onclick="loadOrders()" style="padding:8px 16px; font-weight:700; background:#000; color:#fff; border-radius:8px; cursor:pointer;">
+                    📦 Active Orders (${paidOrders.length})
+                </button>
+                <button class="btn-secondary" onclick="renderRecycleBinView()" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
+                    🗑️ Recycle Bin (${recycled.length})
+                </button>
+            </div>
+        </div>
+        <table class="stock-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Ordered Items (Name, Size, Color, Qty)</th>
+                    <th>Payment Status</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>`;
 
     paidOrders.forEach(order => {
         const dateObj = new Date(order.created_at);
@@ -695,11 +720,188 @@ window.updateOrderStatus = async function (orderId, newStatus) {
     }
 };
 
-window.deleteOrder = async function (orderId) {
-    if (!confirm(`⚠️ Are you sure you want to permanently delete order #${orderId.toString().substring(0, 8)}?\nThis cannot be undone.`)) return;
+// ==========================================
+// RECYCLE BIN STORAGE & RESTORE LOGIC
+// ==========================================
+const RECYCLE_BIN_KEY = 'kappa_recycled_orders_v1';
+
+function getRecycledOrders() {
+    try {
+        return JSON.parse(localStorage.getItem(RECYCLE_BIN_KEY) || '[]');
+    } catch (_) {
+        return [];
+    }
+}
+
+function saveRecycledOrders(list) {
+    try {
+        localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify(list));
+    } catch (_) {}
+}
+
+window.renderRecycleBinView = function () {
+    const container = document.querySelector('#view-orders .card') || document.getElementById('view-orders');
+    if (!container) return;
+
+    const recycled = getRecycledOrders();
+
+    let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+            <h2 style="margin:0;">Orders</h2>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="btn-secondary" onclick="loadOrders()" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
+                    📦 Active Orders
+                </button>
+                <button class="btn-secondary" onclick="renderRecycleBinView()" style="padding:8px 16px; font-weight:700; background:#000; color:#fff; border-radius:8px; cursor:pointer;">
+                    🗑️ Recycle Bin (${recycled.length})
+                </button>
+                ${recycled.length > 0 ? `
+                    <button class="btn-delete" onclick="emptyRecycleBin()" style="padding:8px 14px; font-weight:700; border-radius:8px; cursor:pointer;">
+                        🧹 Empty Bin
+                    </button>
+                ` : ''}
+            </div>
+        </div>`;
+
+    if (recycled.length === 0) {
+        html += `
+            <div style="text-align:center; padding:50px 20px; color:#888;">
+                <div style="font-size:48px; margin-bottom:12px;">🗑️</div>
+                <h3 style="color:#333; margin-bottom:6px;">Recycle Bin is Empty</h3>
+                <p style="font-size:13px;">When you delete an order, it will be stored here temporarily so you can restore it if needed.</p>
+            </div>`;
+        container.innerHTML = html;
+        return;
+    }
+
+    html += `
+        <table class="stock-table">
+            <thead>
+                <tr>
+                    <th>Deleted Date</th>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+    recycled.forEach(order => {
+        const deletedDate = order.deletedAt ? new Date(order.deletedAt).toLocaleString() : 'N/A';
+        const itemsCount = (order.order_items || []).length;
+        const customerName = order.customer_details?.full_name || order.shipping_address?.full_name || (order.user_id ? "Registered Customer" : "Guest");
+
+        html += `
+            <tr>
+                <td style="white-space:nowrap;"><small>${deletedDate}</small></td>
+                <td><strong>#${(order.id || '').toString().substring(0, 8)}</strong></td>
+                <td>${customerName}</td>
+                <td><span class="item-tag tag-qty">${itemsCount} item(s)</span></td>
+                <td><strong>₹${order.total_amount || 0}</strong></td>
+                <td>
+                    <div style="display:flex; gap:6px; flex-direction:column;">
+                        <button class="btn-secondary" onclick="restoreOrder('${order.id}')" style="background:#27ae60; color:#fff; border:none; padding:6px 12px; font-weight:700; border-radius:6px; cursor:pointer;">
+                            ♻️ Restore Order
+                        </button>
+                        <button class="btn-delete" onclick="permanentlyDeleteRecycledOrder('${order.id}')" style="padding:6px 12px; font-size:11px;">
+                            ❌ Delete Permanently
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+};
+
+window.restoreOrder = async function (orderId) {
+    const recycled = getRecycledOrders();
+    const target = recycled.find(o => String(o.id) === String(orderId));
+    if (!target) return alert("Order not found in Recycle Bin.");
+
+    if (!confirm(`♻️ Restore order #${(target.id || '').toString().substring(0, 8)} back to active orders?`)) return;
 
     try {
-        // Step 1: Try deleting client-side first (with RLS check via .select())
+        const orderPayload = {
+            id: target.id,
+            user_id: target.user_id || null,
+            status: target.status || 'pending',
+            total_amount: target.total_amount || 0,
+            customer_details: target.customer_details || null,
+            shipping_address: target.shipping_address || null,
+            payment_status: target.payment_status || 'pending',
+            razorpay_payment_id: target.razorpay_payment_id || null,
+            created_at: target.created_at || new Date().toISOString()
+        };
+
+        const { error: orderError } = await supabaseClient.from('orders').upsert([orderPayload]);
+        if (orderError) throw new Error("Orders restore error: " + orderError.message);
+
+        if (target.order_items && target.order_items.length > 0) {
+            const itemsPayload = target.order_items.map(item => ({
+                order_id: target.id,
+                product_id: item.product_id || null,
+                quantity: item.quantity || 1,
+                price_at_purchase: item.price_at_purchase || 0,
+                size: item.size || null,
+                color: item.color || null,
+                image_url: item.image_url || null
+            }));
+            const { error: itemsError } = await supabaseClient.from('order_items').insert(itemsPayload);
+            if (itemsError) console.warn("Items restore note:", itemsError.message);
+        }
+
+        const updatedBin = recycled.filter(o => String(o.id) !== String(orderId));
+        saveRecycledOrders(updatedBin);
+
+        alert(`✅ Order #${(target.id || '').toString().substring(0, 8)} restored successfully!`);
+        await loadOrders();
+    } catch (err) {
+        console.error("Restore failed:", err);
+        alert("❌ Failed to restore order: " + err.message);
+    }
+};
+
+window.permanentlyDeleteRecycledOrder = function (orderId) {
+    if (!confirm("⚠️ Permanently remove this order from Recycle Bin? This cannot be undone.")) return;
+    const recycled = getRecycledOrders();
+    const updated = recycled.filter(o => String(o.id) !== String(orderId));
+    saveRecycledOrders(updated);
+    renderRecycleBinView();
+};
+
+window.emptyRecycleBin = function () {
+    if (!confirm("⚠️ Are you sure you want to empty the Recycle Bin? All deleted orders will be permanently removed.")) return;
+    saveRecycledOrders([]);
+    renderRecycleBinView();
+};
+
+window.deleteOrder = async function (orderId) {
+    if (!confirm(`⚠️ Move order #${orderId.toString().substring(0, 8)} to Recycle Bin? You can restore it anytime.`)) return;
+
+    try {
+        // Fetch full order data before deleting so it can be restored from Recycle Bin
+        const { data: fullOrder } = await supabaseClient
+            .from('orders')
+            .select(`
+                *,
+                order_items (*)
+            `)
+            .eq('id', orderId)
+            .single();
+
+        if (fullOrder) {
+            const recycled = getRecycledOrders();
+            fullOrder.deletedAt = new Date().toISOString();
+            const filtered = recycled.filter(o => String(o.id) !== String(orderId));
+            filtered.unshift(fullOrder);
+            saveRecycledOrders(filtered);
+        }
+
+        // Step 1: Try deleting client-side first
         const { data: itemsDeleted, error: itemsError } = await supabaseClient
             .from('order_items')
             .delete()
@@ -712,16 +914,14 @@ window.deleteOrder = async function (orderId) {
             .eq('id', orderId)
             .select();
 
-        // If client-side delete succeeded and actually deleted the row
         if (!orderError && orderDeleted && orderDeleted.length > 0) {
-            alert('🗑️ Order deleted successfully (Client-side)!');
+            alert('🗑️ Order moved to Recycle Bin! You can restore it anytime from the top of Orders.');
             await loadOrders();
             return;
         }
 
-        // If client-side was blocked by RLS or row wasn't found, fall back to API server
+        // Fallback to backend server API delete
         console.log("Client-side delete restricted by RLS or not found. Retrying via secure backend API...");
-
         const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
             ? 'http://localhost:3000'
             : '';
@@ -734,19 +934,14 @@ window.deleteOrder = async function (orderId) {
 
         if (!res.ok) {
             const result = await res.json().catch(() => ({}));
-            console.error("Backend delete order failed:", result);
             alert("❌ Error deleting order: " + (result.error || "Permission Denied"));
         } else {
-            alert('🗑️ Order deleted successfully (via Backend API)!');
+            alert('🗑️ Order moved to Recycle Bin! You can restore it anytime.');
             await loadOrders();
         }
     } catch (err) {
         console.error("Failed to delete order:", err);
-        if (err.message && err.message.includes('fetch')) {
-            alert("❌ Failed to delete order. This table has Row-Level Security (RLS) enabled.\n\nPlease start your local backend server by running 'node server.js' on port 3000 to authorize this delete operation.");
-        } else {
-            alert("❌ Failed to delete order: " + err.message);
-        }
+        alert("❌ Failed to delete order: " + err.message);
     }
 };
 
