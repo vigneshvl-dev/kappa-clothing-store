@@ -16,8 +16,8 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === 'TOKEN_REFRESHED') {
         console.log('Session token refreshed successfully.');
     }
-    if (event === 'SIGNED_OUT') {
-        console.log('User signed out.');
+    if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
+        window.location.replace('index.html');
     }
 });
 
@@ -27,17 +27,32 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
  * Returns the refreshed session or null if refresh fails.
  */
 async function ensureFreshSession() {
-    try {
-        let { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) {
-            const { data } = await supabaseClient.auth.refreshSession();
-            session = data?.session || null;
+    let { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+        // Try to refresh
+        const { data, error } = await supabaseClient.auth.refreshSession();
+        if (error || !data.session) {
+            alert('Your session has expired. Please log in again.');
+            window.location.replace('index.html');
+            return null;
         }
-        return session;
-    } catch (e) {
-        console.warn('ensureFreshSession warning:', e);
-        return null;
+        session = data.session;
+    } else {
+        // Check if the token is about to expire (within 60 seconds)
+        const expiresAt = session.expires_at; // Unix timestamp in seconds
+        const now = Math.floor(Date.now() / 1000);
+        if (expiresAt && (expiresAt - now) < 60) {
+            const { data, error } = await supabaseClient.auth.refreshSession();
+            if (error || !data.session) {
+                alert('Your session has expired. Please log in again.');
+                window.location.replace('index.html');
+                return null;
+            }
+            session = data.session;
+        }
     }
+    return session;
 }
 
 function generateSlug(text) {
@@ -53,15 +68,12 @@ let pendingImageFiles = [];
 // ==========================================
 // 2. DOM INITIALIZATION
 // ==========================================
-async function runAdminInit() {
+function runAdminInit() {
     try { initSidebar(); } catch (e) { console.error('initSidebar error:', e); }
     try { verifyAdmin(); } catch (e) { console.error('verifyAdmin error:', e); }
-    try { if (typeof loadDashboard === 'function') await loadDashboard(); } catch (e) { console.error('loadDashboard error:', e); }
-    try { if (typeof loadCategories === 'function') loadCategories(); } catch (e) { console.error('loadCategories error:', e); }
     try { initProductForm(); } catch (e) { console.error('initProductForm error:', e); }
     try { loadParentCategories(); } catch (e) { console.error('loadParentCategories error:', e); }
     try { initImagePreview(); } catch (e) { console.error('initImagePreview error:', e); }
-    try { if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges(); } catch (e) { console.error('updateSidebarOrderBadges error:', e); }
 }
 
 if (document.readyState === 'loading') {
@@ -70,7 +82,10 @@ if (document.readyState === 'loading') {
     runAdminInit();
 }
 
-async function switchAdminView(targetName) {
+// ==========================================
+// 3. SPA ROUTER: Sidebar Logic
+// ==========================================
+window.switchAdminView = async function (targetName) {
     const sidebarItems = document.querySelectorAll('.sidebar-menu li');
     const viewSections = document.querySelectorAll('.view-section');
     const pageTitle = document.getElementById('dynamic-page-title');
@@ -90,7 +105,6 @@ async function switchAdminView(targetName) {
                 dashboard: 'Dashboard',
                 orders: 'Orders',
                 cancelled: 'Cancelled Orders',
-                recyclebin: 'Recycle Bin',
                 inventory: 'Inventory',
                 products: 'Add Product',
                 customers: 'Customers',
@@ -118,9 +132,6 @@ async function switchAdminView(targetName) {
                     if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
                     markOrdersViewSeen('cancelled');
                     break;
-                case 'recyclebin':
-                    if (typeof loadRecycleBin === 'function') await loadRecycleBin();
-                    break;
                 case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break;
                 case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
                 case 'reviews': if (typeof loadReviews === 'function') await loadReviews(); break;
@@ -134,18 +145,16 @@ async function switchAdminView(targetName) {
             console.error('Error loading view:', targetName, err);
         }
     }
-}
-window.switchAdminView = switchAdminView;
+};
 
 function initSidebar() {
     const sidebarItems = document.querySelectorAll('.sidebar-menu li');
     sidebarItems.forEach(item => {
-        if (!item.getAttribute('onclick')) {
-            item.addEventListener('click', (e) => {
-                const targetName = item.getAttribute('data-target');
-                if (targetName) switchAdminView(targetName);
-            });
-        }
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const targetName = item.getAttribute('data-target');
+            if (targetName) window.switchAdminView(targetName);
+        });
     });
 }
 
@@ -167,25 +176,31 @@ function clearProductForm() {
 // 4. TRUE DATABASE SECURITY BOUNCER
 // ==========================================
 async function verifyAdmin() {
-    try {
-        const session = await ensureFreshSession();
-        if (session && session.user) {
-            const { data: profile } = await supabaseClient
-                .from('profiles')
-                .select('role, full_name')
-                .eq('id', session.user.id)
-                .single();
+    const session = await ensureFreshSession();
+    if (!session) { window.location.replace('index.html'); return; }
 
-            if (profile) {
-                const adminName = document.getElementById('admin-name');
-                const adminAvatar = document.getElementById('admin-avatar');
-                if (adminName) adminName.textContent = profile.full_name || 'Admin User';
-                if (adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
-            }
-        }
-    } catch (e) {
-        console.warn('verifyAdmin session notice:', e);
+    const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('role, full_name')
+        .eq('id', session.user.id)
+        .single();
+
+    if (!profile || profile.role !== 'admin') {
+        alert("Access Denied: Admin privileges required.");
+        window.location.replace('index.html');
+        return;
     }
+
+    const adminName = document.getElementById('admin-name');
+    const adminAvatar = document.getElementById('admin-avatar');
+    if (adminName) adminName.textContent = profile.full_name || 'Admin User';
+    if (adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
+
+    // Load dashboard stats on verify success
+    await loadDashboard();
+    updateSidebarOrderBadges();
+
+    loadCategories();
 }
 
 // ==========================================
@@ -245,141 +260,6 @@ async function loadParentCategories() {
 
     select.innerHTML = html;
 }
-
-// ── INVENTORY VIEW LOADER & FILTER ──
-let _allInventoryProducts = [];
-
-async function loadInventory() {
-    const listContainer = document.getElementById('inventory-list-container');
-    const filterSelect = document.getElementById('inventory-filter');
-    if (!listContainer) return;
-
-    listContainer.innerHTML = '<p style="color:#666;">Loading inventory...</p>';
-
-    try {
-        const { data: cats } = await supabaseClient.from('categories').select('id, name').order('name');
-        if (filterSelect && cats) {
-            let filterHtml = '<option value="all">All Categories</option>';
-            cats.forEach(c => {
-                filterHtml += `<option value="${c.id}">${c.name}</option>`;
-            });
-            filterSelect.innerHTML = filterHtml;
-        }
-
-        const { data: prods, error } = await supabaseClient
-            .from('products')
-            .select('*, categories(name), product_images(url, position)')
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        _allInventoryProducts = prods || [];
-        renderInventoryList(_allInventoryProducts);
-    } catch (e) {
-        console.error('Error loading inventory:', e);
-        listContainer.innerHTML = '<p style="color:red;">Error loading inventory list.</p>';
-    }
-}
-
-window.loadInventory = loadInventory;
-
-window.filterInventory = function () {
-    const filterSelect = document.getElementById('inventory-filter');
-    if (!filterSelect) return;
-    const catId = filterSelect.value;
-    if (catId === 'all') {
-        renderInventoryList(_allInventoryProducts);
-    } else {
-        const filtered = _allInventoryProducts.filter(p => p.category_id === catId);
-        renderInventoryList(filtered);
-    }
-};
-
-function renderInventoryList(products) {
-    const listContainer = document.getElementById('inventory-list-container');
-    if (!listContainer) return;
-
-    if (!products || products.length === 0) {
-        listContainer.innerHTML = '<p style="color:#888; text-align:center; padding:30px;">No products found in inventory.</p>';
-        return;
-    }
-
-    let html = `
-    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
-        <thead>
-            <tr style="border-bottom:2px solid #eee; background:#fafafa;">
-                <th style="padding:12px;">Product</th>
-                <th style="padding:12px;">Category</th>
-                <th style="padding:12px;">Price</th>
-                <th style="padding:12px;">Status</th>
-                <th style="padding:12px; text-align:right;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>`;
-
-    products.forEach(p => {
-        const sortedImgs = (p.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
-        const imgUrl = sortedImgs.length > 0 ? sortedImgs[0].url.split('#')[0] : '';
-        const imgHtml = imgUrl ? `<img src="${imgUrl}" style="width:40px; height:48px; object-fit:cover; border-radius:6px; border:1px solid #ddd;">` : '🖼️';
-        const catName = p.categories?.name || 'Uncategorized';
-        const statusBadge = p.is_active !== false
-            ? `<span style="background:#e8f8f0; color:#1e7e44; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;">ACTIVE</span>`
-            : `<span style="background:#fff0f0; color:#c0392b; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;">HIDDEN</span>`;
-
-        html += `
-        <tr style="border-bottom:1px solid #eee;">
-            <td style="padding:12px;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    ${imgHtml}
-                    <div>
-                        <strong style="color:#111;">${p.name}</strong>
-                        <div style="font-size:11px; color:#888;">ID: ${p.id ? p.id.substring(0, 8) + '...' : 'N/A'}</div>
-                    </div>
-                </div>
-            </td>
-            <td style="padding:12px; color:#555;">${catName}</td>
-            <td style="padding:12px; font-weight:bold; color:#111;">₹${p.price}</td>
-            <td style="padding:12px;">${statusBadge}</td>
-            <td style="padding:12px; text-align:right; white-space:nowrap;">
-                <button class="btn-secondary" style="padding:5px 12px; font-size:12px; cursor:pointer;" onclick="editProduct('${p.id}')">✏️ Edit</button>
-                <button class="btn-delete" style="padding:5px 12px; font-size:12px; background:#dc2626; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-left:6px;" onclick="deleteProduct('${p.id}')">🗑️ Delete</button>
-            </td>
-        </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    listContainer.innerHTML = html;
-}
-
-// ── HOMEPAGE & PROMO CODE VIEW LOADERS ──
-async function loadHomepageSettings() {
-    const container = document.querySelector('#view-homepage .card') || document.getElementById('view-homepage');
-    if (!container) return;
-    container.innerHTML = `
-        <h2 class="card-title">Homepage Media & Banner Management</h2>
-        <p style="color:#666; font-size:14px; margin-bottom:20px;">Manage hero banners and featured media for the storefront homepage.</p>
-        <div style="background:#fafafa; border:1.5px dashed #ccc; padding:30px; border-radius:12px; text-align:center;">
-            <div style="font-size:36px; margin-bottom:8px;">🎨</div>
-            <p style="font-size:14px; color:#444; font-weight:600;">Storefront Banners Active</p>
-            <p style="font-size:12px; color:#888; margin-top:4px;">Upload new promo banners or videos directly to update the homepage layout.</p>
-        </div>`;
-}
-window.loadHomepageSettings = loadHomepageSettings;
-
-async function loadPromoCodes() {
-    const container = document.querySelector('#view-promocodes .card') || document.getElementById('view-promocodes');
-    if (!container) return;
-    container.innerHTML = `
-        <h2 class="card-title">Promo Codes & Discounts</h2>
-        <p style="color:#666; font-size:14px; margin-bottom:20px;">Manage active discount coupons for customer checkout.</p>
-        <div style="background:#fafafa; border:1px solid #eee; padding:24px; border-radius:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                <strong style="font-size:15px; color:#111;">Active Coupon: KAPPA10</strong>
-                <span style="background:#d4edda; color:#155724; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:bold;">10% OFF</span>
-            </div>
-            <p style="font-size:12px; color:#666;">Applies 10% discount to cart total during checkout.</p>
-        </div>`;
-}
-window.loadPromoCodes = loadPromoCodes;
 
 // Track the currently selected category for "Add Product Here"
 let _selectedCategoryId = null;
@@ -669,6 +549,231 @@ window.deleteCategory = async function (id) {
         loadCategoriesList(); loadCategories(); loadParentCategories();
     }
 };
+
+async function loadOrders() {
+    const container = document.querySelector('#view-orders .card');
+
+    const { data, error } = await supabaseClient
+        .from('orders')
+        .select(`
+            *,
+            order_items (
+                quantity,
+                price_at_purchase,
+                size,
+                color,
+                image_url,
+                products ( name, product_images ( url ) )
+            )
+        `)
+        .order('created_at', { ascending: false });
+
+    const paidOrders = (data || []).filter(order => {
+        const currentStatus = (order.status || 'pending').toLowerCase();
+        return currentStatus === 'paid' || currentStatus.includes('cancel') || currentStatus.includes('refund') || !!order.razorpay_payment_id;
+    });
+
+    if (paidOrders.length === 0) {
+        container.innerHTML = `<h2>Orders</h2><p>No paid orders found.</p>`;
+        return;
+    }
+
+    let html = `<h2>Orders</h2>
+                <table class="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Ordered Items (Name, Size, Color, Qty)</th>
+                            <th>Payment Status</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+    paidOrders.forEach(order => {
+        const dateObj = new Date(order.created_at);
+        const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const currentStatus = (order.status || 'pending').toLowerCase();
+        const paymentStatus = (order.payment_status || 'pending').toLowerCase();
+        const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!order.razorpay_payment_id;
+        const rzpId = order.razorpay_payment_id || order.payment_id || '';
+        const hasRefundInfo = order.refund_details || order.customer_details?.refund_details;
+        const isSettled = hasRefundInfo?.refund_status === 'refunded' || currentStatus === 'refunded';
+
+        // Build items summary HTML
+        let itemsSummaryHtml = '';
+        if (order.order_items && order.order_items.length > 0) {
+            itemsSummaryHtml = order.order_items.map(item => {
+                const name = item.products?.name || 'Product';
+                const size = item.size || 'N/A';
+                const color = item.color || 'N/A';
+                const qty = item.quantity || 1;
+                const img = item.image_url || item.products?.product_images?.[0]?.url;
+                const imgHtml = img ? `<img src="${img}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; border:1px solid #ddd; flex-shrink:0;">` : '';
+                return `<div style="margin-bottom:8px; font-size:12px; line-height:1.4; display:flex; align-items:center; gap:8px;">
+                    ${imgHtml}
+                    <div>
+                        <strong style="color:#111; font-size:13px;">${name}</strong>
+                        <div style="margin-top:2px; display:flex; gap:4px; flex-wrap:wrap;">
+                            <span class="item-tag tag-qty">Qty: ${qty}</span>
+                            <span class="item-tag tag-size">Size: ${size}</span>
+                            <span class="item-tag tag-color">Color: ${color}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            itemsSummaryHtml = '<span style="color:#999; font-size:12px;">No items recorded</span>';
+        }
+
+        let paymentStatusHtml = '';
+        if (currentStatus === 'cancelled' || currentStatus.includes('cancel')) {
+            const refundMethod = hasRefundInfo?.method || (hasRefundInfo?.upi_id ? 'UPI' : (hasRefundInfo?.account_number ? 'Bank' : ''));
+
+            if (isSettled) {
+                paymentStatusHtml = `<span class="badge status-paid" style="background:#27ae60; color:#fff; padding:3px 6px; border-radius:4px; font-weight:bold; font-size:10px;">REFUNDED</span>
+                <div style="font-size:11px; color:#27ae60; font-weight:bold; margin-top:4px;">✓ Repaid to Customer</div>`;
+            } else {
+                paymentStatusHtml = `<span class="badge status-cancelled" style="background:#e74c3c; color:#fff; padding:3px 6px; border-radius:4px; font-weight:bold; font-size:10px;">CANCELLED</span>
+                <div style="font-size:11px; color:#c0392b; font-weight:bold; margin-top:4px;">⚠️ Repay: ₹${order.total_amount}</div>
+                ${refundMethod ? `<div style="font-size:10px; color:#4a5568; background:#edf2f7; padding:2px 6px; border-radius:3px; margin-top:2px; display:inline-block; font-weight:600;">Pay via ${refundMethod}</div>` : ''}`;
+            }
+        } else if (isPaid) {
+            paymentStatusHtml = `<span class="badge status-paid">PAID</span>
+            <div style="font-size:11px; color:#27ae60; font-weight:bold; margin-top:4px; display:flex; align-items:center; gap:3px;">
+                💳 Paid in Razorpay
+            </div>`;
+            if (rzpId) {
+                paymentStatusHtml += `<div style="font-size:10px; color:#555; font-family:monospace; margin-top:2px;">Txn: ${rzpId}</div>`;
+            }
+        } else {
+            paymentStatusHtml = `<span class="badge status-pending">PENDING</span>
+            <div style="font-size:11px; color:#e67e22; font-weight:bold; margin-top:4px;">⚠️ Unpaid (Razorpay)</div>`;
+        }
+
+        const isRepayPending = currentStatus.includes('cancel') && !isSettled;
+
+        html += `<tr>
+                 <td style="white-space:nowrap;"><small>${formattedDate}</small></td>
+                 <td><strong>#${order.id.toString().substring(0, 8)}</strong></td>
+                 <td>${order.user_id ? "Registered" : "Guest"}</td>
+                 <td style="min-width:240px;">${itemsSummaryHtml}</td>
+                 <td>${paymentStatusHtml}</td>
+                 <td><strong>₹${order.total_amount}</strong></td>
+                 <td>
+                    <button class="btn-black" onclick="showOrderDetails('${order.id}')" style="${isRepayPending ? 'background:#c0392b; color:#fff;' : ''}">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        ${isRepayPending ? 'View & Repay' : 'View Details'}
+                    </button>
+                    <button class="btn-black" onclick="deleteOrder('${order.id}')" style="background:#c0392b; margin-top:4px; width:100%;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path></svg>
+                        Delete
+                    </button>
+                 </td>
+                 </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+window.updateOrderStatus = async function (orderId, newStatus) {
+    try {
+        console.log(`Updating order ${orderId} status in Supabase to: ${newStatus}`);
+        const { error } = await supabaseClient
+            .from('orders')
+            .update({ status: newStatus })
+            .eq('id', orderId);
+
+        if (error) {
+            console.error("Error updating order status:", error);
+            alert("Error updating status: " + error.message);
+        } else {
+            console.log("Order status updated successfully in Supabase!");
+            await loadOrders();
+        }
+    } catch (err) {
+        console.error("Failed to update status:", err);
+        alert("Failed to update status: " + err.message);
+    }
+};
+
+window.deleteOrder = async function (orderId) {
+    if (!confirm(`⚠️ Are you sure you want to permanently delete order #${orderId.toString().substring(0, 8)}?\nThis cannot be undone.`)) return;
+
+    try {
+        // Step 1: Try deleting client-side first (with RLS check via .select())
+        const { data: itemsDeleted, error: itemsError } = await supabaseClient
+            .from('order_items')
+            .delete()
+            .eq('order_id', orderId)
+            .select();
+
+        const { data: orderDeleted, error: orderError } = await supabaseClient
+            .from('orders')
+            .delete()
+            .eq('id', orderId)
+            .select();
+
+        // If client-side delete succeeded and actually deleted the row
+        if (!orderError && orderDeleted && orderDeleted.length > 0) {
+            alert('🗑️ Order deleted successfully (Client-side)!');
+            await loadOrders();
+            return;
+        }
+
+        // If client-side was blocked by RLS or row wasn't found, fall back to API server
+        console.log("Client-side delete restricted by RLS or not found. Retrying via secure backend API...");
+
+        const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
+            ? 'http://localhost:3000'
+            : '';
+
+        const res = await fetch(`${apiOrigin}/api/delete-order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId })
+        });
+
+        if (!res.ok) {
+            const result = await res.json().catch(() => ({}));
+            console.error("Backend delete order failed:", result);
+            alert("❌ Error deleting order: " + (result.error || "Permission Denied"));
+        } else {
+            alert('🗑️ Order deleted successfully (via Backend API)!');
+            await loadOrders();
+        }
+    } catch (err) {
+        console.error("Failed to delete order:", err);
+        if (err.message && err.message.includes('fetch')) {
+            alert("❌ Failed to delete order. This table has Row-Level Security (RLS) enabled.\n\nPlease start your local backend server by running 'node server.js' on port 3000 to authorize this delete operation.");
+        } else {
+            alert("❌ Failed to delete order: " + err.message);
+        }
+    }
+};
+
+async function loadDashboard() {
+    const { data: orders } = await supabaseClient.from('orders').select('total_amount, status');
+    const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
+    const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer');
+
+    if (orders) {
+        // Only count paid orders in the dashboard order stat
+        const paidOrders = orders.filter(o => (o.status || '').toLowerCase() === 'paid');
+        document.getElementById('stat-orders').textContent = paidOrders.length;
+
+        // Calculate revenue only from orders that are marked as 'paid'
+        const totalRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+
+        document.getElementById('stat-revenue').textContent = `₹${totalRevenue.toLocaleString()}`;
+    }
+    document.getElementById('stat-products').textContent = prodCount || 0;
+    document.getElementById('stat-customers').textContent = custCount || 0;
+}
 
 async function loadReviews() {
     const container = document.querySelector('#view-reviews .card');
@@ -2230,7 +2335,7 @@ async function loadOrders() {
         validOrders.forEach(ord => {
             const cust = ord.customer_details || {};
             const status = (ord.status || 'pending').toLowerCase();
-            const orderIdShort = ord.id ? (String(ord.id).substring(0, 8) + '...') : 'N/A';
+            const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
             const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
 
             let statusBadge = `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#fff3cd; color:#856404;">${status.toUpperCase()}</span>`;
@@ -2270,73 +2375,30 @@ async function loadOrders() {
     }
 }
 
-// ── RECYCLE BIN STORAGE HELPERS ──
-function getRecycleBinOrders() {
-    try {
-        return JSON.parse(localStorage.getItem('kappa_recycle_bin_orders') || '[]');
-    } catch (_) {
-        return [];
-    }
-}
-
-function saveRecycleBinOrders(list) {
-    try {
-        localStorage.setItem('kappa_recycle_bin_orders', JSON.stringify(list || []));
-    } catch (e) {
-        console.error('Failed to save recycle bin orders:', e);
-    }
-}
-
-// ── DELETE ORDER (MOVES TO RECYCLE BIN) ──
+// ── DELETE ORDER PERMANENTLY ──
 window.deleteOrder = async function (orderId) {
-    if (!confirm(`Are you sure you want to delete order #${String(orderId).substring(0, 8)}?\nIt will be moved to the Recycle Bin where you can restore it anytime.`)) return;
-
+    if (!confirm("Are you sure you want to PERMANENTLY delete this order? This action cannot be undone.")) return;
     try {
-        // Step 1: Fetch full order record + order_items before deleting from Supabase
-        const { data: fullOrder } = await supabaseClient
-            .from('orders')
-            .select(`
-                *,
-                order_items (
-                    quantity,
-                    price_at_purchase,
-                    size,
-                    color,
-                    image_url,
-                    product_id,
-                    products ( name, product_images ( url ) )
-                )
-            `)
-            .eq('id', orderId)
-            .single();
-
-        if (fullOrder) {
-            fullOrder.recycled_at = new Date().toISOString();
-            const recycleList = getRecycleBinOrders();
-            const filtered = recycleList.filter(item => String(item.id) !== String(orderId));
-            filtered.unshift(fullOrder);
-            saveRecycleBinOrders(filtered);
-        }
-
-        // Step 2: Delete order_items & order from Supabase
+        // 1. Delete associated order_items
         await supabaseClient.from('order_items').delete().eq('order_id', orderId);
+
+        // 2. Delete order row
         const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
         if (error) throw error;
 
-        // Step 3: Remove from local storage cache if cached
+        // 3. Remove from local storage cache if cached
         try {
             let cachedOrders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
             cachedOrders = cachedOrders.filter(o => String(o.id) !== String(orderId));
             localStorage.setItem('kappa_orders', JSON.stringify(cachedOrders));
         } catch (_) { }
 
-        alert("♻️ Order moved to Recycle Bin! You can restore it anytime from the Recycle Bin menu.");
+        alert("✅ Order deleted successfully!");
 
-        // Refresh views & badges
+        // Refresh views
         if (typeof loadOrders === 'function') await loadOrders();
         if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
         if (typeof loadDashboard === 'function') await loadDashboard();
-        if (typeof loadRecycleBin === 'function') await loadRecycleBin();
         if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges();
 
         // Close details overlay if open for this order
@@ -2344,7 +2406,7 @@ window.deleteOrder = async function (orderId) {
         if (overlay) overlay.style.display = 'none';
 
     } catch (err) {
-        console.error("Error moving order to Recycle Bin:", err);
+        console.error("Error deleting order:", err);
         alert("❌ Failed to delete order: " + (err.message || err));
     }
 };
@@ -2395,7 +2457,7 @@ async function loadCancelledOrders() {
 
         cancelledOrders.forEach(ord => {
             const cust = ord.customer_details || {};
-            const orderIdShort = ord.id ? (String(ord.id).substring(0, 8) + '...') : 'N/A';
+            const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
             const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
             const refundInfo = ord.refund_details || cust.refund_details || null;
             const isRefunded = (ord.status || '').toLowerCase().includes('refund') || refundInfo?.refund_status === 'refunded';
@@ -2429,156 +2491,6 @@ async function loadCancelledOrders() {
         card.innerHTML = '<p style="color:red;">Error loading cancelled orders.</p>';
     }
 }
-
-// ── RECYCLE BIN LOADER ──
-async function loadRecycleBin() {
-    const container = document.getElementById('view-recyclebin');
-    if (!container) return;
-    const card = container.querySelector('.card') || container;
-
-    const recycleList = getRecycleBinOrders();
-
-    if (recycleList.length === 0) {
-        card.innerHTML = `
-            <div style="text-align:center; padding:50px 20px; color:#888;">
-                <div style="font-size:48px; margin-bottom:12px;">♻️</div>
-                <h3 style="margin:0 0 8px 0; color:#333;">Recycle Bin is Empty</h3>
-                <p style="margin:0; font-size:13px;">Deleted orders will appear here. You can restore them anytime to re-instate the order and products.</p>
-            </div>`;
-        return;
-    }
-
-    let html = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-        <h2 class="card-title" style="margin:0;">♻️ Recycle Bin (${recycleList.length})</h2>
-        <span style="font-size:12px; color:#666;">Click "Restore Order" to put an order back into Supabase</span>
-    </div>
-    <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
-            <thead>
-                <tr style="border-bottom:2px solid #eee; background:#fafafa;">
-                    <th style="padding:12px;">Recycled Date</th>
-                    <th style="padding:12px;">Order ID</th>
-                    <th style="padding:12px;">Customer</th>
-                    <th style="padding:12px;">Items Summary</th>
-                    <th style="padding:12px;">Status</th>
-                    <th style="padding:12px;">Total</th>
-                    <th style="padding:12px; text-align:right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>`;
-
-    recycleList.forEach(ord => {
-        const cust = ord.customer_details || {};
-        const orderIdShort = ord.id ? (String(ord.id).substring(0, 8) + '...') : 'N/A';
-        const recycledDateStr = ord.recycled_at ? new Date(ord.recycled_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
-        const origStatus = (ord.status || 'paid').toUpperCase();
-
-        let itemsHtml = '';
-        if (ord.order_items && ord.order_items.length > 0) {
-            itemsHtml = ord.order_items.map(item => {
-                const name = item.products?.name || item.name || 'Product';
-                const size = item.size || 'N/A';
-                const color = item.color || 'N/A';
-                const qty = item.quantity || 1;
-                return `<div style="font-size:12px; line-height:1.4; color:#333; margin-bottom:2px;">• <strong>${name}</strong> (Qty: ${qty}, Size: ${size}, Color: ${color})</div>`;
-            }).join('');
-        } else {
-            itemsHtml = '<span style="color:#999; font-size:12px;">No items details</span>';
-        }
-
-        html += `
-        <tr style="border-bottom:1px solid #eee;">
-            <td style="padding:12px; font-size:12px; color:#666; white-space:nowrap;">${recycledDateStr}</td>
-            <td style="padding:12px; font-family:monospace; font-weight:700; color:#111;">#${orderIdShort}</td>
-            <td style="padding:12px;">
-                <div style="font-weight:600;">${cust.name || cust.full_name || 'Guest'}</div>
-                <div style="font-size:12px; color:#777;">${cust.phone || cust.email || ''}</div>
-            </td>
-            <td style="padding:12px; min-width:220px;">${itemsHtml}</td>
-            <td style="padding:12px;"><span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">${origStatus}</span></td>
-            <td style="padding:12px; font-weight:700; color:#111;">₹${ord.total_amount || 0}</td>
-            <td style="padding:12px; text-align:right; white-space:nowrap;">
-                <button class="btn-secondary" style="padding:6px 12px; font-size:12px; cursor:pointer; background:#22c55e; color:#fff; border:none; border-radius:6px; font-weight:600; margin-right:6px;" onclick="restoreOrder('${ord.id}')">
-                    ↺ Restore Order
-                </button>
-                <button class="btn-delete" style="padding:6px 12px; font-size:12px; background:#dc2626; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;" onclick="permanentlyDeleteRecycleOrder('${ord.id}')">
-                    🗑 Delete
-                </button>
-            </td>
-        </tr>`;
-    });
-
-    html += `</tbody></table></div>`;
-    card.innerHTML = html;
-}
-
-// ── RESTORE ORDER FROM RECYCLE BIN ──
-window.restoreOrder = async function (orderId) {
-    const recycleList = getRecycleBinOrders();
-    const orderToRestore = recycleList.find(o => String(o.id) === String(orderId));
-
-    if (!orderToRestore) {
-        alert("❌ Order not found in Recycle Bin.");
-        return;
-    }
-
-    if (!confirm(`Are you sure you want to RESTORE order #${String(orderId).substring(0, 8)} back to active/cancelled orders?`)) return;
-
-    try {
-        const { order_items, recycled_at, ...dbOrder } = orderToRestore;
-
-        // 1. Re-insert order record into Supabase 'orders' table
-        const { error: orderErr } = await supabaseClient.from('orders').insert([dbOrder]);
-        if (orderErr) {
-            console.warn("Insert order returned error, attempting upsert:", orderErr);
-            const { error: upsertErr } = await supabaseClient.from('orders').upsert([dbOrder]);
-            if (upsertErr) throw upsertErr;
-        }
-
-        // 2. Re-insert order_items into Supabase 'order_items' table
-        if (order_items && order_items.length > 0) {
-            const cleanItems = order_items.map(item => {
-                const { products, ...rawItem } = item;
-                return {
-                    ...rawItem,
-                    order_id: dbOrder.id
-                };
-            });
-            await supabaseClient.from('order_items').insert(cleanItems);
-        }
-
-        // 3. Remove order from Recycle Bin local storage
-        const updatedList = recycleList.filter(o => String(o.id) !== String(orderId));
-        saveRecycleBinOrders(updatedList);
-
-        alert("✅ Order restored successfully! It is now restored in Supabase.");
-
-        // Refresh views
-        if (typeof loadOrders === 'function') await loadOrders();
-        if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
-        if (typeof loadDashboard === 'function') await loadDashboard();
-        if (typeof loadRecycleBin === 'function') await loadRecycleBin();
-        if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges();
-
-    } catch (err) {
-        console.error("Error restoring order:", err);
-        alert("❌ Failed to restore order: " + (err.message || err));
-    }
-};
-
-// ── PERMANENTLY ERASE FROM RECYCLE BIN ──
-window.permanentlyDeleteRecycleOrder = function (orderId) {
-    if (!confirm(`⚠️ PERMANENT DELETE:\nAre you sure you want to permanently delete order #${String(orderId).substring(0, 8)} from the Recycle Bin?\nThis action cannot be undone.`)) return;
-
-    const recycleList = getRecycleBinOrders();
-    const updatedList = recycleList.filter(o => String(o.id) !== String(orderId));
-    saveRecycleBinOrders(updatedList);
-
-    alert("🗑 Order permanently deleted.");
-    loadRecycleBin();
-    updateSidebarOrderBadges();
-};
 
 // ── SIDEBAR NOTIFICATION BADGES & SEEN TRACKER ──
 function getSeenOrdersSet() {
@@ -2636,7 +2548,6 @@ async function markOrdersViewSeen(type) {
 async function updateSidebarOrderBadges() {
     const ordersBadge = document.getElementById('nav-badge-orders');
     const cancelledBadge = document.getElementById('nav-badge-cancelled');
-    const recycleBadge = document.getElementById('nav-badge-recyclebin');
 
     try {
         const { data: orders } = await supabaseClient.from('orders').select('id, status');
@@ -2680,16 +2591,6 @@ async function updateSidebarOrderBadges() {
             }
         }
     } catch (e) {
-        console.warn('Could not update order badges:', e);
-    }
-
-    if (recycleBadge) {
-        const binCount = getRecycleBinOrders().length;
-        if (binCount > 0) {
-            recycleBadge.textContent = binCount;
-            recycleBadge.style.display = 'inline-flex';
-        } else {
-            recycleBadge.style.display = 'none';
-        }
+        console.warn('Could not update sidebar badges:', e);
     }
 }
