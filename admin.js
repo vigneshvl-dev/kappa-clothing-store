@@ -192,6 +192,7 @@ async function verifyAdmin() {
     
     // Load dashboard stats on verify success
     await loadDashboard();
+    updateSidebarOrderBadges();
 
     loadCategories(); 
 }
@@ -2271,6 +2272,8 @@ async function loadDashboard() {
 
         const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
         if (custEl && custCount !== null) custEl.textContent = custCount;
+
+        updateSidebarOrderBadges();
     } catch (e) {
         console.error('Error loading dashboard metrics:', e);
     }
@@ -2386,6 +2389,7 @@ window.deleteOrder = async function(orderId) {
         if (typeof loadOrders === 'function') await loadOrders();
         if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
         if (typeof loadDashboard === 'function') await loadDashboard();
+        if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges();
 
         // Close details overlay if open for this order
         const overlay = document.getElementById('orderDetailsOverlay');
@@ -2475,5 +2479,50 @@ async function loadCancelledOrders() {
     } catch (e) {
         console.error('Error loading cancelled orders:', e);
         card.innerHTML = '<p style="color:red;">Error loading cancelled orders.</p>';
+    }
+}
+
+// ── SIDEBAR NOTIFICATION BADGES ──
+async function updateSidebarOrderBadges() {
+    const ordersBadge = document.getElementById('nav-badge-orders');
+    const cancelledBadge = document.getElementById('nav-badge-cancelled');
+
+    try {
+        const { data: orders } = await supabaseClient.from('orders').select('status');
+        if (orders) {
+            let activeCount = 0;
+            let cancelledCount = 0;
+
+            orders.forEach(o => {
+                const st = (o.status || '').toLowerCase().trim();
+                if (st !== 'pending') {
+                    if (st.includes('cancel')) {
+                        cancelledCount++;
+                    } else {
+                        activeCount++;
+                    }
+                }
+            });
+
+            if (ordersBadge) {
+                if (activeCount > 0) {
+                    ordersBadge.textContent = activeCount;
+                    ordersBadge.style.display = 'inline-flex';
+                } else {
+                    ordersBadge.style.display = 'none';
+                }
+            }
+
+            if (cancelledBadge) {
+                if (cancelledCount > 0) {
+                    cancelledBadge.textContent = cancelledCount;
+                    cancelledBadge.style.display = 'inline-flex';
+                } else {
+                    cancelledBadge.style.display = 'none';
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Could not update sidebar badges:', e);
     }
 }

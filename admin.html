@@ -24,8 +24,14 @@
             </div>
             <ul class="sidebar-menu" id="sidebar-nav">
                 <li data-target="dashboard" class="active" onclick="switchAdminView('dashboard')">Dashboard</li>
-                <li data-target="orders" onclick="switchAdminView('orders')">Orders</li>
-                <li data-target="cancelled" onclick="switchAdminView('cancelled')">Cancelled Orders</li>
+                <li data-target="orders" onclick="switchAdminView('orders')">
+                    <span>Orders</span>
+                    <span class="nav-badge nav-badge-orders" id="nav-badge-orders" style="display:none;">0</span>
+                </li>
+                <li data-target="cancelled" onclick="switchAdminView('cancelled')">
+                    <span>Cancelled Orders</span>
+                    <span class="nav-badge nav-badge-cancelled" id="nav-badge-cancelled" style="display:none;">0</span>
+                </li>
                 <li data-target="inventory" onclick="switchAdminView('inventory')">Inventory</li>
                 <li data-target="products" onclick="switchAdminView('products')">Add Product</li>
                 <li data-target="customers" onclick="switchAdminView('customers')">Customers</li>
