@@ -86,7 +86,7 @@ if (document.readyState === 'loading') {
 // ==========================================
 // 3. SPA ROUTER: Sidebar Logic
 // ==========================================
-window.switchAdminView = async function (targetName) {
+async function switchAdminView(targetName) {
     const sidebarItems = document.querySelectorAll('.sidebar-menu li');
     const viewSections = document.querySelectorAll('.view-section');
     const pageTitle = document.getElementById('dynamic-page-title');
@@ -150,17 +150,17 @@ window.switchAdminView = async function (targetName) {
             console.error('Error loading view:', targetName, err);
         }
     }
-};
+}
+window.switchAdminView = switchAdminView;
 
 function initSidebar() {
     const sidebarItems = document.querySelectorAll('.sidebar-menu li');
     sidebarItems.forEach(item => {
-        if (!item.getAttribute('onclick')) {
-            item.addEventListener('click', (e) => {
-                const targetName = item.getAttribute('data-target');
-                if (targetName) window.switchAdminView(targetName);
-            });
-        }
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetName = item.getAttribute('data-target');
+            if (targetName) switchAdminView(targetName);
+        });
     });
 }
 
