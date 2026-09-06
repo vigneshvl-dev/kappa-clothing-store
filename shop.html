@@ -319,6 +319,7 @@
     <div class="shop-layout">
         <!-- SIDEBAR -->
         <aside class="sidebar">
+            <div style="font-size: 22px; font-weight: 500; color: #111; margin-bottom: 20px; font-family: 'Jost', sans-serif;">Filters</div>
             <div class="filter-title">COLLECTION</div>
             <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS', this)">View All</div>
             <div id="dynamic-categories" style="margin-bottom: 30px;">
@@ -341,9 +342,54 @@
 
         <!-- MAIN PRODUCT GRID -->
         <main class="product-area">
-            <div class="grid-header">
-                <span id="current-category-title">ALL PRODUCTS</span>
-                <span id="product-count" style="color: #777;">0 ITEMS</span>
+            <div class="grid-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; margin-bottom: 24px; border-bottom: 1px solid #f0f0f0;">
+                <span id="current-category-title" style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #111;">ALL PRODUCTS</span>
+                
+                <div class="grid-header-actions" style="display: flex; align-items: center; gap: 20px;">
+                    <span id="product-count" style="color: #666; font-size: 13px; font-weight: 400; text-transform: lowercase;">0 items</span>
+
+                    <div class="sort-dropdown-container" style="display: flex; align-items: center; gap: 4px; position: relative;">
+                        <span style="font-size: 13px; color: #333; font-weight: 400; text-transform: none;">Sort</span>
+                        <select id="sort-select" onchange="applySortingAndFiltering()" style="border: none; background: transparent; font-size: 13px; font-weight: 500; cursor: pointer; outline: none; padding-right: 2px; color: #111; font-family: inherit;">
+                            <option value="featured">Featured</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="newest">Newest First</option>
+                            <option value="name-asc">Name: A to Z</option>
+                        </select>
+                        <span style="font-size: 10px; color: #333; pointer-events: none;">▼</span>
+                    </div>
+
+                    <!-- VIEW MODE TOGGLE ICONS -->
+                    <div class="view-mode-icons" style="display: flex; align-items: center; gap: 4px;">
+                        <!-- 4 Dots / 2-Column Grid Icon -->
+                        <button id="btn-grid-2" class="grid-view-btn" onclick="setProductGridColumns(2)" title="2 Columns View"
+                            style="background: #f0f0f0; border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" style="color: #111;">
+                                <rect x="2" y="2" width="5" height="5" rx="1"/>
+                                <rect x="9" y="2" width="5" height="5" rx="1"/>
+                                <rect x="2" y="9" width="5" height="5" rx="1"/>
+                                <rect x="9" y="9" width="5" height="5" rx="1"/>
+                            </svg>
+                        </button>
+
+                        <!-- 9 Dots / Multi Column Grid Icon -->
+                        <button id="btn-grid-3" class="grid-view-btn" onclick="setProductGridColumns(3)" title="Grid View"
+                            style="background: transparent; border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" style="color: #888;">
+                                <rect x="1" y="1" width="3.5" height="3.5" rx="0.5"/>
+                                <rect x="6.25" y="1" width="3.5" height="3.5" rx="0.5"/>
+                                <rect x="11.5" y="1" width="3.5" height="3.5" rx="0.5"/>
+                                <rect x="1" y="6.25" width="3.5" height="3.5" rx="0.5"/>
+                                <rect x="6.25" y="6.25" width="3.5" height="3.5" rx="0.5"/>
+                                <rect x="11.5" y="6.25" width="3.5" height="3.5" rx="0.5"/>
+                                <rect x="1" y="11.5" width="3.5" height="3.5" rx="0.5"/>
+                                <rect x="6.25" y="11.5" width="3.5" height="3.5" rx="0.5"/>
+                                <rect x="11.5" y="11.5" width="3.5" height="3.5" rx="0.5"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="shop-grid" id="shop-product-grid">
                 <!-- Products loaded via JS -->
@@ -756,13 +802,47 @@
             return { inStock: pStock > 0, total: Math.max(0, pStock) };
         }
 
+        window.setProductGridColumns = function(cols) {
+            const grid = document.getElementById('shop-product-grid');
+            const btn2 = document.getElementById('btn-grid-2');
+            const btn3 = document.getElementById('btn-grid-3');
+
+            if (!grid) return;
+
+            if (cols === 2) {
+                grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                if (btn2) {
+                    btn2.style.background = '#f0f0f0';
+                    btn2.querySelector('svg').style.color = '#111';
+                }
+                if (btn3) {
+                    btn3.style.background = 'transparent';
+                    btn3.querySelector('svg').style.color = '#888';
+                }
+            } else {
+                grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+                if (btn3) {
+                    btn3.style.background = '#f0f0f0';
+                    btn3.querySelector('svg').style.color = '#111';
+                }
+                if (btn2) {
+                    btn2.style.background = 'transparent';
+                    btn2.querySelector('svg').style.color = '#888';
+                }
+            }
+        };
+
+        window.applySortingAndFiltering = function() {
+            filterCurrentProducts();
+        };
+
         function filterCurrentProducts() {
             const inStockElem = document.querySelector('.stock-filter-checkbox[value="in-stock"]');
             const outOfStockElem = document.querySelector('.stock-filter-checkbox[value="out-of-stock"]');
             const inStockChecked = inStockElem ? inStockElem.checked : false;
             const outOfStockChecked = outOfStockElem ? outOfStockElem.checked : false;
 
-            const filtered = currentProductsLoaded.filter(product => {
+            let filtered = currentProductsLoaded.filter(product => {
                 if (!inStockChecked && !outOfStockChecked) return true;
                 const stockInfo = getProductStock(product);
                 const isInStock = stockInfo.inStock;
@@ -773,7 +853,19 @@
                 return true;
             });
 
-            document.getElementById('product-count').innerText = `${filtered.length} ITEM${filtered.length !== 1 ? 'S' : ''}`;
+            // Apply selected sorting
+            const sortVal = document.getElementById('sort-select')?.value || 'featured';
+            if (sortVal === 'price-low') {
+                filtered.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+            } else if (sortVal === 'price-high') {
+                filtered.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+            } else if (sortVal === 'newest') {
+                filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            } else if (sortVal === 'name-asc') {
+                filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            }
+
+            document.getElementById('product-count').innerText = `${filtered.length} ${filtered.length === 1 ? 'ITEM' : 'ITEMS'}`;
 
             if (filtered.length === 0) {
                 document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">No products match your filters.</div>';
