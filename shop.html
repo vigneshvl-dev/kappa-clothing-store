@@ -326,27 +326,6 @@
                 <div style="font-size: 10px; color: #999;">Loading filters...</div>
             </div>
 
-            <!-- Availability Filter -->
-            <div class="filter-group" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-                <div class="filter-subtitle"
-                    style="font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; text-align: left;">
-                    <span>Availability</span>
-                </div>
-                <div
-                    style="display: flex; flex-direction: column; gap: 10px; padding-left: 10px; border-left: 1px solid #eee;">
-                    <label
-                        style="font-family: 'Inter', sans-serif; font-size: 12px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer; text-align: left;">
-                        <input type="checkbox" class="stock-filter-checkbox" value="in-stock"
-                            style="accent-color: #111;"> In stock
-                    </label>
-                    <label
-                        style="font-family: 'Inter', sans-serif; font-size: 12px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 8px; cursor: pointer; text-align: left;">
-                        <input type="checkbox" class="stock-filter-checkbox" value="out-of-stock"
-                            style="accent-color: #111;"> Out of stock
-                    </label>
-                </div>
-            </div>
-
             <!-- Back to Home Button -->
             <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
                 <a href="index.html" class="btn-back-home">
@@ -778,16 +757,17 @@
         }
 
         function filterCurrentProducts() {
-            const inStockChecked = document.querySelector('.stock-filter-checkbox[value="in-stock"]').checked;
-            const outOfStockChecked = document.querySelector('.stock-filter-checkbox[value="out-of-stock"]').checked;
+            const inStockElem = document.querySelector('.stock-filter-checkbox[value="in-stock"]');
+            const outOfStockElem = document.querySelector('.stock-filter-checkbox[value="out-of-stock"]');
+            const inStockChecked = inStockElem ? inStockElem.checked : false;
+            const outOfStockChecked = outOfStockElem ? outOfStockElem.checked : false;
 
             const filtered = currentProductsLoaded.filter(product => {
+                if (!inStockChecked && !outOfStockChecked) return true;
                 const stockInfo = getProductStock(product);
                 const isInStock = stockInfo.inStock;
 
                 if (inStockChecked && outOfStockChecked) return true;
-                if (!inStockChecked && !outOfStockChecked) return true;
-
                 if (inStockChecked) return isInStock;
                 if (outOfStockChecked) return !isInStock;
                 return true;
