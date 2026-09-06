@@ -989,7 +989,74 @@ testDatabaseConnection();
     }
 
 
-    function addToCart(id, size = 'Default', color = 'N/A', price, img, passedName) {
+    window.modifyStockOnCartAction = async function(productId, size, color, deltaQty) {
+        if (!productId || !deltaQty) return;
+        const pid = String(productId);
+        const qty = Number(deltaQty); // positive = deduct from stock, negative = add back to stock
+
+        // 1. Update localStorage kappa_stock_overrides
+        try {
+            let overrides = {};
+            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) {}
+            if (!overrides[pid]) {
+                overrides[pid] = { totalDeducted: 0, variants: {} };
+            }
+            overrides[pid].totalDeducted = Math.max(0, (overrides[pid].totalDeducted || 0) + qty);
+            if (size && size !== 'Default' && size !== 'N/A') {
+                overrides[pid].variants = overrides[pid].variants || {};
+                overrides[pid].variants[size] = Math.max(0, (overrides[pid].variants[size] || 0) + qty);
+            }
+            localStorage.setItem('kappa_stock_overrides', JSON.stringify(overrides));
+        } catch (_) {}
+
+        // 2. Update localStorage kappa_cached_products
+        try {
+            const cachedStr = localStorage.getItem("kappa_cached_products");
+            if (cachedStr) {
+                const cached = JSON.parse(cachedStr);
+                const prod = cached.find(p => String(p.id) === pid || String(p.slug) === pid);
+                if (prod) {
+                    if (prod.stock_quantity !== undefined && prod.stock_quantity !== null) {
+                        prod.stock_quantity = Math.max(0, Number(prod.stock_quantity) - qty);
+                    }
+                    if (prod.product_variants && Array.isArray(prod.product_variants)) {
+                        prod.product_variants.forEach(v => {
+                            if (v.size === size) {
+                                v.stock_quantity = Math.max(0, Number(v.stock_quantity || 0) - qty);
+                            }
+                        });
+                    }
+                    localStorage.setItem("kappa_cached_products", JSON.stringify(cached));
+                }
+            }
+        } catch (_) {}
+
+        // 3. Sync to Supabase in background
+        try {
+            const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
+                ? 'http://localhost:3000'
+                : '';
+
+            if (qty > 0) {
+                fetch(`${apiOrigin}/api/reduce-stock`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        items: [{ id: pid, qty: qty, size: size, color: color }]
+                    })
+                }).catch(() => {});
+
+                const client = window.supabaseClient || window._pdp;
+                if (client && typeof client.rpc === 'function') {
+                    client.rpc('deduct_product_stock', {
+                        p_items: [{ id: pid, qty: qty, size: size, color: color }]
+                    }).catch(() => {});
+                }
+            }
+        } catch (_) {}
+    };
+
+    function addToCart(id, size = 'Default', color = 'N/A', price, img, passedName, skipStockDeduct = false) {
         let actualSize = size;
         let actualColor = color;
         let actualPrice = price;
@@ -1034,9 +1101,15 @@ testDatabaseConnection();
                 qty: 1,
                 name: finalName,
                 price: actualPrice || p.price,
-                customImg: actualImg || p.img
+                customImg: actualImg || p.img,
+                stockDeducted: true
             });
         }
+
+        if (!skipStockDeduct && typeof window.modifyStockOnCartAction === 'function') {
+            window.modifyStockOnCartAction(id, finalSize, finalColor, 1);
+        }
+
         renderCart();
         showToast(`${finalName} added to cart`);
     }
@@ -1090,9 +1163,32 @@ testDatabaseConnection();
 
     document.getElementById("cartItems").addEventListener("click", e => {
         const inc = e.target.dataset.inc, dec = e.target.dataset.dec, rem = e.target.dataset.remove;
-        if (inc !== undefined) { cart[inc].qty++; renderCart(); }
-        if (dec !== undefined) { cart[dec].qty--; if (cart[dec].qty <= 0) cart.splice(dec, 1); renderCart(); }
-        if (rem !== undefined) { cart.splice(rem, 1); renderCart(); }
+        if (inc !== undefined && cart[inc]) {
+            const item = cart[inc];
+            item.qty++;
+            if (typeof window.modifyStockOnCartAction === 'function') {
+                window.modifyStockOnCartAction(item.id, item.size, item.color, 1);
+            }
+            renderCart();
+        }
+        if (dec !== undefined && cart[dec]) {
+            const item = cart[dec];
+            item.qty--;
+            if (typeof window.modifyStockOnCartAction === 'function') {
+                window.modifyStockOnCartAction(item.id, item.size, item.color, -1);
+            }
+            if (item.qty <= 0) cart.splice(dec, 1);
+            renderCart();
+        }
+        if (rem !== undefined && cart[rem]) {
+            const item = cart[rem];
+            const removedQty = item.qty || 1;
+            if (typeof window.modifyStockOnCartAction === 'function') {
+                window.modifyStockOnCartAction(item.id, item.size, item.color, -removedQty);
+            }
+            cart.splice(rem, 1);
+            renderCart();
+        }
     });
 
     function updateSummary() {

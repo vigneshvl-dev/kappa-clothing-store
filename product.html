@@ -1695,6 +1695,52 @@
             updateQtyBtnStates();
         }
 
+        function refreshProductSizeStockUI(size, newStock) {
+            const sizeBox = document.querySelector(`.size-box[data-size="${size}"]`);
+            if (sizeBox) {
+                sizeBox.setAttribute('data-stock', newStock);
+                let tag = sizeBox.querySelector('.size-stock-tag');
+                if (!tag) {
+                    tag = document.createElement('span');
+                    sizeBox.appendChild(tag);
+                }
+                if (newStock === 0) {
+                    sizeBox.classList.add('out-of-stock-box');
+                    tag.className = 'size-stock-tag out';
+                    tag.textContent = 'Out';
+                } else if (newStock <= 3) {
+                    sizeBox.classList.remove('out-of-stock-box');
+                    tag.className = 'size-stock-tag low';
+                    tag.textContent = `${newStock} left`;
+                } else if (newStock <= 10) {
+                    sizeBox.classList.remove('out-of-stock-box');
+                    tag.className = 'size-stock-tag low';
+                    tag.textContent = `${newStock} left`;
+                } else {
+                    sizeBox.classList.remove('out-of-stock-box');
+                    tag.className = 'size-stock-tag plenty';
+                    tag.textContent = 'In Stock';
+                }
+            }
+
+            const infoBar = document.getElementById('size-stock-info');
+            if (infoBar) {
+                infoBar.style.display = 'block';
+                if (newStock === 0) {
+                    infoBar.className = 'info-out-stock';
+                    infoBar.textContent = `Size ${size}: Out of Stock`;
+                } else if (newStock <= 5) {
+                    infoBar.className = 'info-low-stock';
+                    infoBar.textContent = `⚡ Hurry! Only ${newStock} left in size ${size}`;
+                } else {
+                    infoBar.className = 'info-in-stock';
+                    infoBar.textContent = `✓ ${newStock} available in size ${size}`;
+                }
+            }
+
+            updateStockAlert(newStock, size);
+        }
+
         function showSelectionError(hasSizes, hasColors) {
             const sSize = window.selectedSize || null;
             const sColor = window.selectedColor || null;
@@ -1749,14 +1795,19 @@
             if (showSelectionError(hasSizes, hasColors)) return;
 
             const sSize = window.selectedSize || 'Default';
+            const qty = window.currentQty || 1;
 
             // Out of stock guard check
-            if (sSize && window.sizeStockMap && window.sizeStockMap[sSize] === 0) {
-                if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} is out of stock.`);
+            const currentStock = (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
+                ? window.sizeStockMap[sSize]
+                : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999);
+
+            if (currentStock <= 0 || qty > currentStock) {
+                if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} does not have enough stock.`);
                 return;
             }
+
             const sColor = window.selectedColor || 'N/A';
-            const qty = window.currentQty || 1;
 
             let img = '';
             if (window.currentMainImageUrl) {
@@ -1764,6 +1815,18 @@
             } else if (pd.product_images && pd.product_images.length > 0) {
                 img = pd.product_images[0].url;
             }
+
+            // Immediately reduce stock on Buy Now
+            const newStock = Math.max(0, currentStock - qty);
+            if (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) {
+                window.sizeStockMap[sSize] = newStock;
+            }
+            window.currentAvailableStock = newStock;
+
+            if (typeof window.modifyStockOnCartAction === 'function') {
+                window.modifyStockOnCartAction(pd.id, sSize, sColor, qty);
+            }
+            refreshProductSizeStockUI(sSize, newStock);
 
             // Build the new cart item
             const newItem = {
@@ -1774,7 +1837,8 @@
                 color: sColor,
                 qty: qty,
                 img: img,
-                customImg: img
+                customImg: img,
+                stockDeducted: true
             };
 
             // Save to the temporary Buy Now storage key
