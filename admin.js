@@ -938,13 +938,22 @@ function initProductForm() {
             const finalColors = colors.length > 0 ? colors : ['Default'];
             const finalSizes = sizes.length > 0 ? sizes : ['Default'];
 
+            let overrides = {};
+            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) {}
+            const editingId = document.getElementById('editing-product-id')?.value;
+            const prodOverride = editingId ? (overrides[String(editingId)] || null) : null;
+
             let tableHTML = `<table class="stock-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Stock Qty</th></tr></thead><tbody>`;
             finalColors.forEach(color => {
                 finalSizes.forEach(size => {
+                    let vStock = 10;
+                    if (prodOverride && prodOverride.variants && prodOverride.variants[size]) {
+                        vStock = Math.max(0, vStock - prodOverride.variants[size]);
+                    }
                     tableHTML += `<tr class="variant-row" data-color="${color}" data-size="${size}">
                         <td><strong>${color}</strong></td><td><strong>${size}</strong></td>
                         <td><input type="text" class="stock-input variant-sku" placeholder="SKU"></td>
-                        <td><input type="number" class="stock-input variant-stock" value="10" min="0" required></td>
+                        <td><input type="number" class="stock-input variant-stock" value="${vStock}" min="0" required></td>
                     </tr>`;
                 });
             });
@@ -2088,3 +2097,12 @@ window.deletePromoCode = async function(index) {
         activePromoCodes.splice(index, 0, removed); // revert
     }
 };
+
+// ── LIVE STOCK SYNC FOR ADMIN PANEL ──
+window.addEventListener('storage', (e) => {
+    if (e.key === 'kappa_stock_overrides' || e.key === 'kappa_cached_products' || e.key === 'kappa_orders') {
+        if (typeof loadInventory === 'function') {
+            loadInventory();
+        }
+    }
+});
