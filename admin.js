@@ -28,7 +28,7 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
  */
 async function ensureFreshSession() {
     let { data: { session } } = await supabaseClient.auth.getSession();
-    
+
     if (!session) {
         // Try to refresh
         const { data, error } = await supabaseClient.auth.refreshSession();
@@ -69,11 +69,11 @@ let pendingImageFiles = [];
 // 2. DOM INITIALIZATION
 // ==========================================
 function runAdminInit() {
-    try { initSidebar(); } catch(e) { console.error('initSidebar error:', e); }
-    try { verifyAdmin(); } catch(e) { console.error('verifyAdmin error:', e); }
-    try { initProductForm(); } catch(e) { console.error('initProductForm error:', e); }
-    try { loadParentCategories(); } catch(e) { console.error('loadParentCategories error:', e); }
-    try { initImagePreview(); } catch(e) { console.error('initImagePreview error:', e); }
+    try { initSidebar(); } catch (e) { console.error('initSidebar error:', e); }
+    try { verifyAdmin(); } catch (e) { console.error('verifyAdmin error:', e); }
+    try { initProductForm(); } catch (e) { console.error('initProductForm error:', e); }
+    try { loadParentCategories(); } catch (e) { console.error('loadParentCategories error:', e); }
+    try { initImagePreview(); } catch (e) { console.error('initImagePreview error:', e); }
 }
 
 if (document.readyState === 'loading') {
@@ -85,7 +85,7 @@ if (document.readyState === 'loading') {
 // ==========================================
 // 3. SPA ROUTER: Sidebar Logic
 // ==========================================
-window.switchAdminView = async function(targetName) {
+window.switchAdminView = async function (targetName) {
     const sidebarItems = document.querySelectorAll('.sidebar-menu li');
     const viewSections = document.querySelectorAll('.view-section');
     const pageTitle = document.getElementById('dynamic-page-title');
@@ -120,28 +120,28 @@ window.switchAdminView = async function(targetName) {
         // Scroll main content pane to top on view change
         const mainContent = document.querySelector('.main-content');
         if (mainContent) mainContent.scrollTop = 0;
-        
+
         try {
-            switch(targetName) {
+            switch (targetName) {
                 case 'dashboard': if (typeof loadDashboard === 'function') await loadDashboard(); break;
-                case 'orders': 
-                    if (typeof loadOrders === 'function') await loadOrders(); 
+                case 'orders':
+                    if (typeof loadOrders === 'function') await loadOrders();
                     markOrdersViewSeen('orders');
                     break;
-                case 'cancelled': 
-                    if (typeof loadCancelledOrders === 'function') await loadCancelledOrders(); 
+                case 'cancelled':
+                    if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
                     markOrdersViewSeen('cancelled');
                     break;
-                case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break; 
+                case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break;
                 case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
                 case 'reviews': if (typeof loadReviews === 'function') await loadReviews(); break;
                 case 'customers': if (typeof loadCustomers === 'function') await loadCustomers(); break;
                 case 'settings': if (typeof loadSettings === 'function') await loadSettings(); break;
-                case 'products': clearProductForm(); break; 
-                case 'homepage': if (typeof loadHomepageSettings === 'function') await loadHomepageSettings(); break; 
+                case 'products': clearProductForm(); break;
+                case 'homepage': if (typeof loadHomepageSettings === 'function') await loadHomepageSettings(); break;
                 case 'promocodes': if (typeof loadPromoCodes === 'function') await loadPromoCodes(); break;
             }
-        } catch(err) {
+        } catch (err) {
             console.error('Error loading view:', targetName, err);
         }
     }
@@ -168,8 +168,8 @@ function clearProductForm() {
     document.getElementById('prod-images').setAttribute('required', 'true');
     document.getElementById('existing-images-preview').innerHTML = '';
     document.getElementById('new-images-preview').innerHTML = '';
-    
-    pendingImageFiles = []; 
+
+    pendingImageFiles = [];
 }
 
 // ==========================================
@@ -187,20 +187,20 @@ async function verifyAdmin() {
 
     if (!profile || profile.role !== 'admin') {
         alert("Access Denied: Admin privileges required.");
-        window.location.replace('index.html'); 
+        window.location.replace('index.html');
         return;
     }
 
     const adminName = document.getElementById('admin-name');
     const adminAvatar = document.getElementById('admin-avatar');
-    if(adminName) adminName.textContent = profile.full_name || 'Admin User';
-    if(adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
-    
+    if (adminName) adminName.textContent = profile.full_name || 'Admin User';
+    if (adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
+
     // Load dashboard stats on verify success
     await loadDashboard();
     updateSidebarOrderBadges();
 
-    loadCategories(); 
+    loadCategories();
 }
 
 // ==========================================
@@ -241,15 +241,15 @@ async function loadCategories() {
 
 async function loadParentCategories() {
     const select = document.getElementById('parent-cat-select');
-    if(!select) return;
-    
+    if (!select) return;
+
     const { data, error } = await supabaseClient.from('categories').select('*').order('name', { ascending: true });
     if (error || !data) return;
-    
+
     let html = '<option value="">No Parent (Root)</option>';
     const roots = data.filter(c => !c.parent_id);
     const children = data.filter(c => c.parent_id);
-    
+
     roots.forEach(root => {
         html += `<option value="${root.id}" style="font-weight: bold;">${root.name}</option>`;
         const myChildren = children.filter(c => c.parent_id === root.id);
@@ -257,7 +257,7 @@ async function loadParentCategories() {
             html += `<option value="${child.id}">&nbsp;&nbsp;&nbsp;↳ ${child.name}</option>`;
         });
     });
-    
+
     select.innerHTML = html;
 }
 
@@ -324,7 +324,7 @@ async function loadCategoriesList() {
 }
 
 // Load products for a given category and show them in the right panel
-window.loadCategoryProducts = async function(categoryId, isRoot, categoryName) {
+window.loadCategoryProducts = async function (categoryId, isRoot, categoryName) {
     _selectedCategoryId = categoryId;
     _selectedCategoryIsRoot = isRoot;
 
@@ -433,7 +433,7 @@ window.loadCategoryProducts = async function(categoryId, isRoot, categoryName) {
 };
 
 // Navigate to Add Product form with this sub-category pre-selected
-window.addProductInCategory = function() {
+window.addProductInCategory = function () {
     if (!_selectedCategoryId || _selectedCategoryIsRoot) return;
 
     // Navigate to products view
@@ -464,7 +464,7 @@ window.addProductInCategory = function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-window.addCategory = async function() {
+window.addCategory = async function () {
     const session = await ensureFreshSession();
     if (!session) return;
 
@@ -502,7 +502,7 @@ window.addCategory = async function() {
                 count++;
             }
         }
-    } catch(e) {
+    } catch (e) {
         console.warn('Slug check error:', e);
     }
 
@@ -516,8 +516,8 @@ window.addCategory = async function() {
         error = retry.error;
     }
 
-    if (error) { 
-        alert('Error adding category: ' + error.message); 
+    if (error) {
+        alert('Error adding category: ' + error.message);
     } else {
         nameInput.value = '';
         await Promise.all([loadCategoriesList(), loadParentCategories(), loadCategories()]);
@@ -532,7 +532,7 @@ window.addCategory = async function() {
     }
 };
 
-window.deleteCategory = async function(id) {
+window.deleteCategory = async function (id) {
     if (!confirm('Are you sure you want to delete this category? Products inside it will become uncategorized.')) return;
     const session = await ensureFreshSession();
     if (!session) return;
@@ -552,7 +552,7 @@ window.deleteCategory = async function(id) {
 
 async function loadOrders() {
     const container = document.querySelector('#view-orders .card');
-    
+
     const { data, error } = await supabaseClient
         .from('orders')
         .select(`
@@ -573,9 +573,9 @@ async function loadOrders() {
         return currentStatus === 'paid' || currentStatus.includes('cancel') || currentStatus.includes('refund') || !!order.razorpay_payment_id;
     });
 
-    if (paidOrders.length === 0) { 
-        container.innerHTML = `<h2>Orders</h2><p>No paid orders found.</p>`; 
-        return; 
+    if (paidOrders.length === 0) {
+        container.innerHTML = `<h2>Orders</h2><p>No paid orders found.</p>`;
+        return;
     }
 
     let html = `<h2>Orders</h2>
@@ -592,10 +592,10 @@ async function loadOrders() {
                         </tr>
                     </thead>
                     <tbody>`;
-    
+
     paidOrders.forEach(order => {
         const dateObj = new Date(order.created_at);
-        const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const currentStatus = (order.status || 'pending').toLowerCase();
         const paymentStatus = (order.payment_status || 'pending').toLowerCase();
         const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!order.razorpay_payment_id;
@@ -653,7 +653,7 @@ async function loadOrders() {
             paymentStatusHtml = `<span class="badge status-pending">PENDING</span>
             <div style="font-size:11px; color:#e67e22; font-weight:bold; margin-top:4px;">⚠️ Unpaid (Razorpay)</div>`;
         }
-        
+
         const isRepayPending = currentStatus.includes('cancel') && !isSettled;
 
         html += `<tr>
@@ -675,19 +675,19 @@ async function loadOrders() {
                  </td>
                  </tr>`;
     });
-    
+
     html += `</tbody></table>`;
     container.innerHTML = html;
 }
 
-window.updateOrderStatus = async function(orderId, newStatus) {
+window.updateOrderStatus = async function (orderId, newStatus) {
     try {
         console.log(`Updating order ${orderId} status in Supabase to: ${newStatus}`);
         const { error } = await supabaseClient
             .from('orders')
             .update({ status: newStatus })
             .eq('id', orderId);
-            
+
         if (error) {
             console.error("Error updating order status:", error);
             alert("Error updating status: " + error.message);
@@ -701,7 +701,7 @@ window.updateOrderStatus = async function(orderId, newStatus) {
     }
 };
 
-window.deleteOrder = async function(orderId) {
+window.deleteOrder = async function (orderId) {
     if (!confirm(`⚠️ Are you sure you want to permanently delete order #${orderId.toString().substring(0, 8)}?\nThis cannot be undone.`)) return;
 
     try {
@@ -760,15 +760,15 @@ async function loadDashboard() {
     const { data: orders } = await supabaseClient.from('orders').select('total_amount, status');
     const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
     const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer');
-    
+
     if (orders) {
         // Only count paid orders in the dashboard order stat
         const paidOrders = orders.filter(o => (o.status || '').toLowerCase() === 'paid');
         document.getElementById('stat-orders').textContent = paidOrders.length;
-        
+
         // Calculate revenue only from orders that are marked as 'paid'
         const totalRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
-        
+
         document.getElementById('stat-revenue').textContent = `₹${totalRevenue.toLocaleString()}`;
     }
     document.getElementById('stat-products').textContent = prodCount || 0;
@@ -779,7 +779,7 @@ async function loadReviews() {
     const container = document.querySelector('#view-reviews .card');
     const { data } = await supabaseClient.from('reviews').select(`id, rating, comment, products(name)`);
     let html = `<h2>Customer Reviews</h2>`;
-    if(!data || data.length === 0) { html += `<p>No reviews yet.</p>`; } 
+    if (!data || data.length === 0) { html += `<p>No reviews yet.</p>`; }
     else {
         data.forEach(r => html += `
             <div class="review-card" style="padding:15px; border: 1px solid #eee; margin-bottom: 10px;">
@@ -793,7 +793,7 @@ async function loadReviews() {
     container.innerHTML = html;
 }
 
-window.deleteReview = async function(reviewId) {
+window.deleteReview = async function (reviewId) {
     if (!confirm("Are you sure you want to delete this review?")) return;
     const { error } = await supabaseClient.from('reviews').delete().eq('id', reviewId);
     if (error) alert("Error deleting review: " + error.message);
@@ -839,10 +839,10 @@ async function loadCustomers() {
     } else {
         profiles.forEach(u => {
             const joinedDate = u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
-            const roleBadge = u.role === 'admin' 
+            const roleBadge = u.role === 'admin'
                 ? `<span style="background:#e74c3c; color:white; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:bold; text-transform:uppercase;">ADMIN</span>`
                 : `<span style="background:#2ecc71; color:white; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:bold; text-transform:uppercase;">CUSTOMER</span>`;
-            
+
             html += `
                 <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:12px 16px; font-weight:600; color:#111;">${u.full_name || 'N/A'}</td>
@@ -862,11 +862,11 @@ async function loadSettings() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
         const { data: profile } = await supabaseClient.from('profiles').select('full_name').eq('id', session.user.id).single();
-        if(profile) document.getElementById('settings-admin-name').textContent = profile.full_name;
+        if (profile) document.getElementById('settings-admin-name').textContent = profile.full_name;
     }
 }
 
-window.logoutAdmin = async function() {
+window.logoutAdmin = async function () {
     if (!confirm("Are you sure you want to logout?")) return;
     await supabaseClient.auth.signOut();
     window.location.replace('index.html');
@@ -881,18 +881,18 @@ window.logoutAdmin = async function() {
 function initImagePreview() {
     const fileInput = document.getElementById('prod-images');
     if (!fileInput) return;
-    
-    fileInput.addEventListener('change', function() {
+
+    fileInput.addEventListener('change', function () {
         pendingImageFiles = Array.from(this.files);
         renderPendingImages();
     });
 }
 
-window.renderPendingImages = function() {
+window.renderPendingImages = function () {
     const fileInput = document.getElementById('prod-images');
     const newPreviewContainer = document.getElementById('new-images-preview');
-    newPreviewContainer.innerHTML = ''; 
-    
+    newPreviewContainer.innerHTML = '';
+
     const editingId = document.getElementById('editing-product-id').value;
     const existingContainer = document.getElementById('existing-images-preview');
     const hasExisting = existingContainer ? existingContainer.innerHTML.trim() !== '' : false;
@@ -906,17 +906,17 @@ window.renderPendingImages = function() {
         pendingImageFiles.forEach((file, index) => {
             const wrapper = document.createElement('div');
             wrapper.style = "position: relative; width: 105px; border: 2px dashed #ccc; border-radius: 6px; padding: 4px; display: inline-block; margin-right: 10px; margin-bottom: 10px; background: #fff; vertical-align: top;";
-            
+
             const imgBox = document.createElement('div');
             imgBox.style = "position: relative; width: 100%; height: 85px; overflow: hidden; border-radius: 4px;";
 
             const img = document.createElement('img');
             img.style = "width: 100%; height: 100%; object-fit: cover; border-radius: 4px;";
-            
+
             const isCover = (!editingId || !hasExisting) && index === 0;
             let badgeHTML = isCover ? '<div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); color:white; font-size:9px; text-align:center; padding:2px; font-weight:bold; z-index: 5;">COVER</div>' : '';
-            
-            let makeCoverBtn = (!isCover && (!editingId || !hasExisting)) ? 
+
+            let makeCoverBtn = (!isCover && (!editingId || !hasExisting)) ?
                 `<button type="button" onclick="setPendingAsCover(${index})" style="position:absolute; bottom:2px; left:2px; right:2px; background:#f1c40f; color:#000; border:none; border-radius:3px; font-size:9px; padding:2px 0; cursor:pointer; z-index: 10; font-weight:bold;">Set Cover</button>` : '';
 
             let btnHTML = `<button type="button" onclick="removePendingImage(${index})" style="position:absolute; top:2px; right:2px; background:#e74c3c; color:white; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center; z-index: 10;">&times;</button>`;
@@ -942,7 +942,7 @@ window.renderPendingImages = function() {
             const reader = new FileReader();
             reader.onload = (e) => { img.src = e.target.result; };
             reader.readAsDataURL(file);
-            
+
             newPreviewContainer.appendChild(wrapper);
         });
     } else {
@@ -951,19 +951,19 @@ window.renderPendingImages = function() {
     }
 }
 
-window.setPendingAsCover = function(index) {
+window.setPendingAsCover = function (index) {
     if (index === 0) return;
     const temp = pendingImageFiles[0];
     pendingImageFiles[0] = pendingImageFiles[index];
     pendingImageFiles[index] = temp;
-    
+
     const dt = new DataTransfer();
     pendingImageFiles.forEach(file => dt.items.add(file));
     document.getElementById('prod-images').files = dt.files;
     renderPendingImages();
 }
 
-window.removePendingImage = function(index) {
+window.removePendingImage = function (index) {
     pendingImageFiles.splice(index, 1);
     const dt = new DataTransfer();
     pendingImageFiles.forEach(file => dt.items.add(file));
@@ -986,7 +986,7 @@ function initProductForm() {
             const finalSizes = sizes.length > 0 ? sizes : ['Default'];
 
             let overrides = {};
-            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) {}
+            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { }
             const editingId = document.getElementById('editing-product-id')?.value;
             const prodOverride = editingId ? (overrides[String(editingId)] || null) : null;
 
@@ -1023,7 +1023,7 @@ function initProductForm() {
                 variantRows.forEach(row => totalBaseStock += parseInt(row.querySelector('.variant-stock').value) || 0);
 
                 let targetProductId;
-                let startingImagePosition = 0; 
+                let startingImagePosition = 0;
 
                 if (editingId) {
                     targetProductId = editingId;
@@ -1094,12 +1094,12 @@ function initProductForm() {
                         if (uploadError) throw uploadError;
 
                         const { data: { publicUrl } } = supabaseClient.storage.from('product-images').getPublicUrl(filePath);
-                        
+
                         let finalUrl = publicUrl;
                         if (file._colorTag) {
                             finalUrl += `#${file._colorTag}`;
                         }
-                        
+
                         imageRows.push({ product_id: targetProductId, url: finalUrl, position: startingImagePosition + index });
                     }
                     await supabaseClient.from('product_images').insert(imageRows);
@@ -1108,7 +1108,7 @@ function initProductForm() {
                 alert(editingId ? "Product updated successfully!" : "Product published successfully!");
                 try {
                     localStorage.removeItem("kappa_cached_products");
-                } catch (e) {}
+                } catch (e) { }
                 clearProductForm();
 
             } catch (err) {
@@ -1133,10 +1133,10 @@ async function loadInventory() {
     const { data: categories, error: catError } = await supabaseClient.from('categories').select('*');
     let catMap = {};
     let hierarchyMap = {};
-    
+
     if (categories && !catError) {
         categories.forEach(c => catMap[c.id] = c);
-        
+
         // Build "Parent ↳ Child" strings
         categories.forEach(c => {
             if (c.parent_id && catMap[c.parent_id]) {
@@ -1154,7 +1154,7 @@ async function loadInventory() {
             roots.forEach(root => {
                 const group = document.createElement('optgroup');
                 group.label = root.name;
-                
+
                 const rootOpt = document.createElement('option');
                 rootOpt.value = root.id;
                 rootOpt.textContent = `${root.name} (All)`;
@@ -1202,7 +1202,7 @@ async function loadInventory() {
     data.forEach(prod => {
         // Resolve full category string (e.g., "Women ↳ Tops")
         const catDisplay = hierarchyMap[prod.category_id] || 'Uncategorized';
-        
+
         // Find the parent ID for filtering logic
         let parentId = '';
         if (catMap[prod.category_id] && catMap[prod.category_id].parent_id) {
@@ -1242,13 +1242,13 @@ async function loadInventory() {
             stockBadgeHtml = `<span class="badge" style="background:#e8f5e9; color:#2e7d32; font-weight:700; font-size: 11px; padding: 4px 8px; border-radius: 4px; border: 1px solid #c8e6c9;">🟢 In Stock (${totalStock})</span>`;
         }
 
-        const variantSummary = variantStockList.length > 0 
-            ? `<div style="font-size: 11px; color: #666; margin-top: 4px; line-height: 1.4;">${variantStockList.join(' &bull; ')}</div>` 
+        const variantSummary = variantStockList.length > 0
+            ? `<div style="font-size: 11px; color: #666; margin-top: 4px; line-height: 1.4;">${variantStockList.join(' &bull; ')}</div>`
             : '';
 
         // Sort images by position and build thumbnail strip
         const sortedImages = (prod.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
-        
+
         let imgStripHTML = '';
         if (sortedImages.length === 0) {
             imgStripHTML = `<div style="width: 48px; height: 56px; background: #eee; border-radius: 6px; display:inline-block;"></div>`;
@@ -1260,7 +1260,7 @@ async function loadInventory() {
                 const colorLabel = img.url.split('#')[1] || '';
                 const isCover = idx === 0;
                 imgStripHTML += `
-                    <div style="position:relative; display:inline-block;" title="${colorLabel || 'Image ' + (idx+1)}">
+                    <div style="position:relative; display:inline-block;" title="${colorLabel || 'Image ' + (idx + 1)}">
                         <img src="${cleanUrl}" 
                              style="width:${isCover ? '52px' : '38px'}; height:${isCover ? '62px' : '46px'}; object-fit:cover; border-radius:5px; border:${isCover ? '2px solid #111' : '1px solid #ddd'}; cursor:pointer; transition:transform 0.15s ease;"
                              onmouseover="this.style.transform='scale(1.12)'" 
@@ -1295,17 +1295,17 @@ async function loadInventory() {
 }
 
 // NEW: Live filter logic for the dropdown
-window.filterInventory = function() {
+window.filterInventory = function () {
     const filterVal = document.getElementById('inventory-filter').value;
     const rows = document.querySelectorAll('.inv-row');
-    
+
     rows.forEach(row => {
         if (filterVal === 'all') {
             row.style.display = '';
         } else {
             const catId = row.getAttribute('data-cat');
             const parentId = row.getAttribute('data-parent');
-            
+
             // Show if it matches exactly, OR if the filter is a Parent and this product belongs to its Child
             if (catId === filterVal || parentId === filterVal) {
                 row.style.display = '';
@@ -1316,7 +1316,7 @@ window.filterInventory = function() {
     });
 }
 
-window.deleteProduct = async function(id) {
+window.deleteProduct = async function (id) {
     if (!confirm("Are you sure you want to PERMANENTLY delete this product? This action cannot be undone.")) return;
     try {
         // 1. Delete associated child table records
@@ -1355,16 +1355,16 @@ window.deleteProduct = async function(id) {
     }
 }
 
-window.updateImageColor = async function(imageId, cleanUrl, newColorTag) {
+window.updateImageColor = async function (imageId, cleanUrl, newColorTag) {
     const trimmedColor = (newColorTag || '').trim();
     const newUrl = trimmedColor ? `${cleanUrl}#${trimmedColor}` : cleanUrl;
-    
+
     try {
         const { error } = await supabaseClient
             .from('product_images')
             .update({ url: newUrl })
             .eq('id', imageId);
-            
+
         if (error) {
             console.error("Error updating image color:", error);
             alert("Failed to update color tag: " + error.message);
@@ -1376,7 +1376,7 @@ window.updateImageColor = async function(imageId, cleanUrl, newColorTag) {
     }
 };
 
-window.deleteProductImage = async function(imageId, imageUrl, productId) {
+window.deleteProductImage = async function (imageId, imageUrl, productId) {
     if (!confirm("Remove this image?")) return;
     try {
         const urlParts = imageUrl.split('/product-images/');
@@ -1387,32 +1387,32 @@ window.deleteProductImage = async function(imageId, imageUrl, productId) {
         const { error } = await supabaseClient.from('product_images').delete().eq('id', imageId);
         if (error) throw error;
         editProduct(productId);
-    } catch(err) {
+    } catch (err) {
         alert("Error deleting image: " + err.message);
     }
 }
 
-window.setExistingAsCover = async function(imageId, productId) {
+window.setExistingAsCover = async function (imageId, productId) {
     if (!confirm("Set this image as the new cover?")) return;
     try {
         const { data: images } = await supabaseClient.from('product_images').select('*').eq('product_id', productId).order('position', { ascending: true });
-        
+
         if (images && images.length > 0) {
             const currentCover = images[0];
             const targetImage = images.find(img => img.id === imageId);
-            
+
             if (currentCover && targetImage && currentCover.id !== targetImage.id) {
                 await supabaseClient.from('product_images').update({ position: targetImage.position }).eq('id', currentCover.id);
                 await supabaseClient.from('product_images').update({ position: currentCover.position }).eq('id', targetImage.id);
             }
         }
         editProduct(productId);
-    } catch(err) {
+    } catch (err) {
         alert("Error setting cover: " + err.message);
     }
 }
 
-window.editProduct = async function(id) {
+window.editProduct = async function (id) {
     const { data, error } = await supabaseClient
         .from('products')
         .select(`*, product_variants (*), product_images (*)`)
@@ -1427,7 +1427,7 @@ window.editProduct = async function(id) {
 
     document.querySelectorAll('.sidebar-menu li').forEach(nav => nav.classList.remove('active'));
     document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
-    
+
     document.querySelector('.sidebar-menu li[data-target="products"]').classList.add('active');
     document.getElementById('view-products').classList.add('active-view');
     document.getElementById('dynamic-page-title').textContent = "Edit Product";
@@ -1443,12 +1443,12 @@ window.editProduct = async function(id) {
     if (data.product_variants && data.product_variants.length > 0) {
         const colors = [...new Set(data.product_variants.map(v => v.color).filter(c => c !== 'Default'))];
         const sizes = [...new Set(data.product_variants.map(v => v.size).filter(s => s !== 'Default'))];
-        
+
         document.getElementById('variant-colors').value = colors.join(', ');
         document.getElementById('variant-sizes').value = sizes.join(', ');
 
         let overrides = {};
-        try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) {}
+        try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { }
         const prodOverride = overrides[String(data.id)] || null;
 
         let tableHTML = `<table class="stock-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Stock Qty</th></tr></thead><tbody>`;
@@ -1473,16 +1473,16 @@ window.editProduct = async function(id) {
 
     const existingImagesDiv = document.getElementById('existing-images-preview');
     const fileInput = document.getElementById('prod-images');
-    
+
     if (data.product_images && data.product_images.length > 0) {
         let imgHtml = '<div style="width:100%; font-size: 13px; color: #666; margin-bottom: 5px;">Currently Uploaded Images:</div>';
-        
+
         data.product_images.forEach((img, index) => {
             const isCover = index === 0;
             const badge = isCover ? '<div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); color:white; font-size:9px; text-align:center; padding:2px; font-weight:bold; z-index:5;">COVER</div>' : '';
-            
+
             const makeCoverBtn = !isCover ? `<button type="button" onclick="setExistingAsCover('${img.id}', '${data.id}')" style="position:absolute; bottom:2px; left:2px; right:2px; background:#f1c40f; color:#000; border:none; border-radius:3px; font-size:9px; padding:2px 0; cursor:pointer; z-index:10; font-weight:bold;">Set Cover</button>` : '';
-            
+
             const parts = img.url.split('#');
             const cleanUrl = parts[0];
             const colorTag = parts[1] || '';
@@ -1501,12 +1501,12 @@ window.editProduct = async function(id) {
             </div>`;
         });
         existingImagesDiv.innerHTML = imgHtml;
-        fileInput.removeAttribute('required'); 
+        fileInput.removeAttribute('required');
     } else {
         existingImagesDiv.innerHTML = '';
         fileInput.setAttribute('required', 'true');
     }
-    
+
     fileInput.value = '';
     pendingImageFiles = [];
     document.getElementById('new-images-preview').innerHTML = '';
@@ -1515,10 +1515,11 @@ window.editProduct = async function(id) {
     window.scrollTo(0, 0);
 }
 
-window.showOrderDetails = async function(orderId) {
+window.showOrderDetails = async function (orderId) {
+    markOrdersSeen([orderId]);
     const overlay = document.getElementById('orderDetailsOverlay');
     const content = document.getElementById('orderDetailsContent');
-    
+
     overlay.style.display = 'flex';
     content.innerHTML = "Loading...";
 
@@ -1542,10 +1543,6 @@ window.showOrderDetails = async function(orderId) {
         content.innerHTML = "Error loading order.";
         return;
     }
-
-    const currentStatus = (data.status || 'pending').toLowerCase();
-    const isCancelled = currentStatus.includes('cancel');
-    markOrdersSeen([orderId], isCancelled ? 'cancelled' : 'active');
 
     const cust = data.customer_details || {};
     const addr = data.shipping_address || {};
@@ -1701,7 +1698,7 @@ window.showOrderDetails = async function(orderId) {
         let actionsToolbarHtml = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1.5px solid #fee2e2; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (cust.name || '') + ', regarding your refund of ₹' + data.total_amount + ' for Kappa Clothing order #' + data.id.toString().substring(0,8) + '...')}" target="_blank" style="background: #25d366; color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">💬 WhatsApp Customer</a>` : ''}
+                    ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (cust.name || '') + ', regarding your refund of ₹' + data.total_amount + ' for Kappa Clothing order #' + data.id.toString().substring(0, 8) + '...')}" target="_blank" style="background: #25d366; color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">💬 WhatsApp Customer</a>` : ''}
                     <button type="button" onclick="openAdminEditRefundModal('${data.id}')" style="background: #fff; border: 1.5px solid #cbd5e1; color: #334155; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">✏️ Edit / Enter Refund Info</button>
                 </div>
                 <div>
@@ -1813,10 +1810,10 @@ window.showOrderDetails = async function(orderId) {
             const qty = item.quantity || 1;
             const size = item.size || 'N/A';
             const color = item.color || 'N/A';
-            
+
             const imgUrl = item.image_url || (item.products?.product_images && item.products.product_images.length > 0 ? item.products.product_images[0].url : '');
-            
-            const imgElement = imgUrl ? 
+
+            const imgElement = imgUrl ?
                 `<img src="${imgUrl}" alt="${productName}" style="width: 75px; height: 75px; object-fit: cover; border-radius: 8px; border: 1px solid #e0e0e0; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">` :
                 `<div style="width: 75px; height: 75px; background: #f0f0f0; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #aaa; border: 1px dashed #ccc;">🛍️</div>`;
 
@@ -1858,12 +1855,12 @@ window.showOrderDetails = async function(orderId) {
             </div>
         </div>
     `;
-    
+
     content.innerHTML = htmlContent;
 }
 
 // ── CUSTOMER REFUND / REPAYMENT HELPERS ──
-window.copyRefundText = function(text, btn) {
+window.copyRefundText = function (text, btn) {
     if (!text) return;
     navigator.clipboard.writeText(text).then(() => {
         if (btn) {
@@ -1876,11 +1873,11 @@ window.copyRefundText = function(text, btn) {
     });
 };
 
-window.openAdminEditRefundModal = async function(orderId) {
+window.openAdminEditRefundModal = async function (orderId) {
     const modal = document.getElementById('adminRefundEditModal');
     if (!modal) return;
     document.getElementById('adminRefundOrderId').value = orderId;
-    
+
     try {
         const { data: ord } = await supabaseClient.from('orders').select('customer_details, refund_details').eq('id', orderId).single();
         const cust = ord?.customer_details || {};
@@ -1913,7 +1910,7 @@ window.openAdminEditRefundModal = async function(orderId) {
     modal.style.display = 'flex';
 };
 
-window.toggleAdminRefundFields = function() {
+window.toggleAdminRefundFields = function () {
     const method = document.getElementById('adminRefundMethodSelect')?.value || 'UPI';
     const upiDiv = document.getElementById('adminUpiFields');
     const bankDiv = document.getElementById('adminBankFields');
@@ -1926,7 +1923,7 @@ window.toggleAdminRefundFields = function() {
     }
 };
 
-window.saveAdminRefundDetails = async function(e) {
+window.saveAdminRefundDetails = async function (e) {
     if (e) e.preventDefault();
     const orderId = document.getElementById('adminRefundOrderId')?.value;
     if (!orderId) return;
@@ -1989,7 +1986,7 @@ window.saveAdminRefundDetails = async function(e) {
     }
 };
 
-window.adminMarkOrderRefunded = async function(orderId, amount) {
+window.adminMarkOrderRefunded = async function (orderId, amount) {
     const refId = prompt(`Confirm Repayment of ₹${amount}?\nEnter Refund UTR / Reference ID / Transaction ID (optional):`, 'UPI-' + Date.now().toString().slice(-6));
     if (refId === null) return;
 
@@ -2091,7 +2088,7 @@ function renderPromoCodes() {
     container.innerHTML = html;
 }
 
-window.addPromoCode = async function() {
+window.addPromoCode = async function () {
     const codeInput = document.getElementById('new-promo-code');
     const amountInput = document.getElementById('new-promo-amount');
     const code = codeInput.value.trim().toUpperCase();
@@ -2127,9 +2124,9 @@ window.addPromoCode = async function() {
     }
 };
 
-window.deletePromoCode = async function(index) {
+window.deletePromoCode = async function (index) {
     if (!confirm("Are you sure you want to delete this promo code?")) return;
-    
+
     const removed = activePromoCodes.splice(index, 1)[0];
 
     try {
@@ -2191,12 +2188,12 @@ async function loadCustomers() {
                     <td style="padding:12px; font-weight:600;">${p.full_name || 'Guest User'}</td>
                     <td style="padding:12px;">${p.email || 'N/A'}</td>
                     <td style="padding:12px;">${p.phone || 'N/A'}</td>
-                    <td style="padding:12px;"><span style="padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; background:${p.role==='admin'?'#FFD700':'#e5e7eb'}; color:#111;">${(p.role || 'customer').toUpperCase()}</span></td>
+                    <td style="padding:12px;"><span style="padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; background:${p.role === 'admin' ? '#FFD700' : '#e5e7eb'}; color:#111;">${(p.role || 'customer').toUpperCase()}</span></td>
                 </tr>`;
         });
         html += `</tbody></table></div>`;
         card.innerHTML = html;
-    } catch(e) {
+    } catch (e) {
         console.error('Error loading customers:', e);
         card.innerHTML = '<p style="color:red;">Error loading customer list.</p>';
     }
@@ -2233,7 +2230,7 @@ async function loadReviews() {
         });
         html += `</div>`;
         card.innerHTML = html;
-    } catch(e) {
+    } catch (e) {
         console.error('Error loading reviews:', e);
         card.innerHTML = '<h2 class="card-title">Customer Reviews</h2><p style="color:#888;">No reviews yet.</p>';
     }
@@ -2336,7 +2333,7 @@ async function loadOrders() {
             const cust = ord.customer_details || {};
             const status = (ord.status || 'pending').toLowerCase();
             const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
-            const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'N/A';
+            const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
 
             let statusBadge = `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#fff3cd; color:#856404;">${status.toUpperCase()}</span>`;
             if (status.includes('cancel')) {
@@ -2376,12 +2373,12 @@ async function loadOrders() {
 }
 
 // ── DELETE ORDER PERMANENTLY ──
-window.deleteOrder = async function(orderId) {
+window.deleteOrder = async function (orderId) {
     if (!confirm("Are you sure you want to PERMANENTLY delete this order? This action cannot be undone.")) return;
     try {
         // 1. Delete associated order_items
         await supabaseClient.from('order_items').delete().eq('order_id', orderId);
-        
+
         // 2. Delete order row
         const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
         if (error) throw error;
@@ -2391,7 +2388,7 @@ window.deleteOrder = async function(orderId) {
             let cachedOrders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
             cachedOrders = cachedOrders.filter(o => String(o.id) !== String(orderId));
             localStorage.setItem('kappa_orders', JSON.stringify(cachedOrders));
-        } catch (_) {}
+        } catch (_) { }
 
         alert("✅ Order deleted successfully!");
 
@@ -2458,11 +2455,11 @@ async function loadCancelledOrders() {
         cancelledOrders.forEach(ord => {
             const cust = ord.customer_details || {};
             const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
-            const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'N/A';
+            const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
             const refundInfo = ord.refund_details || cust.refund_details || null;
             const isRefunded = (ord.status || '').toLowerCase().includes('refund') || refundInfo?.refund_status === 'refunded';
 
-            let statusBadge = isRefunded 
+            let statusBadge = isRefunded
                 ? `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#e2e3e5; color:#383d41;">REFUNDED</span>`
                 : `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#f8d7da; color:#721c24;">CANCELLED</span>`;
 
@@ -2493,33 +2490,21 @@ async function loadCancelledOrders() {
 }
 
 // ── SIDEBAR NOTIFICATION BADGES & SEEN TRACKER ──
-function getSeenOrdersSet() {
+function getSeenOrderIds() {
     try {
-        return new Set(JSON.parse(localStorage.getItem('kappa_seen_orders_set') || '[]'));
+        return new Set(JSON.parse(localStorage.getItem('kappa_seen_order_ids') || '[]'));
     } catch (_) {
         return new Set();
     }
 }
 
-function getSeenCancelledSet() {
-    try {
-        return new Set(JSON.parse(localStorage.getItem('kappa_seen_cancelled_set') || '[]'));
-    } catch (_) {
-        return new Set();
-    }
-}
-
-function markOrdersSeen(idsArray, type = 'active') {
+function markOrdersSeen(idsArray) {
     if (!idsArray || idsArray.length === 0) return;
-    if (type === 'cancelled') {
-        const set = getSeenCancelledSet();
-        idsArray.forEach(id => set.add(String(id)));
-        try { localStorage.setItem('kappa_seen_cancelled_set', JSON.stringify(Array.from(set))); } catch (_) {}
-    } else {
-        const set = getSeenOrdersSet();
-        idsArray.forEach(id => set.add(String(id)));
-        try { localStorage.setItem('kappa_seen_orders_set', JSON.stringify(Array.from(set))); } catch (_) {}
-    }
+    const seenSet = getSeenOrderIds();
+    idsArray.forEach(id => seenSet.add(String(id)));
+    try {
+        localStorage.setItem('kappa_seen_order_ids', JSON.stringify(Array.from(seenSet)));
+    } catch (_) { }
     updateSidebarOrderBadges();
 }
 
@@ -2538,7 +2523,7 @@ async function markOrdersViewSeen(type) {
                     }
                 }
             });
-            markOrdersSeen(idsToMark, type === 'cancelled' ? 'cancelled' : 'active');
+            markOrdersSeen(idsToMark);
         }
     } catch (e) {
         console.warn('Error marking view seen:', e);
@@ -2552,20 +2537,18 @@ async function updateSidebarOrderBadges() {
     try {
         const { data: orders } = await supabaseClient.from('orders').select('id, status');
         if (orders) {
-            const seenOrdersSet = getSeenOrdersSet();
-            const seenCancelledSet = getSeenCancelledSet();
+            const seenSet = getSeenOrderIds();
             let unseenActiveCount = 0;
             let unseenCancelledCount = 0;
 
             orders.forEach(o => {
                 const st = (o.status || '').toLowerCase().trim();
                 if (st !== 'pending') {
-                    if (st.includes('cancel')) {
-                        if (!seenCancelledSet.has(String(o.id))) {
+                    const isSeen = seenSet.has(String(o.id));
+                    if (!isSeen) {
+                        if (st.includes('cancel')) {
                             unseenCancelledCount++;
-                        }
-                    } else {
-                        if (!seenOrdersSet.has(String(o.id))) {
+                        } else {
                             unseenActiveCount++;
                         }
                     }
