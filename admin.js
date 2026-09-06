@@ -2230,3 +2230,115 @@ async function loadSettings() {
         adminNameSpan.textContent = 'Admin User';
     }
 }
+
+// ==========================================
+// 14. DASHBOARD & ORDERS LOADERS
+// ==========================================
+async function loadDashboard() {
+    const revEl = document.getElementById('stat-revenue');
+    const ordEl = document.getElementById('stat-orders');
+    const prodEl = document.getElementById('stat-products');
+    const custEl = document.getElementById('stat-customers');
+
+    try {
+        const { data: orders } = await supabaseClient.from('orders').select('total_amount, status');
+        if (orders) {
+            let totalRevenue = 0;
+            orders.forEach(o => {
+                const st = (o.status || '').toLowerCase();
+                if (!st.includes('cancel')) {
+                    totalRevenue += (Number(o.total_amount) || 0);
+                }
+            });
+            if (revEl) revEl.textContent = `₹${totalRevenue.toLocaleString('en-IN')}`;
+            if (ordEl) ordEl.textContent = orders.length;
+        }
+
+        const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
+        if (prodEl && prodCount !== null) prodEl.textContent = prodCount;
+
+        const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
+        if (custEl && custCount !== null) custEl.textContent = custCount;
+    } catch (e) {
+        console.error('Error loading dashboard metrics:', e);
+    }
+}
+
+async function loadOrders() {
+    const container = document.getElementById('view-orders');
+    if (!container) return;
+    const card = container.querySelector('.card') || container;
+    card.innerHTML = '<p style="color:#666;">Loading orders...</p>';
+
+    try {
+        const { data: orders, error } = await supabaseClient
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!orders || orders.length === 0) {
+            card.innerHTML = '<h2 class="card-title">Customer Orders</h2><p style="color:#888;">No orders placed yet.</p>';
+            return;
+        }
+
+        let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+            <h2 class="card-title" style="margin:0;">Customer Orders (${orders.length})</h2>
+        </div>
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
+                <thead>
+                    <tr style="border-bottom:2px solid #eee; background:#fafafa;">
+                        <th style="padding:12px;">Order ID</th>
+                        <th style="padding:12px;">Customer</th>
+                        <th style="padding:12px;">Date</th>
+                        <th style="padding:12px;">Amount</th>
+                        <th style="padding:12px;">Status</th>
+                        <th style="padding:12px; text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        orders.forEach(ord => {
+            const cust = ord.customer_details || {};
+            const status = (ord.status || 'pending').toLowerCase();
+            const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
+            const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'N/A';
+
+            let statusBadge = `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#fff3cd; color:#856404;">${status.toUpperCase()}</span>`;
+            if (status.includes('cancel')) {
+                statusBadge = `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#f8d7da; color:#721c24;">CANCELLED</span>`;
+            } else if (status.includes('deliver')) {
+                statusBadge = `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#d4edda; color:#155724;">DELIVERED</span>`;
+            } else if (status.includes('shipped') || status.includes('dispatch')) {
+                statusBadge = `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#cce5ff; color:#004085;">SHIPPED</span>`;
+            } else if (status.includes('refund')) {
+                statusBadge = `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#e2e3e5; color:#383d41;">REFUNDED</span>`;
+            }
+
+            html += `
+            <tr style="border-bottom:1px solid #eee;">
+                <td style="padding:12px; font-family:monospace; font-weight:700; color:#111;">#${orderIdShort}</td>
+                <td style="padding:12px;">
+                    <div style="font-weight:600;">${cust.name || cust.full_name || 'Guest'}</div>
+                    <div style="font-size:12px; color:#777;">${cust.phone || cust.email || ''}</div>
+                </td>
+                <td style="padding:12px; font-size:13px; color:#666;">${dateStr}</td>
+                <td style="padding:12px; font-weight:700; color:#111;">₹${ord.total_amount || 0}</td>
+                <td style="padding:12px;">${statusBadge}</td>
+                <td style="padding:12px; text-align:right;">
+                    <button class="btn-secondary" style="padding:6px 12px; font-size:12px; cursor:pointer;" onclick="showOrderDetails('${ord.id}')">View Details</button>
+                </td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        card.innerHTML = html;
+
+    } catch (e) {
+        console.error('Error loading orders:', e);
+        card.innerHTML = '<p style="color:red;">Error loading orders.</p>';
+    }
+}

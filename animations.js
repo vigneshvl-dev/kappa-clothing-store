@@ -5,6 +5,9 @@
 (function () {
     "use strict";
 
+    // Skip smooth scroll animations on Admin Panel to allow native high-speed scrolling
+    if (window.location.pathname.includes('admin')) return;
+
     // 1. INITIALIZE GSAP & SCROLLTRIGGER
     if (typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined") {
         gsap.registerPlugin(ScrollTrigger);
