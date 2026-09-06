@@ -62,6 +62,9 @@ function generateSlug(text) {
         .replace(/\-\-+/g, '-');
 }
 
+// Global variables initialized at top level to prevent TDZ errors
+let pendingImageFiles = [];
+
 // ==========================================
 // 2. DOM INITIALIZATION
 // ==========================================
@@ -112,19 +115,23 @@ window.switchAdminView = async function(targetName) {
             };
             pageTitle.textContent = titleMap[targetName] || (targetName.charAt(0).toUpperCase() + targetName.slice(1));
         }
+
+        // Scroll main content pane to top on view change
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) mainContent.scrollTop = 0;
         
         try {
             switch(targetName) {
-                case 'dashboard': await loadDashboard(); break;
-                case 'orders': await loadOrders(); break;
-                case 'inventory': await loadInventory(); break; 
-                case 'categories': await loadCategoriesList(); break;
-                case 'reviews': await loadReviews(); break;
-                case 'customers': await loadCustomers(); break;
-                case 'settings': await loadSettings(); break;
+                case 'dashboard': if (typeof loadDashboard === 'function') await loadDashboard(); break;
+                case 'orders': if (typeof loadOrders === 'function') await loadOrders(); break;
+                case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break; 
+                case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
+                case 'reviews': if (typeof loadReviews === 'function') await loadReviews(); break;
+                case 'customers': if (typeof loadCustomers === 'function') await loadCustomers(); break;
+                case 'settings': if (typeof loadSettings === 'function') await loadSettings(); break;
                 case 'products': clearProductForm(); break; 
-                case 'homepage': await loadHomepageSettings(); break; 
-                case 'promocodes': await loadPromoCodes(); break;
+                case 'homepage': if (typeof loadHomepageSettings === 'function') await loadHomepageSettings(); break; 
+                case 'promocodes': if (typeof loadPromoCodes === 'function') await loadPromoCodes(); break;
             }
         } catch(err) {
             console.error('Error loading view:', targetName, err);
@@ -860,7 +867,7 @@ window.logoutAdmin = async function() {
 // 6. PRODUCT FORM (ADD / EDIT LOGIC)
 // ==========================================
 
-let pendingImageFiles = []; 
+// pendingImageFiles initialized at global scope above 
 
 function initImagePreview() {
     const fileInput = document.getElementById('prod-images');
@@ -2137,3 +2144,96 @@ window.addEventListener('storage', (e) => {
         }
     }
 });
+
+// ==========================================
+// 13. CUSTOMERS, REVIEWS & SETTINGS LOADERS
+// ==========================================
+async function loadCustomers() {
+    const container = document.getElementById('view-customers');
+    if (!container) return;
+    const card = container.querySelector('.card') || container;
+    card.innerHTML = '<p style="color:#666;">Loading customers...</p>';
+    try {
+        const { data: profiles, error } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        if (!profiles || profiles.length === 0) {
+            card.innerHTML = '<h2 class="card-title">Customers</h2><p style="color:#888;">No registered customers found yet.</p>';
+            return;
+        }
+        let html = `
+        <h2 class="card-title" style="margin-bottom:20px;">Customer Accounts (${profiles.length})</h2>
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
+                <thead>
+                    <tr style="border-bottom:2px solid #eee; background:#fafafa;">
+                        <th style="padding:12px;">Customer</th>
+                        <th style="padding:12px;">Email</th>
+                        <th style="padding:12px;">Phone</th>
+                        <th style="padding:12px;">Role</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+        profiles.forEach(p => {
+            html += `
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:12px; font-weight:600;">${p.full_name || 'Guest User'}</td>
+                    <td style="padding:12px;">${p.email || 'N/A'}</td>
+                    <td style="padding:12px;">${p.phone || 'N/A'}</td>
+                    <td style="padding:12px;"><span style="padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; background:${p.role==='admin'?'#FFD700':'#e5e7eb'}; color:#111;">${(p.role || 'customer').toUpperCase()}</span></td>
+                </tr>`;
+        });
+        html += `</tbody></table></div>`;
+        card.innerHTML = html;
+    } catch(e) {
+        console.error('Error loading customers:', e);
+        card.innerHTML = '<p style="color:red;">Error loading customer list.</p>';
+    }
+}
+
+async function loadReviews() {
+    const container = document.getElementById('view-reviews');
+    if (!container) return;
+    const card = container.querySelector('.card') || container;
+    card.innerHTML = '<p style="color:#666;">Loading customer reviews...</p>';
+    try {
+        const { data: reviews, error } = await supabaseClient.from('product_reviews').select('*, products(name)').order('created_at', { ascending: false });
+        if (error || !reviews || reviews.length === 0) {
+            card.innerHTML = '<h2 class="card-title">Customer Reviews</h2><p style="color:#888;">No product reviews submitted yet.</p>';
+            return;
+        }
+        let html = `
+        <h2 class="card-title" style="margin-bottom:20px;">Customer Reviews (${reviews.length})</h2>
+        <div style="display:flex; flex-direction:column; gap:16px;">`;
+        reviews.forEach(r => {
+            const stars = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+            html += `
+            <div style="border:1px solid #eee; border-radius:10px; padding:16px; background:#fff;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div>
+                        <strong style="font-size:15px;">${r.customer_name || 'Anonymous Customer'}</strong>
+                        <span style="color:#FFD700; margin-left:8px; font-size:16px;">${stars}</span>
+                    </div>
+                    <span style="font-size:12px; color:#999;">${new Date(r.created_at).toLocaleDateString()}</span>
+                </div>
+                <p style="font-size:13px; color:#555; margin-bottom:6px;">Product: <strong>${r.products?.name || 'Storefront Item'}</strong></p>
+                <p style="font-size:14px; color:#222; margin:0;">"${r.comment || r.review_text || ''}"</p>
+            </div>`;
+        });
+        html += `</div>`;
+        card.innerHTML = html;
+    } catch(e) {
+        console.error('Error loading reviews:', e);
+        card.innerHTML = '<h2 class="card-title">Customer Reviews</h2><p style="color:#888;">No reviews yet.</p>';
+    }
+}
+
+async function loadSettings() {
+    const adminNameSpan = document.getElementById('settings-admin-name');
+    if (!adminNameSpan) return;
+    const session = await supabaseClient.auth.getSession();
+    if (session?.data?.session?.user) {
+        adminNameSpan.textContent = session.data.session.user.email || 'Admin User';
+    } else {
+        adminNameSpan.textContent = 'Admin User';
+    }
+}

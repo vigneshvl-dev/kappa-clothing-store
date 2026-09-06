@@ -94,6 +94,15 @@ body {
     overflow-x: hidden;
 }
 
+/* View Sections Toggling */
+.view-section {
+    display: none !important;
+}
+
+.view-section.active-view {
+    display: block !important;
+}
+
 .top-header {
     display: flex;
     justify-content: space-between;
