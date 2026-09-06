@@ -318,14 +318,91 @@
 
     <div class="shop-layout">
         <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div style="font-size: 22px; font-weight: 500; color: #111; margin-bottom: 20px; font-family: 'Jost', sans-serif;">Filters</div>
-            <div class="filter-title">COLLECTION</div>
-            <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS', this)">View All</div>
-            <div id="dynamic-categories" style="margin-bottom: 30px;">
+        <aside class="sidebar" style="min-width: 240px; max-width: 260px; font-family: 'Jost', sans-serif;">
+            <div style="font-size: 22px; font-weight: 500; color: #111; margin-bottom: 20px;">Filters</div>
+            
+            <!-- COLLECTION CATEGORIES -->
+            <div class="filter-title" style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">COLLECTION</div>
+            <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS', this)" style="cursor: pointer; margin-bottom: 10px; font-size: 13px;">View All</div>
+            <div id="dynamic-categories" style="margin-bottom: 24px;">
                 <!-- Categories loaded via JS -->
-                <div style="font-size: 10px; color: #999;">Loading filters...</div>
+                <div style="font-size: 11px; color: #999;">Loading categories...</div>
             </div>
+
+            <!-- 1. PRICE FILTER ACCORDION -->
+            <div class="filter-accordion-block" style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
+                <div class="accordion-header" onclick="toggleAccordion(this)" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 14px;">
+                    <span style="font-size: 14px; font-weight: 600; color: #111;">Price</span>
+                    <span class="accordion-arrow" style="font-size: 12px; color: #555;">▲</span>
+                </div>
+                <div class="accordion-content" style="display: block;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 6px; padding: 6px 10px; background: #fff; flex: 1;">
+                            <span style="color: #777; font-size: 13px; margin-right: 4px;">₹</span>
+                            <input type="number" id="min-price-input" placeholder="0" min="0" oninput="applySortingAndFiltering()" style="border: none; outline: none; width: 100%; font-size: 13px; color: #111;">
+                        </div>
+                        <span style="font-size: 13px; color: #666;">to</span>
+                        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 6px; padding: 6px 10px; background: #fff; flex: 1;">
+                            <span style="color: #777; font-size: 13px; margin-right: 4px;">₹</span>
+                            <input type="number" id="max-price-input" placeholder="1,850.00" min="0" oninput="applySortingAndFiltering()" style="border: none; outline: none; width: 100%; font-size: 13px; color: #111;">
+                        </div>
+                    </div>
+                    <div id="highest-price-text" style="font-size: 12px; color: #666; font-style: normal; margin-bottom: 6px;">The highest price is Rs. 1,850.00</div>
+                </div>
+            </div>
+
+            <!-- 2. SIZE FILTER ACCORDION -->
+            <div class="filter-accordion-block" style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
+                <div class="accordion-header" onclick="toggleAccordion(this)" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 14px;">
+                    <span style="font-size: 14px; font-weight: 600; color: #111;">Size</span>
+                    <span class="accordion-arrow" style="font-size: 12px; color: #555;">▲</span>
+                </div>
+                <div class="accordion-content" style="display: block;">
+                    <div class="size-checkboxes-list" style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="XS" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> XS
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="S" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> S
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="M" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> M
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="L" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> L
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="XL" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> XL
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="XXL" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> XXL
+                        </label>
+
+                        <!-- Extra sizes initially collapsed -->
+                        <div class="size-item-extra" style="display: none; flex-direction: column; gap: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                                <input type="checkbox" class="size-filter-cb" value="28" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> 28
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                                <input type="checkbox" class="size-filter-cb" value="30" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> 30
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                                <input type="checkbox" class="size-filter-cb" value="32" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> 32
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                                <input type="checkbox" class="size-filter-cb" value="34" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> 34
+                            </label>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button type="button" onclick="toggleMoreSizes(this)" style="background: none; border: none; font-size: 13px; color: #333; font-weight: 500; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 4px;">
+                            + Show more
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
 
             <!-- Back to Home Button -->
             <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
@@ -802,6 +879,25 @@
             return { inStock: pStock > 0, total: Math.max(0, pStock) };
         }
 
+        window.toggleAccordion = function(headerEl) {
+            const block = headerEl.closest('.filter-accordion-block');
+            if (!block) return;
+            const content = block.querySelector('.accordion-content');
+            const arrow = block.querySelector('.accordion-arrow');
+            if (!content) return;
+            const isHidden = content.style.display === 'none';
+            content.style.display = isHidden ? 'block' : 'none';
+            if (arrow) arrow.textContent = isHidden ? '▲' : '▼';
+        };
+
+        window.toggleMoreSizes = function(btn) {
+            const extraDiv = btn.closest('.accordion-content')?.querySelector('.size-item-extra');
+            if (!extraDiv) return;
+            const isHidden = extraDiv.style.display === 'none';
+            extraDiv.style.display = isHidden ? 'flex' : 'none';
+            btn.textContent = isHidden ? '– Show less' : '+ Show more';
+        };
+
         window.setProductGridColumns = function(cols) {
             const grid = document.getElementById('shop-product-grid');
             const btn2 = document.getElementById('btn-grid-2');
@@ -842,16 +938,56 @@
             const inStockChecked = inStockElem ? inStockElem.checked : false;
             const outOfStockChecked = outOfStockElem ? outOfStockElem.checked : false;
 
-            let filtered = currentProductsLoaded.filter(product => {
-                if (!inStockChecked && !outOfStockChecked) return true;
-                const stockInfo = getProductStock(product);
-                const isInStock = stockInfo.inStock;
+            // Price Inputs
+            const minPVal = parseFloat(document.getElementById('min-price-input')?.value);
+            const maxPVal = parseFloat(document.getElementById('max-price-input')?.value);
+            const minPrice = isNaN(minPVal) ? 0 : minPVal;
+            const maxPrice = isNaN(maxPVal) ? Infinity : maxPVal;
 
-                if (inStockChecked && outOfStockChecked) return true;
-                if (inStockChecked) return isInStock;
-                if (outOfStockChecked) return !isInStock;
+            // Size Checkboxes
+            const checkedSizes = Array.from(document.querySelectorAll('.size-filter-cb:checked')).map(cb => cb.value.toUpperCase());
+
+            // Product Type Checkboxes
+            const checkedTypes = Array.from(document.querySelectorAll('.type-filter-cb:checked')).map(cb => cb.value.toLowerCase());
+
+            let filtered = currentProductsLoaded.filter(product => {
+                const prodPrice = Number(product.price) || 0;
+                if (prodPrice < minPrice || prodPrice > maxPrice) return false;
+
+                // Stock filter
+                if (inStockChecked || outOfStockChecked) {
+                    const stockInfo = getProductStock(product);
+                    const isInStock = stockInfo.inStock;
+                    if (inStockChecked && !outOfStockChecked && !isInStock) return false;
+                    if (outOfStockChecked && !inStockChecked && isInStock) return false;
+                }
+
+                // Size filter
+                if (checkedSizes.length > 0) {
+                    const variants = product.product_variants || [];
+                    const prodSizes = variants.map(v => (v.size || '').toUpperCase());
+                    const hasSizeMatch = checkedSizes.some(s => prodSizes.includes(s));
+                    if (!hasSizeMatch) return false;
+                }
+
+                // Product type filter
+                if (checkedTypes.length > 0) {
+                    const name = (product.name || '').toLowerCase();
+                    const desc = (product.description || '').toLowerCase();
+                    const hasTypeMatch = checkedTypes.some(t => name.includes(t) || desc.includes(t));
+                    if (!hasTypeMatch) return false;
+                }
+
                 return true;
             });
+
+            // Update highest price label dynamically
+            if (currentProductsLoaded.length > 0) {
+                const prices = currentProductsLoaded.map(p => Number(p.price) || 0);
+                const highest = Math.max(...prices);
+                const notice = document.getElementById('highest-price-text');
+                if (notice) notice.textContent = `The highest price is Rs. ${highest.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+            }
 
             // Apply selected sorting
             const sortVal = document.getElementById('sort-select')?.value || 'featured';
