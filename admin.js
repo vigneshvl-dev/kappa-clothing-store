@@ -2379,30 +2379,73 @@ async function loadOrders() {
     }
 }
 
-// ── DELETE ORDER PERMANENTLY ──
-window.deleteOrder = async function (orderId) {
-    if (!confirm("Are you sure you want to PERMANENTLY delete this order? This action cannot be undone.")) return;
+// ── RECYCLE BIN STORAGE HELPERS ──
+function getRecycleBinOrders() {
     try {
-        // 1. Delete associated order_items
-        await supabaseClient.from('order_items').delete().eq('order_id', orderId);
+        return JSON.parse(localStorage.getItem('kappa_recycle_bin_orders') || '[]');
+    } catch (_) {
+        return [];
+    }
+}
 
-        // 2. Delete order row
+function saveRecycleBinOrders(list) {
+    try {
+        localStorage.setItem('kappa_recycle_bin_orders', JSON.stringify(list || []));
+    } catch (e) {
+        console.error('Failed to save recycle bin orders:', e);
+    }
+}
+
+// ── DELETE ORDER (MOVES TO RECYCLE BIN) ──
+window.deleteOrder = async function (orderId) {
+    if (!confirm(`Are you sure you want to delete order #${String(orderId).substring(0, 8)}?\nIt will be moved to the Recycle Bin where you can restore it anytime.`)) return;
+
+    try {
+        // Step 1: Fetch full order record + order_items before deleting from Supabase
+        const { data: fullOrder } = await supabaseClient
+            .from('orders')
+            .select(`
+                *,
+                order_items (
+                    quantity,
+                    price_at_purchase,
+                    size,
+                    color,
+                    image_url,
+                    product_id,
+                    products ( name, product_images ( url ) )
+                )
+            `)
+            .eq('id', orderId)
+            .single();
+
+        if (fullOrder) {
+            fullOrder.recycled_at = new Date().toISOString();
+            const recycleList = getRecycleBinOrders();
+            const filtered = recycleList.filter(item => String(item.id) !== String(orderId));
+            filtered.unshift(fullOrder);
+            saveRecycleBinOrders(filtered);
+        }
+
+        // Step 2: Delete order_items & order from Supabase
+        await supabaseClient.from('order_items').delete().eq('order_id', orderId);
         const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
         if (error) throw error;
 
-        // 3. Remove from local storage cache if cached
+        // Step 3: Remove from local storage cache if cached
         try {
             let cachedOrders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
             cachedOrders = cachedOrders.filter(o => String(o.id) !== String(orderId));
             localStorage.setItem('kappa_orders', JSON.stringify(cachedOrders));
         } catch (_) { }
 
-        alert("✅ Order deleted successfully!");
+        alert("♻️ Order moved to Recycle Bin! You can restore it anytime from the Recycle Bin menu.");
 
-        // Refresh views
+        // Refresh views & badges
         if (typeof loadOrders === 'function') await loadOrders();
         if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
         if (typeof loadDashboard === 'function') await loadDashboard();
+        if (typeof loadRecycleBin === 'function') await loadRecycleBin();
         if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges();
 
         // Close details overlay if open for this order
@@ -2410,7 +2453,7 @@ window.deleteOrder = async function (orderId) {
         if (overlay) overlay.style.display = 'none';
 
     } catch (err) {
-        console.error("Error deleting order:", err);
+        console.error("Error moving order to Recycle Bin:", err);
         alert("❌ Failed to delete order: " + (err.message || err));
     }
 };
@@ -2496,6 +2539,156 @@ async function loadCancelledOrders() {
     }
 }
 
+// ── RECYCLE BIN LOADER ──
+async function loadRecycleBin() {
+    const container = document.getElementById('view-recyclebin');
+    if (!container) return;
+    const card = container.querySelector('.card') || container;
+
+    const recycleList = getRecycleBinOrders();
+
+    if (recycleList.length === 0) {
+        card.innerHTML = `
+            <div style="text-align:center; padding:50px 20px; color:#888;">
+                <div style="font-size:48px; margin-bottom:12px;">♻️</div>
+                <h3 style="margin:0 0 8px 0; color:#333;">Recycle Bin is Empty</h3>
+                <p style="margin:0; font-size:13px;">Deleted orders will appear here. You can restore them anytime to re-instate the order and products.</p>
+            </div>`;
+        return;
+    }
+
+    let html = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+        <h2 class="card-title" style="margin:0;">♻️ Recycle Bin (${recycleList.length})</h2>
+        <span style="font-size:12px; color:#666;">Click "Restore Order" to put an order back into Supabase</span>
+    </div>
+    <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
+            <thead>
+                <tr style="border-bottom:2px solid #eee; background:#fafafa;">
+                    <th style="padding:12px;">Recycled Date</th>
+                    <th style="padding:12px;">Order ID</th>
+                    <th style="padding:12px;">Customer</th>
+                    <th style="padding:12px;">Items Summary</th>
+                    <th style="padding:12px;">Status</th>
+                    <th style="padding:12px;">Total</th>
+                    <th style="padding:12px; text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+    recycleList.forEach(ord => {
+        const cust = ord.customer_details || {};
+        const orderIdShort = ord.id ? (String(ord.id).substring(0, 8) + '...') : 'N/A';
+        const recycledDateStr = ord.recycled_at ? new Date(ord.recycled_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const origStatus = (ord.status || 'paid').toUpperCase();
+
+        let itemsHtml = '';
+        if (ord.order_items && ord.order_items.length > 0) {
+            itemsHtml = ord.order_items.map(item => {
+                const name = item.products?.name || item.name || 'Product';
+                const size = item.size || 'N/A';
+                const color = item.color || 'N/A';
+                const qty = item.quantity || 1;
+                return `<div style="font-size:12px; line-height:1.4; color:#333; margin-bottom:2px;">• <strong>${name}</strong> (Qty: ${qty}, Size: ${size}, Color: ${color})</div>`;
+            }).join('');
+        } else {
+            itemsHtml = '<span style="color:#999; font-size:12px;">No items details</span>';
+        }
+
+        html += `
+        <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:12px; font-size:12px; color:#666; white-space:nowrap;">${recycledDateStr}</td>
+            <td style="padding:12px; font-family:monospace; font-weight:700; color:#111;">#${orderIdShort}</td>
+            <td style="padding:12px;">
+                <div style="font-weight:600;">${cust.name || cust.full_name || 'Guest'}</div>
+                <div style="font-size:12px; color:#777;">${cust.phone || cust.email || ''}</div>
+            </td>
+            <td style="padding:12px; min-width:220px;">${itemsHtml}</td>
+            <td style="padding:12px;"><span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">${origStatus}</span></td>
+            <td style="padding:12px; font-weight:700; color:#111;">₹${ord.total_amount || 0}</td>
+            <td style="padding:12px; text-align:right; white-space:nowrap;">
+                <button class="btn-secondary" style="padding:6px 12px; font-size:12px; cursor:pointer; background:#22c55e; color:#fff; border:none; border-radius:6px; font-weight:600; margin-right:6px;" onclick="restoreOrder('${ord.id}')">
+                    ↺ Restore Order
+                </button>
+                <button class="btn-delete" style="padding:6px 12px; font-size:12px; background:#dc2626; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;" onclick="permanentlyDeleteRecycleOrder('${ord.id}')">
+                    🗑 Delete
+                </button>
+            </td>
+        </tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+    card.innerHTML = html;
+}
+
+// ── RESTORE ORDER FROM RECYCLE BIN ──
+window.restoreOrder = async function (orderId) {
+    const recycleList = getRecycleBinOrders();
+    const orderToRestore = recycleList.find(o => String(o.id) === String(orderId));
+
+    if (!orderToRestore) {
+        alert("❌ Order not found in Recycle Bin.");
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to RESTORE order #${String(orderId).substring(0, 8)} back to active/cancelled orders?`)) return;
+
+    try {
+        const { order_items, recycled_at, ...dbOrder } = orderToRestore;
+
+        // 1. Re-insert order record into Supabase 'orders' table
+        const { error: orderErr } = await supabaseClient.from('orders').insert([dbOrder]);
+        if (orderErr) {
+            console.warn("Insert order returned error, attempting upsert:", orderErr);
+            const { error: upsertErr } = await supabaseClient.from('orders').upsert([dbOrder]);
+            if (upsertErr) throw upsertErr;
+        }
+
+        // 2. Re-insert order_items into Supabase 'order_items' table
+        if (order_items && order_items.length > 0) {
+            const cleanItems = order_items.map(item => {
+                const { products, ...rawItem } = item;
+                return {
+                    ...rawItem,
+                    order_id: dbOrder.id
+                };
+            });
+            await supabaseClient.from('order_items').insert(cleanItems);
+        }
+
+        // 3. Remove order from Recycle Bin local storage
+        const updatedList = recycleList.filter(o => String(o.id) !== String(orderId));
+        saveRecycleBinOrders(updatedList);
+
+        alert("✅ Order restored successfully! It is now restored in Supabase.");
+
+        // Refresh views
+        if (typeof loadOrders === 'function') await loadOrders();
+        if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
+        if (typeof loadDashboard === 'function') await loadDashboard();
+        if (typeof loadRecycleBin === 'function') await loadRecycleBin();
+        if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges();
+
+    } catch (err) {
+        console.error("Error restoring order:", err);
+        alert("❌ Failed to restore order: " + (err.message || err));
+    }
+};
+
+// ── PERMANENTLY ERASE FROM RECYCLE BIN ──
+window.permanentlyDeleteRecycleOrder = function (orderId) {
+    if (!confirm(`⚠️ PERMANENT DELETE:\nAre you sure you want to permanently delete order #${String(orderId).substring(0, 8)} from the Recycle Bin?\nThis action cannot be undone.`)) return;
+
+    const recycleList = getRecycleBinOrders();
+    const updatedList = recycleList.filter(o => String(o.id) !== String(orderId));
+    saveRecycleBinOrders(updatedList);
+
+    alert("🗑 Order permanently deleted.");
+    loadRecycleBin();
+    updateSidebarOrderBadges();
+};
+
 // ── SIDEBAR NOTIFICATION BADGES & SEEN TRACKER ──
 function getSeenOrdersSet() {
     try {
@@ -2552,6 +2745,7 @@ async function markOrdersViewSeen(type) {
 async function updateSidebarOrderBadges() {
     const ordersBadge = document.getElementById('nav-badge-orders');
     const cancelledBadge = document.getElementById('nav-badge-cancelled');
+    const recycleBadge = document.getElementById('nav-badge-recyclebin');
 
     try {
         const { data: orders } = await supabaseClient.from('orders').select('id, status');
@@ -2595,6 +2789,16 @@ async function updateSidebarOrderBadges() {
             }
         }
     } catch (e) {
-        console.warn('Could not update sidebar badges:', e);
+        console.warn('Could not update order badges:', e);
+    }
+
+    if (recycleBadge) {
+        const binCount = getRecycleBinOrders().length;
+        if (binCount > 0) {
+            recycleBadge.textContent = binCount;
+            recycleBadge.style.display = 'inline-flex';
+        } else {
+            recycleBadge.style.display = 'none';
+        }
     }
 }
