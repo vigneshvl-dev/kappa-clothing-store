@@ -1179,7 +1179,7 @@ function initProductForm() {
             const editingId = document.getElementById('editing-product-id')?.value;
             const prodOverride = editingId ? (overrides[String(editingId)] || null) : null;
 
-            let tableHTML = `<table class="stock-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Stock Qty</th></tr></thead><tbody>`;
+            let tableHTML = `<table class="stock-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Stock Qty</th><th style="text-align:center;">Action</th></tr></thead><tbody>`;
             finalColors.forEach(color => {
                 finalSizes.forEach(size => {
                     let vStock = 10;
@@ -1187,9 +1187,15 @@ function initProductForm() {
                         vStock = Math.max(0, vStock - prodOverride.variants[size]);
                     }
                     tableHTML += `<tr class="variant-row" data-color="${color}" data-size="${size}">
-                        <td><strong>${color}</strong></td><td><strong>${size}</strong></td>
+                        <td><strong>${color}</strong></td>
+                        <td><strong>${size}</strong></td>
                         <td><input type="text" class="stock-input variant-sku" placeholder="SKU"></td>
                         <td><input type="number" class="stock-input variant-stock" value="${vStock}" min="0" required></td>
+                        <td style="text-align:center;">
+                            <button type="button" class="btn-delete" style="padding:4px 10px; font-size:12px; background:#fff0f0; color:#e53e3e; border:1px solid #fed7d7; border-radius:6px; cursor:pointer;" onclick="removeVariantRow(this)" title="Delete Variant">
+                                ✕
+                            </button>
+                        </td>
                     </tr>`;
                 });
             });
@@ -1197,6 +1203,17 @@ function initProductForm() {
             stockTableContainer.innerHTML = tableHTML;
         });
     }
+
+window.removeVariantRow = function (btn) {
+    const row = btn.closest('tr');
+    if (!row) return;
+    row.remove();
+    const tableContainer = document.getElementById('stock-table-container');
+    const remainingRows = tableContainer ? tableContainer.querySelectorAll('.variant-row') : [];
+    if (remainingRows.length === 0 && tableContainer) {
+        tableContainer.innerHTML = '<p style="color:#aaa; text-align:center; padding:15px; font-style:italic;">No variants. Click "Generate Variant Matrix" to add colors & sizes.</p>';
+    }
+};
 
     if (addProductForm) {
         addProductForm.addEventListener('submit', async (e) => {
@@ -1640,16 +1657,22 @@ window.editProduct = async function (id) {
         try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { }
         const prodOverride = overrides[String(data.id)] || null;
 
-        let tableHTML = `<table class="stock-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Stock Qty</th></tr></thead><tbody>`;
+        let tableHTML = `<table class="stock-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Stock Qty</th><th style="text-align:center;">Action</th></tr></thead><tbody>`;
         data.product_variants.forEach(variant => {
             let vStock = Number(variant.stock_quantity || 0);
             if (prodOverride && prodOverride.variants && prodOverride.variants[variant.size]) {
                 vStock = Math.max(0, vStock - prodOverride.variants[variant.size]);
             }
             tableHTML += `<tr class="variant-row" data-color="${variant.color}" data-size="${variant.size}">
-                <td><strong>${variant.color}</strong></td><td><strong>${variant.size}</strong></td>
+                <td><strong>${variant.color}</strong></td>
+                <td><strong>${variant.size}</strong></td>
                 <td><input type="text" class="stock-input variant-sku" placeholder="SKU" value="${variant.sku || ''}"></td>
                 <td><input type="number" class="stock-input variant-stock" value="${vStock}" min="0" required></td>
+                <td style="text-align:center;">
+                    <button type="button" class="btn-delete" style="padding:4px 10px; font-size:12px; background:#fff0f0; color:#e53e3e; border:1px solid #fed7d7; border-radius:6px; cursor:pointer;" onclick="removeVariantRow(this)" title="Delete Variant">
+                        ✕
+                    </button>
+                </td>
             </tr>`;
         });
         tableHTML += `</tbody></table>`;
