@@ -23,6 +23,9 @@ app.post("/api/create-order", createOrder);
 const verifyPayment = require("./api/verify-payment");
 app.post("/api/verify-payment", verifyPayment);
 
+const reduceStock = require("./api/reduce-stock");
+app.post("/api/reduce-stock", reduceStock);
+
 const deleteOrder = require("./api/delete-order");
 app.post("/api/delete-order", deleteOrder);
 

@@ -39,15 +39,7 @@ module.exports = async (req, res) => {
             key_id: key_id
         });
     } catch (error) {
-        console.error("Razorpay API Error:", error);
-        if (key_id && key_secret) {
-            console.log("--- RAZORPAY DIAGNOSTICS ---");
-            console.log("Key ID length:", key_id.length);
-            console.log("Key Secret length:", key_secret.length);
-            console.log("Key ID Masked:", key_id.slice(0, 8) + "..." + key_id.slice(-4));
-            console.log("Key Secret Masked:", key_secret.slice(0, 4) + "..." + key_secret.slice(-4));
-            console.log("----------------------------");
-        }
+        console.error("Payment Order Creation Error:", error.message || error);
         const isAuthError = 
             error.statusCode === 401 || 
             (error.error && typeof error.error.description === "string" && 

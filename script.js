@@ -2143,6 +2143,38 @@ testDatabaseConnection();
         }
     }
 
+    function updateOrdersBadge(userId) {
+        const orders = loadOrders(userId);
+        const count = orders.length;
+        const links = [document.getElementById('mobileOrdersLink'), document.getElementById('popupMyOrders')];
+        
+        links.forEach(link => {
+            if (!link) return;
+            let badge = link.querySelector('.orders-badge');
+            if (count > 0) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'badge orders-badge';
+                    badge.style.background = 'var(--red, #d32f2f)';
+                    badge.style.color = '#fff';
+                    badge.style.borderRadius = '50%';
+                    badge.style.padding = '2px 6px';
+                    badge.style.fontSize = '11px';
+                    badge.style.marginLeft = '8px';
+                    badge.style.fontWeight = 'bold';
+                    badge.style.verticalAlign = 'middle';
+                    link.appendChild(badge);
+                }
+                badge.textContent = count;
+                badge.style.display = 'inline-flex';
+                badge.style.alignItems = 'center';
+                badge.style.justifyContent = 'center';
+            } else {
+                if (badge) badge.style.display = 'none';
+            }
+        });
+    }
+
     function trackOrder(orderId, userId) {
         if (!orderId) {
             showToast("Please enter an Order ID");
@@ -2196,6 +2228,7 @@ testDatabaseConnection();
         orders.unshift(newOrder);
         localStorage.setItem(customOrdersKey, JSON.stringify(orders));
         renderOrdersList(orders);
+        updateOrdersBadge(userId);
         showToast(`Order ${orderId} registered and tracked!`);
     }
 
@@ -2380,6 +2413,7 @@ testDatabaseConnection();
 
         const orders = loadOrders(userId);
         renderOrdersList(orders);
+        updateOrdersBadge(userId);
     }
 
     function renderOrdersList(orders) {
