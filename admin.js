@@ -65,49 +65,80 @@ function generateSlug(text) {
 // ==========================================
 // 2. DOM INITIALIZATION
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+function runAdminInit() {
     try { initSidebar(); } catch(e) { console.error('initSidebar error:', e); }
     try { verifyAdmin(); } catch(e) { console.error('verifyAdmin error:', e); }
     try { initProductForm(); } catch(e) { console.error('initProductForm error:', e); }
     try { loadParentCategories(); } catch(e) { console.error('loadParentCategories error:', e); }
     try { initImagePreview(); } catch(e) { console.error('initImagePreview error:', e); }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runAdminInit);
+} else {
+    runAdminInit();
+}
 
 // ==========================================
 // 3. SPA ROUTER: Sidebar Logic
 // ==========================================
-function initSidebar() {
+window.switchAdminView = async function(targetName) {
     const sidebarItems = document.querySelectorAll('.sidebar-menu li');
     const viewSections = document.querySelectorAll('.view-section');
     const pageTitle = document.getElementById('dynamic-page-title');
 
-    sidebarItems.forEach(item => {
-        item.addEventListener('click', async () => {
-            sidebarItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
+    sidebarItems.forEach(nav => {
+        if (nav.getAttribute('data-target') === targetName) nav.classList.add('active');
+        else nav.classList.remove('active');
+    });
 
-            viewSections.forEach(view => view.classList.remove('active-view'));
+    viewSections.forEach(view => view.classList.remove('active-view'));
 
-            const targetName = item.getAttribute('data-target');
-            const targetView = document.getElementById(`view-${targetName}`);
-            
-            if (targetView) {
-                targetView.classList.add('active-view');
-                if (pageTitle) pageTitle.textContent = targetName.charAt(0).toUpperCase() + targetName.slice(1);
-                
-                switch(targetName) {
-                    case 'dashboard': await loadDashboard(); break;
-                    case 'orders': await loadOrders(); break;
-                    case 'inventory': await loadInventory(); break; 
-                    case 'categories': await loadCategoriesList(); break;
-                    case 'reviews': await loadReviews(); break;
-                    case 'customers': await loadCustomers(); break;
-                    case 'settings': await loadSettings(); break;
-                    case 'products': clearProductForm(); break; 
-                    case 'homepage': await loadHomepageSettings(); break; 
-                    case 'promocodes': await loadPromoCodes(); break;
-                }
+    const targetView = document.getElementById(`view-${targetName}`);
+    if (targetView) {
+        targetView.classList.add('active-view');
+        if (pageTitle) {
+            const titleMap = {
+                dashboard: 'Dashboard',
+                orders: 'Orders',
+                inventory: 'Inventory',
+                products: 'Add Product',
+                customers: 'Customers',
+                categories: 'Categories',
+                reviews: 'Reviews',
+                homepage: 'Homepage Media',
+                promocodes: 'Promo Codes',
+                settings: 'Settings'
+            };
+            pageTitle.textContent = titleMap[targetName] || (targetName.charAt(0).toUpperCase() + targetName.slice(1));
+        }
+        
+        try {
+            switch(targetName) {
+                case 'dashboard': await loadDashboard(); break;
+                case 'orders': await loadOrders(); break;
+                case 'inventory': await loadInventory(); break; 
+                case 'categories': await loadCategoriesList(); break;
+                case 'reviews': await loadReviews(); break;
+                case 'customers': await loadCustomers(); break;
+                case 'settings': await loadSettings(); break;
+                case 'products': clearProductForm(); break; 
+                case 'homepage': await loadHomepageSettings(); break; 
+                case 'promocodes': await loadPromoCodes(); break;
             }
+        } catch(err) {
+            console.error('Error loading view:', targetName, err);
+        }
+    }
+};
+
+function initSidebar() {
+    const sidebarItems = document.querySelectorAll('.sidebar-menu li');
+    sidebarItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const targetName = item.getAttribute('data-target');
+            if (targetName) window.switchAdminView(targetName);
         });
     });
 }
