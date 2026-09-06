@@ -11,6 +11,7 @@ set search_path = public
 as $$
 declare
     item jsonb;
+    v_raw_id text;
     v_prod_id uuid;
     v_qty integer;
     v_size text;
@@ -23,11 +24,25 @@ begin
         return jsonb_build_object('success', false, 'message', 'No items provided');
     end if;
 
+    -- 2. Loop through each purchased item in the cart
     for item in select * from jsonb_array_elements(p_items) loop
-        v_prod_id := nullif(coalesce(item->>'id', item->>'product_id', ''), '')::uuid;
+        v_raw_id := coalesce(nullif(item->>'id', ''), nullif(item->>'product_id', ''), '');
         v_qty := coalesce(nullif(item->>'qty', ''), nullif(item->>'quantity', ''), '1')::integer;
         v_size := nullif(trim(coalesce(item->>'size', '')), '');
         v_color := nullif(trim(coalesce(item->>'color', '')), '');
+        v_prod_id := null;
+
+        if v_raw_id = '' then
+            continue;
+        end if;
+
+        -- Check if it's a valid UUID
+        if v_raw_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
+            v_prod_id := v_raw_id::uuid;
+        else
+            -- If not a UUID, find product by slug
+            select id into v_prod_id from public.products where slug = v_raw_id limit 1;
+        end if;
 
         if v_prod_id is null then
             continue;
@@ -84,3 +99,16 @@ $$;
 
 -- Grant execution permissions to public and authenticated users
 grant execute on function public.deduct_product_stock(jsonb) to anon, authenticated, service_role;
+
+-- ==========================================================
+-- IMMEDIATE VERIFICATION: Tests the function with an actual product
+-- ==========================================================
+select public.deduct_product_stock(
+    jsonb_build_array(
+        jsonb_build_object(
+            'id', (select id::text from public.products limit 1),
+            'qty', 1,
+            'size', 'M'
+        )
+    )
+) as test_result;

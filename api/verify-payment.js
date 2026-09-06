@@ -42,6 +42,44 @@ module.exports = async (req, res) => {
                 } else {
                     console.log(`✅ Order ${orderId} successfully marked as PAID in database.`);
                 }
+
+                // Deduct stock for the ordered items in Supabase
+                try {
+                    let orderItems = Array.isArray(items) && items.length > 0 ? items : [];
+                    if (orderItems.length === 0) {
+                        const itemsRes = await fetch(`${SUPABASE_URL}/rest/v1/order_items?order_id=eq.${orderId}&select=*`, {
+                            headers: {
+                                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                                'apikey': SUPABASE_SERVICE_KEY
+                            }
+                        });
+                        if (itemsRes.ok) {
+                            orderItems = await itemsRes.json();
+                        }
+                    }
+
+                    if (Array.isArray(orderItems) && orderItems.length > 0) {
+                        // Call deduct_product_stock RPC
+                        await fetch(`${SUPABASE_URL}/rest/v1/rpc/deduct_product_stock`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                                'apikey': SUPABASE_SERVICE_KEY,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                p_items: orderItems.map(it => ({
+                                    id: it.product_id || it.id,
+                                    qty: it.quantity || it.qty || 1,
+                                    size: it.size || null,
+                                    color: it.color || null
+                                }))
+                            })
+                        });
+                    }
+                } catch (stockErr) {
+                    console.error("Error reducing stock during verify-payment:", stockErr);
+                }
             } else {
                 console.warn("Skipping order update: missing orderId, SUPABASE_URL, or SUPABASE_SERVICE_KEY");
             }
