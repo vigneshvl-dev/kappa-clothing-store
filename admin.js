@@ -1516,7 +1516,6 @@ window.editProduct = async function (id) {
 }
 
 window.showOrderDetails = async function (orderId) {
-    markOrdersSeen([orderId]);
     const overlay = document.getElementById('orderDetailsOverlay');
     const content = document.getElementById('orderDetailsContent');
 
@@ -1543,6 +1542,10 @@ window.showOrderDetails = async function (orderId) {
         content.innerHTML = "Error loading order.";
         return;
     }
+
+    const currentStatus = (data.status || 'pending').toLowerCase();
+    const isCancelled = currentStatus.includes('cancel');
+    markOrdersSeen([orderId], isCancelled ? 'cancelled' : 'active');
 
     const cust = data.customer_details || {};
     const addr = data.shipping_address || {};
@@ -2490,21 +2493,33 @@ async function loadCancelledOrders() {
 }
 
 // ── SIDEBAR NOTIFICATION BADGES & SEEN TRACKER ──
-function getSeenOrderIds() {
+function getSeenOrdersSet() {
     try {
-        return new Set(JSON.parse(localStorage.getItem('kappa_seen_order_ids') || '[]'));
+        return new Set(JSON.parse(localStorage.getItem('kappa_seen_orders_set') || '[]'));
     } catch (_) {
         return new Set();
     }
 }
 
-function markOrdersSeen(idsArray) {
-    if (!idsArray || idsArray.length === 0) return;
-    const seenSet = getSeenOrderIds();
-    idsArray.forEach(id => seenSet.add(String(id)));
+function getSeenCancelledSet() {
     try {
-        localStorage.setItem('kappa_seen_order_ids', JSON.stringify(Array.from(seenSet)));
-    } catch (_) { }
+        return new Set(JSON.parse(localStorage.getItem('kappa_seen_cancelled_set') || '[]'));
+    } catch (_) {
+        return new Set();
+    }
+}
+
+function markOrdersSeen(idsArray, type = 'active') {
+    if (!idsArray || idsArray.length === 0) return;
+    if (type === 'cancelled') {
+        const set = getSeenCancelledSet();
+        idsArray.forEach(id => set.add(String(id)));
+        try { localStorage.setItem('kappa_seen_cancelled_set', JSON.stringify(Array.from(set))); } catch (_) { }
+    } else {
+        const set = getSeenOrdersSet();
+        idsArray.forEach(id => set.add(String(id)));
+        try { localStorage.setItem('kappa_seen_orders_set', JSON.stringify(Array.from(set))); } catch (_) { }
+    }
     updateSidebarOrderBadges();
 }
 
@@ -2523,7 +2538,7 @@ async function markOrdersViewSeen(type) {
                     }
                 }
             });
-            markOrdersSeen(idsToMark);
+            markOrdersSeen(idsToMark, type === 'cancelled' ? 'cancelled' : 'active');
         }
     } catch (e) {
         console.warn('Error marking view seen:', e);
@@ -2537,18 +2552,20 @@ async function updateSidebarOrderBadges() {
     try {
         const { data: orders } = await supabaseClient.from('orders').select('id, status');
         if (orders) {
-            const seenSet = getSeenOrderIds();
+            const seenOrdersSet = getSeenOrdersSet();
+            const seenCancelledSet = getSeenCancelledSet();
             let unseenActiveCount = 0;
             let unseenCancelledCount = 0;
 
             orders.forEach(o => {
                 const st = (o.status || '').toLowerCase().trim();
                 if (st !== 'pending') {
-                    const isSeen = seenSet.has(String(o.id));
-                    if (!isSeen) {
-                        if (st.includes('cancel')) {
+                    if (st.includes('cancel')) {
+                        if (!seenCancelledSet.has(String(o.id))) {
                             unseenCancelledCount++;
-                        } else {
+                        }
+                    } else {
+                        if (!seenOrdersSet.has(String(o.id))) {
                             unseenActiveCount++;
                         }
                     }
