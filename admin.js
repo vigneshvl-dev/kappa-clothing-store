@@ -74,6 +74,7 @@ function runAdminInit() {
     try { initProductForm(); } catch (e) { console.error('initProductForm error:', e); }
     try { loadParentCategories(); } catch (e) { console.error('loadParentCategories error:', e); }
     try { initImagePreview(); } catch (e) { console.error('initImagePreview error:', e); }
+    try { if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges(); } catch (e) { console.error('updateSidebarOrderBadges error:', e); }
 }
 
 if (document.readyState === 'loading') {
