@@ -124,8 +124,14 @@ window.switchAdminView = async function(targetName) {
         try {
             switch(targetName) {
                 case 'dashboard': if (typeof loadDashboard === 'function') await loadDashboard(); break;
-                case 'orders': if (typeof loadOrders === 'function') await loadOrders(); break;
-                case 'cancelled': if (typeof loadCancelledOrders === 'function') await loadCancelledOrders(); break;
+                case 'orders': 
+                    if (typeof loadOrders === 'function') await loadOrders(); 
+                    markOrdersViewSeen('orders');
+                    break;
+                case 'cancelled': 
+                    if (typeof loadCancelledOrders === 'function') await loadCancelledOrders(); 
+                    markOrdersViewSeen('cancelled');
+                    break;
                 case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break; 
                 case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
                 case 'reviews': if (typeof loadReviews === 'function') await loadReviews(); break;
@@ -1510,6 +1516,7 @@ window.editProduct = async function(id) {
 }
 
 window.showOrderDetails = async function(orderId) {
+    markOrdersSeen([orderId]);
     const overlay = document.getElementById('orderDetailsOverlay');
     const content = document.getElementById('orderDetailsContent');
     
@@ -2482,31 +2489,75 @@ async function loadCancelledOrders() {
     }
 }
 
-// ── SIDEBAR NOTIFICATION BADGES ──
+// ── SIDEBAR NOTIFICATION BADGES & SEEN TRACKER ──
+function getSeenOrderIds() {
+    try {
+        return new Set(JSON.parse(localStorage.getItem('kappa_seen_order_ids') || '[]'));
+    } catch (_) {
+        return new Set();
+    }
+}
+
+function markOrdersSeen(idsArray) {
+    if (!idsArray || idsArray.length === 0) return;
+    const seenSet = getSeenOrderIds();
+    idsArray.forEach(id => seenSet.add(String(id)));
+    try {
+        localStorage.setItem('kappa_seen_order_ids', JSON.stringify(Array.from(seenSet)));
+    } catch (_) {}
+    updateSidebarOrderBadges();
+}
+
+async function markOrdersViewSeen(type) {
+    try {
+        const { data: orders } = await supabaseClient.from('orders').select('id, status');
+        if (orders) {
+            const idsToMark = [];
+            orders.forEach(o => {
+                const st = (o.status || '').toLowerCase().trim();
+                if (st !== 'pending') {
+                    if (type === 'cancelled' && st.includes('cancel')) {
+                        idsToMark.push(o.id);
+                    } else if (type === 'orders' && !st.includes('cancel')) {
+                        idsToMark.push(o.id);
+                    }
+                }
+            });
+            markOrdersSeen(idsToMark);
+        }
+    } catch (e) {
+        console.warn('Error marking view seen:', e);
+    }
+}
+
 async function updateSidebarOrderBadges() {
     const ordersBadge = document.getElementById('nav-badge-orders');
     const cancelledBadge = document.getElementById('nav-badge-cancelled');
 
     try {
-        const { data: orders } = await supabaseClient.from('orders').select('status');
+        const { data: orders } = await supabaseClient.from('orders').select('id, status');
         if (orders) {
-            let activeCount = 0;
-            let cancelledCount = 0;
+            const seenSet = getSeenOrderIds();
+            let unseenActiveCount = 0;
+            let unseenCancelledCount = 0;
 
             orders.forEach(o => {
                 const st = (o.status || '').toLowerCase().trim();
                 if (st !== 'pending') {
-                    if (st.includes('cancel')) {
-                        cancelledCount++;
-                    } else {
-                        activeCount++;
+                    const isSeen = seenSet.has(String(o.id));
+                    if (!isSeen) {
+                        if (st.includes('cancel')) {
+                            unseenCancelledCount++;
+                        } else {
+                            unseenActiveCount++;
+                        }
                     }
                 }
             });
 
             if (ordersBadge) {
-                if (activeCount > 0) {
-                    ordersBadge.textContent = activeCount;
+                if (unseenActiveCount > 0) {
+                    ordersBadge.textContent = unseenActiveCount;
                     ordersBadge.style.display = 'inline-flex';
                 } else {
                     ordersBadge.style.display = 'none';
@@ -2514,8 +2565,8 @@ async function updateSidebarOrderBadges() {
             }
 
             if (cancelledBadge) {
-                if (cancelledCount > 0) {
-                    cancelledBadge.textContent = cancelledCount;
+                if (unseenCancelledCount > 0) {
+                    cancelledBadge.textContent = unseenCancelledCount;
                     cancelledBadge.style.display = 'inline-flex';
                 } else {
                     cancelledBadge.style.display = 'none';

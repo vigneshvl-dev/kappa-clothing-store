@@ -149,10 +149,8 @@ create table if not exists public.addresses (
     pincode text not null,
     is_default boolean default false
 );
-
 -- Enable RLS on addresses
 alter table public.addresses enable row level security;
-
 -- Policies for addresses
 drop policy if exists "Allow users to view their own addresses" on public.addresses;
 create policy "Allow users to view their own addresses" on public.addresses
@@ -160,7 +158,6 @@ create policy "Allow users to view their own addresses" on public.addresses
         select 1 from public.profiles
         where id = auth.uid() and role = 'admin'
     ));
-
 drop policy if exists "Allow users to insert their own addresses" on public.addresses;
 create policy "Allow users to insert their own addresses" on public.addresses
     for insert with check (auth.uid() = user_id or auth.uid() is null); -- allows signup setup/guest checkout
