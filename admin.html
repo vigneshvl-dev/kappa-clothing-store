@@ -25,6 +25,7 @@
             <ul class="sidebar-menu" id="sidebar-nav">
                 <li data-target="dashboard" class="active" onclick="switchAdminView('dashboard')">Dashboard</li>
                 <li data-target="orders" onclick="switchAdminView('orders')">Orders</li>
+                <li data-target="cancelled" onclick="switchAdminView('cancelled')">Cancelled Orders</li>
                 <li data-target="inventory" onclick="switchAdminView('inventory')">Inventory</li>
                 <li data-target="products" onclick="switchAdminView('products')">Add Product</li>
                 <li data-target="customers" onclick="switchAdminView('customers')">Customers</li>
@@ -71,6 +72,13 @@
 
             <!-- VIEW: ORDERS -->
             <div id="view-orders" class="view-section">
+                <div class="card">
+                    <!-- Dynamic content injected here -->
+                </div>
+            </div>
+
+            <!-- VIEW: CANCELLED ORDERS -->
+            <div id="view-cancelled" class="view-section">
                 <div class="card">
                     <!-- Dynamic content injected here -->
                 </div>

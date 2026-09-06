@@ -104,6 +104,7 @@ window.switchAdminView = async function(targetName) {
             const titleMap = {
                 dashboard: 'Dashboard',
                 orders: 'Orders',
+                cancelled: 'Cancelled Orders',
                 inventory: 'Inventory',
                 products: 'Add Product',
                 customers: 'Customers',
@@ -124,6 +125,7 @@ window.switchAdminView = async function(targetName) {
             switch(targetName) {
                 case 'dashboard': if (typeof loadDashboard === 'function') await loadDashboard(); break;
                 case 'orders': if (typeof loadOrders === 'function') await loadOrders(); break;
+                case 'cancelled': if (typeof loadCancelledOrders === 'function') await loadCancelledOrders(); break;
                 case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break; 
                 case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
                 case 'reviews': if (typeof loadReviews === 'function') await loadReviews(); break;
@@ -2288,10 +2290,10 @@ async function loadOrders() {
 
         if (error) throw error;
 
-        // Filter out incomplete/abandoned 'pending' status orders
+        // Filter out incomplete 'pending' and 'cancelled' orders so Orders view shows ONLY paid/active orders
         const validOrders = (orders || []).filter(ord => {
             const st = (ord.status || '').toLowerCase().trim();
-            return st !== 'pending';
+            return st !== 'pending' && !st.includes('cancel');
         });
 
         if (validOrders.length === 0) {
@@ -2382,6 +2384,7 @@ window.deleteOrder = async function(orderId) {
 
         // Refresh views
         if (typeof loadOrders === 'function') await loadOrders();
+        if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
         if (typeof loadDashboard === 'function') await loadDashboard();
 
         // Close details overlay if open for this order
@@ -2393,3 +2396,84 @@ window.deleteOrder = async function(orderId) {
         alert("❌ Failed to delete order: " + (err.message || err));
     }
 };
+
+// ── CANCELLED ORDERS LOADER ──
+async function loadCancelledOrders() {
+    const container = document.getElementById('view-cancelled');
+    if (!container) return;
+    const card = container.querySelector('.card') || container;
+    card.innerHTML = '<p style="color:#666;">Loading cancelled orders...</p>';
+
+    try {
+        const { data: orders, error } = await supabaseClient
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Filter: Keep ONLY CANCELLED orders
+        const cancelledOrders = (orders || []).filter(ord => {
+            const st = (ord.status || '').toLowerCase().trim();
+            return st.includes('cancel');
+        });
+
+        if (cancelledOrders.length === 0) {
+            card.innerHTML = '<h2 class="card-title">Cancelled Orders</h2><p style="color:#888;">No cancelled orders found.</p>';
+            return;
+        }
+
+        let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+            <h2 class="card-title" style="margin:0;">Cancelled Orders (${cancelledOrders.length})</h2>
+        </div>
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
+                <thead>
+                    <tr style="border-bottom:2px solid #eee; background:#fafafa;">
+                        <th style="padding:12px;">Order ID</th>
+                        <th style="padding:12px;">Customer</th>
+                        <th style="padding:12px;">Date</th>
+                        <th style="padding:12px;">Amount</th>
+                        <th style="padding:12px;">Status</th>
+                        <th style="padding:12px; text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        cancelledOrders.forEach(ord => {
+            const cust = ord.customer_details || {};
+            const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
+            const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'N/A';
+            const refundInfo = ord.refund_details || cust.refund_details || null;
+            const isRefunded = (ord.status || '').toLowerCase().includes('refund') || refundInfo?.refund_status === 'refunded';
+
+            let statusBadge = isRefunded 
+                ? `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#e2e3e5; color:#383d41;">REFUNDED</span>`
+                : `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#f8d7da; color:#721c24;">CANCELLED</span>`;
+
+            html += `
+            <tr style="border-bottom:1px solid #eee;">
+                <td style="padding:12px; font-family:monospace; font-weight:700; color:#111;">#${orderIdShort}</td>
+                <td style="padding:12px;">
+                    <div style="font-weight:600;">${cust.name || cust.full_name || 'Guest'}</div>
+                    <div style="font-size:12px; color:#777;">${cust.phone || cust.email || ''}</div>
+                </td>
+                <td style="padding:12px; font-size:13px; color:#666;">${dateStr}</td>
+                <td style="padding:12px; font-weight:700; color:#111;">₹${ord.total_amount || 0}</td>
+                <td style="padding:12px;">${statusBadge}</td>
+                <td style="padding:12px; text-align:right; white-space:nowrap;">
+                    <button class="btn-secondary" style="padding:6px 12px; font-size:12px; cursor:pointer;" onclick="showOrderDetails('${ord.id}')">View Details</button>
+                    <button class="btn-delete" style="padding:6px 12px; font-size:12px; background:#dc2626; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-left:6px; font-weight:600;" onclick="deleteOrder('${ord.id}')">Delete</button>
+                </td>
+            </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        card.innerHTML = html;
+
+    } catch (e) {
+        console.error('Error loading cancelled orders:', e);
+        card.innerHTML = '<p style="color:red;">Error loading cancelled orders.</p>';
+    }
+}
