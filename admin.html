@@ -7,7 +7,6 @@
     <title>KAPPA Store | Admin Panel</title>
     <link rel="icon" type="image/png" href="assets/kappalogo_favion.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="admin.js"></script>
     <link rel="stylesheet" href="admin.css">
     <!-- CropperJS CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
@@ -32,10 +31,6 @@
                 <li data-target="cancelled" onclick="switchAdminView('cancelled')">
                     <span>Cancelled Orders</span>
                     <span class="nav-badge nav-badge-cancelled" id="nav-badge-cancelled" style="display:none;">0</span>
-                </li>
-                <li data-target="recyclebin" onclick="switchAdminView('recyclebin')">
-                    <span>Recycle Bin</span>
-                    <span class="nav-badge nav-badge-recyclebin" id="nav-badge-recyclebin" style="display:none;">0</span>
                 </li>
                 <li data-target="inventory" onclick="switchAdminView('inventory')">Inventory</li>
                 <li data-target="products" onclick="switchAdminView('products')">Add Product</li>
@@ -90,13 +85,6 @@
 
             <!-- VIEW: CANCELLED ORDERS -->
             <div id="view-cancelled" class="view-section">
-                <div class="card">
-                    <!-- Dynamic content injected here -->
-                </div>
-            </div>
-
-            <!-- VIEW: RECYCLE BIN -->
-            <div id="view-recyclebin" class="view-section">
                 <div class="card">
                     <!-- Dynamic content injected here -->
                 </div>
@@ -265,9 +253,12 @@
             <div id="view-promocodes" class="view-section">
                 <section class="card">
                     <h2 class="card-title">Add New Promo Code</h2>
-                    <form id="add-promo-form" onsubmit="event.preventDefault(); addPromoCode();" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                        <input type="text" id="new-promo-code" class="admin-input" placeholder="Code (e.g., KAPPA500)" style="flex: 2;" required>
-                        <input type="number" id="new-promo-amount" class="admin-input" placeholder="Discount Amount (₹)" style="flex: 2;" required>
+                    <form id="add-promo-form" onsubmit="event.preventDefault(); addPromoCode();"
+                        style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <input type="text" id="new-promo-code" class="admin-input" placeholder="Code (e.g., KAPPA500)"
+                            style="flex: 2;" required>
+                        <input type="number" id="new-promo-amount" class="admin-input" placeholder="Discount Amount (₹)"
+                            style="flex: 2;" required>
                         <button type="submit" class="btn-secondary">Add Promo Code</button>
                     </form>
                 </section>
@@ -455,47 +446,68 @@
             <div class="side-head"
                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #eee; padding-bottom:12px;">
                 <h3 style="font-size:16px; font-weight:800; color:#111; margin:0;">Customer Refund & Repayment Info</h3>
-                <button
-                    onclick="document.getElementById('adminRefundEditModal').style.display='none'"
+                <button onclick="document.getElementById('adminRefundEditModal').style.display='none'"
                     style="background:none; border:none; font-size:20px; cursor:pointer; color:#666; font-weight:bold; padding:4px 8px;">✕</button>
             </div>
-            <form id="adminRefundForm" onsubmit="saveAdminRefundDetails(event)" style="display:flex; flex-direction:column; gap:14px;">
+            <form id="adminRefundForm" onsubmit="saveAdminRefundDetails(event)"
+                style="display:flex; flex-direction:column; gap:14px;">
                 <input type="hidden" id="adminRefundOrderId">
                 <div>
-                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Refund Method</label>
-                    <select id="adminRefundMethodSelect" class="admin-input" style="width:100%; box-sizing:border-box;" onchange="toggleAdminRefundFields()">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Refund
+                        Method</label>
+                    <select id="adminRefundMethodSelect" class="admin-input" style="width:100%; box-sizing:border-box;"
+                        onchange="toggleAdminRefundFields()">
                         <option value="UPI">UPI ID (Google Pay, PhonePe, Paytm, etc.)</option>
                         <option value="Bank Transfer">Bank Account Transfer (NEFT / IMPS)</option>
                     </select>
                 </div>
 
                 <div id="adminUpiFields">
-                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Customer UPI ID *</label>
-                    <input type="text" id="adminUpiInput" class="admin-input" placeholder="e.g. 9656353736@upi or user@okaxis" style="width:100%; box-sizing:border-box; font-family:monospace;">
+                    <label
+                        style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Customer
+                        UPI ID *</label>
+                    <input type="text" id="adminUpiInput" class="admin-input"
+                        placeholder="e.g. 9656353736@upi or user@okaxis"
+                        style="width:100%; box-sizing:border-box; font-family:monospace;">
                 </div>
 
                 <div id="adminBankFields" style="display:none; flex-direction:column; gap:10px;">
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">Account Holder Name</label>
-                        <input type="text" id="adminAccHolder" class="admin-input" placeholder="Holder Name" style="width:100%; box-sizing:border-box;">
+                        <label
+                            style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">Account
+                            Holder Name</label>
+                        <input type="text" id="adminAccHolder" class="admin-input" placeholder="Holder Name"
+                            style="width:100%; box-sizing:border-box;">
                     </div>
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">Account Number</label>
-                        <input type="text" id="adminAccNum" class="admin-input" placeholder="Account Number" style="width:100%; box-sizing:border-box; font-family:monospace;">
+                        <label
+                            style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">Account
+                            Number</label>
+                        <input type="text" id="adminAccNum" class="admin-input" placeholder="Account Number"
+                            style="width:100%; box-sizing:border-box; font-family:monospace;">
                     </div>
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">IFSC Code</label>
-                        <input type="text" id="adminAccIfsc" class="admin-input" placeholder="IFSC Code" style="width:100%; box-sizing:border-box; text-transform:uppercase; font-family:monospace;">
+                        <label
+                            style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">IFSC
+                            Code</label>
+                        <input type="text" id="adminAccIfsc" class="admin-input" placeholder="IFSC Code"
+                            style="width:100%; box-sizing:border-box; text-transform:uppercase; font-family:monospace;">
                     </div>
                     <div>
-                        <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">Bank Name</label>
-                        <input type="text" id="adminBankName" class="admin-input" placeholder="Bank Name" style="width:100%; box-sizing:border-box;">
+                        <label
+                            style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">Bank
+                            Name</label>
+                        <input type="text" id="adminBankName" class="admin-input" placeholder="Bank Name"
+                            style="width:100%; box-sizing:border-box;">
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; border-top:1px solid #eee; padding-top:12px;">
-                    <button type="button" class="btn-secondary" onclick="document.getElementById('adminRefundEditModal').style.display='none'">Cancel</button>
-                    <button type="submit" class="btn-black" style="background:#dc2626; color:#fff;">Save Refund Info</button>
+                <div
+                    style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; border-top:1px solid #eee; padding-top:12px;">
+                    <button type="button" class="btn-secondary"
+                        onclick="document.getElementById('adminRefundEditModal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn-black" style="background:#dc2626; color:#fff;">Save Refund
+                        Info</button>
                 </div>
             </form>
         </div>
@@ -592,10 +604,6 @@
         }
     </script>
 
-    <!-- CropperJS JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <!-- Admin Core Logic -->
-    <script src="admin.js"></script>
 </body>
 
 </html>
