@@ -760,25 +760,6 @@ window.deleteOrder = async function (orderId) {
     }
 };
 
-async function loadDashboard() {
-    const { data: orders } = await supabaseClient.from('orders').select('total_amount, status');
-    const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
-    const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer');
-
-    if (orders) {
-        // Only count paid orders in the dashboard order stat
-        const paidOrders = orders.filter(o => (o.status || '').toLowerCase() === 'paid');
-        document.getElementById('stat-orders').textContent = paidOrders.length;
-
-        // Calculate revenue only from orders that are marked as 'paid'
-        const totalRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
-
-        document.getElementById('stat-revenue').textContent = `₹${totalRevenue.toLocaleString()}`;
-    }
-    document.getElementById('stat-products').textContent = prodCount || 0;
-    document.getElementById('stat-customers').textContent = custCount || 0;
-}
-
 async function loadReviews() {
     const container = document.querySelector('#view-reviews .card');
     const { data } = await supabaseClient.from('reviews').select(`id, rating, comment, products(name)`);
@@ -2264,15 +2245,17 @@ async function loadDashboard() {
     const custEl = document.getElementById('stat-customers');
 
     try {
-        const { data: orders } = await supabaseClient.from('orders').select('total_amount, status');
+        const { data: orders } = await supabaseClient.from('orders').select('total_amount, status, payment_status, razorpay_payment_id');
         if (orders) {
             let totalRevenue = 0;
             let count = 0;
             orders.forEach(o => {
                 const st = (o.status || '').toLowerCase().trim();
-                if (st !== 'pending') {
+                const paySt = (o.payment_status || '').toLowerCase().trim();
+                const isPaidOrActive = st === 'paid' || paySt === 'paid' || !!o.razorpay_payment_id || (st !== 'pending' && !st.includes('cancel'));
+                if (isPaidOrActive) {
                     count++;
-                    if (!st.includes('cancel')) {
+                    if (!st.includes('cancel') && !st.includes('refund')) {
                         totalRevenue += (Number(o.total_amount) || 0);
                     }
                 }
@@ -2282,10 +2265,10 @@ async function loadDashboard() {
         }
 
         const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
-        if (prodEl && prodCount !== null) prodEl.textContent = prodCount;
+        if (prodEl && prodCount !== null && prodCount !== undefined) prodEl.textContent = prodCount;
 
         const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
-        if (custEl && custCount !== null) custEl.textContent = custCount;
+        if (custEl && custCount !== null && custCount !== undefined) custEl.textContent = custCount;
 
         updateSidebarOrderBadges();
     } catch (e) {
