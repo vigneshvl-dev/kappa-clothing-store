@@ -2473,20 +2473,38 @@ window.handleAddToCart = function handleAddToCart() {
     if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
     const sSize = window.selectedSize || 'Default';
+    const qty = window.currentQty || 1;
 
     // Out of stock guard check
-    if (sSize && window.sizeStockMap && window.sizeStockMap[sSize] === 0) {
-        if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} is out of stock.`);
+    const currentStock = (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
+        ? window.sizeStockMap[sSize]
+        : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999);
+
+    if (currentStock <= 0 || qty > currentStock) {
+        if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} does not have enough stock.`);
         return;
     }
     const sColor = window.selectedColor || 'N/A';
-    const qty = window.currentQty || 1;
 
     let img = '';
     if (window.currentMainImageUrl) {
         img = window.currentMainImageUrl;
     } else if (pd.product_images && pd.product_images.length > 0) {
         img = pd.product_images[0].url;
+    }
+
+    // Immediately reduce stock on Add to Cart
+    const newStock = Math.max(0, currentStock - qty);
+    if (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) {
+        window.sizeStockMap[sSize] = newStock;
+    }
+    window.currentAvailableStock = newStock;
+
+    if (typeof window.modifyStockOnCartAction === 'function') {
+        window.modifyStockOnCartAction(pd.id, sSize, sColor, qty);
+    }
+    if (typeof refreshProductSizeStockUI === 'function') {
+        refreshProductSizeStockUI(sSize, newStock);
     }
 
     const newItem = {
@@ -2497,7 +2515,8 @@ window.handleAddToCart = function handleAddToCart() {
         color: sColor,
         qty: qty,
         img: img,
-        customImg: img
+        customImg: img,
+        stockDeducted: true
     };
 
     // Directly write to localStorage — reliable, no IIFE dependency
@@ -2517,11 +2536,15 @@ window.handleAddToCart = function handleAddToCart() {
         console.error('Failed to save cart:', e);
     }
 
-    // Also call window.addToCart to keep cart badge/overlay UI in sync
+    // Also call window.addToCart with skipStockDeduct=true to keep cart badge/overlay UI in sync without double deducting
     if (typeof window.addToCart === 'function') {
         for (let i = 0; i < qty; i++) {
-            window.addToCart(pd.id, sSize, sColor, pd.price, img, pd.name);
+            window.addToCart(pd.id, sSize, sColor, pd.price, img, pd.name, true);
         }
+    }
+
+    if (typeof showProductToast === 'function') {
+        showProductToast(`✅ Added ${qty} item(s) to cart! Remaining stock: ${newStock}`);
     }
 }
 

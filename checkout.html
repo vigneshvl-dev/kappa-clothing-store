@@ -1289,6 +1289,13 @@
             async function reduceStockForCart(items) {
                 if (!items || items.length === 0) return;
 
+                // If items were already deducted upon "Add to Cart" or "Buy Now", skip to avoid double deduction
+                const targetItems = items.filter(item => !item.stockDeducted);
+                if (targetItems.length === 0) {
+                    console.log("Stock was already deducted upon Add to Cart.");
+                    return;
+                }
+
                 const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
                     ? 'http://localhost:3000'
                     : '';
@@ -1300,7 +1307,7 @@
                     const res = await fetch(`${apiOrigin}/api/reduce-stock`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ items })
+                        body: JSON.stringify({ items: targetItems })
                     });
                     if (res.ok) {
                         const json = await res.json();
@@ -1316,7 +1323,7 @@
                 if (!apiHandled && supabaseClient && typeof supabaseClient.rpc === 'function') {
                     try {
                         const { error: rpcErr } = await supabaseClient.rpc('deduct_product_stock', {
-                            p_items: items.map(item => ({
+                            p_items: targetItems.map(item => ({
                                 id: item.id,
                                 qty: item.qty || 1,
                                 size: item.size || null,
@@ -1385,7 +1392,7 @@
                         overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}');
                     } catch (_) { overrides = {}; }
 
-                    for (const item of items) {
+                    for (const item of targetItems) {
                         const pid = String(item.id);
                         if (!overrides[pid]) {
                             overrides[pid] = { totalDeducted: 0, variants: {} };
@@ -1402,7 +1409,7 @@
                     const cachedStr = localStorage.getItem("kappa_cached_products");
                     if (cachedStr) {
                         const cached = JSON.parse(cachedStr);
-                        for (const item of items) {
+                        for (const item of targetItems) {
                             const prod = cached.find(p => String(p.id) === String(item.id));
                             if (prod) {
                                 if (prod.stock_quantity !== undefined && prod.stock_quantity !== null) {
