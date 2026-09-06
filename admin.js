@@ -143,11 +143,12 @@ window.switchAdminView = switchAdminView;
 function initSidebar() {
     const sidebarItems = document.querySelectorAll('.sidebar-menu li');
     sidebarItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetName = item.getAttribute('data-target');
-            if (targetName) switchAdminView(targetName);
-        });
+        if (!item.getAttribute('onclick')) {
+            item.addEventListener('click', (e) => {
+                const targetName = item.getAttribute('data-target');
+                if (targetName) switchAdminView(targetName);
+            });
+        }
     });
 }
 
