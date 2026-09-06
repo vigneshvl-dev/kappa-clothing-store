@@ -1837,6 +1837,12 @@ window.showOrderDetails = async function(orderId) {
 
     htmlContent += `
             </div>
+            <div style="margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px; display: flex; justify-content: flex-end;">
+                <button type="button" style="background: #dc2626; color: #fff; padding: 10px 18px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;" onclick="deleteOrder('${data.id}')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Delete Order Permanently
+                </button>
+            </div>
         </div>
     `;
     
@@ -2328,8 +2334,9 @@ async function loadOrders() {
                 <td style="padding:12px; font-size:13px; color:#666;">${dateStr}</td>
                 <td style="padding:12px; font-weight:700; color:#111;">₹${ord.total_amount || 0}</td>
                 <td style="padding:12px;">${statusBadge}</td>
-                <td style="padding:12px; text-align:right;">
+                <td style="padding:12px; text-align:right; white-space:nowrap;">
                     <button class="btn-secondary" style="padding:6px 12px; font-size:12px; cursor:pointer;" onclick="showOrderDetails('${ord.id}')">View Details</button>
+                    <button class="btn-delete" style="padding:6px 12px; font-size:12px; background:#dc2626; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-left:6px; font-weight:600;" onclick="deleteOrder('${ord.id}')">Delete</button>
                 </td>
             </tr>`;
         });
@@ -2342,3 +2349,37 @@ async function loadOrders() {
         card.innerHTML = '<p style="color:red;">Error loading orders.</p>';
     }
 }
+
+// ── DELETE ORDER PERMANENTLY ──
+window.deleteOrder = async function(orderId) {
+    if (!confirm("Are you sure you want to PERMANENTLY delete this order? This action cannot be undone.")) return;
+    try {
+        // 1. Delete associated order_items
+        await supabaseClient.from('order_items').delete().eq('order_id', orderId);
+        
+        // 2. Delete order row
+        const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
+        if (error) throw error;
+
+        // 3. Remove from local storage cache if cached
+        try {
+            let cachedOrders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
+            cachedOrders = cachedOrders.filter(o => String(o.id) !== String(orderId));
+            localStorage.setItem('kappa_orders', JSON.stringify(cachedOrders));
+        } catch (_) {}
+
+        alert("✅ Order deleted successfully!");
+
+        // Refresh views
+        if (typeof loadOrders === 'function') await loadOrders();
+        if (typeof loadDashboard === 'function') await loadDashboard();
+
+        // Close details overlay if open for this order
+        const overlay = document.getElementById('orderDetailsOverlay');
+        if (overlay) overlay.style.display = 'none';
+
+    } catch (err) {
+        console.error("Error deleting order:", err);
+        alert("❌ Failed to delete order: " + (err.message || err));
+    }
+};
