@@ -16,8 +16,8 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === 'TOKEN_REFRESHED') {
         console.log('Session token refreshed successfully.');
     }
-    if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
-        window.location.replace('index.html');
+    if (event === 'SIGNED_OUT') {
+        console.log('User signed out.');
     }
 });
 
