@@ -124,14 +124,8 @@ window.switchAdminView = async function (targetName) {
         try {
             switch (targetName) {
                 case 'dashboard': if (typeof loadDashboard === 'function') await loadDashboard(); break;
-                case 'orders':
-                    if (typeof loadOrders === 'function') await loadOrders();
-                    markOrdersViewSeen('orders');
-                    break;
-                case 'cancelled':
-                    if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
-                    markOrdersViewSeen('cancelled');
-                    break;
+                case 'orders': if (typeof loadOrders === 'function') await loadOrders(); break;
+                case 'cancelled': if (typeof loadCancelledOrders === 'function') await loadCancelledOrders(); break;
                 case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break;
                 case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
                 case 'reviews': if (typeof loadReviews === 'function') await loadReviews(); break;
@@ -191,14 +185,10 @@ async function verifyAdmin() {
         return;
     }
 
-    const displayName = (profile && profile.full_name && profile.full_name.trim())
-        ? profile.full_name.trim()
-        : (session && session.user && session.user.email ? session.user.email : 'kappaatvm@gmail.com');
-
     const adminName = document.getElementById('admin-name');
     const adminAvatar = document.getElementById('admin-avatar');
-    if (adminName) adminName.textContent = displayName;
-    if (adminAvatar) adminAvatar.textContent = displayName.charAt(0).toUpperCase();
+    if (adminName) adminName.textContent = profile.full_name || 'Admin User';
+    if (adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
 
     // Load dashboard stats on verify success
     await loadDashboard();
@@ -759,6 +749,25 @@ window.deleteOrder = async function (orderId) {
         }
     }
 };
+
+async function loadDashboard() {
+    const { data: orders } = await supabaseClient.from('orders').select('total_amount, status');
+    const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
+    const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer');
+
+    if (orders) {
+        // Only count paid orders in the dashboard order stat
+        const paidOrders = orders.filter(o => (o.status || '').toLowerCase() === 'paid');
+        document.getElementById('stat-orders').textContent = paidOrders.length;
+
+        // Calculate revenue only from orders that are marked as 'paid'
+        const totalRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0);
+
+        document.getElementById('stat-revenue').textContent = `₹${totalRevenue.toLocaleString()}`;
+    }
+    document.getElementById('stat-products').textContent = prodCount || 0;
+    document.getElementById('stat-customers').textContent = custCount || 0;
+}
 
 async function loadReviews() {
     const container = document.querySelector('#view-reviews .card');
@@ -1528,10 +1537,6 @@ window.showOrderDetails = async function (orderId) {
         return;
     }
 
-    const currentStatus = (data.status || 'pending').toLowerCase();
-    const isCancelled = currentStatus.includes('cancel');
-    markOrdersSeen([orderId], isCancelled ? 'cancelled' : 'active');
-
     const cust = data.customer_details || {};
     const addr = data.shipping_address || {};
     const currentStatus = (data.status || 'pending').toLowerCase();
@@ -2245,17 +2250,15 @@ async function loadDashboard() {
     const custEl = document.getElementById('stat-customers');
 
     try {
-        const { data: orders } = await supabaseClient.from('orders').select('total_amount, status, payment_status, razorpay_payment_id');
+        const { data: orders } = await supabaseClient.from('orders').select('total_amount, status');
         if (orders) {
             let totalRevenue = 0;
             let count = 0;
             orders.forEach(o => {
                 const st = (o.status || '').toLowerCase().trim();
-                const paySt = (o.payment_status || '').toLowerCase().trim();
-                const isPaidOrActive = st === 'paid' || paySt === 'paid' || !!o.razorpay_payment_id || (st !== 'pending' && !st.includes('cancel'));
-                if (isPaidOrActive) {
+                if (st !== 'pending') {
                     count++;
-                    if (!st.includes('cancel') && !st.includes('refund')) {
+                    if (!st.includes('cancel')) {
                         totalRevenue += (Number(o.total_amount) || 0);
                     }
                 }
@@ -2265,10 +2268,10 @@ async function loadDashboard() {
         }
 
         const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
-        if (prodEl && prodCount !== null && prodCount !== undefined) prodEl.textContent = prodCount;
+        if (prodEl && prodCount !== null) prodEl.textContent = prodCount;
 
         const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
-        if (custEl && custCount !== null && custCount !== undefined) custEl.textContent = custCount;
+        if (custEl && custCount !== null) custEl.textContent = custCount;
 
         updateSidebarOrderBadges();
     } catch (e) {
@@ -2479,89 +2482,31 @@ async function loadCancelledOrders() {
     }
 }
 
-// ── SIDEBAR NOTIFICATION BADGES & SEEN TRACKER ──
-function getSeenOrdersSet() {
-    try {
-        return new Set(JSON.parse(localStorage.getItem('kappa_seen_orders_set') || '[]'));
-    } catch (_) {
-        return new Set();
-    }
-}
-
-function getSeenCancelledSet() {
-    try {
-        return new Set(JSON.parse(localStorage.getItem('kappa_seen_cancelled_set') || '[]'));
-    } catch (_) {
-        return new Set();
-    }
-}
-
-function markOrdersSeen(idsArray, type = 'active') {
-    if (!idsArray || idsArray.length === 0) return;
-    if (type === 'cancelled') {
-        const set = getSeenCancelledSet();
-        idsArray.forEach(id => set.add(String(id)));
-        try { localStorage.setItem('kappa_seen_cancelled_set', JSON.stringify(Array.from(set))); } catch (_) { }
-    } else {
-        const set = getSeenOrdersSet();
-        idsArray.forEach(id => set.add(String(id)));
-        try { localStorage.setItem('kappa_seen_orders_set', JSON.stringify(Array.from(set))); } catch (_) { }
-    }
-    updateSidebarOrderBadges();
-}
-
-async function markOrdersViewSeen(type) {
-    try {
-        const { data: orders } = await supabaseClient.from('orders').select('id, status');
-        if (orders) {
-            const idsToMark = [];
-            orders.forEach(o => {
-                const st = (o.status || '').toLowerCase().trim();
-                if (st !== 'pending') {
-                    if (type === 'cancelled' && st.includes('cancel')) {
-                        idsToMark.push(o.id);
-                    } else if (type === 'orders' && !st.includes('cancel')) {
-                        idsToMark.push(o.id);
-                    }
-                }
-            });
-            markOrdersSeen(idsToMark, type === 'cancelled' ? 'cancelled' : 'active');
-        }
-    } catch (e) {
-        console.warn('Error marking view seen:', e);
-    }
-}
-
+// ── SIDEBAR NOTIFICATION BADGES ──
 async function updateSidebarOrderBadges() {
     const ordersBadge = document.getElementById('nav-badge-orders');
     const cancelledBadge = document.getElementById('nav-badge-cancelled');
 
     try {
-        const { data: orders } = await supabaseClient.from('orders').select('id, status');
+        const { data: orders } = await supabaseClient.from('orders').select('status');
         if (orders) {
-            const seenOrdersSet = getSeenOrdersSet();
-            const seenCancelledSet = getSeenCancelledSet();
-            let unseenActiveCount = 0;
-            let unseenCancelledCount = 0;
+            let activeCount = 0;
+            let cancelledCount = 0;
 
             orders.forEach(o => {
                 const st = (o.status || '').toLowerCase().trim();
                 if (st !== 'pending') {
                     if (st.includes('cancel')) {
-                        if (!seenCancelledSet.has(String(o.id))) {
-                            unseenCancelledCount++;
-                        }
+                        cancelledCount++;
                     } else {
-                        if (!seenOrdersSet.has(String(o.id))) {
-                            unseenActiveCount++;
-                        }
+                        activeCount++;
                     }
                 }
             });
 
             if (ordersBadge) {
-                if (unseenActiveCount > 0) {
-                    ordersBadge.textContent = unseenActiveCount;
+                if (activeCount > 0) {
+                    ordersBadge.textContent = activeCount;
                     ordersBadge.style.display = 'inline-flex';
                 } else {
                     ordersBadge.style.display = 'none';
@@ -2569,8 +2514,8 @@ async function updateSidebarOrderBadges() {
             }
 
             if (cancelledBadge) {
-                if (unseenCancelledCount > 0) {
-                    cancelledBadge.textContent = unseenCancelledCount;
+                if (cancelledCount > 0) {
+                    cancelledBadge.textContent = cancelledCount;
                     cancelledBadge.style.display = 'inline-flex';
                 } else {
                     cancelledBadge.style.display = 'none';
