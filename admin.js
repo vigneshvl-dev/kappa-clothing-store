@@ -70,9 +70,6 @@ if (document.readyState === 'loading') {
     runAdminInit();
 }
 
-// ==========================================
-// 3. SPA ROUTER: Sidebar Logic
-// ==========================================
 async function switchAdminView(targetName) {
     const sidebarItems = document.querySelectorAll('.sidebar-menu li');
     const viewSections = document.querySelectorAll('.view-section');
@@ -2233,7 +2230,7 @@ async function loadOrders() {
         validOrders.forEach(ord => {
             const cust = ord.customer_details || {};
             const status = (ord.status || 'pending').toLowerCase();
-            const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
+            const orderIdShort = ord.id ? (String(ord.id).substring(0, 8) + '...') : 'N/A';
             const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
 
             let statusBadge = `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#fff3cd; color:#856404;">${status.toUpperCase()}</span>`;
@@ -2398,7 +2395,7 @@ async function loadCancelledOrders() {
 
         cancelledOrders.forEach(ord => {
             const cust = ord.customer_details || {};
-            const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
+            const orderIdShort = ord.id ? (String(ord.id).substring(0, 8) + '...') : 'N/A';
             const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
             const refundInfo = ord.refund_details || cust.refund_details || null;
             const isRefunded = (ord.status || '').toLowerCase().includes('refund') || refundInfo?.refund_status === 'refunded';
