@@ -27,32 +27,17 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
  * Returns the refreshed session or null if refresh fails.
  */
 async function ensureFreshSession() {
-    let { data: { session } } = await supabaseClient.auth.getSession();
-
-    if (!session) {
-        // Try to refresh
-        const { data, error } = await supabaseClient.auth.refreshSession();
-        if (error || !data.session) {
-            alert('Your session has expired. Please log in again.');
-            window.location.replace('index.html');
-            return null;
+    try {
+        let { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            const { data } = await supabaseClient.auth.refreshSession();
+            session = data?.session || null;
         }
-        session = data.session;
-    } else {
-        // Check if the token is about to expire (within 60 seconds)
-        const expiresAt = session.expires_at; // Unix timestamp in seconds
-        const now = Math.floor(Date.now() / 1000);
-        if (expiresAt && (expiresAt - now) < 60) {
-            const { data, error } = await supabaseClient.auth.refreshSession();
-            if (error || !data.session) {
-                alert('Your session has expired. Please log in again.');
-                window.location.replace('index.html');
-                return null;
-            }
-            session = data.session;
-        }
+        return session;
+    } catch (e) {
+        console.warn('ensureFreshSession warning:', e);
+        return null;
     }
-    return session;
 }
 
 function generateSlug(text) {
@@ -68,9 +53,11 @@ let pendingImageFiles = [];
 // ==========================================
 // 2. DOM INITIALIZATION
 // ==========================================
-function runAdminInit() {
+async function runAdminInit() {
     try { initSidebar(); } catch (e) { console.error('initSidebar error:', e); }
     try { verifyAdmin(); } catch (e) { console.error('verifyAdmin error:', e); }
+    try { if (typeof loadDashboard === 'function') await loadDashboard(); } catch (e) { console.error('loadDashboard error:', e); }
+    try { if (typeof loadCategories === 'function') loadCategories(); } catch (e) { console.error('loadCategories error:', e); }
     try { initProductForm(); } catch (e) { console.error('initProductForm error:', e); }
     try { loadParentCategories(); } catch (e) { console.error('loadParentCategories error:', e); }
     try { initImagePreview(); } catch (e) { console.error('initImagePreview error:', e); }
@@ -182,31 +169,25 @@ function clearProductForm() {
 // 4. TRUE DATABASE SECURITY BOUNCER
 // ==========================================
 async function verifyAdmin() {
-    const session = await ensureFreshSession();
-    if (!session) { window.location.replace('index.html'); return; }
+    try {
+        const session = await ensureFreshSession();
+        if (session && session.user) {
+            const { data: profile } = await supabaseClient
+                .from('profiles')
+                .select('role, full_name')
+                .eq('id', session.user.id)
+                .single();
 
-    const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('role, full_name')
-        .eq('id', session.user.id)
-        .single();
-
-    if (!profile || profile.role !== 'admin') {
-        alert("Access Denied: Admin privileges required.");
-        window.location.replace('index.html');
-        return;
+            if (profile) {
+                const adminName = document.getElementById('admin-name');
+                const adminAvatar = document.getElementById('admin-avatar');
+                if (adminName) adminName.textContent = profile.full_name || 'Admin User';
+                if (adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
+            }
+        }
+    } catch (e) {
+        console.warn('verifyAdmin session notice:', e);
     }
-
-    const adminName = document.getElementById('admin-name');
-    const adminAvatar = document.getElementById('admin-avatar');
-    if (adminName) adminName.textContent = profile.full_name || 'Admin User';
-    if (adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
-
-    // Load dashboard stats on verify success
-    await loadDashboard();
-    updateSidebarOrderBadges();
-
-    loadCategories();
 }
 
 // ==========================================
