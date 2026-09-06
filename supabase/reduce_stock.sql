@@ -24,10 +24,14 @@ begin
     end if;
 
     for item in select * from jsonb_array_elements(p_items) loop
-        v_prod_id := (item->>'id')::uuid;
-        v_qty := coalesce((item->>'qty')::integer, (item->>'quantity')::integer, 1);
+        v_prod_id := nullif(coalesce(item->>'id', item->>'product_id', ''), '')::uuid;
+        v_qty := coalesce(nullif(item->>'qty', ''), nullif(item->>'quantity', ''), '1')::integer;
         v_size := nullif(trim(coalesce(item->>'size', '')), '');
         v_color := nullif(trim(coalesce(item->>'color', '')), '');
+
+        if v_prod_id is null then
+            continue;
+        end if;
 
         if v_size = 'Default' or v_size = 'N/A' then
             v_size := null;
