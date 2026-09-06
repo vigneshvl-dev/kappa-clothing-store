@@ -191,10 +191,14 @@ async function verifyAdmin() {
         return;
     }
 
+    const displayName = (profile && profile.full_name && profile.full_name.trim())
+        ? profile.full_name.trim()
+        : (session && session.user && session.user.email ? session.user.email : 'kappaatvm@gmail.com');
+
     const adminName = document.getElementById('admin-name');
     const adminAvatar = document.getElementById('admin-avatar');
-    if (adminName) adminName.textContent = profile.full_name || 'Admin User';
-    if (adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
+    if (adminName) adminName.textContent = displayName;
+    if (adminAvatar) adminAvatar.textContent = displayName.charAt(0).toUpperCase();
 
     // Load dashboard stats on verify success
     await loadDashboard();
