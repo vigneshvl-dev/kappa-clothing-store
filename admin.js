@@ -105,6 +105,7 @@ window.switchAdminView = async function (targetName) {
                 dashboard: 'Dashboard',
                 orders: 'Orders',
                 cancelled: 'Cancelled Orders',
+                recyclebin: 'Recycle Bin',
                 inventory: 'Inventory',
                 products: 'Add Product',
                 customers: 'Customers',
@@ -131,6 +132,9 @@ window.switchAdminView = async function (targetName) {
                 case 'cancelled':
                     if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
                     markOrdersViewSeen('cancelled');
+                    break;
+                case 'recyclebin':
+                    if (typeof loadRecycleBin === 'function') await loadRecycleBin();
                     break;
                 case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break;
                 case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
