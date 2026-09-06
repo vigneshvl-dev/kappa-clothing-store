@@ -752,14 +752,38 @@
             filterCurrentProducts();
         }
 
+        function getProductStock(product) {
+            let overrides = {};
+            try {
+                overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}');
+            } catch (e) {}
+
+            const prodOverride = overrides[product.id] ?? overrides[product.slug];
+            const pStock = (prodOverride !== undefined) ? Number(prodOverride) : (Number(product.stock_quantity) || 0);
+
+            const variants = product.product_variants || [];
+            if (variants.length > 0) {
+                let vTotal = 0;
+                let hasPositive = false;
+                variants.forEach(v => {
+                    const varKey = (product.id || product.slug) + '_' + (v.size || '') + '_' + (v.color || '');
+                    const vOverride = overrides[varKey];
+                    const qty = (vOverride !== undefined) ? Number(vOverride) : (Number(v.stock_quantity) || 0);
+                    if (qty > 0) hasPositive = true;
+                    vTotal += Math.max(0, qty);
+                });
+                return { inStock: hasPositive || (pStock > 0), total: vTotal };
+            }
+            return { inStock: pStock > 0, total: Math.max(0, pStock) };
+        }
+
         function filterCurrentProducts() {
             const inStockChecked = document.querySelector('.stock-filter-checkbox[value="in-stock"]').checked;
             const outOfStockChecked = document.querySelector('.stock-filter-checkbox[value="out-of-stock"]').checked;
 
             const filtered = currentProductsLoaded.filter(product => {
-                const hasProductStock = (product.stock_quantity || 0) > 0;
-                const hasVariantStock = (product.product_variants || []).some(v => (v.stock_quantity || 0) > 0);
-                const isInStock = hasProductStock || hasVariantStock;
+                const stockInfo = getProductStock(product);
+                const isInStock = stockInfo.inStock;
 
                 if (inStockChecked && outOfStockChecked) return true;
                 if (!inStockChecked && !outOfStockChecked) return true;
@@ -777,9 +801,8 @@
             }
 
             let html = filtered.map(product => {
-                const hasProductStock = (product.stock_quantity || 0) > 0;
-                const hasVariantStock = (product.product_variants || []).some(v => (v.stock_quantity || 0) > 0);
-                const isOutOfStock = !(hasProductStock || hasVariantStock);
+                const stockInfo = getProductStock(product);
+                const isOutOfStock = !stockInfo.inStock;
 
                 // Sort all images by position and use ALL of them as thumbnails
                 const allImages = (product.product_images || [])

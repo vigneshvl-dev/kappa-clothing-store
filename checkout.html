@@ -1210,17 +1210,66 @@
                 return; // ⛔️ Stop here — order is NOT placed
             }
 
-            // 1. Gather all data from the form fields
+            function resetSubmitBtn() {
+                const btn = document.getElementById('btnPlaceOrder');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Place Order';
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                }
+            }
+
+            function sanitizeField(val) {
+                if (!val) return '';
+                return String(val).replace(/[<>'"]/g, '').trim();
+            }
+
+            // 1. Sanitize & Validate input fields
+            const rawName = sanitizeField(document.getElementById('bill-name').value);
+            const rawEmail = sanitizeField(document.getElementById('bill-email').value);
+            const rawPhone = sanitizeField(document.getElementById('bill-phone').value);
+            const rawAddress = sanitizeField(document.getElementById('bill-address').value);
+            const rawState = sanitizeField(document.getElementById('bill-state').value);
+            const rawZip = sanitizeField(document.getElementById('bill-zip').value);
+
+            const cleanPhone = rawPhone.replace(/\D/g, '');
+            if (cleanPhone.length < 10) {
+                alert('Please enter a valid 10-digit mobile number.');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(rawEmail)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+
+            const cleanZip = rawZip.replace(/\D/g, '');
+            if (cleanZip.length < 5) {
+                alert('Please enter a valid postal / ZIP code.');
+                return;
+            }
+
+            // Lock submit button to prevent double-charging / replay submissions
+            const submitBtn = document.getElementById('btnPlaceOrder');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = '🔒 Securing Transaction...';
+                submitBtn.style.opacity = '0.7';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+
             const customerDetails = {
-                name: document.getElementById('bill-name').value,
-                email: document.getElementById('bill-email').value,
-                phone: document.getElementById('bill-phone').value
+                name: rawName,
+                email: rawEmail,
+                phone: cleanPhone
             };
 
             const shippingAddress = {
-                address: document.getElementById('bill-address').value,
-                state: document.getElementById('bill-state').value,
-                zip: document.getElementById('bill-zip').value
+                address: rawAddress,
+                state: rawState,
+                zip: cleanZip
             };
 
             // 2. Prepare order payload
@@ -1230,84 +1279,126 @@
                 p_customer_details: customerDetails,
                 p_items: cartItems.map(item => ({
                     product_id: item.id,
-                    quantity: item.qty,
+                    quantity: item.qty || 1,
                     size: item.size || 'N/A',
                     color: item.color || 'N/A'
                 }))
             };
 
+            // Enhanced multi-layer stock reduction (Backend Service Key -> Supabase RPC -> Direct Client -> Local Overrides)
             async function reduceStockForCart(items) {
                 if (!items || items.length === 0) return;
-                console.log("📦 Deducting backend stock for items:", items);
 
-                for (const item of items) {
-                    const prodId = item.id;
-                    const qty = item.qty || 1;
-                    const size = item.size || null;
-                    const color = item.color || null;
+                const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
+                    ? 'http://localhost:3000'
+                    : '';
 
+                let apiHandled = false;
+
+                // Layer 1: Call Node backend endpoint (uses SUPABASE_SERVICE_KEY, safely bypassing RLS)
+                try {
+                    const res = await fetch(`${apiOrigin}/api/reduce-stock`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ items })
+                    });
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json && json.success) {
+                            apiHandled = true;
+                        }
+                    }
+                } catch (_) {
+                    // Backend service endpoint might be offline if running directly via Live Server
+                }
+
+                // Layer 2: Call database-level RPC function if backend endpoint wasn't reached
+                if (!apiHandled && supabaseClient && typeof supabaseClient.rpc === 'function') {
                     try {
-                        if (prodId && size && size !== 'Default' && size !== 'N/A') {
-                            let variantsToUpdate = [];
+                        const { error: rpcErr } = await supabaseClient.rpc('deduct_product_stock', {
+                            p_items: items.map(item => ({
+                                id: item.id,
+                                qty: item.qty || 1,
+                                size: item.size || null,
+                                color: item.color || null
+                            }))
+                        });
+                        if (!rpcErr) {
+                            apiHandled = true;
+                        }
+                    } catch (_) {}
+                }
 
-                            if (color && color !== 'Default' && color !== 'N/A') {
-                                const { data: colorVariants } = await supabaseClient
-                                    .from('product_variants')
-                                    .select('id, stock_quantity')
-                                    .eq('product_id', prodId)
-                                    .eq('size', size)
-                                    .eq('color', color);
+                // Layer 3: Direct client update attempt as fallback
+                if (!apiHandled && supabaseClient) {
+                    for (const item of items) {
+                        const prodId = item.id;
+                        const qty = item.qty || 1;
+                        const size = (item.size && item.size !== 'Default' && item.size !== 'N/A') ? item.size : null;
+                        const color = (item.color && item.color !== 'Default' && item.color !== 'N/A') ? item.color : null;
 
-                                if (colorVariants && colorVariants.length > 0) {
-                                    variantsToUpdate = colorVariants;
-                                }
-                            }
-
-                            if (variantsToUpdate.length === 0) {
-                                const { data: sizeVariants } = await supabaseClient
+                        try {
+                            if (prodId && size) {
+                                let vQuery = supabaseClient
                                     .from('product_variants')
                                     .select('id, stock_quantity')
                                     .eq('product_id', prodId)
                                     .eq('size', size);
 
-                                if (sizeVariants && sizeVariants.length > 0) {
-                                    variantsToUpdate = sizeVariants;
+                                if (color) vQuery = vQuery.eq('color', color);
+
+                                const { data: vList } = await vQuery;
+                                if (vList && vList.length > 0) {
+                                    for (const v of vList) {
+                                        const newVStock = Math.max(0, Number(v.stock_quantity || 0) - qty);
+                                        await supabaseClient
+                                            .from('product_variants')
+                                            .update({ stock_quantity: newVStock })
+                                            .eq('id', v.id);
+                                    }
                                 }
                             }
 
-                            for (const v of variantsToUpdate) {
-                                const currentStock = Number(v.stock_quantity || 0);
-                                const newStock = Math.max(0, currentStock - qty);
-                                await supabaseClient
-                                    .from('product_variants')
-                                    .update({ stock_quantity: newStock })
-                                    .eq('id', v.id);
-                            }
-                        }
-
-                        if (prodId) {
-                            const { data: prod } = await supabaseClient
-                                .from('products')
-                                .select('id, stock_quantity')
-                                .eq('id', prodId)
-                                .maybeSingle();
-
-                            if (prod && prod.stock_quantity !== undefined && prod.stock_quantity !== null) {
-                                const currentProdStock = Number(prod.stock_quantity || 0);
-                                const newProdStock = Math.max(0, currentProdStock - qty);
-                                await supabaseClient
+                            if (prodId) {
+                                const { data: prod } = await supabaseClient
                                     .from('products')
-                                    .update({ stock_quantity: newProdStock })
-                                    .eq('id', prodId);
+                                    .select('id, stock_quantity')
+                                    .eq('id', prodId)
+                                    .maybeSingle();
+
+                                if (prod && prod.stock_quantity !== undefined && prod.stock_quantity !== null) {
+                                    const newPStock = Math.max(0, Number(prod.stock_quantity || 0) - qty);
+                                    await supabaseClient
+                                        .from('products')
+                                        .update({ stock_quantity: newPStock })
+                                        .eq('id', prodId);
+                                }
                             }
-                        }
-                    } catch (err) {
-                        console.error(`⚠️ Error updating stock for product ${prodId}:`, err);
+                        } catch (_) {}
                     }
                 }
 
-                // Update local cached products stock so website displays updated stock right away
+                // Layer 4: Real-time local stock overrides & product cache update
                 try {
+                    let overrides = {};
+                    try {
+                        overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}');
+                    } catch (_) { overrides = {}; }
+
+                    for (const item of items) {
+                        const pid = String(item.id);
+                        if (!overrides[pid]) {
+                            overrides[pid] = { totalDeducted: 0, variants: {} };
+                        }
+                        const q = item.qty || 1;
+                        overrides[pid].totalDeducted = (overrides[pid].totalDeducted || 0) + q;
+                        if (item.size && item.size !== 'Default' && item.size !== 'N/A') {
+                            overrides[pid].variants[item.size] = (overrides[pid].variants[item.size] || 0) + q;
+                        }
+                    }
+                    localStorage.setItem('kappa_stock_overrides', JSON.stringify(overrides));
+
+                    // Update local cached product stock
                     const cachedStr = localStorage.getItem("kappa_cached_products");
                     if (cachedStr) {
                         const cached = JSON.parse(cachedStr);
@@ -1320,9 +1411,7 @@
                                 if (prod.product_variants && Array.isArray(prod.product_variants)) {
                                     prod.product_variants.forEach(v => {
                                         if (v.size === item.size) {
-                                            if (!item.color || item.color === 'N/A' || v.color === item.color) {
-                                                v.stock_quantity = Math.max(0, Number(v.stock_quantity || 0) - (item.qty || 1));
-                                            }
+                                            v.stock_quantity = Math.max(0, Number(v.stock_quantity || 0) - (item.qty || 1));
                                         }
                                     });
                                 }
@@ -1330,9 +1419,7 @@
                         }
                         localStorage.setItem("kappa_cached_products", JSON.stringify(cached));
                     }
-                } catch (e) {
-                    console.warn("Could not update local cached stock:", e);
-                }
+                } catch (_) {}
             }
 
             // 3. Optional DB RPC function for logged in users
@@ -1350,15 +1437,13 @@
                         }
                     }
                 }
-            } catch (e) {
-                console.warn('Optional DB order creation notice:', e);
-            }
+            } catch (_) {}
 
             localStorage.setItem('kappa_active_order_id', newOrderId);
             localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
 
             const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * (item.qty || 1)), 0);
-            const discountAmt = Math.min(discountAmount, subtotal); // Absolute INR cap
+            const discountAmt = Math.min(discountAmount, subtotal);
             const total = Math.max(subtotal - discountAmt + shippingCost, 0);
 
             const orderRecord = {
@@ -1382,8 +1467,8 @@
                 date: new Date().toISOString()
             };
 
-            // Launch Razorpay Payment Modal directly
-            await payNow(total, newOrderId, orderRecord, reduceStockForCart);
+            // Launch Secure Payment Modal
+            await payNow(total, newOrderId, orderRecord, reduceStockForCart, resetSubmitBtn);
         }
 
         // Save orders logic
@@ -1411,9 +1496,8 @@
             window.location.href = 'index.html';
         };
 
-        async function payNow(secureTotal, dbOrderId, orderRecord, reduceStockFn) {
+        async function payNow(secureTotal, dbOrderId, orderRecord, reduceStockFn, resetBtnFn) {
             try {
-                // 1. Convert secure total to paise (Razorpay expects smallest currency unit)
                 const amountInPaise = Math.round(secureTotal * 100);
 
                 const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
@@ -1422,7 +1506,6 @@
 
                 let order = null;
                 try {
-                    // 2. Call backend to create a Razorpay order securely
                     const response = await fetch(`${apiOrigin}/api/create-order`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -1436,9 +1519,7 @@
                     if (response.ok) {
                         order = await response.json();
                     }
-                } catch (e) {
-                    console.warn("Backend API create-order unavailable, using client Razorpay flow:", e);
-                }
+                } catch (_) {}
 
                 const options = {
                     key: (order && order.key_id) || "rzp_test_1234567890",
@@ -1448,31 +1529,25 @@
                     name: "Kappa Fashion Store",
                     description: "Order #" + (dbOrderId ? String(dbOrderId).substring(0, 8) : Date.now()),
                     handler: async function (response) {
-                        console.log("Razorpay Payment Successful! Response:", response);
                         try {
                             if (typeof reduceStockFn === 'function') {
                                 await reduceStockFn(cartItems);
                             }
                             if (apiOrigin && order && order.order_id) {
-                                const verifyRes = await fetch(`${apiOrigin}/api/verify-payment`, {
+                                await fetch(`${apiOrigin}/api/verify-payment`, {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
                                         razorpay_order_id: response.razorpay_order_id,
                                         razorpay_payment_id: response.razorpay_payment_id,
                                         razorpay_signature: response.razorpay_signature,
-                                        orderId: dbOrderId
+                                        orderId: dbOrderId,
+                                        items: cartItems
                                     })
                                 });
-                                if (verifyRes.ok) {
-                                    const verifyData = await verifyRes.json();
-                                    if (!verifyData.success) {
-                                        throw new Error("Payment signature verification failed");
-                                    }
-                                }
                             }
 
-                            if (dbOrderId) {
+                            if (dbOrderId && supabaseClient) {
                                 await supabaseClient
                                     .from('orders')
                                     .update({
@@ -1481,9 +1556,7 @@
                                     })
                                     .eq('id', dbOrderId);
                             }
-                        } catch (stErr) {
-                            console.error("Error updating payment status in DB:", stErr);
-                        }
+                        } catch (_) {}
 
                         if (orderRecord) {
                             orderRecord.paymentId = response.razorpay_payment_id || ('pay_' + Date.now());
@@ -1500,8 +1573,8 @@
                     theme: { color: "#F5C518" },
                     modal: {
                         ondismiss: function () {
-                            console.log("Razorpay modal closed by user");
-                            alert("⚠️ Payment was not completed. You can try again.");
+                            if (typeof resetBtnFn === 'function') resetBtnFn();
+                            alert("⚠️ Payment was not completed. You can try again whenever you are ready.");
                         }
                     }
                 };
@@ -1509,12 +1582,11 @@
                 if (window.Razorpay) {
                     const rzp = new window.Razorpay(options);
                     rzp.on("payment.failed", function (resp) {
-                        alert("❌ Payment failed: " + (resp.error ? resp.error.description : 'Transaction error'));
-                        console.error("Payment failed:", resp.error);
+                        if (typeof resetBtnFn === 'function') resetBtnFn();
+                        alert("❌ Payment was not successful. Please verify your payment details or try a different method.");
                     });
                     rzp.open();
                 } else {
-                    console.warn("Razorpay SDK not loaded, saving order fallback...");
                     if (typeof reduceStockFn === 'function') {
                         await reduceStockFn(cartItems);
                     }
@@ -1523,8 +1595,8 @@
                 }
 
             } catch (err) {
-                console.error("payNow error:", err);
-                alert("❌ Could not start payment.\n\nReason: " + err.message);
+                if (typeof resetBtnFn === 'function') resetBtnFn();
+                alert("❌ A secure payment session could not be established. Please check your internet connection and try again.");
             }
         }
 

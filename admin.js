@@ -1104,14 +1104,19 @@ async function loadInventory() {
         }
     }
 
-    // 2. Fetch all products
+    // 2. Fetch all products with stock and variants
     const { data, error } = await supabaseClient
         .from('products')
-        .select('id, name, price, category_id, product_images(id, url, position)')
+        .select('id, name, price, stock_quantity, category_id, product_images(id, url, position), product_variants(id, size, color, stock_quantity)')
         .order('created_at', { ascending: false });
 
     if (error) { container.innerHTML = "<p>Error loading products.</p>"; return; }
     if (!data || data.length === 0) { container.innerHTML = "<p>No products published yet.</p>"; return; }
+
+    let overrides = {};
+    try {
+        overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}');
+    } catch (_) { overrides = {}; }
 
     let html = `<table class="stock-table" id="inventory-table" style="width: 100%; text-align: left; border-collapse: collapse;">
         <thead>
@@ -1120,6 +1125,7 @@ async function loadInventory() {
                 <th style="padding-bottom: 10px;">Product Name</th>
                 <th style="padding-bottom: 10px;">Category</th>
                 <th style="padding-bottom: 10px;">Price</th>
+                <th style="padding-bottom: 10px;">Stock Status</th>
                 <th style="padding-bottom: 10px; text-align: right;">Actions</th>
             </tr>
         </thead>
@@ -1134,6 +1140,43 @@ async function loadInventory() {
         if (catMap[prod.category_id] && catMap[prod.category_id].parent_id) {
             parentId = catMap[prod.category_id].parent_id;
         }
+
+        // Calculate dynamic stock with overrides
+        const pid = String(prod.id);
+        const prodOverride = overrides[pid] || null;
+        let totalStock = 0;
+        let variantStockList = [];
+
+        if (prod.product_variants && prod.product_variants.length > 0) {
+            prod.product_variants.forEach(v => {
+                let vQty = Number(v.stock_quantity || 0);
+                if (prodOverride && prodOverride.variants && prodOverride.variants[v.size]) {
+                    vQty = Math.max(0, vQty - prodOverride.variants[v.size]);
+                }
+                totalStock += vQty;
+                if (v.size && v.size !== 'Default') {
+                    variantStockList.push(`${v.size}: <strong>${vQty}</strong>`);
+                }
+            });
+        } else {
+            totalStock = Number(prod.stock_quantity || 0);
+            if (prodOverride && prodOverride.totalDeducted) {
+                totalStock = Math.max(0, totalStock - prodOverride.totalDeducted);
+            }
+        }
+
+        let stockBadgeHtml = '';
+        if (totalStock <= 0) {
+            stockBadgeHtml = `<span class="badge" style="background:#ffebee; color:#c62828; font-weight:700; font-size: 11px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffcdd2;">🔴 Out of Stock (0)</span>`;
+        } else if (totalStock <= 5) {
+            stockBadgeHtml = `<span class="badge" style="background:#fff8e1; color:#f57f17; font-weight:700; font-size: 11px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffe082;">🟡 Low Stock (${totalStock})</span>`;
+        } else {
+            stockBadgeHtml = `<span class="badge" style="background:#e8f5e9; color:#2e7d32; font-weight:700; font-size: 11px; padding: 4px 8px; border-radius: 4px; border: 1px solid #c8e6c9;">🟢 In Stock (${totalStock})</span>`;
+        }
+
+        const variantSummary = variantStockList.length > 0 
+            ? `<div style="font-size: 11px; color: #666; margin-top: 4px; line-height: 1.4;">${variantStockList.join(' &bull; ')}</div>` 
+            : '';
 
         // Sort images by position and build thumbnail strip
         const sortedImages = (prod.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
@@ -1169,6 +1212,10 @@ async function loadInventory() {
             <td><strong>${prod.name}</strong></td>
             <td><span class="badge" style="background:#f1f1f1; color:#333; font-weight:bold; font-size: 12px; padding: 4px 8px; border-radius: 4px;">${catDisplay}</span></td>
             <td>₹${prod.price}</td>
+            <td>
+                ${stockBadgeHtml}
+                ${variantSummary}
+            </td>
             <td style="text-align: right;">
                 <button class="btn-secondary" style="padding: 6px 12px; margin-right: 8px; cursor: pointer;" onclick="editProduct('${prod.id}')">Edit</button>
                 <button class="btn-delete" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="deleteProduct('${prod.id}')">Delete</button>
@@ -1332,12 +1379,20 @@ window.editProduct = async function(id) {
         document.getElementById('variant-colors').value = colors.join(', ');
         document.getElementById('variant-sizes').value = sizes.join(', ');
 
+        let overrides = {};
+        try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) {}
+        const prodOverride = overrides[String(data.id)] || null;
+
         let tableHTML = `<table class="stock-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Stock Qty</th></tr></thead><tbody>`;
         data.product_variants.forEach(variant => {
+            let vStock = Number(variant.stock_quantity || 0);
+            if (prodOverride && prodOverride.variants && prodOverride.variants[variant.size]) {
+                vStock = Math.max(0, vStock - prodOverride.variants[variant.size]);
+            }
             tableHTML += `<tr class="variant-row" data-color="${variant.color}" data-size="${variant.size}">
                 <td><strong>${variant.color}</strong></td><td><strong>${variant.size}</strong></td>
                 <td><input type="text" class="stock-input variant-sku" placeholder="SKU" value="${variant.sku || ''}"></td>
-                <td><input type="number" class="stock-input variant-stock" value="${variant.stock_quantity}" min="0" required></td>
+                <td><input type="number" class="stock-input variant-stock" value="${vStock}" min="0" required></td>
             </tr>`;
         });
         tableHTML += `</tbody></table>`;

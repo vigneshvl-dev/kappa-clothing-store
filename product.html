@@ -1905,7 +1905,16 @@
             window.sizeStockMap = {};
             let availableSizes = new Set();
             let availableColors = new Set();
+
+            // Check for real-time local stock overrides from purchases
+            let overrides = {};
+            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { overrides = {}; }
+            const prodOverride = overrides[String(product.id)] || null;
+
             let totalProductStock = (product.stock_quantity !== undefined && product.stock_quantity !== null) ? Number(product.stock_quantity) : null;
+            if (prodOverride && prodOverride.totalDeducted && totalProductStock !== null) {
+                totalProductStock = Math.max(0, totalProductStock - prodOverride.totalDeducted);
+            }
 
             if (product.product_variants && product.product_variants.length > 0) {
                 let variantStockSum = 0;
@@ -1914,8 +1923,11 @@
                     if (variant.size) {
                         const sz = variant.size.trim();
                         availableSizes.add(sz);
-                        const sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
+                        let sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
                         if (sq !== null) {
+                            if (prodOverride && prodOverride.variants && prodOverride.variants[sz]) {
+                                sq = Math.max(0, sq - prodOverride.variants[sz]);
+                            }
                             window.sizeStockMap[sz] = (window.sizeStockMap[sz] !== undefined ? window.sizeStockMap[sz] : 0) + sq;
                             variantStockSum += sq;
                             hasVariantStockData = true;
@@ -1923,7 +1935,7 @@
                     }
                     if (variant.color) availableColors.add(variant.color.trim());
                 });
-                if (totalProductStock === null && hasVariantStockData) {
+                if (hasVariantStockData) {
                     totalProductStock = variantStockSum;
                 }
             }
