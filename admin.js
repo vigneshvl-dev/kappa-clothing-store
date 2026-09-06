@@ -523,7 +523,7 @@ async function loadOrders() {
 
     const paidOrders = (data || []).filter(order => {
         const currentStatus = (order.status || 'pending').toLowerCase();
-        return currentStatus === 'paid' || !!order.razorpay_payment_id;
+        return currentStatus === 'paid' || currentStatus.includes('cancel') || currentStatus.includes('refund') || !!order.razorpay_payment_id;
     });
 
     if (paidOrders.length === 0) { 
@@ -553,6 +553,8 @@ async function loadOrders() {
         const paymentStatus = (order.payment_status || 'pending').toLowerCase();
         const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!order.razorpay_payment_id;
         const rzpId = order.razorpay_payment_id || order.payment_id || '';
+        const hasRefundInfo = order.refund_details || order.customer_details?.refund_details;
+        const isSettled = hasRefundInfo?.refund_status === 'refunded' || currentStatus === 'refunded';
 
         // Build items summary HTML
         let itemsSummaryHtml = '';
@@ -581,9 +583,17 @@ async function loadOrders() {
         }
 
         let paymentStatusHtml = '';
-        if (currentStatus === 'cancelled') {
-            paymentStatusHtml = `<span class="badge status-cancelled" style="background:#e74c3c; color:#fff; padding:3px 6px; border-radius:4px; font-weight:bold; font-size:10px;">CANCELLED</span>
-            <div style="font-size:11px; color:#c0392b; font-weight:bold; margin-top:4px;">❌ Payment Cancelled</div>`;
+        if (currentStatus === 'cancelled' || currentStatus.includes('cancel')) {
+            const refundMethod = hasRefundInfo?.method || (hasRefundInfo?.upi_id ? 'UPI' : (hasRefundInfo?.account_number ? 'Bank' : ''));
+
+            if (isSettled) {
+                paymentStatusHtml = `<span class="badge status-paid" style="background:#27ae60; color:#fff; padding:3px 6px; border-radius:4px; font-weight:bold; font-size:10px;">REFUNDED</span>
+                <div style="font-size:11px; color:#27ae60; font-weight:bold; margin-top:4px;">✓ Repaid to Customer</div>`;
+            } else {
+                paymentStatusHtml = `<span class="badge status-cancelled" style="background:#e74c3c; color:#fff; padding:3px 6px; border-radius:4px; font-weight:bold; font-size:10px;">CANCELLED</span>
+                <div style="font-size:11px; color:#c0392b; font-weight:bold; margin-top:4px;">⚠️ Repay: ₹${order.total_amount}</div>
+                ${refundMethod ? `<div style="font-size:10px; color:#4a5568; background:#edf2f7; padding:2px 6px; border-radius:3px; margin-top:2px; display:inline-block; font-weight:600;">Pay via ${refundMethod}</div>` : ''}`;
+            }
         } else if (isPaid) {
             paymentStatusHtml = `<span class="badge status-paid">PAID</span>
             <div style="font-size:11px; color:#27ae60; font-weight:bold; margin-top:4px; display:flex; align-items:center; gap:3px;">
@@ -597,6 +607,8 @@ async function loadOrders() {
             <div style="font-size:11px; color:#e67e22; font-weight:bold; margin-top:4px;">⚠️ Unpaid (Razorpay)</div>`;
         }
         
+        const isRepayPending = currentStatus.includes('cancel') && !isSettled;
+
         html += `<tr>
                  <td style="white-space:nowrap;"><small>${formattedDate}</small></td>
                  <td><strong>#${order.id.toString().substring(0, 8)}</strong></td>
@@ -605,9 +617,9 @@ async function loadOrders() {
                  <td>${paymentStatusHtml}</td>
                  <td><strong>₹${order.total_amount}</strong></td>
                  <td>
-                    <button class="btn-black" onclick="showOrderDetails('${order.id}')">
+                    <button class="btn-black" onclick="showOrderDetails('${order.id}')" style="${isRepayPending ? 'background:#c0392b; color:#fff;' : ''}">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        View Details
+                        ${isRepayPending ? 'View & Repay' : 'View Details'}
                     </button>
                     <button class="btn-black" onclick="deleteOrder('${order.id}')" style="background:#c0392b; margin-top:4px; width:100%;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path></svg>
@@ -1482,9 +1494,37 @@ window.showOrderDetails = async function(orderId) {
     const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!data.razorpay_payment_id;
     const rzpId = data.razorpay_payment_id || data.payment_id || '';
 
+    const cust = data.customer_details || {};
+    const addr = data.shipping_address || {};
+    const currentStatus = (data.status || 'pending').toLowerCase();
+    const paymentStatus = (data.payment_status || 'pending').toLowerCase();
+    const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!data.razorpay_payment_id;
+    const rzpId = data.razorpay_payment_id || data.payment_id || '';
+    const isCancelled = currentStatus.includes('cancel') || (data.status || '').toLowerCase().includes('cancel');
+    const isReturned = currentStatus.includes('return') || (data.status || '').toLowerCase().includes('return');
+    const refundInfo = data.refund_details || cust.refund_details || cust.cancellation_details || data.cancellation_details || null;
+    const phoneClean = (cust.phone || '').replace(/[^0-9]/g, '').slice(-10);
+
     // Payment Banner
     let paymentBannerHtml = '';
-    if (isPaid) {
+    if (isCancelled) {
+        paymentBannerHtml = `
+            <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <div style="font-size: 15px; font-weight: 800; color: #b91c1c; display: flex; align-items: center; gap: 6px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        ORDER CANCELLED - REFUND / REPAYMENT DUE
+                    </div>
+                    <div style="font-size: 12px; color: #991b1b; margin-top: 3px;">
+                        This order has been cancelled. Please repay <strong style="color: #b91c1c; font-size: 13px;">₹${data.total_amount}</strong> using customer's payment details below.
+                    </div>
+                </div>
+                <span class="badge status-cancelled" style="font-size: 12px; padding: 6px 14px; background: #b91c1c; color: #fff; font-weight: 800; border-radius: 6px;">CANCELLED</span>
+            </div>
+        `;
+    } else if (isPaid) {
         paymentBannerHtml = `
             <div style="background: #e8f8f0; border: 1px solid #a3e6be; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
                 <div>
@@ -1512,6 +1552,151 @@ window.showOrderDetails = async function(orderId) {
                     </div>
                 </div>
                 <span class="badge status-pending" style="font-size: 12px; padding: 6px 14px;">UNPAID</span>
+            </div>
+        `;
+    }
+
+    let repaymentSectionHtml = '';
+    if (isCancelled || isReturned) {
+        const hasCustomUpi = !!refundInfo?.upi_id;
+        const hasBank = !!(refundInfo?.account_number && refundInfo?.ifsc);
+        const upiId = refundInfo?.upi_id || (phoneClean ? phoneClean + '@upi' : '');
+        const isRefundSettled = refundInfo?.refund_status === 'refunded' || currentStatus === 'refunded';
+
+        let detailsInnerHtml = '';
+
+        if (hasBank && (!hasCustomUpi || refundInfo?.method === 'Bank Transfer')) {
+            // Bank Account Details
+            detailsInnerHtml = `
+                <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                        <span style="font-size: 13px; font-weight: 700; color: #1e40af; display: flex; align-items: center; gap: 6px;">
+                            🏦 Bank Account Details (NEFT / IMPS)
+                            <span style="font-size: 10px; background: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Customer Provided</span>
+                        </span>
+                        <button type="button" onclick="copyRefundText('Account Holder: ${refundInfo.account_holder || cust.name || ''}\\nAccount No: ${refundInfo.account_number}\\nIFSC: ${refundInfo.ifsc}\\nBank: ${refundInfo.bank_name || ''}\\nAmount: ₹${data.total_amount}', this)" style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; color: #334155;">📋 Copy All Bank Info</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Account Holder</div>
+                            <div style="font-weight: 700; color: #0f172a; margin-top: 2px;">${refundInfo.account_holder || cust.name || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Bank Name</div>
+                            <div style="font-weight: 700; color: #0f172a; margin-top: 2px;">${refundInfo.bank_name || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Account Number</div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                                <strong style="font-family: monospace; font-size: 14px; color: #0f172a; background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1;">${refundInfo.account_number}</strong>
+                                <button type="button" onclick="copyRefundText('${refundInfo.account_number}', this)" style="padding: 2px 8px; font-size: 11px; background: #334155; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Copy</button>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">IFSC Code</div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                                <strong style="font-family: monospace; font-size: 14px; color: #0f172a; background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1;">${refundInfo.ifsc}</strong>
+                                <button type="button" onclick="copyRefundText('${refundInfo.ifsc}', this)" style="padding: 2px 8px; font-size: 11px; background: #334155; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (upiId) {
+            // UPI Details
+            detailsInnerHtml = `
+                <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                        <span style="font-size: 13px; font-weight: 700; color: #1e40af; display: flex; align-items: center; gap: 6px;">
+                            ⚡ Customer UPI ID (Google Pay / PhonePe / Paytm / BHIM)
+                            ${hasCustomUpi ? '<span style="font-size: 10px; background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Customer Provided</span>' : '<span style="font-size: 10px; background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 4px; font-weight: 700;">From Customer Phone</span>'}
+                        </span>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" onclick="copyRefundText('${upiId}', this)" style="background: #334155; color: #fff; border: none; padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer;">📋 Copy UPI ID</button>
+                            <a href="upi://pay?pa=${upiId}&pn=${encodeURIComponent(cust.name || 'Customer')}&am=${data.total_amount}&cu=INR" style="background: #16a34a; color: #fff; text-decoration: none; padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">⚡ Pay with UPI App</a>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+                        <span style="font-family: monospace; font-size: 16px; font-weight: 800; color: #0f172a; background: #fff; border: 1.5px solid #cbd5e1; padding: 6px 14px; border-radius: 6px; letter-spacing: 0.5px;">${upiId}</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            detailsInnerHtml = `
+                <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 12px 14px; margin-top: 10px; font-size: 12px; color: #92400e;">
+                    ℹ️ Customer has not entered UPI or Bank details yet. You can click <strong>"Edit / Enter Refund Info"</strong> below to record their details, or message them on WhatsApp.
+                </div>
+            `;
+        }
+
+        let rzpSectionHtml = '';
+        if (rzpId) {
+            rzpSectionHtml = `
+                <div style="background: #f1f5f9; border-radius: 8px; padding: 12px 16px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <div style="font-size: 11px; color: #475569; font-weight: 700; text-transform: uppercase;">Original Razorpay Payment ID</div>
+                        <div style="font-family: monospace; font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 2px;">${rzpId}</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" onclick="copyRefundText('${rzpId}', this)" style="background: #475569; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: 600;">Copy ID</button>
+                        <a href="https://dashboard.razorpay.com/app/payments/${rzpId}" target="_blank" style="background: #2563eb; color: #fff; text-decoration: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">Refund via Razorpay ↗</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        let actionsToolbarHtml = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1.5px solid #fee2e2; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (cust.name || '') + ', regarding your refund of ₹' + data.total_amount + ' for Kappa Clothing order #' + data.id.toString().substring(0,8) + '...')}" target="_blank" style="background: #25d366; color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">💬 WhatsApp Customer</a>` : ''}
+                    <button type="button" onclick="openAdminEditRefundModal('${data.id}')" style="background: #fff; border: 1.5px solid #cbd5e1; color: #334155; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">✏️ Edit / Enter Refund Info</button>
+                </div>
+                <div>
+                    ${isRefundSettled ? `
+                        <div style="display: inline-flex; align-items: center; gap: 6px; background: #dcfce7; color: #15803d; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 800;">
+                            ✓ Refund Completed (${refundInfo?.refund_ref ? 'Ref: ' + refundInfo.refund_ref : new Date(refundInfo?.refunded_at || Date.now()).toLocaleDateString()})
+                        </div>
+                    ` : `
+                        <button type="button" onclick="adminMarkOrderRefunded('${data.id}', ${data.total_amount})" style="background: #dc2626; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(220,38,38,0.3);">
+                            ✅ Mark as Refunded / Repaid
+                        </button>
+                    `}
+                </div>
+            </div>
+        `;
+
+        repaymentSectionHtml = `
+            <!-- CUSTOMER REPAYMENT / REFUND SECTION -->
+            <div style="background: #fff; border: 2px solid #dc2626; border-radius: 10px; padding: 18px; margin-bottom: 25px; box-shadow: 0 4px 16px rgba(220, 38, 38, 0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #fee2e2; padding-bottom: 12px; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 34px; height: 34px; border-radius: 8px; background: #fee2e2; display: flex; align-items: center; justify-content: center; color: #dc2626; font-size: 16px; font-weight: 800;">₹</div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: 800; color: #991b1b; letter-spacing: 0.2px;">CUSTOMER REPAYMENT / REFUND DETAILS</div>
+                            <div style="font-size: 12px; color: #7f1d1d; margin-top: 2px;">
+                                Total to Repay: <strong style="color: #dc2626; font-size: 15px;">₹${data.total_amount}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        ${isRefundSettled ? '<span class="badge status-paid" style="background:#16a34a; color:#fff; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:11px;">REFUND SETTLED</span>' : '<span class="badge status-cancelled" style="background:#dc2626; color:#fff; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:11px;">REPAYMENT PENDING</span>'}
+                    </div>
+                </div>
+
+                <!-- Reason & Date -->
+                <div style="display: flex; gap: 16px; font-size: 12px; color: #475569; background: #fef2f2; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <div><strong>Cancellation Reason:</strong> ${refundInfo?.reason || 'Customer cancelled order'}</div>
+                    ${refundInfo?.cancelled_at ? `<div><strong>Cancelled On:</strong> ${new Date(refundInfo.cancelled_at).toLocaleString()}</div>` : ''}
+                </div>
+
+                <!-- Specific Payment Destination -->
+                ${detailsInnerHtml}
+
+                <!-- Razorpay Original Info -->
+                ${rzpSectionHtml}
+
+                <!-- Action Toolbar -->
+                ${actionsToolbarHtml}
             </div>
         `;
     }
@@ -1556,6 +1741,9 @@ window.showOrderDetails = async function(orderId) {
                     </div>
                 </div>
             </div>
+
+            <!-- 3.5 Customer Repayment / Refund Section -->
+            ${repaymentSectionHtml}
 
             <!-- 4. Products Ordered List with Images and Details side by side -->
             <h4 style="margin: 0 0 12px 0; font-size: 15px; color: #111; font-weight: 700; border-bottom: 2px solid #eee; padding-bottom: 8px;">
@@ -1614,6 +1802,176 @@ window.showOrderDetails = async function(orderId) {
     
     content.innerHTML = htmlContent;
 }
+
+// ── CUSTOMER REFUND / REPAYMENT HELPERS ──
+window.copyRefundText = function(text, btn) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+        if (btn) {
+            const orig = btn.innerHTML;
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.innerHTML = orig; }, 1500);
+        }
+    }).catch(() => {
+        alert(text);
+    });
+};
+
+window.openAdminEditRefundModal = async function(orderId) {
+    const modal = document.getElementById('adminRefundEditModal');
+    if (!modal) return;
+    document.getElementById('adminRefundOrderId').value = orderId;
+    
+    try {
+        const { data: ord } = await supabaseClient.from('orders').select('customer_details, refund_details').eq('id', orderId).single();
+        const cust = ord?.customer_details || {};
+        const refund = ord?.refund_details || cust.refund_details || {};
+
+        const methodSelect = document.getElementById('adminRefundMethodSelect');
+        const upiInput = document.getElementById('adminUpiInput');
+        const accHolder = document.getElementById('adminAccHolder');
+        const accNum = document.getElementById('adminAccNum');
+        const accIfsc = document.getElementById('adminAccIfsc');
+        const bankName = document.getElementById('adminBankName');
+
+        if (refund.method === 'Bank Transfer' || (refund.account_number && !refund.upi_id)) {
+            if (methodSelect) methodSelect.value = 'Bank Transfer';
+        } else {
+            if (methodSelect) methodSelect.value = 'UPI';
+        }
+
+        if (upiInput) upiInput.value = refund.upi_id || (cust.phone ? cust.phone.replace(/[^0-9]/g, '').slice(-10) + '@upi' : '');
+        if (accHolder) accHolder.value = refund.account_holder || cust.name || '';
+        if (accNum) accNum.value = refund.account_number || '';
+        if (accIfsc) accIfsc.value = refund.ifsc || '';
+        if (bankName) bankName.value = refund.bank_name || '';
+
+        toggleAdminRefundFields();
+    } catch (e) {
+        console.warn('Could not prefill refund modal:', e);
+    }
+
+    modal.style.display = 'flex';
+};
+
+window.toggleAdminRefundFields = function() {
+    const method = document.getElementById('adminRefundMethodSelect')?.value || 'UPI';
+    const upiDiv = document.getElementById('adminUpiFields');
+    const bankDiv = document.getElementById('adminBankFields');
+    if (method === 'UPI') {
+        if (upiDiv) upiDiv.style.display = 'block';
+        if (bankDiv) bankDiv.style.display = 'none';
+    } else {
+        if (upiDiv) upiDiv.style.display = 'none';
+        if (bankDiv) bankDiv.style.display = 'flex';
+    }
+};
+
+window.saveAdminRefundDetails = async function(e) {
+    if (e) e.preventDefault();
+    const orderId = document.getElementById('adminRefundOrderId')?.value;
+    if (!orderId) return;
+
+    const method = document.getElementById('adminRefundMethodSelect')?.value || 'UPI';
+    let refundPayload = {
+        method: method,
+        updated_by_admin: true,
+        updated_at: new Date().toISOString()
+    };
+
+    if (method === 'UPI') {
+        const upi = document.getElementById('adminUpiInput')?.value.trim();
+        if (!upi) {
+            alert('Please enter a UPI ID.');
+            return;
+        }
+        refundPayload.upi_id = upi;
+    } else {
+        const holder = document.getElementById('adminAccHolder')?.value.trim();
+        const accNum = document.getElementById('adminAccNum')?.value.trim();
+        const ifsc = document.getElementById('adminAccIfsc')?.value.trim().toUpperCase();
+        const bName = document.getElementById('adminBankName')?.value.trim();
+
+        if (!holder || !accNum || !ifsc) {
+            alert('Please provide Account Holder Name, Account Number, and IFSC Code.');
+            return;
+        }
+        refundPayload.account_holder = holder;
+        refundPayload.account_number = accNum;
+        refundPayload.ifsc = ifsc;
+        refundPayload.bank_name = bName;
+    }
+
+    try {
+        const { data: ord } = await supabaseClient.from('orders').select('customer_details, refund_details').eq('id', orderId).single();
+        const cust = ord?.customer_details || {};
+        const existingRefund = ord?.refund_details || cust.refund_details || {};
+        const mergedRefund = { ...existingRefund, ...refundPayload };
+        const updatedCust = { ...cust, refund_details: mergedRefund };
+
+        try {
+            await supabaseClient.from('orders').update({
+                customer_details: updatedCust,
+                refund_details: mergedRefund
+            }).eq('id', orderId);
+        } catch (_) {
+            await supabaseClient.from('orders').update({
+                customer_details: updatedCust
+            }).eq('id', orderId);
+        }
+
+        document.getElementById('adminRefundEditModal').style.display = 'none';
+        alert('Customer refund details saved successfully!');
+        showOrderDetails(orderId);
+        loadOrders();
+    } catch (err) {
+        console.error('Error saving refund details:', err);
+        alert('Error saving refund details: ' + (err.message || err));
+    }
+};
+
+window.adminMarkOrderRefunded = async function(orderId, amount) {
+    const refId = prompt(`Confirm Repayment of ₹${amount}?\nEnter Refund UTR / Reference ID / Transaction ID (optional):`, 'UPI-' + Date.now().toString().slice(-6));
+    if (refId === null) return;
+
+    try {
+        const { data: ord } = await supabaseClient.from('orders').select('customer_details, refund_details').eq('id', orderId).single();
+        const cust = ord?.customer_details || {};
+        const refund = ord?.refund_details || cust.refund_details || {};
+
+        const updatedRefund = {
+            ...refund,
+            refund_status: 'refunded',
+            refunded_at: new Date().toISOString(),
+            refund_ref: refId || 'Manual Refund'
+        };
+
+        const updatedCust = {
+            ...cust,
+            refund_details: updatedRefund
+        };
+
+        try {
+            await supabaseClient.from('orders').update({
+                status: 'refunded',
+                customer_details: updatedCust,
+                refund_details: updatedRefund
+            }).eq('id', orderId);
+        } catch (_) {
+            await supabaseClient.from('orders').update({
+                status: 'refunded',
+                customer_details: updatedCust
+            }).eq('id', orderId);
+        }
+
+        alert(`Refund of ₹${amount} recorded as completed! Reference: ${refId || 'Manual'}`);
+        showOrderDetails(orderId);
+        loadOrders();
+    } catch (err) {
+        console.error('Error recording refund:', err);
+        alert('Failed to mark order as refunded: ' + (err.message || err));
+    }
+};
 
 // ==========================================
 // 12. PROMO CODES LOGIC

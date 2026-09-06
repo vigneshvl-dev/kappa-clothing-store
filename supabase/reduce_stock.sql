@@ -181,3 +181,8 @@ select
 from public.products p
 left join public.product_variants pv on pv.product_id = p.id
 where p.name ilike '%Macsivo%';
+
+-- 5. Optional: add dedicated refund_details column to orders table
+alter table if exists public.orders
+add column if not exists refund_details jsonb;
+

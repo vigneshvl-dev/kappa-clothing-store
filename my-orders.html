@@ -563,10 +563,28 @@
                 `;
             }).join('');
 
+            const refundInfo = order.refund_details || order.customer?.refund_details || null;
+            let refundSummaryHtml = '';
+            if (refundInfo) {
+                if (refundInfo.method === 'Bank Transfer' || refundInfo.account_number) {
+                    refundSummaryHtml = `
+                        <div style="font-size: 11px; color: #4a5568; background: #f7fafc; border: 1px solid #e2e8f0; padding: 4px 10px; border-radius: 5px; margin-top: 4px; display: inline-flex; align-items: center; gap: 6px;">
+                            <span>🏦 Refund to Bank: <strong>Ending in ${(refundInfo.account_number || '').slice(-4) || '****'}</strong> (${refundInfo.ifsc || ''})</span>
+                        </div>
+                    `;
+                } else if (refundInfo.upi_id) {
+                    refundSummaryHtml = `
+                        <div style="font-size: 11px; color: #4a5568; background: #f7fafc; border: 1px solid #e2e8f0; padding: 4px 10px; border-radius: 5px; margin-top: 4px; display: inline-flex; align-items: center; gap: 6px;">
+                            <span>⚡ Refund to UPI: <strong style="font-family: monospace;">${refundInfo.upi_id}</strong></span>
+                        </div>
+                    `;
+                }
+            }
+
             const actionButtonsHtml = (!isCancelled && !isReturned) ? `
                 <div style="margin-top: 10px; font-size: 12px; color: red; font-weight: 700;">The products will be delivered within 2 to 5 days.</div>
                 <div style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button onclick="cancelOrder('${order.orderId}', this)" style="padding: 8px 18px; background: #fff; color: #d32f2f; border: 1.5px solid #d32f2f; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.18s;">Cancel</button>
+                    <button onclick="openCancelOrderModal('${order.orderId}')" style="padding: 8px 18px; background: #fff; color: #d32f2f; border: 1.5px solid #d32f2f; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.18s;">Cancel</button>
                 </div>
             ` : (isCancelled ? `
                 <div style="margin-top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
@@ -579,6 +597,7 @@
                     <div style="font-size: 12px; color: #d32f2f; font-weight: 700; margin-left: 2px; display: flex; align-items: center; gap: 4px;">
                         Payment will be refund in 2-4 working days
                     </div>
+                    ${refundSummaryHtml}
                 </div>
             ` : `
                 <div style="margin-top: 12px; padding: 8px 14px; border-radius: 6px; background: ${statusStyle.bg}; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: ${statusStyle.color};">
@@ -722,6 +741,7 @@
                             orderId: o.id,
                             customer: o.customer_details || {},
                             shipping: o.shipping_address || {},
+                            refund_details: o.refund_details || o.customer_details?.refund_details || null,
                             items: (o.order_items || []).map(item => ({
                                 id: item.product_id,
                                 name: item.products?.name || item.name || 'Product',
@@ -765,23 +785,177 @@
 
         loadMyOrders();
 
-        async function cancelOrder(orderId, btn) {
-            if (!confirm('Are you sure you want to cancel this order?')) return;
+        let pendingCancelOrderId = null;
+        let pendingCancelOrderTotal = 0;
+        let pendingCancelOrderCustPhone = '';
+
+        function openCancelOrderModal(orderId) {
+            const order = allOrdersData.find(o => String(o.orderId) === String(orderId) || String(o.id) === String(orderId));
+            if (!order) {
+                if (!confirm('Are you sure you want to cancel this order?')) return;
+                return cancelOrder(orderId);
+            }
+
+            pendingCancelOrderId = orderId;
+            pendingCancelOrderTotal = order.total || order.subtotal || 0;
+            pendingCancelOrderCustPhone = order.customer?.phone || '';
+
+            const subEl = document.getElementById('cancelOrderModalSub');
+            if (subEl) subEl.textContent = `Order #${String(orderId).substring(0, 8)} • Total: ₹${pendingCancelOrderTotal.toLocaleString('en-IN')}`;
+            const amountEl = document.getElementById('cancelRefundAmountText');
+            if (amountEl) amountEl.textContent = `₹${pendingCancelOrderTotal.toLocaleString('en-IN')}`;
+
+            // Check if phone available for quick UPI fill
+            const cleanPhone = pendingCancelOrderCustPhone.replace(/[^0-9]/g, '').slice(-10);
+            const pill = document.getElementById('autofillUpiPill');
+            const pillText = document.getElementById('autofillPhoneText');
+            if (cleanPhone && cleanPhone.length === 10) {
+                if (pillText) pillText.textContent = cleanPhone;
+                if (pill) pill.style.display = 'block';
+            } else {
+                if (pill) pill.style.display = 'none';
+            }
+
+            // Reset inputs
+            const upiInput = document.getElementById('cancelUpiInput');
+            if (upiInput) upiInput.value = '';
+            const accHolder = document.getElementById('cancelAccHolder');
+            if (accHolder) accHolder.value = order.customer?.name || '';
+            const accNum = document.getElementById('cancelAccNum');
+            if (accNum) accNum.value = '';
+            const accIfsc = document.getElementById('cancelAccIfsc');
+            if (accIfsc) accIfsc.value = '';
+            const bankName = document.getElementById('cancelBankName');
+            if (bankName) bankName.value = '';
+
+            selectRefundMethod('upi');
+
+            const modal = document.getElementById('cancelOrderModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeCancelOrderModal() {
+            const modal = document.getElementById('cancelOrderModal');
+            if (modal) modal.style.display = 'none';
+            pendingCancelOrderId = null;
+        }
+
+        function selectRefundMethod(method) {
+            const tabUpi = document.getElementById('tabRefundUPI');
+            const tabBank = document.getElementById('tabRefundBank');
+            const secUpi = document.getElementById('sectionRefundUPI');
+            const secBank = document.getElementById('sectionRefundBank');
+            const radioUpi = document.getElementById('radioMethodUPI');
+            const radioBank = document.getElementById('radioMethodBank');
+
+            if (method === 'upi') {
+                if (radioUpi) radioUpi.checked = true;
+                if (tabUpi) { tabUpi.style.borderColor = '#111'; tabUpi.style.background = '#f9fafb'; }
+                if (tabBank) { tabBank.style.borderColor = '#e5e7eb'; tabBank.style.background = '#fff'; }
+                if (secUpi) secUpi.style.display = 'block';
+                if (secBank) secBank.style.display = 'none';
+            } else {
+                if (radioBank) radioBank.checked = true;
+                if (tabBank) { tabBank.style.borderColor = '#111'; tabBank.style.background = '#f9fafb'; }
+                if (tabUpi) { tabUpi.style.borderColor = '#e5e7eb'; tabUpi.style.background = '#fff'; }
+                if (secBank) secBank.style.display = 'block';
+                if (secUpi) secUpi.style.display = 'none';
+            }
+        }
+
+        function autofillPhoneUPI() {
+            const cleanPhone = pendingCancelOrderCustPhone.replace(/[^0-9]/g, '').slice(-10);
+            if (cleanPhone) {
+                const upiInput = document.getElementById('cancelUpiInput');
+                if (upiInput) upiInput.value = cleanPhone + '@upi';
+            }
+        }
+
+        async function confirmCancelAndRefund() {
+            if (!pendingCancelOrderId) return;
+            const btn = document.getElementById('btnConfirmCancelSubmit');
+            const method = document.querySelector('input[name="refundMethod"]:checked')?.value || 'upi';
+
+            let refundPayload = {
+                method: method === 'upi' ? 'UPI' : 'Bank Transfer',
+                amount: pendingCancelOrderTotal,
+                reason: document.getElementById('cancelReasonSelect')?.value || 'Changed my mind',
+                cancelled_at: new Date().toISOString(),
+                refund_status: 'pending'
+            };
+
+            if (method === 'upi') {
+                const upiId = document.getElementById('cancelUpiInput')?.value.trim();
+                if (!upiId) {
+                    alert('Please enter your UPI ID for refund (e.g. 9656353736@upi)');
+                    document.getElementById('cancelUpiInput')?.focus();
+                    return;
+                }
+                if (!upiId.includes('@')) {
+                    alert('Invalid UPI ID format. It should include @ (e.g. yourname@upi)');
+                    document.getElementById('cancelUpiInput')?.focus();
+                    return;
+                }
+                refundPayload.upi_id = upiId;
+            } else {
+                const holder = document.getElementById('cancelAccHolder')?.value.trim();
+                const accNum = document.getElementById('cancelAccNum')?.value.trim();
+                const ifsc = document.getElementById('cancelAccIfsc')?.value.trim().toUpperCase();
+                const bankName = document.getElementById('cancelBankName')?.value.trim();
+
+                if (!holder || !accNum || !ifsc) {
+                    alert('Please fill in Account Holder, Account Number, and IFSC code.');
+                    return;
+                }
+                refundPayload.account_holder = holder;
+                refundPayload.account_number = accNum;
+                refundPayload.ifsc = ifsc;
+                refundPayload.bank_name = bankName;
+            }
+
             if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
 
             try {
-                // Update Supabase if logged in
                 const { data: session } = await supabaseClient.auth.getSession();
                 if (session?.session?.user) {
-                    await supabaseClient.from('orders').update({ status: 'cancelled' }).eq('id', orderId);
+                    const { data: currentOrd } = await supabaseClient
+                        .from('orders')
+                        .select('customer_details')
+                        .eq('id', pendingCancelOrderId)
+                        .maybeSingle();
+
+                    const existingCust = (currentOrd && currentOrd.customer_details) || {};
+                    const updatedCust = {
+                        ...existingCust,
+                        refund_details: refundPayload
+                    };
+
+                    try {
+                        await supabaseClient.from('orders').update({
+                            status: 'cancelled',
+                            customer_details: updatedCust,
+                            refund_details: refundPayload
+                        }).eq('id', pendingCancelOrderId);
+                    } catch (_) {
+                        await supabaseClient.from('orders').update({
+                            status: 'cancelled',
+                            customer_details: updatedCust
+                        }).eq('id', pendingCancelOrderId);
+                    }
                 }
-            } catch (e) {
-                console.warn('Supabase cancel update notice:', e);
+            } catch (err) {
+                console.warn('Supabase cancellation notice:', err);
             }
 
-            updateLocalOrderStatus(orderId, 'Cancelled');
-            if (btn) { btn.disabled = false; btn.textContent = 'Cancelled'; btn.style.background = '#d32f2f'; btn.style.color = '#fff'; }
+            updateLocalOrderStatus(pendingCancelOrderId, 'Cancelled', refundPayload);
+
+            closeCancelOrderModal();
+            if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Cancel Order'; }
             showToast('Order has been cancelled successfully');
+        }
+
+        async function cancelOrder(orderId, btn) {
+            openCancelOrderModal(orderId);
         }
 
         async function returnOrder(orderId, btn) {
@@ -789,6 +963,7 @@
             if (btn) { btn.disabled = true; btn.textContent = 'Processing...'; }
 
             try {
+                // Update Supabase if logged in
                 const { data: session } = await supabaseClient.auth.getSession();
                 if (session?.session?.user) {
                     await supabaseClient.from('orders').update({ status: 'returned' }).eq('id', orderId);
@@ -846,7 +1021,7 @@
             loadMyOrders();
         }
 
-        function updateLocalOrderStatus(orderId, newStatus) {
+        function updateLocalOrderStatus(orderId, newStatus, refundDetails = null) {
             try {
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
@@ -860,6 +1035,7 @@
                                     orders.forEach(o => {
                                         if (String(o.orderId) === String(orderId) || String(o.id) === String(orderId)) {
                                             o.status = newStatus;
+                                            if (refundDetails) o.refund_details = refundDetails;
                                             changed = true;
                                         }
                                     });
@@ -875,6 +1051,7 @@
                     allOrdersData.forEach(o => {
                         if (String(o.orderId) === String(orderId) || String(o.id) === String(orderId)) {
                             o.status = newStatus;
+                            if (refundDetails) o.refund_details = refundDetails;
                         }
                     });
                 }
@@ -1074,6 +1251,112 @@
         // Render cart on load
         renderCart();
     </script>
+
+    <!-- CANCEL ORDER & REFUND DETAILS MODAL -->
+    <div id="cancelOrderModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+        <div style="background:#fff; border-radius:14px; width:100%; max-width:520px; box-shadow:0 20px 40px rgba(0,0,0,0.25); overflow:hidden; display:flex; flex-direction:column; max-height:92vh; animation: fadeInModal 0.2s ease-out;">
+            <!-- Header -->
+            <div style="padding:18px 22px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:#fff;">
+                <div>
+                    <h3 style="margin:0; font-size:17px; font-weight:800; color:#111;">Cancel Order & Refund Details</h3>
+                    <div id="cancelOrderModalSub" style="font-size:12px; color:#666; margin-top:3px;">Order #...</div>
+                </div>
+                <button onclick="closeCancelOrderModal()" style="background:none; border:none; font-size:22px; color:#888; cursor:pointer; padding:4px 8px; line-height:1;">✕</button>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:22px; overflow-y:auto; flex:1;">
+                <!-- Refund Banner -->
+                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px 14px; margin-bottom:18px; display:flex; align-items:flex-start; gap:10px;">
+                    <div style="color:#dc2626; font-size:18px; line-height:1;">⚡</div>
+                    <div style="font-size:12px; color:#991b1b; line-height:1.4;">
+                        Your refund of <strong id="cancelRefundAmountText" style="color:#dc2626; font-size:13px;">₹0</strong> will be refunded within <strong>2 to 4 working days</strong>. Please select your preferred repayment method below.
+                    </div>
+                </div>
+
+                <!-- Refund Method Selection -->
+                <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.4px;">
+                    Select Repayment Method <span style="color:#dc2626;">*</span>
+                </label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                    <label id="tabRefundUPI" onclick="selectRefundMethod('upi')" style="cursor:pointer; border:2px solid #111; background:#f9fafb; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:4px; transition:all 0.15s;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="radio" name="refundMethod" id="radioMethodUPI" value="upi" checked style="accent-color:#111;">
+                            <span style="font-size:13px; font-weight:800; color:#111;">UPI ID</span>
+                        </div>
+                        <span style="font-size:11px; color:#666;">Google Pay, PhonePe, Paytm, BHIM</span>
+                    </label>
+
+                    <label id="tabRefundBank" onclick="selectRefundMethod('bank')" style="cursor:pointer; border:1.5px solid #e5e7eb; background:#fff; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:4px; transition:all 0.15s;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="radio" name="refundMethod" id="radioMethodBank" value="bank" style="accent-color:#111;">
+                            <span style="font-size:13px; font-weight:800; color:#111;">Bank Account</span>
+                        </div>
+                        <span style="font-size:11px; color:#666;">Account No. & IFSC (NEFT / IMPS)</span>
+                    </label>
+                </div>
+
+                <!-- UPI Input Section -->
+                <div id="sectionRefundUPI">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:6px;">
+                        Enter Your UPI ID <span style="color:#e53e3e;">*</span>
+                    </label>
+                    <input type="text" id="cancelUpiInput" placeholder="e.g. 9656353736@upi or yourname@okhdfcbank" style="width:100%; box-sizing:border-box; padding:10px 14px; border:1.5px solid #d1d5db; border-radius:8px; font-size:13px; font-family:monospace; margin-bottom:6px;">
+                    <div id="autofillUpiPill" style="display:none; margin-bottom:12px;">
+                        <button type="button" onclick="autofillPhoneUPI()" style="background:#edf2f7; border:1px dashed #cbd5e0; color:#2d3748; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+                            ⚡ Autofill with phone: <span id="autofillPhoneText"></span>@upi
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bank Input Section -->
+                <div id="sectionRefundBank" style="display:none;">
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:4px;">Account Holder Name <span style="color:#e53e3e;">*</span></label>
+                            <input type="text" id="cancelAccHolder" placeholder="Name as per bank records" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:13px;">
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:4px;">Account Number <span style="color:#e53e3e;">*</span></label>
+                                <input type="text" id="cancelAccNum" placeholder="Bank Account Number" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:13px; font-family:monospace;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:4px;">IFSC Code <span style="color:#e53e3e;">*</span></label>
+                                <input type="text" id="cancelAccIfsc" placeholder="e.g. SBIN0001234" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:13px; text-transform:uppercase; font-family:monospace;">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:4px;">Bank Name (Optional)</label>
+                            <input type="text" id="cancelBankName" placeholder="e.g. SBI, HDFC, ICICI, etc." style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:13px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cancellation Reason -->
+                <div style="margin-top:14px;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:6px;">Reason for Cancellation (Optional)</label>
+                    <select id="cancelReasonSelect" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:13px; background:#fff;">
+                        <option value="Changed my mind">Changed my mind</option>
+                        <option value="Ordered wrong size or color">Ordered wrong size or color</option>
+                        <option value="Delivery time is too long">Delivery time is too long</option>
+                        <option value="Found cheaper alternative">Found cheaper alternative</option>
+                        <option value="Ordered by mistake">Ordered by mistake</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding:14px 22px; border-top:1px solid #eee; display:flex; justify-content:flex-end; gap:10px; background:#f9fafb;">
+                <button type="button" onclick="closeCancelOrderModal()" style="padding:9px 16px; background:#fff; border:1px solid #d1d5db; border-radius:7px; font-size:13px; font-weight:600; color:#374151; cursor:pointer;">Keep Order</button>
+                <button type="button" id="btnConfirmCancelSubmit" onclick="confirmCancelAndRefund()" style="padding:9px 20px; background:#dc2626; border:none; border-radius:7px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    Confirm & Cancel Order
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- GSAP & Lenis Smooth Scroll Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>

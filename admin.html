@@ -421,6 +421,60 @@
         </div>
     </div>
 
+    <!-- ADMIN EDIT CUSTOMER REFUND DETAILS MODAL -->
+    <div class="overlay" id="adminRefundEditModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(3px); z-index:1100; align-items:center; justify-content:center;">
+        <div class="side-panel"
+            style="background:#fff; padding:24px; width:480px; max-width:92vw; max-height:88vh; overflow-y:auto; border-radius:12px; box-shadow:0 12px 36px rgba(0,0,0,0.3);">
+            <div class="side-head"
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #eee; padding-bottom:12px;">
+                <h3 style="font-size:16px; font-weight:800; color:#111; margin:0;">Customer Refund & Repayment Info</h3>
+                <button
+                    onclick="document.getElementById('adminRefundEditModal').style.display='none'"
+                    style="background:none; border:none; font-size:20px; cursor:pointer; color:#666; font-weight:bold; padding:4px 8px;">✕</button>
+            </div>
+            <form id="adminRefundForm" onsubmit="saveAdminRefundDetails(event)" style="display:flex; flex-direction:column; gap:14px;">
+                <input type="hidden" id="adminRefundOrderId">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Refund Method</label>
+                    <select id="adminRefundMethodSelect" class="admin-input" style="width:100%; box-sizing:border-box;" onchange="toggleAdminRefundFields()">
+                        <option value="UPI">UPI ID (Google Pay, PhonePe, Paytm, etc.)</option>
+                        <option value="Bank Transfer">Bank Account Transfer (NEFT / IMPS)</option>
+                    </select>
+                </div>
+
+                <div id="adminUpiFields">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:6px;">Customer UPI ID *</label>
+                    <input type="text" id="adminUpiInput" class="admin-input" placeholder="e.g. 9656353736@upi or user@okaxis" style="width:100%; box-sizing:border-box; font-family:monospace;">
+                </div>
+
+                <div id="adminBankFields" style="display:none; flex-direction:column; gap:10px;">
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">Account Holder Name</label>
+                        <input type="text" id="adminAccHolder" class="admin-input" placeholder="Holder Name" style="width:100%; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">Account Number</label>
+                        <input type="text" id="adminAccNum" class="admin-input" placeholder="Account Number" style="width:100%; box-sizing:border-box; font-family:monospace;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">IFSC Code</label>
+                        <input type="text" id="adminAccIfsc" class="admin-input" placeholder="IFSC Code" style="width:100%; box-sizing:border-box; text-transform:uppercase; font-family:monospace;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#444; margin-bottom:4px;">Bank Name</label>
+                        <input type="text" id="adminBankName" class="admin-input" placeholder="Bank Name" style="width:100%; box-sizing:border-box;">
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; border-top:1px solid #eee; padding-top:12px;">
+                    <button type="button" class="btn-secondary" onclick="document.getElementById('adminRefundEditModal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn-black" style="background:#dc2626; color:#fff;">Save Refund Info</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- IMAGE CROPPER MODAL -->
     <div id="cropper-modal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
