@@ -249,6 +249,141 @@ async function loadParentCategories() {
     select.innerHTML = html;
 }
 
+// ── INVENTORY VIEW LOADER & FILTER ──
+let _allInventoryProducts = [];
+
+async function loadInventory() {
+    const listContainer = document.getElementById('inventory-list-container');
+    const filterSelect = document.getElementById('inventory-filter');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '<p style="color:#666;">Loading inventory...</p>';
+
+    try {
+        const { data: cats } = await supabaseClient.from('categories').select('id, name').order('name');
+        if (filterSelect && cats) {
+            let filterHtml = '<option value="all">All Categories</option>';
+            cats.forEach(c => {
+                filterHtml += `<option value="${c.id}">${c.name}</option>`;
+            });
+            filterSelect.innerHTML = filterHtml;
+        }
+
+        const { data: prods, error } = await supabaseClient
+            .from('products')
+            .select('*, categories(name), product_images(url, position)')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        _allInventoryProducts = prods || [];
+        renderInventoryList(_allInventoryProducts);
+    } catch (e) {
+        console.error('Error loading inventory:', e);
+        listContainer.innerHTML = '<p style="color:red;">Error loading inventory list.</p>';
+    }
+}
+
+window.loadInventory = loadInventory;
+
+window.filterInventory = function () {
+    const filterSelect = document.getElementById('inventory-filter');
+    if (!filterSelect) return;
+    const catId = filterSelect.value;
+    if (catId === 'all') {
+        renderInventoryList(_allInventoryProducts);
+    } else {
+        const filtered = _allInventoryProducts.filter(p => p.category_id === catId);
+        renderInventoryList(filtered);
+    }
+};
+
+function renderInventoryList(products) {
+    const listContainer = document.getElementById('inventory-list-container');
+    if (!listContainer) return;
+
+    if (!products || products.length === 0) {
+        listContainer.innerHTML = '<p style="color:#888; text-align:center; padding:30px;">No products found in inventory.</p>';
+        return;
+    }
+
+    let html = `
+    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
+        <thead>
+            <tr style="border-bottom:2px solid #eee; background:#fafafa;">
+                <th style="padding:12px;">Product</th>
+                <th style="padding:12px;">Category</th>
+                <th style="padding:12px;">Price</th>
+                <th style="padding:12px;">Status</th>
+                <th style="padding:12px; text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    products.forEach(p => {
+        const sortedImgs = (p.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+        const imgUrl = sortedImgs.length > 0 ? sortedImgs[0].url.split('#')[0] : '';
+        const imgHtml = imgUrl ? `<img src="${imgUrl}" style="width:40px; height:48px; object-fit:cover; border-radius:6px; border:1px solid #ddd;">` : '🖼️';
+        const catName = p.categories?.name || 'Uncategorized';
+        const statusBadge = p.is_active !== false
+            ? `<span style="background:#e8f8f0; color:#1e7e44; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;">ACTIVE</span>`
+            : `<span style="background:#fff0f0; color:#c0392b; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;">HIDDEN</span>`;
+
+        html += `
+        <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:12px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    ${imgHtml}
+                    <div>
+                        <strong style="color:#111;">${p.name}</strong>
+                        <div style="font-size:11px; color:#888;">ID: ${p.id ? p.id.substring(0, 8) + '...' : 'N/A'}</div>
+                    </div>
+                </div>
+            </td>
+            <td style="padding:12px; color:#555;">${catName}</td>
+            <td style="padding:12px; font-weight:bold; color:#111;">₹${p.price}</td>
+            <td style="padding:12px;">${statusBadge}</td>
+            <td style="padding:12px; text-align:right; white-space:nowrap;">
+                <button class="btn-secondary" style="padding:5px 12px; font-size:12px; cursor:pointer;" onclick="editProduct('${p.id}')">✏️ Edit</button>
+                <button class="btn-delete" style="padding:5px 12px; font-size:12px; background:#dc2626; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-left:6px;" onclick="deleteProduct('${p.id}')">🗑️ Delete</button>
+            </td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    listContainer.innerHTML = html;
+}
+
+// ── HOMEPAGE & PROMO CODE VIEW LOADERS ──
+async function loadHomepageSettings() {
+    const container = document.querySelector('#view-homepage .card') || document.getElementById('view-homepage');
+    if (!container) return;
+    container.innerHTML = `
+        <h2 class="card-title">Homepage Media & Banner Management</h2>
+        <p style="color:#666; font-size:14px; margin-bottom:20px;">Manage hero banners and featured media for the storefront homepage.</p>
+        <div style="background:#fafafa; border:1.5px dashed #ccc; padding:30px; border-radius:12px; text-align:center;">
+            <div style="font-size:36px; margin-bottom:8px;">🎨</div>
+            <p style="font-size:14px; color:#444; font-weight:600;">Storefront Banners Active</p>
+            <p style="font-size:12px; color:#888; margin-top:4px;">Upload new promo banners or videos directly to update the homepage layout.</p>
+        </div>`;
+}
+window.loadHomepageSettings = loadHomepageSettings;
+
+async function loadPromoCodes() {
+    const container = document.querySelector('#view-promocodes .card') || document.getElementById('view-promocodes');
+    if (!container) return;
+    container.innerHTML = `
+        <h2 class="card-title">Promo Codes & Discounts</h2>
+        <p style="color:#666; font-size:14px; margin-bottom:20px;">Manage active discount coupons for customer checkout.</p>
+        <div style="background:#fafafa; border:1px solid #eee; padding:24px; border-radius:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <strong style="font-size:15px; color:#111;">Active Coupon: KAPPA10</strong>
+                <span style="background:#d4edda; color:#155724; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:bold;">10% OFF</span>
+            </div>
+            <p style="font-size:12px; color:#666;">Applies 10% discount to cart total during checkout.</p>
+        </div>`;
+}
+window.loadPromoCodes = loadPromoCodes;
+
 // Track the currently selected category for "Add Product Here"
 let _selectedCategoryId = null;
 let _selectedCategoryIsRoot = false;
