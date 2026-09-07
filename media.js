@@ -470,7 +470,7 @@ function addSubCategoryCardElement(cardData = {}, index) {
 
     div.innerHTML = `
         <button type="button" class="btn-delete" style="position:absolute; top:10px; right:10px; background:#ff4d4d; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px;" onclick="this.closest('.subcat-card-row').remove()">Delete</button>
-        <h3 style="margin-top:0; font-size:13px; font-weight:700; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:4px; padding-right:50px;">Sub-Category Card</h3>
+        <h3 style="margin-top:0; font-size:13px; font-weight:700; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:4px; padding-right:50px;">Explore Styles Cover Card</h3>
 
         <div>
             <label style="font-size:10px; font-weight:700; color:#555;">Target Sub-Category Name (e.g. Mandarin collar shirt)</label>
