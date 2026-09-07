@@ -1105,14 +1105,98 @@
                 <span>Free delivery · <strong>2–5 business days</strong></span>
             </div>
 
-            <!-- Description -->
-            <div class="desc-block">
-                <div class="desc-title">Description</div>
-                <div class="desc-text" id="pdp-description">Loading description...</div>
+            <!-- Payment & Delivery Badges Bar -->
+            <div class="pdp-payment-badges-row" style="display: flex; align-items: center; justify-content: flex-start; gap: 18px; margin-top: 24px; margin-bottom: 24px; padding-bottom: 8px; flex-wrap: wrap;">
+                <!-- UPI -->
+                <div style="height: 24px; display: flex; align-items: center;" title="UPI Payments">
+                    <svg height="22" viewBox="0 0 100 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 4L22 15L12 26H5L15 15L5 4H12Z" fill="#008338"/>
+                        <path d="M22 4L32 15L22 26H15L25 15L15 4H22Z" fill="#E45826"/>
+                        <text x="36" y="21" font-family="'Jost', sans-serif" font-weight="800" font-size="20" fill="#2d3748" font-style="italic">UPI</text>
+                    </svg>
+                </div>
+
+                <!-- RuPay -->
+                <div style="height: 24px; display: flex; align-items: center;" title="RuPay Card">
+                    <svg height="22" viewBox="0 0 110 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <text x="0" y="21" font-family="'Jost', sans-serif" font-weight="900" font-size="20" fill="#0a2540">RuPay</text>
+                        <path d="M82 6L94 15L82 24H74L86 15L74 6H82Z" fill="#008338"/>
+                        <path d="M92 6L104 15L92 24H84L96 15L84 6H92Z" fill="#E45826"/>
+                    </svg>
+                </div>
+
+                <!-- VISA -->
+                <div style="height: 24px; display: flex; align-items: center;" title="VISA">
+                    <svg height="20" viewBox="0 0 80 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <text x="0" y="22" font-family="'Jost', sans-serif" font-weight="900" font-size="24" fill="#1434CB" font-style="italic" letter-spacing="1">VISA</text>
+                    </svg>
+                </div>
+
+                <!-- Mastercard -->
+                <div style="height: 24px; display: flex; align-items: center;" title="Mastercard">
+                    <svg height="24" viewBox="0 0 40 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="14" cy="13" r="12" fill="#EB001B"/>
+                        <circle cx="26" cy="13" r="12" fill="#F79E1B" fill-opacity="0.9"/>
+                    </svg>
+                </div>
+
+                <!-- COD -->
+                <div style="height: 24px; display: flex; align-items: center; border: 1.5px solid #333; border-radius: 6px; padding: 2px 7px; gap: 4px;" title="Cash on Delivery Available">
+                    <svg width="18" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="3" width="15" height="13" rx="1"></rect>
+                        <path d="M16 8h4l3 6v3h-7V8z"></path>
+                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                    </svg>
+                    <span style="font-size: 11px; font-weight: 900; color: #111; letter-spacing: 0.5px;">COD</span>
+                </div>
             </div>
 
-            <!-- Specification -->
-            <div class="desc-block" id="spec-block" style="display:none;">
+            <!-- Collapsible Accordions -->
+            <div class="pdp-accordions-wrapper" style="border-top: 1px solid #e0e0e0; margin-top: 10px;">
+                <!-- 1. Description Accordion -->
+                <div class="pdp-accordion-item" style="border-bottom: 1px solid #e0e0e0;">
+                    <button class="pdp-accordion-header" onclick="togglePdpAccordion(this)" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: none; border: none; font-size: 15px; font-weight: 500; color: #222; cursor: pointer; text-align: left; font-family: inherit;">
+                        <span>Description</span>
+                        <span class="acc-icon" style="font-size: 18px; font-weight: 300; color: #555;">+</span>
+                    </button>
+                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7; white-space: pre-wrap;" id="pdp-description">
+                        Loading description...
+                    </div>
+                </div>
+
+
+
+                <!-- 3. Return Policy Accordion -->
+                <div class="pdp-accordion-item" style="border-bottom: 1px solid #e0e0e0;">
+                    <button class="pdp-accordion-header" onclick="togglePdpAccordion(this)" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: none; border: none; font-size: 15px; font-weight: 500; color: #222; cursor: pointer; text-align: left; font-family: inherit;">
+                        <span>Return policy</span>
+                        <span class="acc-icon" style="font-size: 18px; font-weight: 300; color: #555;">+</span>
+                    </button>
+                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;">
+                        • Easy 7-day hassle-free return and exchange policy.<br>
+                        • Items must be unused, unwashed, and returned in original condition with brand tags intact.<br>
+                        • Quick doorstep pickup and instant refund or store credit upon quality inspection.
+                    </div>
+                </div>
+
+                <!-- 4. Legal Metrology Accordion -->
+                <div class="pdp-accordion-item" style="border-bottom: 1px solid #e0e0e0;">
+                    <button class="pdp-accordion-header" onclick="togglePdpAccordion(this)" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: none; border: none; font-size: 15px; font-weight: 500; color: #222; cursor: pointer; text-align: left; font-family: inherit;">
+                        <span>Legal Metrology</span>
+                        <span class="acc-icon" style="font-size: 18px; font-weight: 300; color: #555;">+</span>
+                    </button>
+                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;">
+                        • <strong>Country of Origin:</strong> India<br>
+                        • <strong>Marketed & Packed By:</strong> KAPPA Clothing Store, Mahatma Gandhi Rd, Pazhavangadi, Thiruvananthapuram, Kerala 695023.<br>
+                        • <strong>Customer Support:</strong> kappatvm@gmail.com | +91 62386 16662<br>
+                        • Net Quantity: 1 Unit. All prices inclusive of all taxes.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Specification (if dynamic specs exist) -->
+            <div class="desc-block" id="spec-block" style="display:none; margin-top: 20px;">
                 <div class="desc-title">Specification</div>
                 <ul class="pdp-spec-list" id="pdp-spec-list"></ul>
             </div>
@@ -1740,6 +1824,18 @@
 
             updateStockAlert(newStock, size);
         }
+
+        window.togglePdpAccordion = function(btn) {
+            const item = btn.closest('.pdp-accordion-item');
+            if (!item) return;
+            const body = item.querySelector('.pdp-accordion-body');
+            const icon = item.querySelector('.acc-icon');
+            if (!body) return;
+
+            const isOpen = body.style.display === 'block';
+            body.style.display = isOpen ? 'none' : 'block';
+            if (icon) icon.textContent = isOpen ? '+' : '−';
+        };
 
         function showSelectionError(hasSizes, hasColors) {
             const sSize = window.selectedSize || null;
