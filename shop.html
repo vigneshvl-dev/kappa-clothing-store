@@ -320,23 +320,7 @@
         <img src="assets/mens_denim_banner.png" alt="MENS DENIM" style="width: 100%; height: auto; display: block;">
     </div>
 
-    <!-- SUB-CATEGORY CARDS SLIDER BELOW HERO BANNER -->
-    <div id="subcat-cards-container"
-        style="display: none; max-width: 1400px; margin: 10px auto 25px auto; padding: 0 40px; width: 100%;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <span
-                style="font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #111;">EXPLORE
-                STYLES</span>
-            <span style="font-size: 11px; font-weight: 600; color: #555; cursor: pointer; text-decoration: underline;"
-                onclick="loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'))">View
-                all</span>
-        </div>
 
-        <div id="subcat-scroll-track"
-            style="display: flex; gap: 16px; overflow-x: auto; padding-bottom: 14px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: thin;">
-            <!-- Rendered dynamically by JS -->
-        </div>
-    </div>
 
     <div class="shop-layout" style="padding-top: 150px;">
         <!-- SIDEBAR -->
@@ -1012,16 +996,12 @@
                     if (bannerImg) bannerImg.src = menBanner;
                     bannerTopDiv.style.display = 'block';
                     if (shopLayout) shopLayout.style.paddingTop = '20px';
-                    renderSubCategoryCards('men');
                 } else if (isWomenCategory && womenBanner) {
                     if (bannerImg) bannerImg.src = womenBanner;
                     bannerTopDiv.style.display = 'block';
                     if (shopLayout) shopLayout.style.paddingTop = '20px';
-                    renderSubCategoryCards('women');
                 } else {
                     bannerTopDiv.style.display = 'none';
-                    const subcatContainer = document.getElementById('subcat-cards-container');
-                    if (subcatContainer) subcatContainer.style.display = 'none';
                     if (shopLayout) shopLayout.style.paddingTop = '150px';
                 }
             }
@@ -1341,64 +1321,7 @@
         };
 
 
-        function renderSubCategoryCards(filterGender = 'men') {
-            const container = document.getElementById('subcat-cards-container');
-            const track = document.getElementById('subcat-scroll-track');
-            if (!container || !track) return;
 
-            let cards = shopHomepageConfig?.subCategoryCards;
-            if (!cards || cards.length === 0) {
-                cards = [
-                    { categoryTag: "Men >", title: "MANDARIN COLLAR", accent: "shirts", subCategoryName: "Mandarin collar shirt", image: "assets/duplicate.png" },
-                    { categoryTag: "Men >", title: "BEST SELLER", accent: "denim", subCategoryName: "Denim", image: "assets/mens_denim_banner.png" },
-                    { categoryTag: "Men >", title: "PANTS &", accent: "trousers", subCategoryName: "Pants & Trousers", image: "assets/duplicate.png" },
-                    { categoryTag: "Men >", title: "TRENDING", accent: "shirts", subCategoryName: "Shirts", image: "assets/duplicate.png" }
-                ];
-            }
-
-            container.style.display = 'block';
-
-            let html = cards.map(c => {
-                const tag = c.categoryTag || 'Men >';
-                const mainTitle = c.title || '';
-                const accentTitle = c.accent || '';
-                const subCatName = (c.subCategoryName || '').replace(/'/g, "\\'");
-                const bgImg = c.image || 'assets/duplicate.png';
-
-                return `
-                    <div class="subcat-card-item" onclick="filterBySubCategoryName('${subCatName}')" style="min-width: 240px; width: 240px; height: 320px; border-radius: 14px; position: relative; overflow: hidden; flex-shrink: 0; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.12); background: #222; transition: transform 0.2s, box-shadow 0.2s;">
-                        <img src="${bgImg}" alt="${mainTitle}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
-                        <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.7) 100%); display: flex; flex-direction: column; justify-content: space-between; padding: 18px; color: #fff;">
-                            <div style="font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); letter-spacing: 0.5px;">${tag}</div>
-                            
-                            <div style="text-align: center; margin-top: auto; margin-bottom: 14px;">
-                                <div style="font-family: 'Jost', sans-serif; font-size: 22px; font-weight: 800; text-transform: uppercase; line-height: 1.1; letter-spacing: 1px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.4);">${mainTitle}</div>
-                                ${accentTitle ? `<div style="font-family: 'Georgia', 'Times New Roman', serif; font-size: 26px; font-weight: 400; font-style: italic; color: #ffd700; margin-top: -4px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${accentTitle}</div>` : ''}
-                            </div>
-
-                            <button type="button" style="background: #fff; color: #111; font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 7px 16px; border-radius: 4px; align-self: center; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); pointer-events: none;">SHOP NOW</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            track.innerHTML = html;
-        }
-
-        function filterBySubCategoryName(subCatName) {
-            if (!subCatName) return;
-
-            const targetCat = findCategoryByQuery(subCatName);
-            if (targetCat) {
-                const elements = Array.from(document.querySelectorAll('.cat-parent, .cat-child'));
-                const targetEl = elements.find(el => el.textContent.trim().toLowerCase() === targetCat.name.toLowerCase());
-                loadShopProducts(targetCat.id, targetCat.name, targetEl);
-            } else {
-                // If category ID not found in database, load products directly and filter by sub-category query
-                loadShopProducts(null, subCatName, null);
-            }
-        }
-        window.filterBySubCategoryName = filterBySubCategoryName;
 
         function renderFilteredProducts(products) {
             document.getElementById('product-count').innerText = `${products.length} ${products.length === 1 ? 'ITEM' : 'ITEMS'}`;
