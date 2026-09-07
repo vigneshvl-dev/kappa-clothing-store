@@ -166,6 +166,22 @@ function renderHomepageForm() {
     const womenBannerPreview = document.getElementById('category-banner-women-preview');
     if (womenBannerInput) womenBannerInput.value = womenBannerUrl;
     if (womenBannerPreview) womenBannerPreview.src = womenBannerUrl || 'assets/WOMENFASHION.png';
+
+    // 6. Render Sub-Category Cover Cards
+    const subcatContainer = document.getElementById('subcat-cards-editor-container');
+    if (subcatContainer) {
+        subcatContainer.innerHTML = '';
+        const cards = currentHomepageConfig.subCategoryCards || [
+            { categoryTag: "Men >", title: "MANDARIN COLLAR", accent: "shirts", subCategoryName: "Mandarin collar shirt", image: "assets/duplicate.png" },
+            { categoryTag: "Men >", title: "BEST SELLER", accent: "denim", subCategoryName: "Denim", image: "assets/mens_denim_banner.png" },
+            { categoryTag: "Men >", title: "PANTS &", accent: "trousers", subCategoryName: "Pants & Trousers", image: "assets/duplicate.png" },
+            { categoryTag: "Men >", title: "TRENDING", accent: "shirts", subCategoryName: "Shirts", image: "assets/duplicate.png" }
+        ];
+
+        cards.forEach((card, index) => {
+            addSubCategoryCardElement(card, index);
+        });
+    }
 }
 
 function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', index) {
@@ -442,6 +458,95 @@ window.previewEditorialImage = previewEditorialImage;
 window.previewEditorialVideo = previewEditorialVideo;
 window.previewCategoryBanner = previewCategoryBanner;
 
+function addSubCategoryCardElement(cardData = {}, index) {
+    const container = document.getElementById('subcat-cards-editor-container');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = 'card subcat-card-row';
+    div.style = 'padding:15px; border:1px solid #eee; border-radius:8px; background:#fafafa; display:flex; flex-direction:column; gap:10px; position:relative;';
+
+    const getPreviewSrc = (url) => url ? url : 'assets/duplicate.png';
+
+    div.innerHTML = `
+        <button type="button" class="btn-delete" style="position:absolute; top:10px; right:10px; background:#ff4d4d; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px;" onclick="this.closest('.subcat-card-row').remove()">Delete</button>
+        <h3 style="margin-top:0; font-size:13px; font-weight:700; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:4px; padding-right:50px;">Sub-Category Card</h3>
+
+        <div>
+            <label style="font-size:10px; font-weight:700; color:#555;">Target Sub-Category Name (e.g. Mandarin collar shirt)</label>
+            <input type="text" class="admin-input subcat-name" value="${cardData.subCategoryName || ''}" placeholder="e.g. Mandarin collar shirt" style="padding:6px; font-size:12px;">
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+                <label style="font-size:10px; font-weight:700; color:#555;">Tag (e.g. Men >)</label>
+                <input type="text" class="admin-input subcat-tag" value="${cardData.categoryTag || 'Men >'}" placeholder="Men >" style="padding:6px; font-size:11px;">
+            </div>
+            <div>
+                <label style="font-size:10px; font-weight:700; color:#555;">Accent Text (e.g. shirts)</label>
+                <input type="text" class="admin-input subcat-accent" value="${cardData.accent || ''}" placeholder="e.g. shirts" style="padding:6px; font-size:11px;">
+            </div>
+        </div>
+
+        <div>
+            <label style="font-size:10px; font-weight:700; color:#555;">Main Title (e.g. MANDARIN COLLAR)</label>
+            <input type="text" class="admin-input subcat-title" value="${cardData.title || ''}" placeholder="e.g. MANDARIN COLLAR" style="padding:6px; font-size:11px;">
+        </div>
+
+        <div>
+            <label style="font-size:10px; font-weight:700; color:#555;">Cover Image File / URL</label>
+            <input type="text" class="admin-input subcat-image-url" value="${cardData.image || ''}" style="display:none;">
+            <input type="file" class="admin-input subcat-image-file" accept="image/*" style="font-size:10px; padding:4px;" onchange="previewSubCatCardFile(this)">
+        </div>
+
+        <div style="height:100px; border:1px dashed #ccc; border-radius:6px; overflow:hidden; background:#eee; display:flex; justify-content:center; align-items:center;">
+            <img class="subcat-image-preview" src="${getPreviewSrc(cardData.image)}" style="max-height:100%; max-width:100%; object-fit:cover; cursor:pointer;" title="Click to Crop Image" onclick="triggerCropSubCatImage(this)">
+        </div>
+    `;
+
+    container.appendChild(div);
+}
+
+function addSubCategoryCard() {
+    addSubCategoryCardElement({ categoryTag: 'Men >', title: '', accent: '', subCategoryName: '', image: '' }, document.querySelectorAll('.subcat-card-row').length);
+}
+window.addSubCategoryCard = addSubCategoryCard;
+
+function previewSubCatCardFile(input) {
+    const file = input.files[0];
+    if (file) {
+        const row = input.closest('.subcat-card-row');
+        const img = row.querySelector('.subcat-image-preview');
+        const objectUrl = URL.createObjectURL(file);
+        if (typeof openCropper === 'function') {
+            openCropper(objectUrl, 3 / 4, (croppedBlob, croppedUrl) => {
+                img.src = croppedUrl;
+                input.croppedBlob = croppedBlob;
+            });
+        } else {
+            img.src = objectUrl;
+        }
+    }
+}
+window.previewSubCatCardFile = previewSubCatCardFile;
+
+function triggerCropSubCatImage(imgElement) {
+    const src = imgElement.src;
+    if (!src || src.endsWith('duplicate.png')) {
+        alert('Please choose an image file first before cropping!');
+        return;
+    }
+    const row = imgElement.closest('.subcat-card-row');
+    const fileInput = row.querySelector('.subcat-image-file');
+    if (typeof openCropper === 'function') {
+        openCropper(src, 3 / 4, (croppedBlob, croppedUrl) => {
+            imgElement.src = croppedUrl;
+            fileInput.croppedBlob = croppedBlob;
+        });
+    }
+}
+window.triggerCropSubCatImage = triggerCropSubCatImage;
+
 async function uploadHomepageFile(file, pathPrefix) {
     const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
     const filePath = `homepage/${pathPrefix}_${Date.now()}_${cleanFileName}`;
@@ -596,6 +701,38 @@ async function saveHomepageSettings() {
             womenBannerUrl = await uploadHomepageFile(womenBannerFile, 'banner_women');
         }
 
+        // 6. Gather Sub-Category Cover Cards
+        const subcatRows = document.querySelectorAll('.subcat-card-row');
+        const subCategoryCards = [];
+        for (const row of subcatRows) {
+            const subCategoryName = row.querySelector('.subcat-name').value.trim();
+            const categoryTag = row.querySelector('.subcat-tag').value.trim();
+            const accent = row.querySelector('.subcat-accent').value.trim();
+            const title = row.querySelector('.subcat-title').value.trim();
+
+            let image = row.querySelector('.subcat-image-url').value.trim();
+            const imgFileInput = row.querySelector('.subcat-image-file');
+            const imgFile = imgFileInput ? imgFileInput.files[0] : null;
+            const imgCropped = imgFileInput ? imgFileInput.croppedBlob : null;
+
+            if (imgCropped) {
+                const fileToUpload = new File([imgCropped], imgFile ? imgFile.name : "subcat_cover.jpg", { type: "image/jpeg" });
+                image = await uploadHomepageFile(fileToUpload, 'subcat_cover');
+            } else if (imgFile) {
+                image = await uploadHomepageFile(imgFile, 'subcat_cover');
+            }
+
+            if (subCategoryName || title || image) {
+                subCategoryCards.push({
+                    subCategoryName,
+                    categoryTag,
+                    accent,
+                    title,
+                    image
+                });
+            }
+        }
+
         const newConfig = {
             heroSlides,
             reels,
@@ -604,6 +741,7 @@ async function saveHomepageSettings() {
                 men: menBannerUrl || 'assets/mens_denim_banner.png',
                 women: womenBannerUrl || 'assets/WOMENFASHION.png'
             },
+            subCategoryCards: subCategoryCards,
             editorial: {
                 men: {
                     images: menImages,
