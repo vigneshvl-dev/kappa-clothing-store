@@ -195,7 +195,6 @@
 
             /* Mobile navbar layout handled by style.css */
         }
-
     </style>
 </head>
 
@@ -322,13 +321,19 @@
     </div>
 
     <!-- SUB-CATEGORY CARDS SLIDER BELOW HERO BANNER -->
-    <div id="subcat-cards-container" style="display: none; max-width: 1400px; margin: 10px auto 25px auto; padding: 0 40px; width: 100%;">
+    <div id="subcat-cards-container"
+        style="display: none; max-width: 1400px; margin: 10px auto 25px auto; padding: 0 40px; width: 100%;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <span style="font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #111;">EXPLORE STYLES</span>
-            <span style="font-size: 11px; font-weight: 600; color: #555; cursor: pointer; text-decoration: underline;" onclick="loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'))">View all</span>
+            <span
+                style="font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #111;">EXPLORE
+                STYLES</span>
+            <span style="font-size: 11px; font-weight: 600; color: #555; cursor: pointer; text-decoration: underline;"
+                onclick="loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'))">View
+                all</span>
         </div>
 
-        <div id="subcat-scroll-track" style="display: flex; gap: 16px; overflow-x: auto; padding-bottom: 14px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: thin;">
+        <div id="subcat-scroll-track"
+            style="display: flex; gap: 16px; overflow-x: auto; padding-bottom: 14px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: thin;">
             <!-- Rendered dynamically by JS -->
         </div>
     </div>
@@ -337,82 +342,128 @@
         <!-- SIDEBAR -->
         <aside class="sidebar" style="min-width: 240px; max-width: 260px; font-family: 'Jost', sans-serif;">
             <div style="font-size: 22px; font-weight: 500; color: #111; margin-bottom: 20px;">Filters</div>
-            
+
             <!-- COLLECTION CATEGORIES -->
-            <div class="filter-title" style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">COLLECTION</div>
-            <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS', this)" style="cursor: pointer; margin-bottom: 10px; font-size: 13px;">View All</div>
+            <div class="filter-title"
+                style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                COLLECTION</div>
+            <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS', this)"
+                style="cursor: pointer; margin-bottom: 10px; font-size: 13px;">View All</div>
             <div id="dynamic-categories" style="margin-bottom: 24px;">
                 <!-- Categories loaded via JS -->
                 <div style="font-size: 11px; color: #999;">Loading categories...</div>
             </div>
 
             <!-- 1. PRICE FILTER ACCORDION -->
-            <div class="filter-accordion-block" style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
-                <div class="accordion-header" onclick="toggleAccordion(this)" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 14px;">
+            <div class="filter-accordion-block"
+                style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
+                <div class="accordion-header" onclick="toggleAccordion(this)"
+                    style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 14px;">
                     <span style="font-size: 14px; font-weight: 600; color: #111;">Price</span>
                     <span class="accordion-arrow" style="font-size: 12px; color: #555;">▲</span>
                 </div>
                 <div class="accordion-content" style="display: block;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 6px; padding: 6px 10px; background: #fff; flex: 1;">
+                        <div
+                            style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 6px; padding: 6px 10px; background: #fff; flex: 1;">
                             <span style="color: #777; font-size: 13px; margin-right: 4px;">₹</span>
-                            <input type="number" id="min-price-input" placeholder="0" min="0" oninput="applySortingAndFiltering()" style="border: none; outline: none; width: 100%; font-size: 13px; color: #111;">
+                            <input type="number" id="min-price-input" placeholder="0" min="0"
+                                oninput="applySortingAndFiltering()"
+                                style="border: none; outline: none; width: 100%; font-size: 13px; color: #111;">
                         </div>
                         <span style="font-size: 13px; color: #666;">to</span>
-                        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 6px; padding: 6px 10px; background: #fff; flex: 1;">
+                        <div
+                            style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 6px; padding: 6px 10px; background: #fff; flex: 1;">
                             <span style="color: #777; font-size: 13px; margin-right: 4px;">₹</span>
-                            <input type="number" id="max-price-input" placeholder="1,850.00" min="0" oninput="applySortingAndFiltering()" style="border: none; outline: none; width: 100%; font-size: 13px; color: #111;">
+                            <input type="number" id="max-price-input" placeholder="1,850.00" min="0"
+                                oninput="applySortingAndFiltering()"
+                                style="border: none; outline: none; width: 100%; font-size: 13px; color: #111;">
                         </div>
                     </div>
-                    <div id="highest-price-text" style="font-size: 12px; color: #666; font-style: normal; margin-bottom: 6px;">The highest price is Rs. 1,850.00</div>
+                    <div id="highest-price-text"
+                        style="font-size: 12px; color: #666; font-style: normal; margin-bottom: 6px;">The highest price
+                        is Rs. 1,850.00</div>
                 </div>
             </div>
 
             <!-- 2. SIZE FILTER ACCORDION -->
-            <div class="filter-accordion-block" style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
-                <div class="accordion-header" onclick="toggleAccordion(this)" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 14px;">
+            <div class="filter-accordion-block"
+                style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
+                <div class="accordion-header" onclick="toggleAccordion(this)"
+                    style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 14px;">
                     <span style="font-size: 14px; font-weight: 600; color: #111;">Size</span>
                     <span class="accordion-arrow" style="font-size: 12px; color: #555;">▲</span>
                 </div>
                 <div class="accordion-content" style="display: block;">
                     <div class="size-checkboxes-list" style="display: flex; flex-direction: column; gap: 8px;">
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                            <input type="checkbox" class="size-filter-cb" value="XS" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> XS
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="XS"
+                                onchange="applySortingAndFiltering()"
+                                style="width: 16px; height: 16px; accent-color: #000;"> XS
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                            <input type="checkbox" class="size-filter-cb" value="S" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> S
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="S"
+                                onchange="applySortingAndFiltering()"
+                                style="width: 16px; height: 16px; accent-color: #000;"> S
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                            <input type="checkbox" class="size-filter-cb" value="M" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> M
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="M"
+                                onchange="applySortingAndFiltering()"
+                                style="width: 16px; height: 16px; accent-color: #000;"> M
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                            <input type="checkbox" class="size-filter-cb" value="L" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> L
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="L"
+                                onchange="applySortingAndFiltering()"
+                                style="width: 16px; height: 16px; accent-color: #000;"> L
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                            <input type="checkbox" class="size-filter-cb" value="XL" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> XL
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="XL"
+                                onchange="applySortingAndFiltering()"
+                                style="width: 16px; height: 16px; accent-color: #000;"> XL
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                            <input type="checkbox" class="size-filter-cb" value="XXL" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> XXL
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                            <input type="checkbox" class="size-filter-cb" value="XXL"
+                                onchange="applySortingAndFiltering()"
+                                style="width: 16px; height: 16px; accent-color: #000;"> XXL
                         </label>
 
                         <!-- Extra sizes initially collapsed -->
                         <div class="size-item-extra" style="display: none; flex-direction: column; gap: 8px;">
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                                <input type="checkbox" class="size-filter-cb" value="28" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> 28
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                                <input type="checkbox" class="size-filter-cb" value="28"
+                                    onchange="applySortingAndFiltering()"
+                                    style="width: 16px; height: 16px; accent-color: #000;"> 28
                             </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                                <input type="checkbox" class="size-filter-cb" value="30" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> 30
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                                <input type="checkbox" class="size-filter-cb" value="30"
+                                    onchange="applySortingAndFiltering()"
+                                    style="width: 16px; height: 16px; accent-color: #000;"> 30
                             </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                                <input type="checkbox" class="size-filter-cb" value="32" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> 32
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                                <input type="checkbox" class="size-filter-cb" value="32"
+                                    onchange="applySortingAndFiltering()"
+                                    style="width: 16px; height: 16px; accent-color: #000;"> 32
                             </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
-                                <input type="checkbox" class="size-filter-cb" value="34" onchange="applySortingAndFiltering()" style="width: 16px; height: 16px; accent-color: #000;"> 34
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
+                                <input type="checkbox" class="size-filter-cb" value="34"
+                                    onchange="applySortingAndFiltering()"
+                                    style="width: 16px; height: 16px; accent-color: #000;"> 34
                             </label>
                         </div>
                     </div>
                     <div style="margin-top: 10px;">
-                        <button type="button" onclick="toggleMoreSizes(this)" style="background: none; border: none; font-size: 13px; color: #333; font-weight: 500; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 4px;">
+                        <button type="button" onclick="toggleMoreSizes(this)"
+                            style="background: none; border: none; font-size: 13px; color: #333; font-weight: 500; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 4px;">
                             + Show more
                         </button>
                     </div>
@@ -436,15 +487,22 @@
 
         <!-- MAIN PRODUCT GRID -->
         <main class="product-area">
-            <div class="grid-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; margin-bottom: 24px; border-bottom: 1px solid #f0f0f0;">
-                <span id="current-category-title" style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #111;">ALL PRODUCTS</span>
-                
-                <div class="grid-header-actions" style="display: flex; align-items: center; gap: 20px;">
-                    <span id="product-count" style="color: #666; font-size: 13px; font-weight: 400; text-transform: lowercase;">0 items</span>
+            <div class="grid-header"
+                style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; margin-bottom: 24px; border-bottom: 1px solid #f0f0f0;">
+                <span id="current-category-title"
+                    style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #111;">ALL
+                    PRODUCTS</span>
 
-                    <div class="sort-dropdown-container" style="display: flex; align-items: center; gap: 4px; position: relative;">
+                <div class="grid-header-actions" style="display: flex; align-items: center; gap: 20px;">
+                    <span id="product-count"
+                        style="color: #666; font-size: 13px; font-weight: 400; text-transform: lowercase;">0
+                        items</span>
+
+                    <div class="sort-dropdown-container"
+                        style="display: flex; align-items: center; gap: 4px; position: relative;">
                         <span style="font-size: 13px; color: #333; font-weight: 400; text-transform: none;">Sort</span>
-                        <select id="sort-select" onchange="applySortingAndFiltering()" style="border: none; background: transparent; font-size: 13px; font-weight: 500; cursor: pointer; outline: none; padding-right: 2px; color: #111; font-family: inherit;">
+                        <select id="sort-select" onchange="applySortingAndFiltering()"
+                            style="border: none; background: transparent; font-size: 13px; font-weight: 500; cursor: pointer; outline: none; padding-right: 2px; color: #111; font-family: inherit;">
                             <option value="featured">Featured</option>
                             <option value="price-low">Price: Low to High</option>
                             <option value="price-high">Price: High to Low</option>
@@ -457,29 +515,31 @@
                     <!-- VIEW MODE TOGGLE ICONS -->
                     <div class="view-mode-icons" style="display: flex; align-items: center; gap: 4px;">
                         <!-- 4 Dots / 2-Column Grid Icon -->
-                        <button id="btn-grid-2" class="grid-view-btn" onclick="setProductGridColumns(2)" title="2 Columns View"
+                        <button id="btn-grid-2" class="grid-view-btn" onclick="setProductGridColumns(2)"
+                            title="2 Columns View"
                             style="background: #f0f0f0; border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
                             <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" style="color: #111;">
-                                <rect x="2" y="2" width="5" height="5" rx="1"/>
-                                <rect x="9" y="2" width="5" height="5" rx="1"/>
-                                <rect x="2" y="9" width="5" height="5" rx="1"/>
-                                <rect x="9" y="9" width="5" height="5" rx="1"/>
+                                <rect x="2" y="2" width="5" height="5" rx="1" />
+                                <rect x="9" y="2" width="5" height="5" rx="1" />
+                                <rect x="2" y="9" width="5" height="5" rx="1" />
+                                <rect x="9" y="9" width="5" height="5" rx="1" />
                             </svg>
                         </button>
 
                         <!-- 9 Dots / Multi Column Grid Icon -->
-                        <button id="btn-grid-3" class="grid-view-btn" onclick="setProductGridColumns(3)" title="Grid View"
+                        <button id="btn-grid-3" class="grid-view-btn" onclick="setProductGridColumns(3)"
+                            title="Grid View"
                             style="background: transparent; border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
                             <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" style="color: #888;">
-                                <rect x="1" y="1" width="3.5" height="3.5" rx="0.5"/>
-                                <rect x="6.25" y="1" width="3.5" height="3.5" rx="0.5"/>
-                                <rect x="11.5" y="1" width="3.5" height="3.5" rx="0.5"/>
-                                <rect x="1" y="6.25" width="3.5" height="3.5" rx="0.5"/>
-                                <rect x="6.25" y="6.25" width="3.5" height="3.5" rx="0.5"/>
-                                <rect x="11.5" y="6.25" width="3.5" height="3.5" rx="0.5"/>
-                                <rect x="1" y="11.5" width="3.5" height="3.5" rx="0.5"/>
-                                <rect x="6.25" y="11.5" width="3.5" height="3.5" rx="0.5"/>
-                                <rect x="11.5" y="11.5" width="3.5" height="3.5" rx="0.5"/>
+                                <rect x="1" y="1" width="3.5" height="3.5" rx="0.5" />
+                                <rect x="6.25" y="1" width="3.5" height="3.5" rx="0.5" />
+                                <rect x="11.5" y="1" width="3.5" height="3.5" rx="0.5" />
+                                <rect x="1" y="6.25" width="3.5" height="3.5" rx="0.5" />
+                                <rect x="6.25" y="6.25" width="3.5" height="3.5" rx="0.5" />
+                                <rect x="11.5" y="6.25" width="3.5" height="3.5" rx="0.5" />
+                                <rect x="1" y="11.5" width="3.5" height="3.5" rx="0.5" />
+                                <rect x="6.25" y="11.5" width="3.5" height="3.5" rx="0.5" />
+                                <rect x="11.5" y="11.5" width="3.5" height="3.5" rx="0.5" />
                             </svg>
                         </button>
                     </div>
@@ -590,9 +650,12 @@
                     <button class="btn-mini" id="promoApply" data-i18n="cart_apply">Apply</button>
                 </div>
                 <p class="promo-msg" id="promoMsg"></p>
-                <div class="summary-line"><span data-i18n="cart_subtotal">Subtotal</span><span id="cartSubtotal">₹0</span></div>
-                <div class="summary-line"><span data-i18n="cart_discount">Discount</span><span id="cartDiscount">− ₹0</span></div>
-                <div class="summary-line total"><span data-i18n="cart_total">Total</span><span id="cartTotal">₹0</span></div>
+                <div class="summary-line"><span data-i18n="cart_subtotal">Subtotal</span><span
+                        id="cartSubtotal">₹0</span></div>
+                <div class="summary-line"><span data-i18n="cart_discount">Discount</span><span id="cartDiscount">−
+                        ₹0</span></div>
+                <div class="summary-line total"><span data-i18n="cart_total">Total</span><span id="cartTotal">₹0</span>
+                </div>
                 <button class="btn btn-primary full magnetic"><span data-i18n="cart_checkout">Checkout</span></button>
             </div>
         </div>
@@ -601,7 +664,8 @@
     <!-- SEARCH OVERLAY -->
     <div class="overlay" id="searchOverlay">
         <div class="search-panel">
-            <input type="text" id="searchInput" data-i18n-placeholder="search_placeholder" placeholder="Search for products..." autocomplete="off">
+            <input type="text" id="searchInput" data-i18n-placeholder="search_placeholder"
+                placeholder="Search for products..." autocomplete="off">
             <button class="overlay-close" id="searchClose">✕</button>
             <div class="search-results" id="searchResults"></div>
         </div>
@@ -625,7 +689,8 @@
             <div class="card auth-split-card">
                 <div class="auth-hero-banner">
                     <div class="auth-brand-head">
-                        <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store" class="auth-brand-logo">
+                        <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store"
+                            class="auth-brand-logo">
                     </div>
                     <div class="auth-hero-content">
                         <h2 class="auth-hero-headline">WELCOME BACK</h2>
@@ -633,20 +698,34 @@
                     </div>
                     <ul class="auth-feature-list">
                         <li>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 11l2 2 4-4"></path></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <path d="M9 11l2 2 4-4"></path>
+                            </svg>
                             <span>Secure &amp; Fast Checkout</span>
                         </li>
                         <li>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
                             <span>Free Shipping Over ₹4000</span>
                         </li>
                         <li>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.96"></path></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="1 4 1 10 7 10"></polyline>
+                                <path d="M3.51 15a9 9 0 1 0 .49-3.96"></path>
+                            </svg>
                             <span>Easy 7-Day Returns</span>
                         </li>
                     </ul>
                 </div>
-                                <div class="auth-form-side">
+                <div class="auth-form-side">
                     <button type="button" class="card-close-btn" aria-label="Close">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                             stroke-linecap="round" stroke-linejoin="round">
@@ -654,7 +733,7 @@
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
-                    
+
                     <!-- LOGIN PANEL -->
                     <section class="panel active" id="panel-login">
                         <h1 class="headline" data-i18n="acc_welcome" style="margin-bottom: 24px;">SIGN IN</h1>
@@ -674,9 +753,11 @@
                                 <span data-i18n="acc_google">Continue with Google</span>
                             </button>
 
-                            <p class="auth-legal-note" style="margin-top: 12px; text-align: center; font-size: 11px; color: #777;">
-                                By signing in, you agree to our <a href="terms.html" style="text-decoration: underline;">Terms of Service</a> and <a
-                                    href="privacy.html" style="text-decoration: underline;">Privacy Policy</a>
+                            <p class="auth-legal-note"
+                                style="margin-top: 12px; text-align: center; font-size: 11px; color: #777;">
+                                By signing in, you agree to our <a href="terms.html"
+                                    style="text-decoration: underline;">Terms of Service</a> and <a href="privacy.html"
+                                    style="text-decoration: underline;">Privacy Policy</a>
                             </p>
                         </div>
                     </section>
@@ -684,40 +765,73 @@
                     <!-- SIGN UP PANEL -->
                     <section class="panel" id="panel-signup">
                         <h1 class="headline" style="margin-bottom: 4px;">CREATE ACCOUNT</h1>
-                        <p class="subline" style="margin-bottom: 20px; text-align: center;">Already have an account? <span class="link-highlight" id="go-login">Sign in</span></p>
+                        <p class="subline" style="margin-bottom: 20px; text-align: center;">Already have an account?
+                            <span class="link-highlight" id="go-login">Sign in</span></p>
 
                         <form id="signup-form">
                             <div class="field">
                                 <label for="su-name">Full Name</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
                                     <input type="text" id="su-name" placeholder="John Doe" required>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-email">Email Address</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <path
+                                            d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                        </path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
                                     <input type="email" id="su-email" placeholder="example@gmail.com" required>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-password">Password</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                    <input type="password" id="su-password" class="has-toggle" placeholder="At least 6 characters" required>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="su-password" class="has-toggle"
+                                        placeholder="At least 6 characters" required>
                                     <button type="button" class="toggle-eye" data-target="su-password">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-confirm">Confirm Password</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                    <input type="password" id="su-confirm" class="has-toggle" placeholder="Re-enter password" required>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="su-confirm" class="has-toggle"
+                                        placeholder="Re-enter password" required>
                                     <button type="button" class="toggle-eye" data-target="su-confirm">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
@@ -727,10 +841,10 @@
                         </form>
                     </section>
                 </div>
-                    </section>
-                </div>
+                </section>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- EXECUTION LOGIC SCRIPTS -->
@@ -751,43 +865,6 @@
             } catch (e) { }
         }
 
-        function findCategoryByQuery(queryStr) {
-            if (!queryStr || !allCategoriesData || allCategoriesData.length === 0) return null;
-            const q = queryStr.trim().toLowerCase();
-
-            // 1. Exact match by slug or name
-            let found = allCategoriesData.find(c => (c.slug && c.slug.toLowerCase() === q) || (c.name && c.name.toLowerCase() === q));
-            if (found) return found;
-
-            // 2. Alias match (e.g., "jens" / "jeans" -> "denim" / "jeans")
-            if (q === 'jens' || q === 'jean' || q === 'jeans' || q === 'denims') {
-                found = allCategoriesData.find(c => {
-                    const n = (c.name || '').toLowerCase();
-                    return n.includes('jean') || n.includes('denim');
-                });
-                if (found) return found;
-            }
-
-            // 3. Partial overlap match
-            found = allCategoriesData.find(c => {
-                const n = (c.name || '').toLowerCase();
-                return n.includes(q) || q.includes(n);
-            });
-            if (found) return found;
-
-            // 4. Word-by-word match (e.g., "Mandarin collar shirt" -> "Mandarin collar shirt" or "Mandarin")
-            const words = q.split(/\s+/).filter(w => w.length > 2);
-            if (words.length > 0) {
-                found = allCategoriesData.find(c => {
-                    const n = (c.name || '').toLowerCase();
-                    return words.some(w => n.includes(w));
-                });
-                if (found) return found;
-            }
-
-            return null;
-        }
-
         async function initShop() {
             await fetchShopHomepageConfig();
             await fetchCategories();
@@ -796,17 +873,15 @@
             const filterParam = urlParams.get('filter');
 
             if (filterParam) {
-                const targetCat = findCategoryByQuery(filterParam);
+                const targetCat = allCategoriesData.find(c => (c.slug && c.slug.toLowerCase() === filterParam.toLowerCase()) || (c.name && c.name.toLowerCase() === filterParam.toLowerCase()) || (filterParam.toLowerCase() === 'men' && (c.name.toLowerCase() === 'men' || c.name.toLowerCase() === "men's")));
                 if (targetCat) {
-                    const elements = Array.from(document.querySelectorAll('.cat-parent, .cat-child'));
+                    const elements = Array.from(document.querySelectorAll('.cat-parent'));
                     const targetEl = elements.find(el => el.textContent.trim().toLowerCase() === targetCat.name.toLowerCase());
                     loadShopProducts(targetCat.id, targetCat.name, targetEl);
                 } else if (filterParam.toLowerCase() === 'men') {
                     loadShopProducts(null, 'MEN', document.querySelector('.btn-view-all'));
-                } else if (filterParam.toLowerCase() === 'women') {
-                    loadShopProducts(null, 'WOMEN', document.querySelector('.btn-view-all'));
                 } else {
-                    loadShopProducts(null, filterParam, document.querySelector('.btn-view-all'));
+                    loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'));
                 }
             } else {
                 loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'));
@@ -968,7 +1043,7 @@
             let overrides = {};
             try {
                 overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}');
-            } catch (e) {}
+            } catch (e) { }
 
             const prodOverride = overrides[product.id] ?? overrides[product.slug];
             const pStock = (prodOverride !== undefined) ? Number(prodOverride) : (Number(product.stock_quantity) || 0);
@@ -989,7 +1064,7 @@
             return { inStock: pStock > 0, total: Math.max(0, pStock) };
         }
 
-        window.toggleAccordion = function(headerEl) {
+        window.toggleAccordion = function (headerEl) {
             const block = headerEl.closest('.filter-accordion-block');
             if (!block) return;
             const content = block.querySelector('.accordion-content');
@@ -1000,7 +1075,7 @@
             if (arrow) arrow.textContent = isHidden ? '▲' : '▼';
         };
 
-        window.toggleMoreSizes = function(btn) {
+        window.toggleMoreSizes = function (btn) {
             const extraDiv = btn.closest('.accordion-content')?.querySelector('.size-item-extra');
             if (!extraDiv) return;
             const isHidden = extraDiv.style.display === 'none';
@@ -1008,7 +1083,7 @@
             btn.textContent = isHidden ? '– Show less' : '+ Show more';
         };
 
-        window.setProductGridColumns = function(cols) {
+        window.setProductGridColumns = function (cols) {
             const grid = document.getElementById('shop-product-grid');
             const btn2 = document.getElementById('btn-grid-2');
             const btn3 = document.getElementById('btn-grid-3');
@@ -1038,7 +1113,7 @@
             }
         };
 
-        window.applySortingAndFiltering = function() {
+        window.applySortingAndFiltering = function () {
             filterCurrentProducts();
         };
 
@@ -1086,24 +1161,6 @@
                     const desc = (product.description || '').toLowerCase();
                     const hasTypeMatch = checkedTypes.some(t => name.includes(t) || desc.includes(t));
                     if (!hasTypeMatch) return false;
-                }
-
-                // Sub-category keyword filter (for custom sub-category card queries)
-                const currentTitle = document.getElementById('current-category-title')?.innerText?.toLowerCase() || '';
-                if (currentTitle && currentTitle !== 'ALL PRODUCTS' && currentTitle !== 'MEN' && currentTitle !== 'WOMEN') {
-                    const name = (product.name || '').toLowerCase();
-                    const desc = (product.description || '').toLowerCase();
-                    if (currentTitle.includes('jens') || currentTitle.includes('jeans') || currentTitle.includes('denim')) {
-                        if (!name.includes('jean') && !name.includes('denim') && !desc.includes('jean') && !desc.includes('denim')) return false;
-                    } else if (currentTitle.includes('mandarin')) {
-                        if (!name.includes('mandarin') && !desc.includes('mandarin')) return false;
-                    } else {
-                        const words = currentTitle.split(/\s+/).filter(w => w.length > 2);
-                        if (words.length > 0) {
-                            const matchesWord = words.some(w => name.includes(w) || desc.includes(w));
-                            if (!matchesWord) return false;
-                        }
-                    }
                 }
 
                 return true;
@@ -1274,14 +1331,25 @@
         function filterBySubCategoryName(subCatName) {
             if (!subCatName) return;
 
-            const targetCat = findCategoryByQuery(subCatName);
+            // Search in loaded categories
+            const targetCat = allCategoriesData.find(c => (c.name || '').toLowerCase() === subCatName.toLowerCase() || (c.slug || '').toLowerCase() === subCatName.toLowerCase() || (c.name || '').toLowerCase().includes(subCatName.toLowerCase()));
+
             if (targetCat) {
                 const elements = Array.from(document.querySelectorAll('.cat-parent, .cat-child'));
                 const targetEl = elements.find(el => el.textContent.trim().toLowerCase() === targetCat.name.toLowerCase());
                 loadShopProducts(targetCat.id, targetCat.name, targetEl);
             } else {
-                // If category ID not found in database, load products directly and filter by sub-category query
-                loadShopProducts(null, subCatName, null);
+                // Filter current loaded products by subcategory keyword
+                document.getElementById('current-category-title').innerText = subCatName.toUpperCase();
+                const matched = currentProductsLoaded.filter(p =>
+                    (p.name || '').toLowerCase().includes(subCatName.toLowerCase()) ||
+                    (p.description || '').toLowerCase().includes(subCatName.toLowerCase())
+                );
+                if (matched.length > 0) {
+                    renderFilteredProducts(matched);
+                } else {
+                    loadShopProducts(null, subCatName, document.querySelector('.btn-view-all'));
+                }
             }
         }
         window.filterBySubCategoryName = filterBySubCategoryName;
