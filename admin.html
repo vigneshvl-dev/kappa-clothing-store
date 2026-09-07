@@ -387,6 +387,40 @@
                                 </div>
                             </div>
                         </div>
+                    <!-- SHOP CATEGORY BANNER IMAGES (MEN & WOMEN) -->
+                    <section class="card">
+                        <h2 class="card-title">Shop Category Banner Images (MEN & WOMEN)</h2>
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Upload full-width top hero banner images displayed on the Men and Women collection shop pages.</p>
+
+                        <div class="form-group row" style="display:grid; grid-template-columns:1fr 1fr; gap:30px;">
+                            <!-- MEN SHOP BANNER -->
+                            <div class="card" style="padding:15px; background:#fafafa; border:1px solid #eee;">
+                                <h3 style="font-size:14px; font-weight:700; margin-top:0; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:6px;">MEN Shop Banner Image</h3>
+                                
+                                <div style="margin-bottom:12px;">
+                                    <label style="font-size:11px; font-weight:700; color:#555;">Image File / URL</label>
+                                    <input type="text" id="category-banner-men-url" class="admin-input" placeholder="Banner image path/URL" style="margin-bottom:6px; font-size:12px;">
+                                    <input type="file" id="category-banner-men-file" class="admin-input" accept="image/*" style="font-size:11px; padding:4px;" onchange="previewCategoryBanner(this, 'men')">
+                                </div>
+                                <div style="height:120px; border:1px dashed #ccc; border-radius:6px; overflow:hidden; background:#eee; display:flex; justify-content:center; align-items:center;">
+                                    <img id="category-banner-men-preview" src="assets/mens_denim_banner.png" style="max-height:100%; max-width:100%; object-fit:contain;" alt="Men Banner Preview">
+                                </div>
+                            </div>
+
+                            <!-- WOMEN SHOP BANNER -->
+                            <div class="card" style="padding:15px; background:#fafafa; border:1px solid #eee;">
+                                <h3 style="font-size:14px; font-weight:700; margin-top:0; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:6px;">WOMEN Shop Banner Image</h3>
+                                
+                                <div style="margin-bottom:12px;">
+                                    <label style="font-size:11px; font-weight:700; color:#555;">Image File / URL</label>
+                                    <input type="text" id="category-banner-women-url" class="admin-input" placeholder="Banner image path/URL" style="margin-bottom:6px; font-size:12px;">
+                                    <input type="file" id="category-banner-women-file" class="admin-input" accept="image/*" style="font-size:11px; padding:4px;" onchange="previewCategoryBanner(this, 'women')">
+                                </div>
+                                <div style="height:120px; border:1px dashed #ccc; border-radius:6px; overflow:hidden; background:#eee; display:flex; justify-content:center; align-items:center;">
+                                    <img id="category-banner-women-preview" src="assets/WOMENFASHION.png" style="max-height:100%; max-width:100%; object-fit:contain;" alt="Women Banner Preview">
+                                </div>
+                            </div>
+                        </div>
                     </section>
 
                     <button type="submit" class="submit-btn"

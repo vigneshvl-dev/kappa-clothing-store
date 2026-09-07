@@ -48,8 +48,8 @@
             display: flex;
             align-items: flex-start;
             max-width: 1400px;
-            margin: 40px auto;
-            padding: 300px 40px;
+            margin: 0 auto 40px auto;
+            padding: 20px 40px 40px 40px;
             gap: 50px;
             min-height: 80vh;
         }
@@ -316,7 +316,12 @@
         </div>
     </div>
 
-    <div class="shop-layout">
+    <!-- TOP HERO BANNER (FULL WIDTH AT TOP) -->
+    <div id="top-hero-banner" style="display: none; width: 100%; margin-top: 130px; margin-bottom: 20px; padding: 0;">
+        <img src="assets/mens_denim_banner.png" alt="MENS DENIM" style="width: 100%; height: auto; display: block;">
+    </div>
+
+    <div class="shop-layout" style="padding-top: 150px;">
         <!-- SIDEBAR -->
         <aside class="sidebar" style="min-width: 240px; max-width: 260px; font-family: 'Jost', sans-serif;">
             <div style="font-size: 22px; font-weight: 500; color: #111; margin-bottom: 20px;">Filters</div>
@@ -725,19 +730,30 @@
 
         let allCategoriesData = [];
         let currentProductsLoaded = [];
+        let shopHomepageConfig = null;
+
+        async function fetchShopHomepageConfig() {
+            try {
+                const res = await fetch('https://ugphxapfbzcrauchwlef.supabase.co/storage/v1/object/public/product-images/homepage_settings.json?t=' + Date.now());
+                if (res.ok) shopHomepageConfig = await res.json();
+            } catch (e) { }
+        }
 
         async function initShop() {
+            await fetchShopHomepageConfig();
             await fetchCategories();
 
             const urlParams = new URLSearchParams(window.location.search);
             const filterParam = urlParams.get('filter');
 
             if (filterParam) {
-                const targetCat = allCategoriesData.find(c => c.slug.toLowerCase() === filterParam.toLowerCase() || c.name.toLowerCase() === filterParam.toLowerCase());
+                const targetCat = allCategoriesData.find(c => (c.slug && c.slug.toLowerCase() === filterParam.toLowerCase()) || (c.name && c.name.toLowerCase() === filterParam.toLowerCase()) || (filterParam.toLowerCase() === 'men' && (c.name.toLowerCase() === 'men' || c.name.toLowerCase() === "men's")));
                 if (targetCat) {
                     const elements = Array.from(document.querySelectorAll('.cat-parent'));
                     const targetEl = elements.find(el => el.textContent.trim().toLowerCase() === targetCat.name.toLowerCase());
                     loadShopProducts(targetCat.id, targetCat.name, targetEl);
+                } else if (filterParam.toLowerCase() === 'men') {
+                    loadShopProducts(null, 'MEN', document.querySelector('.btn-view-all'));
                 } else {
                     loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'));
                 }
@@ -801,6 +817,45 @@
 
             document.getElementById('current-category-title').innerText = categoryName.toUpperCase();
             document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading...</div>';
+
+            // Dynamic Category Banner Display (Single Top Full-Width Banner)
+            const bannerTopDiv = document.getElementById('top-hero-banner');
+            const bannerImg = bannerTopDiv ? bannerTopDiv.querySelector('img') : null;
+            const shopLayout = document.querySelector('.shop-layout');
+            const catNameUpper = (categoryName || '').toUpperCase();
+
+            let isMenCategory = catNameUpper.includes('MEN') || catNameUpper.includes('BOY');
+            let isWomenCategory = catNameUpper.includes('WOMEN') || catNameUpper.includes('GIRL');
+
+            if (!isMenCategory && !isWomenCategory && categoryId && allCategoriesData.length > 0) {
+                const catObj = allCategoriesData.find(c => c.id === categoryId);
+                if (catObj && catObj.parent_id) {
+                    const parentCat = allCategoriesData.find(c => c.id === catObj.parent_id);
+                    if (parentCat) {
+                        const pName = (parentCat.name || '').toUpperCase();
+                        if (pName.includes('MEN') || pName.includes('BOY')) isMenCategory = true;
+                        if (pName.includes('WOMEN') || pName.includes('GIRL')) isWomenCategory = true;
+                    }
+                }
+            }
+
+            if (bannerTopDiv) {
+                const menBanner = shopHomepageConfig?.categoryBanners?.men || 'assets/mens_denim_banner.png';
+                const womenBanner = shopHomepageConfig?.categoryBanners?.women || 'assets/WOMENFASHION.png';
+
+                if (isMenCategory && menBanner) {
+                    if (bannerImg) bannerImg.src = menBanner;
+                    bannerTopDiv.style.display = 'block';
+                    if (shopLayout) shopLayout.style.paddingTop = '20px';
+                } else if (isWomenCategory && womenBanner) {
+                    if (bannerImg) bannerImg.src = womenBanner;
+                    bannerTopDiv.style.display = 'block';
+                    if (shopLayout) shopLayout.style.paddingTop = '20px';
+                } else {
+                    bannerTopDiv.style.display = 'none';
+                    if (shopLayout) shopLayout.style.paddingTop = '150px';
+                }
+            }
 
             // Build the list of category IDs to fetch:
             // If a root category (like Men/Women), include root ID + ALL its children

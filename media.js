@@ -151,6 +151,21 @@ function renderHomepageForm() {
             womenVideoPreview.style.display = 'none';
         }
     }
+
+    // 5. Render Shop Category Banners (MEN & WOMEN)
+    const categoryBanners = currentHomepageConfig.categoryBanners || {};
+    const menBannerUrl = typeof categoryBanners.men === 'string' ? categoryBanners.men : (categoryBanners.men?.url || 'assets/mens_denim_banner.png');
+    const womenBannerUrl = typeof categoryBanners.women === 'string' ? categoryBanners.women : (categoryBanners.women?.url || 'assets/WOMENFASHION.png');
+
+    const menBannerInput = document.getElementById('category-banner-men-url');
+    const menBannerPreview = document.getElementById('category-banner-men-preview');
+    if (menBannerInput) menBannerInput.value = menBannerUrl;
+    if (menBannerPreview) menBannerPreview.src = menBannerUrl || 'assets/mens_denim_banner.png';
+
+    const womenBannerInput = document.getElementById('category-banner-women-url');
+    const womenBannerPreview = document.getElementById('category-banner-women-preview');
+    if (womenBannerInput) womenBannerInput.value = womenBannerUrl;
+    if (womenBannerPreview) womenBannerPreview.src = womenBannerUrl || 'assets/WOMENFASHION.png';
 }
 
 function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', index) {
@@ -406,9 +421,26 @@ function previewEditorialVideo(input, gender) {
     }
 }
 
+function previewCategoryBanner(input, gender) {
+    const file = input.files[0];
+    const preview = document.getElementById(`category-banner-${gender}-preview`);
+    if (file && preview) {
+        const objectUrl = URL.createObjectURL(file);
+        if (typeof openCropper === 'function') {
+            openCropper(objectUrl, 16 / 5, (croppedBlob, croppedUrl) => {
+                preview.src = croppedUrl;
+                input.croppedBlob = croppedBlob;
+            });
+        } else {
+            preview.src = objectUrl;
+        }
+    }
+}
+
 window.addEditorialImageRow = addEditorialImageRow;
 window.previewEditorialImage = previewEditorialImage;
 window.previewEditorialVideo = previewEditorialVideo;
+window.previewCategoryBanner = previewCategoryBanner;
 
 async function uploadHomepageFile(file, pathPrefix) {
     const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
@@ -539,10 +571,39 @@ async function saveHomepageSettings() {
             editorialWomenVideo = await uploadHomepageFile(womenVideoFile, 'editorial_women_video');
         }
 
+        // 5. Gather Shop Category Banners for MEN & WOMEN
+        let menBannerUrl = document.getElementById('category-banner-men-url')?.value.trim() || '';
+        const menBannerFileInput = document.getElementById('category-banner-men-file');
+        const menBannerFile = menBannerFileInput ? menBannerFileInput.files[0] : null;
+        const menBannerCropped = menBannerFileInput ? menBannerFileInput.croppedBlob : null;
+
+        if (menBannerCropped) {
+            const fileToUpload = new File([menBannerCropped], menBannerFile ? menBannerFile.name : "men_banner.jpg", { type: "image/jpeg" });
+            menBannerUrl = await uploadHomepageFile(fileToUpload, 'banner_men');
+        } else if (menBannerFile) {
+            menBannerUrl = await uploadHomepageFile(menBannerFile, 'banner_men');
+        }
+
+        let womenBannerUrl = document.getElementById('category-banner-women-url')?.value.trim() || '';
+        const womenBannerFileInput = document.getElementById('category-banner-women-file');
+        const womenBannerFile = womenBannerFileInput ? womenBannerFileInput.files[0] : null;
+        const womenBannerCropped = womenBannerFileInput ? womenBannerFileInput.croppedBlob : null;
+
+        if (womenBannerCropped) {
+            const fileToUpload = new File([womenBannerCropped], womenBannerFile ? womenBannerFile.name : "women_banner.jpg", { type: "image/jpeg" });
+            womenBannerUrl = await uploadHomepageFile(fileToUpload, 'banner_women');
+        } else if (womenBannerFile) {
+            womenBannerUrl = await uploadHomepageFile(womenBannerFile, 'banner_women');
+        }
+
         const newConfig = {
             heroSlides,
             reels,
             storePromoVideo,
+            categoryBanners: {
+                men: menBannerUrl || 'assets/mens_denim_banner.png',
+                women: womenBannerUrl || 'assets/WOMENFASHION.png'
+            },
             editorial: {
                 men: {
                     images: menImages,
