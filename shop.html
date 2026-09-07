@@ -865,6 +865,43 @@
             } catch (e) { }
         }
 
+        function findCategoryByQuery(queryStr) {
+            if (!queryStr || !allCategoriesData || allCategoriesData.length === 0) return null;
+            const q = queryStr.trim().toLowerCase();
+
+            // 1. Exact match by slug or name
+            let found = allCategoriesData.find(c => (c.slug && c.slug.toLowerCase() === q) || (c.name && c.name.toLowerCase() === q));
+            if (found) return found;
+
+            // 2. Alias match (e.g., "jens" / "jeans" -> "denim" / "jeans")
+            if (q === 'jens' || q === 'jean' || q === 'jeans' || q === 'denims') {
+                found = allCategoriesData.find(c => {
+                    const n = (c.name || '').toLowerCase();
+                    return n.includes('jean') || n.includes('denim');
+                });
+                if (found) return found;
+            }
+
+            // 3. Partial overlap match
+            found = allCategoriesData.find(c => {
+                const n = (c.name || '').toLowerCase();
+                return n.includes(q) || q.includes(n);
+            });
+            if (found) return found;
+
+            // 4. Word-by-word match (e.g., "Mandarin collar shirt" -> "Mandarin collar shirt" or "Mandarin")
+            const words = q.split(/\s+/).filter(w => w.length > 2);
+            if (words.length > 0) {
+                found = allCategoriesData.find(c => {
+                    const n = (c.name || '').toLowerCase();
+                    return words.some(w => n.includes(w));
+                });
+                if (found) return found;
+            }
+
+            return null;
+        }
+
         async function initShop() {
             await fetchShopHomepageConfig();
             await fetchCategories();
@@ -873,15 +910,17 @@
             const filterParam = urlParams.get('filter');
 
             if (filterParam) {
-                const targetCat = allCategoriesData.find(c => (c.slug && c.slug.toLowerCase() === filterParam.toLowerCase()) || (c.name && c.name.toLowerCase() === filterParam.toLowerCase()) || (filterParam.toLowerCase() === 'men' && (c.name.toLowerCase() === 'men' || c.name.toLowerCase() === "men's")));
+                const targetCat = findCategoryByQuery(filterParam);
                 if (targetCat) {
-                    const elements = Array.from(document.querySelectorAll('.cat-parent'));
+                    const elements = Array.from(document.querySelectorAll('.cat-parent, .cat-child'));
                     const targetEl = elements.find(el => el.textContent.trim().toLowerCase() === targetCat.name.toLowerCase());
                     loadShopProducts(targetCat.id, targetCat.name, targetEl);
                 } else if (filterParam.toLowerCase() === 'men') {
                     loadShopProducts(null, 'MEN', document.querySelector('.btn-view-all'));
+                } else if (filterParam.toLowerCase() === 'women') {
+                    loadShopProducts(null, 'WOMEN', document.querySelector('.btn-view-all'));
                 } else {
-                    loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'));
+                    loadShopProducts(null, filterParam, document.querySelector('.btn-view-all'));
                 }
             } else {
                 loadShopProducts(null, 'ALL PRODUCTS', document.querySelector('.btn-view-all'));
@@ -1163,6 +1202,24 @@
                     if (!hasTypeMatch) return false;
                 }
 
+                // Sub-category keyword filter (for custom sub-category card queries)
+                const currentTitle = document.getElementById('current-category-title')?.innerText?.toLowerCase() || '';
+                if (currentTitle && currentTitle !== 'ALL PRODUCTS' && currentTitle !== 'MEN' && currentTitle !== 'WOMEN') {
+                    const name = (product.name || '').toLowerCase();
+                    const desc = (product.description || '').toLowerCase();
+                    if (currentTitle.includes('jens') || currentTitle.includes('jeans') || currentTitle.includes('denim')) {
+                        if (!name.includes('jean') && !name.includes('denim') && !desc.includes('jean') && !desc.includes('denim')) return false;
+                    } else if (currentTitle.includes('mandarin')) {
+                        if (!name.includes('mandarin') && !desc.includes('mandarin')) return false;
+                    } else {
+                        const words = currentTitle.split(/\s+/).filter(w => w.length > 2);
+                        if (words.length > 0) {
+                            const matchesWord = words.some(w => name.includes(w) || desc.includes(w));
+                            if (!matchesWord) return false;
+                        }
+                    }
+                }
+
                 return true;
             });
 
@@ -1331,25 +1388,14 @@
         function filterBySubCategoryName(subCatName) {
             if (!subCatName) return;
 
-            // Search in loaded categories
-            const targetCat = allCategoriesData.find(c => (c.name || '').toLowerCase() === subCatName.toLowerCase() || (c.slug || '').toLowerCase() === subCatName.toLowerCase() || (c.name || '').toLowerCase().includes(subCatName.toLowerCase()));
-
+            const targetCat = findCategoryByQuery(subCatName);
             if (targetCat) {
                 const elements = Array.from(document.querySelectorAll('.cat-parent, .cat-child'));
                 const targetEl = elements.find(el => el.textContent.trim().toLowerCase() === targetCat.name.toLowerCase());
                 loadShopProducts(targetCat.id, targetCat.name, targetEl);
             } else {
-                // Filter current loaded products by subcategory keyword
-                document.getElementById('current-category-title').innerText = subCatName.toUpperCase();
-                const matched = currentProductsLoaded.filter(p =>
-                    (p.name || '').toLowerCase().includes(subCatName.toLowerCase()) ||
-                    (p.description || '').toLowerCase().includes(subCatName.toLowerCase())
-                );
-                if (matched.length > 0) {
-                    renderFilteredProducts(matched);
-                } else {
-                    loadShopProducts(null, subCatName, document.querySelector('.btn-view-all'));
-                }
+                // If category ID not found in database, load products directly and filter by sub-category query
+                loadShopProducts(null, subCatName, null);
             }
         }
         window.filterBySubCategoryName = filterBySubCategoryName;
