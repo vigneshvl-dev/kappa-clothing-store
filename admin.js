@@ -2939,6 +2939,33 @@ window.onExploreMainCategoryChange = function () {
     }
 };
 
+window.onExploreSubCategoryChange = function () {
+    const subCatSelect = document.getElementById('explore-form-category-id');
+    const mainCatSelect = document.getElementById('explore-form-main-category-id');
+    const tagInput = document.getElementById('explore-form-tag');
+
+    if (!subCatSelect) return;
+    const selectedSubId = subCatSelect.value;
+    if (!selectedSubId || allCategoriesDataAdmin.length === 0) return;
+
+    const subObj = allCategoriesDataAdmin.find(c => c.id === selectedSubId);
+    if (subObj) {
+        if (subObj.parent_id && mainCatSelect) {
+            mainCatSelect.value = subObj.parent_id;
+            const parentObj = allCategoriesDataAdmin.find(c => c.id === subObj.parent_id);
+            if (parentObj && tagInput && (!tagInput.value || tagInput.value === 'Explore >')) {
+                tagInput.value = `${parentObj.name} >`;
+            }
+        } else if (!subObj.parent_id && mainCatSelect) {
+            mainCatSelect.value = subObj.id;
+            if (tagInput && (!tagInput.value || tagInput.value === 'Explore >')) {
+                tagInput.value = `${subObj.name} >`;
+            }
+        }
+        updateExplorePreview();
+    }
+};
+
 function renderExploreCardsAdminTable(cards) {
     const tbody = document.getElementById('explore-cards-admin-tbody');
     if (!tbody) return;
@@ -3142,9 +3169,10 @@ window.saveExploreCardForm = async function (e) {
         const is_active = document.getElementById('explore-form-status').value === 'true';
 
         const selection_type = document.querySelector('input[name="selection_type"]:checked')?.value || 'category';
-        const category_id = document.getElementById('explore-form-category-id').value || null;
-        const collection_id = document.getElementById('explore-form-collection-id').value || 'new_arrivals';
-        const destination_url = document.getElementById('explore-form-destination-url').value.trim() || '';
+        const category_id = document.getElementById('explore-form-category-id')?.value || null;
+        const main_category_id = document.getElementById('explore-form-main-category-id')?.value || null;
+        const collection_id = document.getElementById('explore-form-collection-id')?.value || 'new_arrivals';
+        const destination_url = document.getElementById('explore-form-destination-url')?.value.trim() || '';
 
         let image_url = document.getElementById('explore-form-image-url').value.trim();
         const imageFileInput = document.getElementById('explore-form-image-file');
@@ -3171,6 +3199,7 @@ window.saveExploreCardForm = async function (e) {
             is_active,
             selection_type,
             category_id,
+            main_category_id,
             collection_id,
             product_ids: tempSelectedProductIds,
             destination_url,
