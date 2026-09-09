@@ -2849,18 +2849,54 @@ async function loadExploreCardsAdmin() {
     renderExploreCardsAdminTable(currentAdminExploreCards);
 }
 
+let allCategoriesDataAdmin = [];
+
 async function populateExploreCategoriesDropdown() {
     const select = document.getElementById('explore-form-category-id');
+    const mainCatSelect = document.getElementById('explore-form-main-category-id');
     if (!select) return;
 
     try {
         const { data, error } = await supabaseClient.from('categories').select('*').order('name', { ascending: true });
         if (error || !data) return;
 
-        let html = '<option value="">Select Category</option>';
-        data.forEach(c => {
-            html += `<option value="${c.id}">${c.name}</option>`;
+        allCategoriesDataAdmin = data;
+
+        const roots = data.filter(c => !c.parent_id);
+        const children = data.filter(c => c.parent_id);
+
+        // Populate Main Parent Category Dropdown
+        if (mainCatSelect) {
+            let mainHtml = '<option value="">All Main Categories</option>';
+            roots.forEach(r => {
+                mainHtml += `<option value="${r.id}">${r.name}</option>`;
+            });
+            mainCatSelect.innerHTML = mainHtml;
+        }
+
+        // Populate Sub-Category Dropdown grouped by Main Parent Category
+        let html = '<option value="">Select Sub-Category</option>';
+        roots.forEach(root => {
+            html += `<option value="${root.id}" style="font-weight:bold; background:#f0f0f0;">📁 ALL ${root.name.toUpperCase()}</option>`;
+            const myChildren = children.filter(c => c.parent_id === root.id);
+            if (myChildren.length > 0) {
+                html += `<optgroup label="${root.name}">`;
+                myChildren.forEach(child => {
+                    html += `<option value="${child.id}" data-parent="${root.id}">${root.name} ↳ ${child.name}</option>`;
+                });
+                html += `</optgroup>`;
+            }
         });
+
+        const orphanChildren = children.filter(c => !roots.some(r => r.id === c.parent_id));
+        if (orphanChildren.length > 0) {
+            html += `<optgroup label="Other Categories">`;
+            orphanChildren.forEach(c => {
+                html += `<option value="${c.id}">${c.name}</option>`;
+            });
+            html += `</optgroup>`;
+        }
+
         select.innerHTML = html;
 
         const pickerCatSelect = document.getElementById('picker-category-filter');
@@ -2869,6 +2905,39 @@ async function populateExploreCategoriesDropdown() {
         }
     } catch(e) {}
 }
+
+window.onExploreMainCategoryChange = function () {
+    const mainCatSelect = document.getElementById('explore-form-main-category-id');
+    const subCatSelect = document.getElementById('explore-form-category-id');
+    const tagInput = document.getElementById('explore-form-tag');
+
+    if (!mainCatSelect || !subCatSelect) return;
+    const selectedMainId = mainCatSelect.value;
+
+    if (selectedMainId && allCategoriesDataAdmin.length > 0) {
+        const mainObj = allCategoriesDataAdmin.find(c => c.id === selectedMainId);
+        if (mainObj) {
+            if (tagInput) tagInput.value = `${mainObj.name} >`;
+            updateExplorePreview();
+        }
+
+        // Filter subcategory dropdown to options under this main category
+        for (let option of subCatSelect.options) {
+            const parentId = option.getAttribute('data-parent');
+            if (!option.value) {
+                option.style.display = 'block';
+            } else if (option.value === selectedMainId || parentId === selectedMainId) {
+                option.style.display = 'block';
+            } else {
+                option.style.display = 'none';
+            }
+        }
+    } else {
+        for (let option of subCatSelect.options) {
+            option.style.display = 'block';
+        }
+    }
+};
 
 function renderExploreCardsAdminTable(cards) {
     const tbody = document.getElementById('explore-cards-admin-tbody');
@@ -2885,7 +2954,23 @@ function renderExploreCardsAdminTable(cards) {
         const isPublished = card.is_active !== false;
 
         let targetDetail = 'General';
-        if (card.selection_type === 'category') targetDetail = card.category_id ? `Category ID: ${card.category_id.slice(0, 8)}...` : (card.destination_url || 'Category');
+        if (card.selection_type === 'category') {
+            if (card.category_id && allCategoriesDataAdmin.length > 0) {
+                const catObj = allCategoriesDataAdmin.find(c => c.id === card.category_id);
+                if (catObj) {
+                    if (catObj.parent_id) {
+                        const parentCat = allCategoriesDataAdmin.find(c => c.id === catObj.parent_id);
+                        targetDetail = parentCat ? `<strong>${parentCat.name}</strong> ↳ ${catObj.name}` : catObj.name;
+                    } else {
+                        targetDetail = `<strong>${catObj.name}</strong> (Main)`;
+                    }
+                } else {
+                    targetDetail = card.destination_url || 'Category';
+                }
+            } else {
+                targetDetail = card.destination_url || card.title || 'Category';
+            }
+        }
         else if (card.selection_type === 'collection') targetDetail = `Collection: ${card.collection_id || 'new_arrivals'}`;
         else if (card.selection_type === 'specific_products') targetDetail = `${(card.product_ids || []).length} Selected Products`;
         else if (card.selection_type === 'sale') targetDetail = 'Sale Items';
@@ -2960,7 +3045,24 @@ window.openExploreModal = function (cardId) {
             const radio = document.querySelector(`input[name="selection_type"][value="${card.selection_type || 'category'}"]`);
             if (radio) radio.checked = true;
 
-            if (card.category_id) document.getElementById('explore-form-category-id').value = card.category_id;
+            if (card.category_id) {
+                document.getElementById('explore-form-category-id').value = card.category_id;
+                if (allCategoriesDataAdmin.length > 0) {
+                    const catObj = allCategoriesDataAdmin.find(c => c.id === card.category_id);
+                    if (catObj && catObj.parent_id) {
+                        const mainEl = document.getElementById('explore-form-main-category-id');
+                        if (mainEl) mainEl.value = catObj.parent_id;
+                    } else if (catObj && !catObj.parent_id) {
+                        const mainEl = document.getElementById('explore-form-main-category-id');
+                        if (mainEl) mainEl.value = catObj.id;
+                    }
+                }
+            }
+            if (card.main_category_id) {
+                const mainEl = document.getElementById('explore-form-main-category-id');
+                if (mainEl) mainEl.value = card.main_category_id;
+            }
+
             if (card.collection_id) document.getElementById('explore-form-collection-id').value = card.collection_id;
             if (card.destination_url) document.getElementById('explore-form-destination-url').value = card.destination_url;
             
