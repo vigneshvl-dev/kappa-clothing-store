@@ -448,7 +448,7 @@ async function saveHomepageSettings() {
             const desktopCropped = desktopFileInput.croppedBlob;
 
             if (desktopCropped) {
-                const fileToUpload = new File([desktopCropped], desktopFile ? desktopFile.name : "desktop_slide.jpg", { type: "image/jpeg" });
+                const fileToUpload = new File([desktopCropped], desktopFile ? desktopFile.name : "desktop_slide.png", { type: desktopCropped.type || "image/png" });
                 desktop = await uploadHomepageFile(fileToUpload, 'hero_desktop');
             } else if (desktopFile) {
                 desktop = await uploadHomepageFile(desktopFile, 'hero_desktop');
@@ -460,7 +460,7 @@ async function saveHomepageSettings() {
             const mobileCropped = mobileFileInput.croppedBlob;
 
             if (mobileCropped) {
-                const fileToUpload = new File([mobileCropped], mobileFile ? mobileFile.name : "mobile_slide.jpg", { type: "image/jpeg" });
+                const fileToUpload = new File([mobileCropped], mobileFile ? mobileFile.name : "mobile_slide.png", { type: mobileCropped.type || "image/png" });
                 mobile = await uploadHomepageFile(fileToUpload, 'hero_mobile');
             } else if (mobileFile) {
                 mobile = await uploadHomepageFile(mobileFile, 'hero_mobile');
@@ -513,7 +513,7 @@ async function saveHomepageSettings() {
             const imgCropped = imgFileInput.croppedBlob;
 
             if (imgCropped) {
-                const fileToUpload = new File([imgCropped], imgFile ? imgFile.name : "men_editorial.jpg", { type: "image/jpeg" });
+                const fileToUpload = new File([imgCropped], imgFile ? imgFile.name : "men_editorial.png", { type: imgCropped.type || "image/png" });
                 imgUrl = await uploadHomepageFile(fileToUpload, 'editorial_men');
             } else if (imgFile) {
                 imgUrl = await uploadHomepageFile(imgFile, 'editorial_men');
@@ -537,7 +537,7 @@ async function saveHomepageSettings() {
             const imgCropped = imgFileInput.croppedBlob;
 
             if (imgCropped) {
-                const fileToUpload = new File([imgCropped], imgFile ? imgFile.name : "women_editorial.jpg", { type: "image/jpeg" });
+                const fileToUpload = new File([imgCropped], imgFile ? imgFile.name : "women_editorial.png", { type: imgCropped.type || "image/png" });
                 imgUrl = await uploadHomepageFile(fileToUpload, 'editorial_women');
             } else if (imgFile) {
                 imgUrl = await uploadHomepageFile(imgFile, 'editorial_women');
@@ -558,7 +558,7 @@ async function saveHomepageSettings() {
         const menBannerCropped = menBannerFileInput ? menBannerFileInput.croppedBlob : null;
 
         if (menBannerCropped) {
-            const fileToUpload = new File([menBannerCropped], menBannerFile ? menBannerFile.name : "men_banner.jpg", { type: "image/jpeg" });
+            const fileToUpload = new File([menBannerCropped], menBannerFile ? menBannerFile.name : "men_banner.png", { type: menBannerCropped.type || "image/png" });
             menBannerUrl = await uploadHomepageFile(fileToUpload, 'banner_men');
         } else if (menBannerFile) {
             menBannerUrl = await uploadHomepageFile(menBannerFile, 'banner_men');
@@ -570,7 +570,7 @@ async function saveHomepageSettings() {
         const womenBannerCropped = womenBannerFileInput ? womenBannerFileInput.croppedBlob : null;
 
         if (womenBannerCropped) {
-            const fileToUpload = new File([womenBannerCropped], womenBannerFile ? womenBannerFile.name : "women_banner.jpg", { type: "image/jpeg" });
+            const fileToUpload = new File([womenBannerCropped], womenBannerFile ? womenBannerFile.name : "women_banner.png", { type: womenBannerCropped.type || "image/png" });
             womenBannerUrl = await uploadHomepageFile(fileToUpload, 'banner_women');
         } else if (womenBannerFile) {
             womenBannerUrl = await uploadHomepageFile(womenBannerFile, 'banner_women');
