@@ -1322,8 +1322,8 @@ body.home-page .navbar.scrolled {
 .hero-slide {
     position: absolute;
     inset: 0;
-    background-size: contain !important;
-    background-position: center center !important;
+    background-size: cover !important;
+    background-position: center top !important;
     background-repeat: no-repeat !important;
     opacity: 0;
     z-index: 1;
