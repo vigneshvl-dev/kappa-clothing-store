@@ -1349,8 +1349,8 @@ body.home-page .navbar.scrolled {
     }
 
     .hero-slide {
-        background-position: center center !important;
-        background-size: contain !important;
+        background-position: center top !important;
+        background-size: cover !important;
     }
 }
 
@@ -1684,9 +1684,9 @@ body.home-page .navbar.scrolled {
 
     /* Show FULL background image */
     .hero-slide {
-        background-size: contain !important;
+        background-size: cover !important;
         background-repeat: no-repeat !important;
-        background-position: center center !important;
+        background-position: center top !important;
         background-color: var(--yellow);
     }
 
