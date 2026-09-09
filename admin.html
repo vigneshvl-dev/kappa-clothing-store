@@ -814,12 +814,12 @@
         function saveCroppedImage() {
             if (!activeCropper) return;
 
-            // Get high resolution cropped canvas (preserves native cropped image crispness up to 3840px)
+            // Get high resolution cropped canvas (preserves native cropped image crispness up to 4096px)
             const canvas = activeCropper.getCroppedCanvas({
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high',
-                maxWidth: 3840,
-                maxHeight: 3840
+                maxWidth: 4096,
+                maxHeight: 4096
             });
 
             if (!canvas) {
@@ -827,14 +827,14 @@
                 return;
             }
 
-            // Output ultra-high visual fidelity JPEG at 0.98 quality (near-lossless crispness)
+            // Output 100% lossless PNG for pixel-perfect quality and crispness
             canvas.toBlob((blob) => {
                 if (blob && activeCropCallback) {
                     const croppedFileUrl = URL.createObjectURL(blob);
                     activeCropCallback(blob, croppedFileUrl);
                 }
                 closeCropperModal();
-            }, 'image/jpeg', 0.98);
+            }, 'image/png', 1.0);
         }
     </script>
 

@@ -3143,21 +3143,9 @@ window.updateExplorePreview = function () {
 window.previewExploreImageFile = function (input) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
-        const objectUrl = URL.createObjectURL(file);
-        if (typeof openCropper === 'function') {
-            openCropper(objectUrl, 3 / 4, (croppedBlob, croppedUrl) => {
-                document.getElementById('explore-form-image-url').value = croppedUrl;
-                input.croppedBlob = croppedBlob;
-                updateExplorePreview();
-            });
-        } else {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                document.getElementById('explore-form-image-url').value = e.target.result;
-                updateExplorePreview();
-            };
-            reader.readAsDataURL(file);
-        }
+        document.getElementById('explore-form-image-url').value = URL.createObjectURL(file);
+        input.croppedBlob = null; // Use original pristine uncompressed file
+        updateExplorePreview();
     }
 };
 

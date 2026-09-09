@@ -221,17 +221,8 @@ function previewSlideFile(input, type) {
     if (file) {
         const row = input.closest('.hero-slide-row');
         const img = row.querySelector(`.${type}-preview-img`);
-        const objectUrl = URL.createObjectURL(file);
-        const aspect = type === 'desktop' ? (16 / 9) : (9 / 16);
-
-        if (typeof openCropper === 'function') {
-            openCropper(objectUrl, aspect, (croppedBlob, croppedUrl) => {
-                img.src = croppedUrl;
-                input.croppedBlob = croppedBlob;
-            });
-        } else {
-            img.src = objectUrl;
-        }
+        img.src = URL.createObjectURL(file);
+        input.croppedBlob = null; // Use original pristine uncompressed file by default
     }
 }
 window.previewSlideFile = previewSlideFile;
@@ -382,16 +373,8 @@ function previewEditorialImage(input) {
     if (file) {
         const row = input.closest('.editorial-image-row');
         const img = row.querySelector('.editorial-preview-img');
-        const objectUrl = URL.createObjectURL(file);
-
-        if (typeof openCropper === 'function') {
-            openCropper(objectUrl, 4/5, (croppedBlob, croppedUrl) => {
-                img.src = croppedUrl;
-                input.croppedBlob = croppedBlob;
-            });
-        } else {
-            img.src = objectUrl;
-        }
+        img.src = URL.createObjectURL(file);
+        input.croppedBlob = null; // Use original pristine uncompressed file by default
     }
 }
 
@@ -427,15 +410,8 @@ function previewCategoryBanner(input, gender) {
     const file = input.files[0];
     const preview = document.getElementById(`category-banner-${gender}-preview`);
     if (file && preview) {
-        const objectUrl = URL.createObjectURL(file);
-        if (typeof openCropper === 'function') {
-            openCropper(objectUrl, 16 / 5, (croppedBlob, croppedUrl) => {
-                preview.src = croppedUrl;
-                input.croppedBlob = croppedBlob;
-            });
-        } else {
-            preview.src = objectUrl;
-        }
+        preview.src = URL.createObjectURL(file);
+        input.croppedBlob = null; // Use original pristine uncompressed file by default
     }
 }
 
