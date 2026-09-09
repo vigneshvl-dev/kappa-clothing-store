@@ -564,10 +564,13 @@ testDatabaseConnection();
     function productCard(p, small) {
         const discountPct = p.old ? Math.round((1 - p.price / p.old) * 100) : null;
         const isOut = p.stock_quantity === 0 || p.isOutOfStock || p.stock === 0;
+        let tagMap = {};
+        try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
+        const badgeLabel = p.tag || tagMap[String(p.id)] || 'NEW';
         return `
   <div class="product-card ${small ? 'trend-card' : ''} ${isOut ? 'is-out-of-stock' : ''}" data-id="${p.id}">
     <div class="pc-media" style="position:relative;">
-      ${isOut ? `<span class="pc-tag out-of-stock-badge" style="background:#d32f2f !important; color:#ffffff !important; font-weight:800 !important; box-shadow: 0 2px 8px rgba(211, 47, 47, 0.4);">OUT OF STOCK</span>` : ((p.tag) ? `<span class="pc-tag ${p.tag === 'SALE' ? 'sale' : ''}">${p.tag}</span>` : '')}
+      ${isOut ? `<span class="pc-tag out-of-stock-badge" style="background:#d32f2f !important; color:#ffffff !important; font-weight:800 !important; box-shadow: 0 2px 8px rgba(211, 47, 47, 0.4);">OUT OF STOCK</span>` : `<span class="pc-tag ${badgeLabel === 'SALE' ? 'sale' : ''}">${badgeLabel}</span>`}
       <img src="${p.img}" alt="${p.name}" loading="lazy">
       ${isOut ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
       ${!small && !isOut ? `
