@@ -3123,12 +3123,18 @@ window.toggleExploreSelectionFields = function () {
     else if (type === 'custom_url') document.getElementById('field-explore-custom-url').style.display = 'block';
 };
 
-window.updateExplorePreview = function () {
+window.updateExplorePreview = function (overrideUrl) {
     const title = document.getElementById('explore-form-title')?.value || 'TRENDING SHIRTS';
     const subtitle = document.getElementById('explore-form-subtitle')?.value || 'shirts';
     const tag = document.getElementById('explore-form-tag')?.value || 'Explore >';
     const btnText = document.getElementById('explore-form-btn-text')?.value || 'SHOP NOW';
-    const imgUrl = document.getElementById('explore-form-image-url')?.value || 'assets/mens_denim_banner.png';
+
+    const fileInput = document.getElementById('explore-form-image-file');
+    const previewFileUrl = fileInput && fileInput._previewObjectUrl ? fileInput._previewObjectUrl : null;
+    let inputUrl = document.getElementById('explore-form-image-url')?.value.trim();
+    if (inputUrl && inputUrl.startsWith('blob:')) inputUrl = '';
+
+    let imgUrl = overrideUrl || previewFileUrl || inputUrl || 'assets/mens_denim_banner.png';
     const displayMode = document.querySelector('input[name="explore_display_mode"]:checked')?.value || 'cover';
 
     const prevTitle = document.getElementById('explore-prev-title');
@@ -3142,7 +3148,7 @@ window.updateExplorePreview = function () {
     if (prevTag) prevTag.textContent = tag;
     if (prevBtn) prevBtn.textContent = btnText;
     if (prevImg) {
-        prevImg.src = imgUrl || 'assets/mens_denim_banner.png';
+        prevImg.src = imgUrl;
         prevImg.style.objectFit = displayMode;
     }
 };
@@ -3150,9 +3156,9 @@ window.updateExplorePreview = function () {
 window.previewExploreImageFile = async function (input) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
-        document.getElementById('explore-form-image-url').value = URL.createObjectURL(file);
+        input._previewObjectUrl = URL.createObjectURL(file);
         input.croppedBlob = null; // Use original pristine uncompressed file
-        updateExplorePreview();
+        updateExplorePreview(input._previewObjectUrl);
 
         if (typeof getImageMetadata === 'function') {
             const meta = await getImageMetadata(file);
@@ -3190,6 +3196,8 @@ window.saveExploreCardForm = async function (e) {
         const display_mode = document.querySelector('input[name="explore_display_mode"]:checked')?.value || 'cover';
 
         let image_url = document.getElementById('explore-form-image-url').value.trim();
+        if (image_url.startsWith('blob:')) image_url = '';
+
         const imageFileInput = document.getElementById('explore-form-image-file');
         const rawFile = imageFileInput ? imageFileInput.files[0] : null;
         const croppedBlob = imageFileInput ? imageFileInput.croppedBlob : null;
@@ -3199,7 +3207,11 @@ window.saveExploreCardForm = async function (e) {
             try {
                 image_url = await uploadHomepageFile(imageFile, 'explore_card');
             } catch (err) {
-                console.warn('Could not upload image file to storage, using preview data URL');
+                console.error('Error uploading explore card image:', err);
+                alert('Could not upload image to Storage: ' + (err.message || err));
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                return;
             }
         }
 
