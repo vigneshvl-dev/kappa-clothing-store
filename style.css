@@ -9611,3 +9611,35 @@ form .btn-submit:active {
 .congrats-action-btn:active {
     transform: translateY(0);
 }
+
+/* ============ HIGH-RES IMAGE METADATA & UTILITIES ============ */
+.img-meta-container {
+    margin-top: 4px;
+}
+
+.img-meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #1e293b;
+    color: #f8fafc;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.fit-contain {
+    object-fit: contain !important;
+}
+
+.fit-cover {
+    object-fit: cover !important;
+}
+
+img.high-res-img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}

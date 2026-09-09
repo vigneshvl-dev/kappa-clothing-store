@@ -216,13 +216,56 @@ function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', 
     slideContainer.appendChild(div);
 }
 
-function previewSlideFile(input, type) {
+window.getImageMetadata = function (fileOrUrl) {
+    return new Promise((resolve) => {
+        if (!fileOrUrl) { resolve(null); return; }
+        if (fileOrUrl instanceof File || fileOrUrl instanceof Blob) {
+            const sizeKB = (fileOrUrl.size / 1024);
+            const sizeStr = sizeKB > 1024 ? (sizeKB / 1024).toFixed(2) + ' MB' : sizeKB.toFixed(1) + ' KB';
+            let ext = (fileOrUrl.name || '').split('.').pop().toUpperCase() || 'IMAGE';
+            if (!ext || ext === 'BLOB') ext = fileOrUrl.type ? fileOrUrl.type.split('/')[1]?.toUpperCase() : 'PNG';
+
+            const img = new Image();
+            const url = URL.createObjectURL(fileOrUrl);
+            img.onload = function () {
+                resolve({ width: img.naturalWidth, height: img.naturalHeight, size: sizeStr, format: ext, url });
+            };
+            img.onerror = function () {
+                resolve({ width: 0, height: 0, size: sizeStr, format: ext, url });
+            };
+            img.src = url;
+        } else if (typeof fileOrUrl === 'string') {
+            const ext = (fileOrUrl.split('?')[0].split('.').pop() || 'IMAGE').toUpperCase();
+            const img = new Image();
+            img.onload = function () {
+                resolve({ width: img.naturalWidth, height: img.naturalHeight, size: 'Original', format: ext, url: fileOrUrl });
+            };
+            img.onerror = function () { resolve(null); };
+            img.src = fileOrUrl;
+        } else {
+            resolve(null);
+        }
+    });
+};
+
+async function previewSlideFile(input, type) {
     const file = input.files[0];
     if (file) {
         const row = input.closest('.hero-slide-row');
         const img = row.querySelector(`.${type}-preview-img`);
         img.src = URL.createObjectURL(file);
         input.croppedBlob = null; // Use original pristine uncompressed file by default
+        
+        const meta = await getImageMetadata(file);
+        if (meta) {
+            let badge = row.querySelector(`.${type}-meta-badge`);
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = `${type}-meta-badge img-meta-container`;
+                img.parentElement.appendChild(badge);
+            }
+            badge.innerHTML = `<span class="img-meta-pill" style="display:inline-flex; align-items:center; gap:5px; background:#1e293b; color:#f8fafc; font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; margin-top:4px; border:1px solid #334155;">📷 ${meta.width}×${meta.height} px • ${meta.size} • <strong style="color:#fbbf24;">${meta.format}</strong></span>`;
+        }
     }
 }
 window.previewSlideFile = previewSlideFile;
@@ -406,12 +449,23 @@ function previewEditorialVideo(input, gender) {
     }
 }
 
-function previewCategoryBanner(input, gender) {
+async function previewCategoryBanner(input, gender) {
     const file = input.files[0];
     const preview = document.getElementById(`category-banner-${gender}-preview`);
     if (file && preview) {
         preview.src = URL.createObjectURL(file);
         input.croppedBlob = null; // Use original pristine uncompressed file by default
+
+        const meta = await getImageMetadata(file);
+        if (meta) {
+            let badge = document.getElementById(`category-banner-${gender}-meta-badge`);
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = `category-banner-${gender}-meta-badge`;
+                preview.parentElement.appendChild(badge);
+            }
+            badge.innerHTML = `<span class="img-meta-pill" style="display:inline-flex; align-items:center; gap:5px; background:#1e293b; color:#f8fafc; font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; margin-top:4px; border:1px solid #334155;">📷 ${meta.width}×${meta.height} px • ${meta.size} • <strong style="color:#fbbf24;">${meta.format}</strong></span>`;
+        }
     }
 }
 
@@ -425,10 +479,10 @@ window.previewCategoryBanner = previewCategoryBanner;
 async function uploadHomepageFile(file, pathPrefix) {
     const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
     const filePath = `homepage/${pathPrefix}_${Date.now()}_${cleanFileName}`;
-    const { error } = await supabaseClient.storage.from('product-images').upload(filePath, file);
+    const { error } = await supabaseClient.storage.from('product-images').upload(filePath, file, { cacheControl: '3600', upsert: true });
     if (error) throw error;
     const { data } = supabaseClient.storage.from('product-images').getPublicUrl(filePath);
-    return data.publicUrl;
+    return `${data.publicUrl}?v=${Date.now()}`;
 }
 
 async function saveHomepageSettings() {

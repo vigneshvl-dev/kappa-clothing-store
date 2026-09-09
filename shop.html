@@ -1207,9 +1207,11 @@
                 const subtitle = card.subtitle || '';
                 const btnText = card.button_text || 'SHOP NOW';
 
+                const fitStyle = card.display_mode === 'contain' ? 'style="object-fit:contain; background:#111;"' : '';
+
                 html += `
                     <div class="explore-card" onclick="handleExploreCardClick(${index})">
-                        <img src="${img}" class="explore-card-img" alt="${title}">
+                        <img src="${img}" class="explore-card-img" ${fitStyle} alt="${title}">
                         <div class="explore-card-overlay"></div>
                         <div class="explore-card-tag">${tag}</div>
                         <div class="explore-card-content">

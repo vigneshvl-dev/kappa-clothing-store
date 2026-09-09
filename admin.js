@@ -3093,6 +3093,9 @@ window.openExploreModal = function (cardId) {
             if (card.collection_id) document.getElementById('explore-form-collection-id').value = card.collection_id;
             if (card.destination_url) document.getElementById('explore-form-destination-url').value = card.destination_url;
             
+            const displayModeRadio = document.querySelector(`input[name="explore_display_mode"][value="${card.display_mode || 'cover'}"]`);
+            if (displayModeRadio) displayModeRadio.checked = true;
+
             tempSelectedProductIds = card.product_ids || [];
         }
     } else {
@@ -3126,6 +3129,7 @@ window.updateExplorePreview = function () {
     const tag = document.getElementById('explore-form-tag')?.value || 'Explore >';
     const btnText = document.getElementById('explore-form-btn-text')?.value || 'SHOP NOW';
     const imgUrl = document.getElementById('explore-form-image-url')?.value || 'assets/mens_denim_banner.png';
+    const displayMode = document.querySelector('input[name="explore_display_mode"]:checked')?.value || 'cover';
 
     const prevTitle = document.getElementById('explore-prev-title');
     const prevSub = document.getElementById('explore-prev-subtitle');
@@ -3137,15 +3141,27 @@ window.updateExplorePreview = function () {
     if (prevSub) prevSub.textContent = subtitle;
     if (prevTag) prevTag.textContent = tag;
     if (prevBtn) prevBtn.textContent = btnText;
-    if (prevImg) prevImg.src = imgUrl || 'assets/mens_denim_banner.png';
+    if (prevImg) {
+        prevImg.src = imgUrl || 'assets/mens_denim_banner.png';
+        prevImg.style.objectFit = displayMode;
+    }
 };
 
-window.previewExploreImageFile = function (input) {
+window.previewExploreImageFile = async function (input) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
         document.getElementById('explore-form-image-url').value = URL.createObjectURL(file);
         input.croppedBlob = null; // Use original pristine uncompressed file
         updateExplorePreview();
+
+        if (typeof getImageMetadata === 'function') {
+            const meta = await getImageMetadata(file);
+            const badge = document.getElementById('explore-img-meta-badge');
+            if (badge && meta) {
+                badge.innerHTML = `<span class="img-meta-pill" style="display:inline-flex; align-items:center; gap:5px; background:#1e293b; color:#f8fafc; font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; margin-top:4px; border:1px solid #334155;">📷 ${meta.width}×${meta.height} px • ${meta.size} • <strong style="color:#fbbf24;">${meta.format}</strong></span>`;
+                badge.style.display = 'block';
+            }
+        }
     }
 };
 
@@ -3171,12 +3187,13 @@ window.saveExploreCardForm = async function (e) {
         const main_category_id = document.getElementById('explore-form-main-category-id')?.value || null;
         const collection_id = document.getElementById('explore-form-collection-id')?.value || 'new_arrivals';
         const destination_url = document.getElementById('explore-form-destination-url')?.value.trim() || '';
+        const display_mode = document.querySelector('input[name="explore_display_mode"]:checked')?.value || 'cover';
 
         let image_url = document.getElementById('explore-form-image-url').value.trim();
         const imageFileInput = document.getElementById('explore-form-image-file');
         const rawFile = imageFileInput ? imageFileInput.files[0] : null;
         const croppedBlob = imageFileInput ? imageFileInput.croppedBlob : null;
-        const imageFile = croppedBlob ? new File([croppedBlob], rawFile ? rawFile.name : "explore_card.jpg", { type: "image/jpeg" }) : rawFile;
+        const imageFile = croppedBlob ? new File([croppedBlob], rawFile ? rawFile.name : "explore_card.png", { type: croppedBlob.type || "image/png" }) : rawFile;
 
         if (imageFile) {
             try {
@@ -3204,6 +3221,7 @@ window.saveExploreCardForm = async function (e) {
             product_ids: tempSelectedProductIds,
             destination_url,
             image_url,
+            display_mode,
             updated_at: new Date().toISOString()
         };
 

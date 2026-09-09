@@ -574,7 +574,16 @@
                                 <div style="margin-bottom:16px;">
                                     <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:#333;">Cover Image *</label>
                                     <input type="text" id="explore-form-image-url" class="admin-input" placeholder="Image URL or Path" style="margin-bottom:6px;" oninput="updateExplorePreview()">
-                                    <input type="file" id="explore-form-image-file" class="admin-input" accept="image/*" style="font-size:12px; padding:6px;" onchange="previewExploreImageFile(this)">
+                                    <input type="file" id="explore-form-image-file" class="admin-input" accept="image/png, image/jpeg, image/webp" style="font-size:12px; padding:6px;" onchange="previewExploreImageFile(this)">
+                                    <div id="explore-img-meta-badge" style="margin-top:6px; display:none;"></div>
+                                </div>
+
+                                <div style="margin-bottom:16px; background:#f9f9f9; padding:12px; border-radius:8px; border:1px solid #eee;">
+                                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:#333;">Image Display Mode</label>
+                                    <div style="display:flex; gap:16px;">
+                                        <label style="font-size:12px; cursor:pointer; font-weight:600;"><input type="radio" name="explore_display_mode" value="cover" checked onchange="updateExplorePreview()"> Cover (Fill Card)</label>
+                                        <label style="font-size:12px; cursor:pointer; font-weight:600;"><input type="radio" name="explore_display_mode" value="contain" onchange="updateExplorePreview()"> Contain (Full Image)</label>
+                                    </div>
                                 </div>
 
                                 <label style="display:block; font-size:12px; font-weight:700; margin-bottom:8px; color:#333;">Live Storefront Preview</label>
