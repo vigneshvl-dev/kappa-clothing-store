@@ -565,12 +565,23 @@ testDatabaseConnection();
     });
 
     /* ---------- RENDER: PRODUCT CARDS ---------- */
+    function resolveTag(p) {
+        if (!p) return 'NEW';
+        if (p.tag && p.tag !== 'NEW') return p.tag.toUpperCase();
+        if (p.description && p.description.includes('[TAG:')) {
+            const m = p.description.match(/\[TAG:([^\]]+)\]/i);
+            if (m && m[1]) return m[1].trim().toUpperCase();
+        }
+        let tagMap = {};
+        try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
+        if (p.id && tagMap[String(p.id)]) return tagMap[String(p.id)].toUpperCase();
+        return p.tag || 'NEW';
+    }
+
     function productCard(p, small) {
         const discountPct = p.old ? Math.round((1 - p.price / p.old) * 100) : null;
         const isOut = p.stock_quantity === 0 || p.isOutOfStock || p.stock === 0;
-        let tagMap = {};
-        try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
-        const badgeLabel = p.tag || tagMap[String(p.id)] || 'NEW';
+        const badgeLabel = resolveTag(p);
         return `
   <div class="product-card ${small ? 'trend-card' : ''} ${isOut ? 'is-out-of-stock' : ''}" data-id="${p.id}">
     <div class="pc-media" style="position:relative;">

@@ -1246,13 +1246,16 @@ function initProductForm() {
                 let startingImagePosition = 0;
 
                 const tagVal = (document.getElementById('prod-tag')?.value || 'NEW').trim().toUpperCase();
+                const rawDesc = document.getElementById('prod-desc').value.trim();
+                const cleanDesc = rawDesc.replace(/\s*\[TAG:[^\]]+\]/gi, '').trim();
+                const finalDesc = tagVal ? `${cleanDesc} [TAG:${tagVal}]` : cleanDesc;
 
                 if (editingId) {
                     targetProductId = editingId;
                     const updateObj = {
                         name: document.getElementById('prod-name').value.trim(),
                         slug: generateSlug(document.getElementById('prod-name').value.trim()),
-                        description: document.getElementById('prod-desc').value.trim(),
+                        description: finalDesc,
                         price: parseFloat(document.getElementById('prod-price').value),
                         compare_at_price: parseFloat(document.getElementById('prod-compare-price').value) || null,
                         category_id: document.getElementById('prod-category').value,
@@ -1298,7 +1301,7 @@ function initProductForm() {
                     const insertObj = {
                         name: document.getElementById('prod-name').value.trim(),
                         slug: generateSlug(document.getElementById('prod-name').value.trim()),
-                        description: document.getElementById('prod-desc').value.trim(),
+                        description: finalDesc,
                         price: parseFloat(document.getElementById('prod-price').value),
                         compare_at_price: parseFloat(document.getElementById('prod-compare-price').value) || null,
                         category_id: document.getElementById('prod-category').value,
@@ -1685,18 +1688,26 @@ window.editProduct = async function (id) {
     document.getElementById('view-products').classList.add('active-view');
     document.getElementById('dynamic-page-title').textContent = "Edit Product";
 
+    let rawDesc = data.description || '';
+    let extractedTag = data.tag;
+    if (rawDesc.includes('[TAG:')) {
+        const match = rawDesc.match(/\[TAG:([^\]]+)\]/i);
+        if (match && match[1]) extractedTag = match[1].trim().toUpperCase();
+        rawDesc = rawDesc.replace(/\s*\[TAG:[^\]]+\]/gi, '').trim();
+    }
+
     document.getElementById('editing-product-id').value = data.id;
     document.getElementById('prod-name').value = data.name;
     document.getElementById('prod-category').value = data.category_id;
     document.getElementById('prod-price').value = data.price;
     document.getElementById('prod-compare-price').value = data.compare_at_price || '';
-    document.getElementById('prod-desc').value = data.description || '';
+    document.getElementById('prod-desc').value = rawDesc;
 
     let tagMap = {};
     try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
     const prodTagEl = document.getElementById('prod-tag');
     if (prodTagEl) {
-        prodTagEl.value = data.tag || tagMap[String(data.id)] || 'NEW';
+        prodTagEl.value = extractedTag || tagMap[String(data.id)] || 'NEW';
     }
 
     const stockTableContainer = document.getElementById('stock-table-container');

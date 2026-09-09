@@ -1760,9 +1760,20 @@
                     thumbsHTML += `<span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">+${allImages.length - maxThumbs}</span>`;
                 }
 
-                let tagMap = {};
-                try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
-                const badgeText = tagMap[String(product.id)] || product.tag || 'NEW';
+                function resolveProductBadge(p) {
+                    if (!p) return 'NEW';
+                    if (p.tag && p.tag !== 'NEW') return p.tag.toUpperCase();
+                    if (p.description && p.description.includes('[TAG:')) {
+                        const m = p.description.match(/\[TAG:([^\]]+)\]/i);
+                        if (m && m[1]) return m[1].trim().toUpperCase();
+                    }
+                    let tagMap = {};
+                    try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
+                    if (p.id && tagMap[String(p.id)]) return tagMap[String(p.id)].toUpperCase();
+                    return p.tag || 'NEW';
+                }
+
+                const badgeText = resolveProductBadge(product);
 
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
@@ -1827,9 +1838,7 @@
                     .slice()
                     .sort((a, b) => (a.position || 0) - (b.position || 0))
                     .map(img => ({ url: img.url.split('#')[0], label: img.url.split('#')[1] || '' }));
-                let tagMap = {};
-                try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
-                const badgeText = tagMap[String(product.id)] || product.tag || 'NEW';
+                const badgeText = resolveProductBadge(product);
 
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
