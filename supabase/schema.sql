@@ -6,21 +6,15 @@ create table if not exists public.profiles (
     created_at timestamp with time zone default now()
 );
 alter table public.profiles enable row level security;
-
--- Policies for profiles
 drop policy if exists "Allow public read access to profiles" on public.profiles;
 create policy "Allow public read access to profiles" on public.profiles
     for select using (true);
-
 drop policy if exists "Allow users to update their own profile" on public.profiles;
 create policy "Allow users to update their own profile" on public.profiles
     for update using (auth.uid() = id);
-
 drop policy if exists "Allow insert on profiles" on public.profiles;
 create policy "Allow insert on profiles" on public.profiles
     for insert with check (true);
-
--- 2. CATEGORIES
 create table if not exists public.categories (
     id uuid default gen_random_uuid() primary key,
     name text not null,
@@ -28,11 +22,7 @@ create table if not exists public.categories (
     created_at timestamp with time zone default now(),
     parent_id uuid references public.categories(id) on delete set null
 );
-
--- Enable RLS on categories
 alter table public.categories enable row level security;
-
--- Policies for categories
 drop policy if exists "Allow public read access to categories" on public.categories;
 create policy "Allow public read access to categories" on public.categories
     for select using (true);

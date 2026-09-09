@@ -541,16 +541,7 @@
         <aside class="sidebar" style="min-width: 240px; max-width: 260px; font-family: 'Jost', sans-serif;">
             <div style="font-size: 22px; font-weight: 500; color: #111; margin-bottom: 20px;">Filters</div>
 
-            <!-- COLLECTION CATEGORIES -->
-            <div class="filter-title"
-                style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
-                COLLECTION</div>
-            <div class="btn-view-all active" onclick="loadShopProducts(null, 'ALL PRODUCTS', this)"
-                style="cursor: pointer; margin-bottom: 10px; font-size: 13px;">View All</div>
-            <div id="dynamic-categories" style="margin-bottom: 24px;">
-                <!-- Categories loaded via JS -->
-                <div style="font-size: 11px; color: #999;">Loading categories...</div>
-            </div>
+
 
             <!-- 1. PRICE FILTER ACCORDION -->
             <div class="filter-accordion-block"
@@ -1409,6 +1400,7 @@
             const roots = data.filter(c => !c.parent_id);
             const children = data.filter(c => c.parent_id);
             const container = document.getElementById('dynamic-categories');
+            if (!container) return;
             let html = '';
 
             roots.forEach(root => {
