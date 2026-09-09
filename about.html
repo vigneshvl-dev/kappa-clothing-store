@@ -101,7 +101,13 @@
                                     <line x1="3" y1="6" x2="21" y2="6"></line>
                                     <path d="M16 10a4 4 0 0 1-8 0"></path>
                                 </svg></span><span class="menu-label">My Orders</span></a></li>
-                    <li><a href="saved-address.html" id="popupSavedAddress"><span class="menu-icon-wrap" style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span><span class="menu-label">Saved Address</span></a></li>
+                    <li><a href="saved-address.html" id="popupSavedAddress"><span class="menu-icon-wrap"
+                                style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
+                                    fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg></span><span class="menu-label">Saved Address</span></a></li>
                     <li><a href="saved-address.html" id="popupSavedAddress"><span class="menu-icon-wrap"
                                 style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
                                     fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round"
@@ -211,8 +217,8 @@
 
                     <div style="margin-top: 40px; display: flex; justify-content: center; width: 100%;">
                         <a href="index.html" class="btn-back-home">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
-                                stroke-linejoin="round" width="14" height="14">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
                                 <line x1="19" y1="12" x2="5" y2="12"></line>
                                 <polyline points="12 19 5 12 12 5"></polyline>
                             </svg>
@@ -297,7 +303,6 @@
             <p>Designed by Hyna Studio</p>
         </div>
     </footer>
-
     <div class="overlay" id="searchOverlay">
         <div class="search-panel">
             <input type="text" id="searchInput" data-i18n-placeholder="search_placeholder"
@@ -306,7 +311,6 @@
             <div class="search-results" id="searchResults"></div>
         </div>
     </div>
-
     <div class="overlay overlay-right" id="cartOverlay">
         <div class="side-panel">
             <div class="side-head">
@@ -320,19 +324,16 @@
                     <button class="btn-mini" id="promoApply" data-i18n="cart_apply">Apply</button>
                 </div>
                 <p class="promo-msg" id="promoMsg"></p>
-
                 <div class="summary-line"><span data-i18n="cart_subtotal">Subtotal</span><span
                         id="cartSubtotal">₹0</span></div>
                 <div class="summary-line"><span data-i18n="cart_discount">Discount</span><span id="cartDiscount">−
                         ₹0</span></div>
-
                 <div class="summary-line total"><span data-i18n="cart_total">Total</span><span id="cartTotal">₹0</span>
                 </div>
                 <button class="btn btn-primary full magnetic"><span data-i18n="cart_checkout">Checkout</span></button>
             </div>
         </div>
     </div>
-
     <div class="overlay overlay-right" id="wishOverlay">
         <div class="side-panel">
             <div class="side-head">
@@ -342,7 +343,6 @@
             <div class="cart-items" id="wishItems"></div>
         </div>
     </div>
-
     <div class="overlay" id="searchOverlay">
         <div class="search-panel">
             <input type="text" id="searchInput" data-i18n-placeholder="search_placeholder"
@@ -351,7 +351,6 @@
             <div class="search-results" id="searchResults"></div>
         </div>
     </div>
-
     <div class="overlay overlay-right" id="cartOverlay">
         <div class="side-panel">
             <div class="side-head">
@@ -384,7 +383,6 @@
             </div>
         </div>
     </div>
-
     <div class="overlay overlay-right" id="wishOverlay">
         <div class="side-panel">
             <div class="side-head">
@@ -394,45 +392,54 @@
             <div class="cart-items" id="wishItems"></div>
         </div>
     </div>
-
     <div class="overlay" id="quickViewOverlay">
         <div class="qv-panel" id="qvPanel"></div>
     </div>
-
-            <!-- ACCOUNT OVERLAY -->
-        <div class="overlay" id="accountOverlay">
-            <button class="overlay-close" id="accountClose" aria-label="Close overlay" style="display: none;">✕</button>
-            <div class="stage">
-                <div class="card auth-split-card">
-                    <!-- LEFT HERO BANNER (YELLOW) -->
-                    <div class="auth-hero-banner">
-                        <div class="auth-brand-head">
-                            <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store" class="auth-brand-logo">
-                        </div>
-                        
-                        <div class="auth-hero-content">
-                            <h2 class="auth-hero-headline">CONGRATULATIONS</h2>
-                            <p class="auth-hero-sub">Premium Streetwear, Unmatched Style</p>
-                        </div>
-
-                        <ul class="auth-feature-list">
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 11l2 2 4-4"></path></svg>
-                                <span>Secure &amp; Fast Checkout</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-                                <span>Free Shipping Over ₹4000</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.96"></path></svg>
-                                <span>Easy 7-Day Returns</span>
-                            </li>
-                        </ul>
+    <div class="overlay" id="accountOverlay">
+        <button class="overlay-close" id="accountClose" aria-label="Close overlay" style="display: none;">✕</button>
+        <div class="stage">
+            <div class="card auth-split-card">
+                <div class="auth-hero-banner">
+                    <div class="auth-brand-head">
+                        <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store"
+                            class="auth-brand-logo">
                     </div>
 
-                    <!-- RIGHT FORM SIDE (WHITE) -->
-                                    <div class="auth-form-side">
+                    <div class="auth-hero-content">
+                        <h2 class="auth-hero-headline">CONGRATULATIONS</h2>
+                        <p class="auth-hero-sub">Premium Streetwear, Unmatched Style</p>
+                    </div>
+
+                    <ul class="auth-feature-list">
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <path d="M9 11l2 2 4-4"></path>
+                            </svg>
+                            <span>Secure &amp; Fast Checkout</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                            <span>Free Shipping Over ₹4000</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="1 4 1 10 7 10"></polyline>
+                                <path d="M3.51 15a9 9 0 1 0 .49-3.96"></path>
+                            </svg>
+                            <span>Easy 7-Day Returns</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="auth-form-side">
                     <button type="button" class="card-close-btn" aria-label="Close">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                             stroke-linecap="round" stroke-linejoin="round">
@@ -440,11 +447,8 @@
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
-                    
-                    <!-- LOGIN PANEL -->
                     <section class="panel active" id="panel-login">
                         <h1 class="headline" data-i18n="acc_welcome" style="margin-bottom: 24px;">SIGN IN</h1>
-
                         <div style="display: flex; flex-direction: column; gap: 16px;">
                             <button type="button" class="btn-google">
                                 <svg viewBox="0 0 48 48">
@@ -460,50 +464,83 @@
                                 <span data-i18n="acc_google">Continue with Google</span>
                             </button>
 
-                            <p class="auth-legal-note" style="margin-top: 12px; text-align: center; font-size: 11px; color: #777;">
-                                By signing in, you agree to our <a href="terms.html" style="text-decoration: underline;">Terms of Service</a> and <a
-                                    href="privacy.html" style="text-decoration: underline;">Privacy Policy</a>
+                            <p class="auth-legal-note"
+                                style="margin-top: 12px; text-align: center; font-size: 11px; color: #777;">
+                                By signing in, you agree to our <a href="terms.html"
+                                    style="text-decoration: underline;">Terms of Service</a> and <a href="privacy.html"
+                                    style="text-decoration: underline;">Privacy Policy</a>
                             </p>
                         </div>
                     </section>
-
-                    <!-- SIGN UP PANEL -->
                     <section class="panel" id="panel-signup">
                         <h1 class="headline" style="margin-bottom: 4px;">CREATE ACCOUNT</h1>
-                        <p class="subline" style="margin-bottom: 20px; text-align: center;">Already have an account? <span class="link-highlight" id="go-login">Sign in</span></p>
+                        <p class="subline" style="margin-bottom: 20px; text-align: center;">Already have an account?
+                            <span class="link-highlight" id="go-login">Sign in</span></p>
 
                         <form id="signup-form">
                             <div class="field">
                                 <label for="su-name">Full Name</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
                                     <input type="text" id="su-name" placeholder="John Doe" required>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-email">Email Address</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <path
+                                            d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                        </path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
                                     <input type="email" id="su-email" placeholder="example@gmail.com" required>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-password">Password</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                    <input type="password" id="su-password" class="has-toggle" placeholder="At least 6 characters" required>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="su-password" class="has-toggle"
+                                        placeholder="At least 6 characters" required>
                                     <button type="button" class="toggle-eye" data-target="su-password">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-confirm">Confirm Password</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                    <input type="password" id="su-confirm" class="has-toggle" placeholder="Re-enter password" required>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="su-confirm" class="has-toggle"
+                                        placeholder="Re-enter password" required>
                                     <button type="button" class="toggle-eye" data-target="su-confirm">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
@@ -513,18 +550,15 @@
                         </form>
                     </section>
                 </div>
-                        </section>
-                    </div>
-                </div>
+                </section>
             </div>
         </div>
-
-        <div class="overlay" id="quickViewOverlay">
+    </div>
+    </div>
+    <div class="overlay" id="quickViewOverlay">
         <div class="qv-panel" id="qvPanel"></div>
     </div>
-
     <div class="toast" id="toast"></div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
