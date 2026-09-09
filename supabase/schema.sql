@@ -47,6 +47,7 @@ create table if not exists public.products (
     category_id uuid references public.categories(id) on delete set null,
     stock_quantity integer not null default 0,
     sku text,
+    tag text default 'NEW',
     is_active boolean not null default true,
     created_at timestamp with time zone default now()
 );
