@@ -15,10 +15,208 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Satisfy&display=swap"
         rel="stylesheet">
 
     <style>
+        /* ==========================================
+           EXPLORE SECTION CAROUSEL & CARDS
+           ========================================== */
+        #explore-section {
+            width: 100%;
+            max-width: 1400px;
+            margin: 20px auto 30px auto;
+            padding: 0 20px;
+            font-family: 'Jost', sans-serif;
+            display: none;
+        }
+
+        .explore-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 12px;
+        }
+
+        .explore-title-group h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111;
+            letter-spacing: -0.5px;
+            margin: 2px 0 0 0;
+        }
+
+        .explore-title-group .explore-kicker {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #888;
+            display: block;
+        }
+
+        .explore-track-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .explore-track {
+            display: flex;
+            gap: 18px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 6px 4px 16px 4px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: thin;
+            scrollbar-color: #ccc transparent;
+        }
+
+        .explore-track::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .explore-track::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 4px;
+        }
+
+        .explore-card {
+            flex: 0 0 calc(25% - 14px);
+            min-width: 240px;
+            max-width: 320px;
+            height: 330px;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            scroll-snap-align: start;
+            transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+            background: #111;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+
+        .explore-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 14px 28px rgba(0,0,0,0.22);
+        }
+
+        .explore-card-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .explore-card:hover .explore-card-img {
+            transform: scale(1.08);
+        }
+
+        .explore-card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.85) 100%);
+        }
+
+        .explore-card-tag {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            z-index: 2;
+        }
+
+        .explore-card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 22px 16px 18px 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            z-index: 2;
+        }
+
+        .explore-card-title {
+            font-size: 19px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #ffffff;
+            line-height: 1.15;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+            font-family: 'Jost', sans-serif;
+            margin: 0;
+        }
+
+        .explore-card-subtitle {
+            font-family: 'Satisfy', 'Playfair Display', cursive;
+            font-size: 23px;
+            color: #FFD700;
+            margin-top: 1px;
+            margin-bottom: 12px;
+            font-weight: 400;
+            text-transform: lowercase;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+        }
+
+        .explore-card-btn {
+            background: #ffffff;
+            color: #111111;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            padding: 9px 20px;
+            border-radius: 30px;
+            border: none;
+            text-transform: uppercase;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            cursor: pointer;
+        }
+
+        .explore-card:hover .explore-card-btn {
+            background: #FFD700;
+            color: #000000;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 1024px) {
+            .explore-card {
+                flex: 0 0 calc(33.333% - 12px);
+                min-width: 220px;
+                height: 310px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .explore-card {
+                flex: 0 0 calc(65% - 10px);
+                min-width: 200px;
+                height: 290px;
+            }
+        }
+
         /* --- ARCHITECTURAL RESETS --- */
         * {
             box-sizing: border-box;
@@ -320,9 +518,25 @@
         <img src="assets/mens_denim_banner.png" alt="MENS DENIM" style="width: 100%; height: auto; display: block;">
     </div>
 
+    <!-- EXPLORE SECTION (DYNAMIC CAROUSEL / GRID) -->
+    <section id="explore-section">
+        <div class="explore-header">
+            <div class="explore-title-group">
+                <span class="explore-kicker">EXPLORE</span>
+                <h2>Discover Our Collections</h2>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button onclick="scrollExploreTrack(-1)" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">‹</button>
+                <button onclick="scrollExploreTrack(1)" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">›</button>
+                <a href="javascript:void(0)" onclick="loadShopProducts(null, 'ALL PRODUCTS')" style="font-size: 12px; font-weight: 600; color: #111; text-decoration: underline; margin-left: 6px;">View all</a>
+            </div>
+        </div>
+        <div class="explore-track-container">
+            <div id="explore-cards-track" class="explore-track"></div>
+        </div>
+    </section>
 
-
-    <div class="shop-layout" style="padding-top: 150px;">
+    <div class="shop-layout" style="padding-top: 20px;">
         <!-- SIDEBAR -->
         <aside class="sidebar" style="min-width: 240px; max-width: 260px; font-family: 'Jost', sans-serif;">
             <div style="font-size: 22px; font-weight: 500; color: #111; margin-bottom: 20px;">Filters</div>
@@ -840,6 +1054,7 @@
 
         let allCategoriesData = [];
         let currentProductsLoaded = [];
+        let currentCategoryIds = [];
         let shopHomepageConfig = null;
 
         async function fetchShopHomepageConfig() {
@@ -886,9 +1101,270 @@
             return null;
         }
 
+        let currentExploreCardsData = [];
+
+        async function fetchExploreCards() {
+            let cards = [];
+            try {
+                // 1. Try Supabase DB table explore_cards
+                const { data, error } = await shopSupabaseClient
+                    .from('explore_cards')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('display_order', { ascending: true });
+
+                if (!error && data && data.length > 0) {
+                    cards = data;
+                }
+            } catch (e) { }
+
+            // 2. Fallback to homepage_settings.json or localStorage
+            if (cards.length === 0 && shopHomepageConfig?.exploreCards) {
+                cards = shopHomepageConfig.exploreCards.filter(c => c.is_active !== false);
+            }
+
+            if (cards.length === 0) {
+                try {
+                    const local = JSON.parse(localStorage.getItem('kappa_explore_cards') || '[]');
+                    cards = local.filter(c => c.is_active !== false);
+                } catch(e) {}
+            }
+
+            // Default fallback demo cards matching requirements if nothing exists yet
+            if (cards.length === 0) {
+                cards = [
+                    {
+                        id: 'demo-1',
+                        title: 'BEST SELLER',
+                        subtitle: 'denim',
+                        tag_label: 'Men >',
+                        image_url: 'assets/mens_denim_banner.png',
+                        selection_type: 'collection',
+                        collection_id: 'best_sellers',
+                        button_text: 'SHOP NOW',
+                        display_order: 1,
+                        is_active: true
+                    },
+                    {
+                        id: 'demo-2',
+                        title: 'PANTS &',
+                        subtitle: 'trousers',
+                        tag_label: 'Men >',
+                        image_url: 'assets/duplicate.png',
+                        selection_type: 'category',
+                        destination_url: 'pants',
+                        button_text: 'SHOP NOW',
+                        display_order: 2,
+                        is_active: true
+                    },
+                    {
+                        id: 'demo-3',
+                        title: 'TRENDING',
+                        subtitle: 'shirts',
+                        tag_label: 'Men >',
+                        image_url: 'assets/Frame 4.webp',
+                        selection_type: 'category',
+                        destination_url: 'shirts',
+                        button_text: 'SHOP NOW',
+                        display_order: 3,
+                        is_active: true
+                    },
+                    {
+                        id: 'demo-4',
+                        title: 'NEW',
+                        subtitle: 'arrivals',
+                        tag_label: 'Women >',
+                        image_url: 'assets/WOMENFASHION.png',
+                        selection_type: 'collection',
+                        collection_id: 'new_arrivals',
+                        button_text: 'SHOP NOW',
+                        display_order: 4,
+                        is_active: true
+                    }
+                ];
+            }
+
+            currentExploreCardsData = cards.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+            renderExploreCardsStorefront();
+        }
+
+        function renderExploreCardsStorefront() {
+            const section = document.getElementById('explore-section');
+            const track = document.getElementById('explore-cards-track');
+            if (!section || !track) return;
+
+            const activeCards = currentExploreCardsData.filter(c => c.is_active !== false);
+            if (activeCards.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            activeCards.forEach((card, index) => {
+                const img = card.image_url || 'assets/mens_denim_banner.png';
+                const tag = card.tag_label || 'Explore >';
+                const title = card.title || 'EXPLORE';
+                const subtitle = card.subtitle || '';
+                const btnText = card.button_text || 'SHOP NOW';
+
+                html += `
+                    <div class="explore-card" onclick="handleExploreCardClick(${index})">
+                        <img src="${img}" class="explore-card-img" alt="${title}">
+                        <div class="explore-card-overlay"></div>
+                        <div class="explore-card-tag">${tag}</div>
+                        <div class="explore-card-content">
+                            <h3 class="explore-card-title">${title}</h3>
+                            ${subtitle ? `<div class="explore-card-subtitle">${subtitle}</div>` : ''}
+                            <button class="explore-card-btn">${btnText}</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            track.innerHTML = html;
+            section.style.display = 'block';
+        }
+
+        function scrollExploreTrack(dir) {
+            const track = document.getElementById('explore-cards-track');
+            if (track) {
+                track.scrollBy({ left: dir * 300, behavior: 'smooth' });
+            }
+        }
+
+        async function handleExploreCardClick(cardIndex) {
+            const card = currentExploreCardsData[cardIndex];
+            if (!card) return;
+
+            const displayTitle = (card.title + ' ' + (card.subtitle || '')).trim();
+
+            if (card.selection_type === 'category') {
+                if (card.category_id) {
+                    const catObj = allCategoriesData.find(c => c.id === card.category_id);
+                    loadShopProducts(card.category_id, catObj ? catObj.name : card.title);
+                } else if (card.destination_url) {
+                    const targetCat = findCategoryByQuery(card.destination_url);
+                    if (targetCat) {
+                        loadShopProducts(targetCat.id, targetCat.name);
+                    } else {
+                        loadShopProducts(null, card.title);
+                    }
+                } else {
+                    const targetCat = findCategoryByQuery(card.title);
+                    if (targetCat) loadShopProducts(targetCat.id, targetCat.name);
+                    else loadShopProducts(null, card.title);
+                }
+            } else if (card.selection_type === 'collection') {
+                loadCollectionProducts(card.collection_id || 'featured', displayTitle);
+            } else if (card.selection_type === 'specific_products') {
+                loadSpecificProducts(card.product_ids || [], displayTitle);
+            } else if (card.selection_type === 'sale') {
+                loadSaleProducts(displayTitle);
+            } else if (card.selection_type === 'custom_url') {
+                if (card.destination_url && card.destination_url.includes('.html')) {
+                    window.location.href = card.destination_url;
+                } else if (card.destination_url) {
+                    const targetCat = findCategoryByQuery(card.destination_url);
+                    if (targetCat) loadShopProducts(targetCat.id, targetCat.name);
+                    else loadShopProducts(null, card.destination_url);
+                }
+            } else {
+                loadShopProducts(null, displayTitle);
+            }
+
+            const gridHeader = document.querySelector('.grid-header');
+            if (gridHeader) gridHeader.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function loadCollectionProducts(collectionId, displayTitle) {
+            document.getElementById('current-category-title').innerText = displayTitle.toUpperCase();
+            document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading collection...</div>';
+            currentCategoryIds = [];
+
+            let query = shopSupabaseClient
+                .from('products')
+                .select('*, product_images(url, position), product_variants(size, stock_quantity)')
+                .eq('is_active', true);
+
+            if (collectionId === 'new_arrivals') {
+                query = query.order('created_at', { ascending: false }).limit(20);
+            } else if (collectionId === 'sale' || collectionId === 'clearance') {
+                query = query.not('compare_at_price', 'is', null).order('created_at', { ascending: false });
+            } else {
+                query = query.order('created_at', { ascending: false });
+            }
+
+            const { data: products, error } = await query;
+            if (error) {
+                document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Error loading collection.</div>';
+                return;
+            }
+
+            currentProductsLoaded = (products || []).filter(p => {
+                if (collectionId === 'sale' || collectionId === 'clearance') {
+                    return p.compare_at_price && Number(p.compare_at_price) > Number(p.price);
+                }
+                return true;
+            });
+
+            filterCurrentProducts();
+        }
+
+        async function loadSpecificProducts(productIds, displayTitle) {
+            document.getElementById('current-category-title').innerText = displayTitle.toUpperCase();
+            document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading products...</div>';
+            currentCategoryIds = [];
+
+            let pIds = productIds;
+            if (typeof pIds === 'string') {
+                try { pIds = JSON.parse(pIds); } catch(e) { pIds = [pIds]; }
+            }
+
+            if (!pIds || pIds.length === 0) {
+                document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">No products selected for this Explore card.</div>';
+                return;
+            }
+
+            const { data: products, error } = await shopSupabaseClient
+                .from('products')
+                .select('*, product_images(url, position), product_variants(size, stock_quantity)')
+                .in('id', pIds)
+                .eq('is_active', true);
+
+            if (error) {
+                document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Error loading products.</div>';
+                return;
+            }
+
+            currentProductsLoaded = products || [];
+            filterCurrentProducts();
+        }
+
+        async function loadSaleProducts(displayTitle) {
+            document.getElementById('current-category-title').innerText = displayTitle ? displayTitle.toUpperCase() : 'ON SALE';
+            document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading sale items...</div>';
+            currentCategoryIds = [];
+
+            const { data: products, error } = await shopSupabaseClient
+                .from('products')
+                .select('*, product_images(url, position), product_variants(size, stock_quantity)')
+                .not('compare_at_price', 'is', null)
+                .eq('is_active', true)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Error loading sale items.</div>';
+                return;
+            }
+
+            currentProductsLoaded = (products || []).filter(p => p.compare_at_price && Number(p.compare_at_price) > Number(p.price));
+            filterCurrentProducts();
+        }
+
         async function initShop() {
             await fetchShopHomepageConfig();
             await fetchCategories();
+            await fetchExploreCards();
 
             const urlParams = new URLSearchParams(window.location.search);
             const filterParam = urlParams.get('filter');
@@ -935,8 +1411,8 @@
 
             roots.forEach(root => {
                 const rootName = (root.name || '').toLowerCase();
-                const isMensRoot = rootName === 'men' || rootName === "men's" || rootName === 'boys';
-                const isWomensRoot = rootName === 'women' || rootName === "women's" || rootName === 'girls';
+                const isMensRoot = rootName === 'men' || rootName === "men's" || rootName === 'boys' || (rootName.includes('men') && !rootName.includes('women'));
+                const isWomensRoot = rootName === 'women' || rootName === "women's" || rootName === 'girls' || rootName.includes('women');
 
                 if (filterParam === 'men' && !isMensRoot) return;
                 if (filterParam === 'women' && !isWomensRoot) return;
@@ -956,6 +1432,17 @@
             });
 
             container.innerHTML = html;
+        }
+
+        function getDescendantCatIds(cId) {
+            let ids = [cId];
+            if (!allCategoriesData) return ids;
+            allCategoriesData.forEach(c => {
+                if (c.parent_id === cId) {
+                    ids = ids.concat(getDescendantCatIds(c.id));
+                }
+            });
+            return Array.from(new Set(ids));
         }
 
         async function loadShopProducts(categoryId, categoryName, clickedElement) {
@@ -1007,18 +1494,28 @@
             }
 
             // Build the list of category IDs to fetch:
-            // If a root category (like Men/Women), include root ID + ALL its children
-            // If a sub-category (like T-Shirt), include only that ID
-            let targetCategoryIds = [];
+            currentCategoryIds = [];
 
             if (categoryId) {
-                targetCategoryIds.push(categoryId);
-                // Also push all direct children (sub-categories under this root)
-                allCategoriesData.forEach(c => {
-                    if (c.parent_id === categoryId && !targetCategoryIds.includes(c.id)) {
-                        targetCategoryIds.push(c.id);
-                    }
+                currentCategoryIds = getDescendantCatIds(categoryId);
+            } else if (catNameUpper.includes('MEN') || catNameUpper.includes('BOY')) {
+                const menRoots = allCategoriesData.filter(c => {
+                    const n = (c.name || '').toLowerCase();
+                    return !c.parent_id && (n === 'men' || n === "men's" || n === 'boys' || (n.includes('men') && !n.includes('women')));
                 });
+                menRoots.forEach(r => {
+                    currentCategoryIds = currentCategoryIds.concat(getDescendantCatIds(r.id));
+                });
+                currentCategoryIds = Array.from(new Set(currentCategoryIds));
+            } else if (catNameUpper.includes('WOMEN') || catNameUpper.includes('GIRL')) {
+                const womenRoots = allCategoriesData.filter(c => {
+                    const n = (c.name || '').toLowerCase();
+                    return !c.parent_id && (n === 'women' || n === "women's" || n === 'girls' || n.includes('women'));
+                });
+                womenRoots.forEach(r => {
+                    currentCategoryIds = currentCategoryIds.concat(getDescendantCatIds(r.id));
+                });
+                currentCategoryIds = Array.from(new Set(currentCategoryIds));
             }
 
             let query = shopSupabaseClient
@@ -1027,8 +1524,8 @@
                 .eq('is_active', true)
                 .order('created_at', { ascending: false });
 
-            if (targetCategoryIds.length > 0) {
-                query = query.in('category_id', targetCategoryIds);
+            if (currentCategoryIds.length > 0) {
+                query = query.in('category_id', currentCategoryIds);
             }
 
             const { data: products, error } = await query;
@@ -1182,20 +1679,22 @@
                     if (!hasTypeMatch) return false;
                 }
 
-                // Sub-category keyword filter (for custom sub-category card queries)
-                const currentTitle = document.getElementById('current-category-title')?.innerText?.toLowerCase() || '';
-                if (currentTitle && currentTitle !== 'ALL PRODUCTS' && currentTitle !== 'MEN' && currentTitle !== 'WOMEN') {
-                    const name = (product.name || '').toLowerCase();
-                    const desc = (product.description || '').toLowerCase();
-                    if (currentTitle.includes('jens') || currentTitle.includes('jeans') || currentTitle.includes('denim')) {
-                        if (!name.includes('jean') && !name.includes('denim') && !desc.includes('jean') && !desc.includes('denim')) return false;
-                    } else if (currentTitle.includes('mandarin')) {
-                        if (!name.includes('mandarin') && !desc.includes('mandarin')) return false;
-                    } else {
-                        const words = currentTitle.split(/\s+/).filter(w => w.length > 2);
-                        if (words.length > 0) {
-                            const matchesWord = words.some(w => name.includes(w) || desc.includes(w));
-                            if (!matchesWord) return false;
+                // Sub-category keyword filter ONLY if no database category filter was applied (e.g. text fallback search)
+                if ((!currentCategoryIds || currentCategoryIds.length === 0)) {
+                    const currentTitle = document.getElementById('current-category-title')?.innerText?.toLowerCase() || '';
+                    if (currentTitle && currentTitle !== 'all products' && currentTitle !== 'men' && currentTitle !== 'women' && !currentTitle.includes("men's") && !currentTitle.includes("women's")) {
+                        const name = (product.name || '').toLowerCase();
+                        const desc = (product.description || '').toLowerCase();
+                        if (currentTitle.includes('jens') || currentTitle.includes('jeans') || currentTitle.includes('denim')) {
+                            if (!name.includes('jean') && !name.includes('denim') && !desc.includes('jean') && !desc.includes('denim')) return false;
+                        } else if (currentTitle.includes('mandarin')) {
+                            if (!name.includes('mandarin') && !desc.includes('mandarin')) return false;
+                        } else {
+                            const words = currentTitle.split(/\s+/).filter(w => w.length > 2);
+                            if (words.length > 0) {
+                                const matchesWord = words.some(w => name.includes(w) || desc.includes(w));
+                                if (!matchesWord) return false;
+                            }
                         }
                     }
                 }

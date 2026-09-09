@@ -340,3 +340,37 @@ drop trigger if exists on_auth_user_created on auth.users;
 create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- 15. EXPLORE CARDS
+create table if not exists public.explore_cards (
+    id uuid default gen_random_uuid() primary key,
+    title text not null,
+    subtitle text,
+    tag_label text default 'Explore >',
+    image_url text,
+    selection_type text not null default 'category', -- category, collection, specific_products, sale, custom_url
+    category_id uuid references public.categories(id) on delete set null,
+    collection_id text, -- new_arrivals, best_sellers, trending, featured, clearance, sale
+    product_ids jsonb default '[]'::jsonb,
+    destination_url text,
+    button_text text default 'SHOP NOW',
+    display_order integer default 1,
+    is_active boolean default true,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
+);
+
+-- Enable RLS on explore_cards
+alter table public.explore_cards enable row level security;
+
+drop policy if exists "Allow public read access to active explore cards" on public.explore_cards;
+create policy "Allow public read access to active explore cards" on public.explore_cards
+    for select using (is_active = true or exists (
+        select 1 from public.profiles
+        where id = auth.uid() and role = 'admin'
+    ));
+
+drop policy if exists "Allow admin full access to explore cards" on public.explore_cards;
+create policy "Allow admin full access to explore cards" on public.explore_cards
+    for all using (true);
+

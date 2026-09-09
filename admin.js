@@ -111,6 +111,7 @@ window.switchAdminView = async function (targetName) {
                 categories: 'Categories',
                 reviews: 'Reviews',
                 homepage: 'Homepage Media',
+                explore: 'Explore Cards',
                 promocodes: 'Promo Codes',
                 settings: 'Settings'
             };
@@ -133,6 +134,7 @@ window.switchAdminView = async function (targetName) {
                 case 'settings': if (typeof loadSettings === 'function') await loadSettings(); break;
                 case 'products': clearProductForm(); break;
                 case 'homepage': if (typeof loadHomepageSettings === 'function') await loadHomepageSettings(); break;
+                case 'explore': if (typeof loadExploreCardsAdmin === 'function') await loadExploreCardsAdmin(); break;
                 case 'promocodes': if (typeof loadPromoCodes === 'function') await loadPromoCodes(); break;
             }
         } catch (err) {
@@ -214,14 +216,18 @@ async function loadCategories() {
     const children = categories.filter(c => c.parent_id);
 
     roots.forEach(root => {
+        const group = document.createElement('optgroup');
+        group.label = root.name;
+
+        // Allow selecting the main category itself
+        const rootOption = document.createElement('option');
+        rootOption.value = root.id;
+        rootOption.textContent = `${root.name} (Main Category)`;
+        group.appendChild(rootOption);
+
         const myChildren = children
             .filter(c => c.parent_id === root.id)
             .sort((a, b) => a.name.localeCompare(b.name));
-
-        if (myChildren.length === 0) return; // skip root if no sub-cats
-
-        const group = document.createElement('optgroup');
-        group.label = root.name;
 
         myChildren.forEach(child => {
             const childOption = document.createElement('option');
@@ -340,19 +346,27 @@ window.loadCategoryProducts = async function (categoryId, isRoot, categoryName) 
     panel.style.display = 'block';
     title.textContent = categoryName;
     subtitle.textContent = isRoot ? 'Showing all products in this category and sub-categories' : 'Products in this sub-category';
-    addBtn.style.display = isRoot ? 'none' : 'inline-flex';
+    addBtn.style.display = 'inline-flex';
     listEl.innerHTML = '<p style="color:#aaa;">Loading...</p>';
 
     // Scroll panel into view
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // If root: get all children category IDs too
+    // If root: get all children category IDs too (recursively)
     let categoryIds = [categoryId];
     if (isRoot) {
         const { data: cats } = await supabaseClient.from('categories').select('id, parent_id');
         if (cats) {
-            const childIds = cats.filter(c => c.parent_id === categoryId).map(c => c.id);
-            categoryIds = [categoryId, ...childIds];
+            const getDescendantIds = (cId) => {
+                let ids = [cId];
+                cats.forEach(c => {
+                    if (c.parent_id === cId) {
+                        ids = ids.concat(getDescendantIds(c.id));
+                    }
+                });
+                return ids;
+            };
+            categoryIds = Array.from(new Set(getDescendantIds(categoryId)));
         }
     }
 
@@ -428,7 +442,7 @@ window.loadCategoryProducts = async function (categoryId, isRoot, categoryName) 
 
 // Navigate to Add Product form with this sub-category pre-selected
 window.addProductInCategory = function () {
-    if (!_selectedCategoryId || _selectedCategoryIsRoot) return;
+    if (!_selectedCategoryId) return;
 
     // Navigate to products view
     document.querySelectorAll('.sidebar-menu li').forEach(nav => nav.classList.remove('active'));
@@ -2744,3 +2758,547 @@ async function updateSidebarOrderBadges() {
         console.warn('Could not update sidebar badges:', e);
     }
 }
+
+// ==========================================
+// EXPLORE CARDS CMS ADMIN CONTROLLER
+// ==========================================
+let currentAdminExploreCards = [];
+let tempSelectedProductIds = [];
+let allStoreProductsForPicker = [];
+
+async function loadExploreCardsAdmin() {
+    const tbody = document.getElementById('explore-cards-admin-tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:30px; text-align:center; color:#888;">Loading explore cards...</td></tr>';
+
+    await populateExploreCategoriesDropdown();
+
+    let cards = [];
+    try {
+        const { data, error } = await supabaseClient
+            .from('explore_cards')
+            .select('*')
+            .order('display_order', { ascending: true });
+
+        if (!error && data && data.length > 0) cards = data;
+    } catch (e) { }
+
+    if (cards.length === 0) {
+        try {
+            const local = JSON.parse(localStorage.getItem('kappa_explore_cards') || '[]');
+            cards = local;
+        } catch (e) { }
+    }
+
+    if (cards.length === 0) {
+        cards = [
+            {
+                id: 'demo-1',
+                title: 'BEST SELLER',
+                subtitle: 'denim',
+                tag_label: 'Men >',
+                image_url: 'assets/mens_denim_banner.png',
+                selection_type: 'collection',
+                collection_id: 'best_sellers',
+                button_text: 'SHOP NOW',
+                display_order: 1,
+                is_active: true
+            },
+            {
+                id: 'demo-2',
+                title: 'PANTS &',
+                subtitle: 'trousers',
+                tag_label: 'Men >',
+                image_url: 'assets/duplicate.png',
+                selection_type: 'category',
+                destination_url: 'pants',
+                button_text: 'SHOP NOW',
+                display_order: 2,
+                is_active: true
+            },
+            {
+                id: 'demo-3',
+                title: 'TRENDING',
+                subtitle: 'shirts',
+                tag_label: 'Men >',
+                image_url: 'assets/Frame 4.webp',
+                selection_type: 'category',
+                destination_url: 'shirts',
+                button_text: 'SHOP NOW',
+                display_order: 3,
+                is_active: true
+            },
+            {
+                id: 'demo-4',
+                title: 'NEW',
+                subtitle: 'arrivals',
+                tag_label: 'Women >',
+                image_url: 'assets/WOMENFASHION.png',
+                selection_type: 'collection',
+                collection_id: 'new_arrivals',
+                button_text: 'SHOP NOW',
+                display_order: 4,
+                is_active: true
+            }
+        ];
+        localStorage.setItem('kappa_explore_cards', JSON.stringify(cards));
+    }
+
+    currentAdminExploreCards = cards.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    renderExploreCardsAdminTable(currentAdminExploreCards);
+}
+
+async function populateExploreCategoriesDropdown() {
+    const select = document.getElementById('explore-form-category-id');
+    if (!select) return;
+
+    try {
+        const { data, error } = await supabaseClient.from('categories').select('*').order('name', { ascending: true });
+        if (error || !data) return;
+
+        let html = '<option value="">Select Category</option>';
+        data.forEach(c => {
+            html += `<option value="${c.id}">${c.name}</option>`;
+        });
+        select.innerHTML = html;
+
+        const pickerCatSelect = document.getElementById('picker-category-filter');
+        if (pickerCatSelect) {
+            pickerCatSelect.innerHTML = '<option value="">All Categories</option>' + data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+    } catch(e) {}
+}
+
+function renderExploreCardsAdminTable(cards) {
+    const tbody = document.getElementById('explore-cards-admin-tbody');
+    if (!tbody) return;
+
+    if (cards.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:30px; text-align:center; color:#888;">No explore cards created yet. Click "+ Create Explore" to add one.</td></tr>';
+        return;
+    }
+
+    let html = '';
+    cards.forEach((card, idx) => {
+        const img = card.image_url || 'assets/mens_denim_banner.png';
+        const isPublished = card.is_active !== false;
+
+        let targetDetail = 'General';
+        if (card.selection_type === 'category') targetDetail = card.category_id ? `Category ID: ${card.category_id.slice(0, 8)}...` : (card.destination_url || 'Category');
+        else if (card.selection_type === 'collection') targetDetail = `Collection: ${card.collection_id || 'new_arrivals'}`;
+        else if (card.selection_type === 'specific_products') targetDetail = `${(card.product_ids || []).length} Selected Products`;
+        else if (card.selection_type === 'sale') targetDetail = 'Sale Items';
+        else if (card.selection_type === 'custom_url') targetDetail = card.destination_url || 'URL';
+
+        html += `
+        <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:12px;">
+                <div style="width:48px; height:58px; border-radius:6px; overflow:hidden; background:#eee; border:1px solid #ddd;">
+                    <img src="${img}" style="width:100%; height:100%; object-fit:cover;" alt="Card Image">
+                </div>
+            </td>
+            <td style="padding:12px;">
+                <strong style="font-size:14px; display:block; text-transform:uppercase; color:#111;">${card.title}</strong>
+                <span style="font-size:12px; color:#d97706; font-family:serif; font-style:italic;">${card.subtitle || ''}</span>
+                <span style="display:block; font-size:10px; color:#888;">${card.tag_label || 'Explore >'}</span>
+            </td>
+            <td style="padding:12px;">
+                <span style="background:#eef2ff; color:#4f46e5; font-size:11px; font-weight:700; padding:4px 10px; border-radius:12px; text-transform:uppercase; display:inline-block;">${card.selection_type || 'category'}</span>
+            </td>
+            <td style="padding:12px; font-size:12px; color:#555;">
+                ${targetDetail}
+            </td>
+            <td style="padding:12px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-weight:700; font-size:13px;">${card.display_order || idx + 1}</span>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <button onclick="reorderExploreCard('${card.id}', -1)" style="border:none; background:#eee; font-size:9px; cursor:pointer; padding:1px 4px; border-radius:2px;">▲</button>
+                        <button onclick="reorderExploreCard('${card.id}', 1)" style="border:none; background:#eee; font-size:9px; cursor:pointer; padding:1px 4px; border-radius:2px;">▼</button>
+                    </div>
+                </div>
+            </td>
+            <td style="padding:12px;">
+                <button onclick="toggleExploreCardStatus('${card.id}')" style="border:none; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; cursor:pointer; background:${isPublished ? '#dcfce7; color:#15803d' : '#f3f4f6; color:#6b7280'};">
+                    ${isPublished ? 'Published' : 'Draft'}
+                </button>
+            </td>
+            <td style="padding:12px; text-align:right;">
+                <div style="display:flex; justify-content:flex-end; gap:6px;">
+                    <button onclick="openExploreModal('${card.id}')" style="background:#f0f9ff; color:#0284c7; border:none; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Edit</button>
+                    <button onclick="duplicateExploreCard('${card.id}')" style="background:#fef3c7; color:#d97706; border:none; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Duplicate</button>
+                    <button onclick="deleteExploreCard('${card.id}')" style="background:#fee2e2; color:#dc2626; border:none; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Delete</button>
+                </div>
+            </td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = html;
+}
+
+window.openExploreModal = function (cardId) {
+    const modal = document.getElementById('explore-modal');
+    if (!modal) return;
+
+    document.getElementById('explore-card-form').reset();
+    document.getElementById('explore-form-id').value = '';
+    document.getElementById('explore-modal-title').textContent = cardId ? 'EDIT EXPLORE CARD' : 'CREATE EXPLORE CARD';
+    tempSelectedProductIds = [];
+
+    if (cardId) {
+        const card = currentAdminExploreCards.find(c => c.id === cardId);
+        if (card) {
+            document.getElementById('explore-form-id').value = card.id;
+            document.getElementById('explore-form-title').value = card.title || '';
+            document.getElementById('explore-form-subtitle').value = card.subtitle || '';
+            document.getElementById('explore-form-tag').value = card.tag_label || 'Explore >';
+            document.getElementById('explore-form-btn-text').value = card.button_text || 'SHOP NOW';
+            document.getElementById('explore-form-order').value = card.display_order || 1;
+            document.getElementById('explore-form-status').value = (card.is_active !== false).toString();
+            document.getElementById('explore-form-image-url').value = card.image_url || '';
+
+            const radio = document.querySelector(`input[name="selection_type"][value="${card.selection_type || 'category'}"]`);
+            if (radio) radio.checked = true;
+
+            if (card.category_id) document.getElementById('explore-form-category-id').value = card.category_id;
+            if (card.collection_id) document.getElementById('explore-form-collection-id').value = card.collection_id;
+            if (card.destination_url) document.getElementById('explore-form-destination-url').value = card.destination_url;
+            
+            tempSelectedProductIds = card.product_ids || [];
+        }
+    } else {
+        document.getElementById('explore-form-order').value = currentAdminExploreCards.length + 1;
+    }
+
+    toggleExploreSelectionFields();
+    updateExplorePreview();
+    updateSelectedProdTagsUI();
+    modal.style.display = 'flex';
+};
+
+window.closeExploreModal = function () {
+    const modal = document.getElementById('explore-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.toggleExploreSelectionFields = function () {
+    const type = document.querySelector('input[name="selection_type"]:checked')?.value || 'category';
+    document.querySelectorAll('.explore-type-field').forEach(el => el.style.display = 'none');
+
+    if (type === 'category') document.getElementById('field-explore-category').style.display = 'block';
+    else if (type === 'collection') document.getElementById('field-explore-collection').style.display = 'block';
+    else if (type === 'specific_products') document.getElementById('field-explore-products').style.display = 'block';
+    else if (type === 'custom_url') document.getElementById('field-explore-custom-url').style.display = 'block';
+};
+
+window.updateExplorePreview = function () {
+    const title = document.getElementById('explore-form-title')?.value || 'TRENDING SHIRTS';
+    const subtitle = document.getElementById('explore-form-subtitle')?.value || 'shirts';
+    const tag = document.getElementById('explore-form-tag')?.value || 'Explore >';
+    const btnText = document.getElementById('explore-form-btn-text')?.value || 'SHOP NOW';
+    const imgUrl = document.getElementById('explore-form-image-url')?.value || 'assets/mens_denim_banner.png';
+
+    const prevTitle = document.getElementById('explore-prev-title');
+    const prevSub = document.getElementById('explore-prev-subtitle');
+    const prevTag = document.getElementById('explore-prev-tag');
+    const prevBtn = document.getElementById('explore-prev-btn');
+    const prevImg = document.getElementById('explore-prev-img');
+
+    if (prevTitle) prevTitle.textContent = title.toUpperCase();
+    if (prevSub) prevSub.textContent = subtitle;
+    if (prevTag) prevTag.textContent = tag;
+    if (prevBtn) prevBtn.textContent = btnText;
+    if (prevImg) prevImg.src = imgUrl || 'assets/mens_denim_banner.png';
+};
+
+window.previewExploreImageFile = function (input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById('explore-form-image-url').value = e.target.result;
+            updateExplorePreview();
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
+window.saveExploreCardForm = async function (e) {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('explore-submit-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Saving Explore Card...';
+    submitBtn.disabled = true;
+
+    try {
+        const id = document.getElementById('explore-form-id').value;
+        const title = document.getElementById('explore-form-title').value.trim();
+        const subtitle = document.getElementById('explore-form-subtitle').value.trim();
+        const tag_label = document.getElementById('explore-form-tag').value.trim() || 'Explore >';
+        const button_text = document.getElementById('explore-form-btn-text').value.trim() || 'SHOP NOW';
+        const display_order = parseInt(document.getElementById('explore-form-order').value) || 1;
+        const is_active = document.getElementById('explore-form-status').value === 'true';
+
+        const selection_type = document.querySelector('input[name="selection_type"]:checked')?.value || 'category';
+        const category_id = document.getElementById('explore-form-category-id').value || null;
+        const collection_id = document.getElementById('explore-form-collection-id').value || 'new_arrivals';
+        const destination_url = document.getElementById('explore-form-destination-url').value.trim() || '';
+
+        let image_url = document.getElementById('explore-form-image-url').value.trim();
+        const imageFileInput = document.getElementById('explore-form-image-file');
+        const imageFile = imageFileInput ? imageFileInput.files[0] : null;
+
+        if (imageFile) {
+            try {
+                image_url = await uploadHomepageFile(imageFile, 'explore_card');
+            } catch (err) {
+                console.warn('Could not upload image file to storage, using preview data URL');
+            }
+        }
+
+        if (!image_url) {
+            image_url = 'assets/mens_denim_banner.png';
+        }
+
+        const cardData = {
+            title,
+            subtitle,
+            tag_label,
+            button_text,
+            display_order,
+            is_active,
+            selection_type,
+            category_id,
+            collection_id,
+            product_ids: tempSelectedProductIds,
+            destination_url,
+            image_url,
+            updated_at: new Date().toISOString()
+        };
+
+        let savedCard = null;
+
+        if (id && !id.startsWith('demo-')) {
+            const { data, error } = await supabaseClient
+                .from('explore_cards')
+                .update(cardData)
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (!error && data) savedCard = data;
+        } else {
+            const { data, error } = await supabaseClient
+                .from('explore_cards')
+                .insert([cardData])
+                .select()
+                .single();
+
+            if (!error && data) savedCard = data;
+        }
+
+        // Sync with LocalStorage & Homepage Settings JSON
+        let localCards = JSON.parse(localStorage.getItem('kappa_explore_cards') || '[]');
+        if (id) {
+            const idx = localCards.findIndex(c => c.id === id);
+            if (idx >= 0) localCards[idx] = { ...localCards[idx], ...cardData };
+            else localCards.push({ id: savedCard ? savedCard.id : 'card_' + Date.now(), ...cardData });
+        } else {
+            localCards.push({ id: savedCard ? savedCard.id : 'card_' + Date.now(), ...cardData });
+        }
+        localStorage.setItem('kappa_explore_cards', JSON.stringify(localCards));
+
+        try {
+            if (currentHomepageConfig) {
+                currentHomepageConfig.exploreCards = localCards;
+                const configBlob = new Blob([JSON.stringify(currentHomepageConfig, null, 2)], { type: 'application/json' });
+                await supabaseClient.storage.from('product-images').upload('homepage_settings.json', configBlob, { upsert: true, cacheControl: '0' });
+            }
+        } catch(e) {}
+
+        alert('✅ Explore Card saved successfully!');
+        closeExploreModal();
+        await loadExploreCardsAdmin();
+
+    } catch (err) {
+        console.error('Error saving explore card:', err);
+        alert('❌ Error saving card: ' + err.message);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+};
+
+window.deleteExploreCard = async function (cardId) {
+    if (!confirm('Are you sure you want to delete this Explore Card?')) return;
+
+    try {
+        if (cardId && !cardId.startsWith('demo-')) {
+            await supabaseClient.from('explore_cards').delete().eq('id', cardId);
+        }
+        let local = JSON.parse(localStorage.getItem('kappa_explore_cards') || '[]');
+        local = local.filter(c => c.id !== cardId);
+        localStorage.setItem('kappa_explore_cards', JSON.stringify(local));
+
+        await loadExploreCardsAdmin();
+    } catch(e) {
+        alert('Error deleting card: ' + e.message);
+    }
+};
+
+window.duplicateExploreCard = async function (cardId) {
+    const card = currentAdminExploreCards.find(c => c.id === cardId);
+    if (!card) return;
+
+    const dupData = {
+        ...card,
+        id: 'card_' + Date.now(),
+        title: card.title + ' (Copy)',
+        display_order: (card.display_order || 1) + 1,
+        is_active: false
+    };
+
+    let local = JSON.parse(localStorage.getItem('kappa_explore_cards') || '[]');
+    local.push(dupData);
+    localStorage.setItem('kappa_explore_cards', JSON.stringify(local));
+
+    await loadExploreCardsAdmin();
+};
+
+window.toggleExploreCardStatus = async function (cardId) {
+    const card = currentAdminExploreCards.find(c => c.id === cardId);
+    if (!card) return;
+
+    const newStatus = !(card.is_active !== false);
+    card.is_active = newStatus;
+
+    if (cardId && !cardId.startsWith('demo-')) {
+        await supabaseClient.from('explore_cards').update({ is_active: newStatus }).eq('id', cardId);
+    }
+
+    let local = JSON.parse(localStorage.getItem('kappa_explore_cards') || '[]');
+    const idx = local.findIndex(c => c.id === cardId);
+    if (idx >= 0) local[idx].is_active = newStatus;
+    localStorage.setItem('kappa_explore_cards', JSON.stringify(local));
+
+    renderExploreCardsAdminTable(currentAdminExploreCards);
+};
+
+window.reorderExploreCard = async function (cardId, delta) {
+    const idx = currentAdminExploreCards.findIndex(c => c.id === cardId);
+    if (idx < 0) return;
+
+    const targetIdx = idx + delta;
+    if (targetIdx < 0 || targetIdx >= currentAdminExploreCards.length) return;
+
+    const curr = currentAdminExploreCards[idx];
+    const other = currentAdminExploreCards[targetIdx];
+
+    const tempOrder = curr.display_order || (idx + 1);
+    curr.display_order = other.display_order || (targetIdx + 1);
+    other.display_order = tempOrder;
+
+    currentAdminExploreCards.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    localStorage.setItem('kappa_explore_cards', JSON.stringify(currentAdminExploreCards));
+
+    renderExploreCardsAdminTable(currentAdminExploreCards);
+};
+
+// ==========================================
+// SPECIFIC PRODUCTS PICKER MODAL CONTROLLER
+// ==========================================
+window.openProductPickerModal = async function () {
+    const modal = document.getElementById('explore-product-picker-modal');
+    if (!modal) return;
+
+    modal.style.display = 'flex';
+    document.getElementById('picker-products-list').innerHTML = '<p style="color:#888; grid-column:span 2; text-align:center;">Loading store products...</p>';
+
+    const { data: prods } = await supabaseClient.from('products').select('id, name, price, category_id, product_images(url)').eq('is_active', true);
+    allStoreProductsForPicker = prods || [];
+
+    filterPickerProducts();
+};
+
+window.closeProductPickerModal = function () {
+    const modal = document.getElementById('explore-product-picker-modal');
+    if (modal) modal.style.display = 'none';
+    updateSelectedProdTagsUI();
+};
+
+window.filterPickerProducts = function () {
+    const query = (document.getElementById('picker-search-input')?.value || '').toLowerCase().trim();
+    const catId = document.getElementById('picker-category-filter')?.value || '';
+    const listEl = document.getElementById('picker-products-list');
+    if (!listEl) return;
+
+    let filtered = allStoreProductsForPicker.filter(p => {
+        if (catId && p.category_id !== catId) return false;
+        if (query && !p.name.toLowerCase().includes(query)) return false;
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        listEl.innerHTML = '<p style="color:#888; grid-column:span 2; text-align:center; padding:20px;">No products match your filter.</p>';
+        return;
+    }
+
+    let html = '';
+    filtered.forEach(p => {
+        const isChecked = tempSelectedProductIds.includes(p.id);
+        const img = (p.product_images && p.product_images.length > 0) ? p.product_images[0].url : 'assets/mens_denim_banner.png';
+
+        html += `
+        <div onclick="toggleProductInPicker('${p.id}')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:8px; border:1px solid ${isChecked ? '#111' : '#eee'}; background:${isChecked ? '#fdfdfd' : '#fff'}; cursor:pointer; transition:all 0.15s;">
+            <input type="checkbox" ${isChecked ? 'checked' : ''} style="width:16px; height:16px; pointer-events:none;">
+            <img src="${img}" style="width:40px; height:48px; object-fit:cover; border-radius:4px;" alt="${p.name}">
+            <div style="flex:1; overflow:hidden;">
+                <strong style="font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#111;">${p.name}</strong>
+                <span style="font-size:11px; color:#666;">₹${p.price}</span>
+            </div>
+        </div>`;
+    });
+
+    listEl.innerHTML = html;
+    document.getElementById('picker-selected-count').textContent = tempSelectedProductIds.length;
+};
+
+window.toggleProductInPicker = function (prodId) {
+    if (tempSelectedProductIds.includes(prodId)) {
+        tempSelectedProductIds = tempSelectedProductIds.filter(id => id !== prodId);
+    } else {
+        tempSelectedProductIds.push(prodId);
+    }
+    filterPickerProducts();
+};
+
+function updateSelectedProdTagsUI() {
+    const countEl = document.getElementById('explore-selected-prod-count');
+    const tagsEl = document.getElementById('explore-selected-prod-tags');
+    if (countEl) countEl.textContent = tempSelectedProductIds.length;
+    if (!tagsEl) return;
+
+    if (tempSelectedProductIds.length === 0) {
+        tagsEl.innerHTML = '<span style="font-size:11px; color:#888;">No products selected yet.</span>';
+        return;
+    }
+
+    let html = '';
+    tempSelectedProductIds.forEach(id => {
+        const prod = allStoreProductsForPicker.find(p => p.id === id);
+        const name = prod ? prod.name : id.slice(0, 8);
+        html += `
+        <span style="background:#e5e7eb; color:#1f2937; font-size:11px; font-weight:600; padding:3px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;">
+            ${name}
+            <button type="button" onclick="removeTempSelectedProduct('${id}')" style="border:none; background:none; cursor:pointer; font-weight:bold; color:#6b7280; font-size:12px; padding:0;">&times;</button>
+        </span>`;
+    });
+    tagsEl.innerHTML = html;
+}
+
+window.removeTempSelectedProduct = function (id) {
+    tempSelectedProductIds = tempSelectedProductIds.filter(pId => pId !== id);
+    updateSelectedProdTagsUI();
+};
+
+window.loadExploreCardsAdmin = loadExploreCardsAdmin;

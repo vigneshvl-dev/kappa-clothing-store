@@ -1,13 +1,3 @@
--- ==========================================================
--- KAPPA CLOTHING STORE: Complete Stock Reduction System & Fix
--- 1. Deducts the 2 already purchased units of Macsivo Kurta right now
--- 2. Creates the deduct_product_stock() function
--- 3. Creates an AUTOMATIC DATABASE TRIGGER on orders table
---    (Guarantees stock reduces whenever an order is paid)
--- 4. Displays the updated stock so you can immediately verify
--- ==========================================================
-
--- STEP 1: Deduct the 2 purchased units of Macsivo Kurta right now
 do $$
 declare
     v_prod_id uuid;
@@ -16,22 +6,16 @@ begin
     from public.products
     where name ilike '%Macsivo%'
     limit 1;
-
     if v_prod_id is not null then
-        -- Deduct 2 from variant (Size: S, Color: Green)
         update public.product_variants
         set stock_quantity = greatest(0, coalesce(stock_quantity, 0) - 2)
         where product_id = v_prod_id
           and lower(trim(size)) = 's';
-
-        -- Deduct 2 from main product stock
         update public.products
         set stock_quantity = greatest(0, coalesce(stock_quantity, 0) - 2)
         where id = v_prod_id;
     end if;
 end $$;
-
--- STEP 2: Create the RPC function deduct_product_stock
 create or replace function public.deduct_product_stock(p_items jsonb)
 returns jsonb
 language plpgsql
@@ -170,8 +154,6 @@ create trigger trg_deduct_stock_on_order
 after insert or update on public.orders
 for each row
 execute function public.trigger_deduct_stock_on_order();
-
--- STEP 4: Verification - Show the updated stock right now
 select 
     p.name as product_name,
     p.stock_quantity as product_total_stock,

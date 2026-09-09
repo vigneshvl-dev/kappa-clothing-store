@@ -68,16 +68,13 @@ module.exports = async (req, res) => {
                 role: 'customer'
             })
         });
-
         if (!profileRes.ok) {
             const profileErr = await profileRes.text();
             console.warn("Profile upsert warning (trigger may have handled it):", profileRes.status, profileErr);
         } else {
             console.log(`✅ Profile row created for ${email}`);
         }
-
         return res.status(200).json({ success: true, user: { id: signupData.id, email: signupData.email } });
-
     } catch (err) {
         console.error("Error in signup endpoint:", err);
         return res.status(500).json({ error: err.message });

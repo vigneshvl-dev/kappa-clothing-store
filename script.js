@@ -2835,23 +2835,33 @@ async function initStorefront() {
         let womenCategoryIds = [];
 
         if (categories) {
-            // Find Root Categories dynamically (handles "Men", "Men's", "Women", "Women's")
-            const womenRoot = categories.find(c => {
-                const name = (c.name || '').toLowerCase();
-                return name === 'women' || name === "women's" || name === 'girls';
-            });
+            const getDescendants = (catId) => {
+                let ids = [catId];
+                categories.forEach(c => {
+                    if (c.parent_id === catId) {
+                        ids = ids.concat(getDescendants(c.id));
+                    }
+                });
+                return ids;
+            };
 
-            const menRoot = categories.find(c => {
+            const menRoots = categories.filter(c => {
                 const name = (c.name || '').toLowerCase();
-                return name === 'men' || name === "men's" || name === 'boys';
+                return !c.parent_id && (name === 'men' || name === "men's" || name === 'boys' || (name.includes('men') && !name.includes('women')));
             });
+            menRoots.forEach(r => {
+                menCategoryIds = menCategoryIds.concat(getDescendants(r.id));
+            });
+            menCategoryIds = Array.from(new Set(menCategoryIds));
 
-            if (womenRoot) {
-                womenCategoryIds = [womenRoot.id, ...categories.filter(c => c.parent_id === womenRoot.id).map(c => c.id)];
-            }
-            if (menRoot) {
-                menCategoryIds = [menRoot.id, ...categories.filter(c => c.parent_id === menRoot.id).map(c => c.id)];
-            }
+            const womenRoots = categories.filter(c => {
+                const name = (c.name || '').toLowerCase();
+                return !c.parent_id && (name === 'women' || name === "women's" || name === 'girls' || name.includes('women'));
+            });
+            womenRoots.forEach(r => {
+                womenCategoryIds = womenCategoryIds.concat(getDescendants(r.id));
+            });
+            womenCategoryIds = Array.from(new Set(womenCategoryIds));
         }
 
         // 2. FETCH LATEST PRODUCTS
