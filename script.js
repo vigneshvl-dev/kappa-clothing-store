@@ -141,11 +141,15 @@ testDatabaseConnection();
                 window.PRODUCTS = PRODUCTS;
                 localStorage.setItem("kappa_cached_products", JSON.stringify(PRODUCTS));
                 renderCart();
+                renderStorefrontGrids();
             }
         } catch (e) {
             console.error("Error loading products for storefront:", e);
         }
     }
+
+    loadStorefrontProducts();
+
     function updateEditorialCardMedia(card, mediaConfig) {
         if (!card) return;
 
@@ -594,14 +598,20 @@ testDatabaseConnection();
   </div>`;
     }
 
-    const arrivalsGrid = document.getElementById("arrivalsGrid");
-    if (arrivalsGrid) arrivalsGrid.innerHTML = PRODUCTS.map(p => productCard(p, false)).join('');
+    function renderStorefrontGrids() {
+        const arrivalsGrid = document.getElementById("arrivalsGrid");
+        if (arrivalsGrid && Array.isArray(PRODUCTS)) {
+            arrivalsGrid.innerHTML = PRODUCTS.map(p => productCard(p, false)).join('');
+        }
 
-    const trendTrack = document.getElementById("trendTrack");
-    if (trendTrack) {
-        const trendItems = [...PRODUCTS, ...PRODUCTS];
-        trendTrack.innerHTML = trendItems.map(p => productCard(p, true)).join('');
+        const trendTrack = document.getElementById("trendTrack");
+        if (trendTrack && Array.isArray(PRODUCTS)) {
+            const trendItems = [...PRODUCTS, ...PRODUCTS];
+            trendTrack.innerHTML = trendItems.map(p => productCard(p, true)).join('');
+        }
     }
+    window.renderStorefrontGrids = renderStorefrontGrids;
+    renderStorefrontGrids();
 
     /* ---------- RENDER: CATEGORIES ---------- */
     const catGrid = document.getElementById("catGrid");
