@@ -1692,6 +1692,13 @@ window.editProduct = async function (id) {
     document.getElementById('prod-compare-price').value = data.compare_at_price || '';
     document.getElementById('prod-desc').value = data.description || '';
 
+    let tagMap = {};
+    try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
+    const prodTagEl = document.getElementById('prod-tag');
+    if (prodTagEl) {
+        prodTagEl.value = data.tag || tagMap[String(data.id)] || 'NEW';
+    }
+
     const stockTableContainer = document.getElementById('stock-table-container');
     if (data.product_variants && data.product_variants.length > 0) {
         const colors = [...new Set(data.product_variants.map(v => v.color).filter(c => c !== 'Default'))];
