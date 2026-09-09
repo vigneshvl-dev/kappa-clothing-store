@@ -750,7 +750,7 @@ function getRecycledOrders() {
 function saveRecycledOrders(list) {
     try {
         localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify(list));
-    } catch (_) {}
+    } catch (_) { }
 }
 
 window.renderRecycleBinView = function () {
@@ -1218,16 +1218,16 @@ function initProductForm() {
         });
     }
 
-window.removeVariantRow = function (btn) {
-    const row = btn.closest('tr');
-    if (!row) return;
-    row.remove();
-    const tableContainer = document.getElementById('stock-table-container');
-    const remainingRows = tableContainer ? tableContainer.querySelectorAll('.variant-row') : [];
-    if (remainingRows.length === 0 && tableContainer) {
-        tableContainer.innerHTML = '<p style="color:#aaa; text-align:center; padding:15px; font-style:italic;">No variants. Click "Generate Variant Matrix" to add colors & sizes.</p>';
-    }
-};
+    window.removeVariantRow = function (btn) {
+        const row = btn.closest('tr');
+        if (!row) return;
+        row.remove();
+        const tableContainer = document.getElementById('stock-table-container');
+        const remainingRows = tableContainer ? tableContainer.querySelectorAll('.variant-row') : [];
+        if (remainingRows.length === 0 && tableContainer) {
+            tableContainer.innerHTML = '<p style="color:#aaa; text-align:center; padding:15px; font-style:italic;">No variants. Click "Generate Variant Matrix" to add colors & sizes.</p>';
+        }
+    };
 
     if (addProductForm) {
         addProductForm.addEventListener('submit', async (e) => {
@@ -2903,7 +2903,7 @@ async function populateExploreCategoriesDropdown() {
         if (pickerCatSelect) {
             pickerCatSelect.innerHTML = '<option value="">All Categories</option>' + data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         }
-    } catch(e) {}
+    } catch (e) { }
 }
 
 window.onExploreMainCategoryChange = function () {
@@ -3092,7 +3092,7 @@ window.openExploreModal = function (cardId) {
 
             if (card.collection_id) document.getElementById('explore-form-collection-id').value = card.collection_id;
             if (card.destination_url) document.getElementById('explore-form-destination-url').value = card.destination_url;
-            
+
             const displayModeRadio = document.querySelector(`input[name="explore_display_mode"][value="${card.display_mode || 'cover'}"]`);
             if (displayModeRadio) displayModeRadio.checked = true;
 
@@ -3152,14 +3152,12 @@ window.updateExplorePreview = function (overrideUrl) {
         prevImg.style.objectFit = displayMode;
     }
 };
-
 window.previewExploreImageFile = async function (input) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
         input._previewObjectUrl = URL.createObjectURL(file);
         input.croppedBlob = null; // Use original pristine uncompressed file
         updateExplorePreview(input._previewObjectUrl);
-
         if (typeof getImageMetadata === 'function') {
             const meta = await getImageMetadata(file);
             const badge = document.getElementById('explore-img-meta-badge');
@@ -3170,15 +3168,12 @@ window.previewExploreImageFile = async function (input) {
         }
     }
 };
-
 window.saveExploreCardForm = async function (e) {
     e.preventDefault();
-
     const submitBtn = document.getElementById('explore-submit-btn');
     const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Saving Explore Card...';
     submitBtn.disabled = true;
-
     try {
         const id = document.getElementById('explore-form-id').value;
         const title = document.getElementById('explore-form-title').value.trim();
@@ -3187,22 +3182,18 @@ window.saveExploreCardForm = async function (e) {
         const button_text = document.getElementById('explore-form-btn-text').value.trim() || 'SHOP NOW';
         const display_order = parseInt(document.getElementById('explore-form-order').value) || 1;
         const is_active = document.getElementById('explore-form-status').value === 'true';
-
         const selection_type = document.querySelector('input[name="selection_type"]:checked')?.value || 'category';
         const category_id = document.getElementById('explore-form-category-id')?.value || null;
         const main_category_id = document.getElementById('explore-form-main-category-id')?.value || null;
         const collection_id = document.getElementById('explore-form-collection-id')?.value || 'new_arrivals';
         const destination_url = document.getElementById('explore-form-destination-url')?.value.trim() || '';
         const display_mode = document.querySelector('input[name="explore_display_mode"]:checked')?.value || 'cover';
-
         let image_url = document.getElementById('explore-form-image-url').value.trim();
         if (image_url.startsWith('blob:')) image_url = '';
-
         const imageFileInput = document.getElementById('explore-form-image-file');
         const rawFile = imageFileInput ? imageFileInput.files[0] : null;
         const croppedBlob = imageFileInput ? imageFileInput.croppedBlob : null;
         const imageFile = croppedBlob ? new File([croppedBlob], rawFile ? rawFile.name : "explore_card.png", { type: croppedBlob.type || "image/png" }) : rawFile;
-
         if (imageFile) {
             try {
                 image_url = await uploadHomepageFile(imageFile, 'explore_card');
@@ -3214,11 +3205,9 @@ window.saveExploreCardForm = async function (e) {
                 return;
             }
         }
-
         if (!image_url) {
             image_url = 'assets/mens_denim_banner.png';
         }
-
         const cardData = {
             title,
             subtitle,
@@ -3236,9 +3225,7 @@ window.saveExploreCardForm = async function (e) {
             display_mode,
             updated_at: new Date().toISOString()
         };
-
         let savedCard = null;
-
         if (id && !id.startsWith('demo-')) {
             const { data, error } = await supabaseClient
                 .from('explore_cards')
@@ -3257,8 +3244,6 @@ window.saveExploreCardForm = async function (e) {
 
             if (!error && data) savedCard = data;
         }
-
-        // Sync with LocalStorage & Homepage Settings JSON
         let localCards = JSON.parse(localStorage.getItem('kappa_explore_cards') || '[]');
         if (id) {
             const idx = localCards.findIndex(c => c.id === id);
@@ -3275,7 +3260,7 @@ window.saveExploreCardForm = async function (e) {
                 const configBlob = new Blob([JSON.stringify(currentHomepageConfig, null, 2)], { type: 'application/json' });
                 await supabaseClient.storage.from('product-images').upload('homepage_settings.json', configBlob, { upsert: true, cacheControl: '0' });
             }
-        } catch(e) {}
+        } catch (e) { }
 
         alert('✅ Explore Card saved successfully!');
         closeExploreModal();
@@ -3289,7 +3274,6 @@ window.saveExploreCardForm = async function (e) {
         submitBtn.disabled = false;
     }
 };
-
 window.deleteExploreCard = async function (cardId) {
     if (!confirm('Are you sure you want to delete this Explore Card?')) return;
 
@@ -3302,11 +3286,10 @@ window.deleteExploreCard = async function (cardId) {
         localStorage.setItem('kappa_explore_cards', JSON.stringify(local));
 
         await loadExploreCardsAdmin();
-    } catch(e) {
+    } catch (e) {
         alert('Error deleting card: ' + e.message);
     }
 };
-
 window.duplicateExploreCard = async function (cardId) {
     const card = currentAdminExploreCards.find(c => c.id === cardId);
     if (!card) return;
@@ -3364,10 +3347,6 @@ window.reorderExploreCard = async function (cardId, delta) {
 
     renderExploreCardsAdminTable(currentAdminExploreCards);
 };
-
-// ==========================================
-// SPECIFIC PRODUCTS PICKER MODAL CONTROLLER
-// ==========================================
 window.openProductPickerModal = async function () {
     const modal = document.getElementById('explore-product-picker-modal');
     if (!modal) return;
@@ -3377,38 +3356,31 @@ window.openProductPickerModal = async function () {
 
     const { data: prods } = await supabaseClient.from('products').select('id, name, price, category_id, product_images(url)').eq('is_active', true);
     allStoreProductsForPicker = prods || [];
-
     filterPickerProducts();
 };
-
 window.closeProductPickerModal = function () {
     const modal = document.getElementById('explore-product-picker-modal');
     if (modal) modal.style.display = 'none';
     updateSelectedProdTagsUI();
 };
-
 window.filterPickerProducts = function () {
     const query = (document.getElementById('picker-search-input')?.value || '').toLowerCase().trim();
     const catId = document.getElementById('picker-category-filter')?.value || '';
     const listEl = document.getElementById('picker-products-list');
     if (!listEl) return;
-
     let filtered = allStoreProductsForPicker.filter(p => {
         if (catId && p.category_id !== catId) return false;
         if (query && !p.name.toLowerCase().includes(query)) return false;
         return true;
     });
-
     if (filtered.length === 0) {
         listEl.innerHTML = '<p style="color:#888; grid-column:span 2; text-align:center; padding:20px;">No products match your filter.</p>';
         return;
     }
-
     let html = '';
     filtered.forEach(p => {
         const isChecked = tempSelectedProductIds.includes(p.id);
         const img = (p.product_images && p.product_images.length > 0) ? p.product_images[0].url : 'assets/mens_denim_banner.png';
-
         html += `
         <div onclick="toggleProductInPicker('${p.id}')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:8px; border:1px solid ${isChecked ? '#111' : '#eee'}; background:${isChecked ? '#fdfdfd' : '#fff'}; cursor:pointer; transition:all 0.15s;">
             <input type="checkbox" ${isChecked ? 'checked' : ''} style="width:16px; height:16px; pointer-events:none;">
@@ -3419,11 +3391,9 @@ window.filterPickerProducts = function () {
             </div>
         </div>`;
     });
-
     listEl.innerHTML = html;
     document.getElementById('picker-selected-count').textContent = tempSelectedProductIds.length;
 };
-
 window.toggleProductInPicker = function (prodId) {
     if (tempSelectedProductIds.includes(prodId)) {
         tempSelectedProductIds = tempSelectedProductIds.filter(id => id !== prodId);
@@ -3432,18 +3402,15 @@ window.toggleProductInPicker = function (prodId) {
     }
     filterPickerProducts();
 };
-
 function updateSelectedProdTagsUI() {
     const countEl = document.getElementById('explore-selected-prod-count');
     const tagsEl = document.getElementById('explore-selected-prod-tags');
     if (countEl) countEl.textContent = tempSelectedProductIds.length;
     if (!tagsEl) return;
-
     if (tempSelectedProductIds.length === 0) {
         tagsEl.innerHTML = '<span style="font-size:11px; color:#888;">No products selected yet.</span>';
         return;
     }
-
     let html = '';
     tempSelectedProductIds.forEach(id => {
         const prod = allStoreProductsForPicker.find(p => p.id === id);
@@ -3456,10 +3423,8 @@ function updateSelectedProdTagsUI() {
     });
     tagsEl.innerHTML = html;
 }
-
 window.removeTempSelectedProduct = function (id) {
     tempSelectedProductIds = tempSelectedProductIds.filter(pId => pId !== id);
     updateSelectedProdTagsUI();
 };
-
-window.loadExploreCardsAdmin = loadExploreCardsAdmin;
+window.loadExploreCardsAdmin = loadExploreCardsAdmin;

@@ -722,7 +722,17 @@
         async function loadMyOrders() {
             let localOrders = [];
             try {
-                localOrders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('kappa_orders')) {
+                        try {
+                            const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+                            if (Array.isArray(parsed)) {
+                                localOrders = localOrders.concat(parsed);
+                            }
+                        } catch (err) {}
+                    }
+                }
             } catch (e) {
                 localOrders = [];
             }
@@ -737,27 +747,41 @@
                         .order('created_at', { ascending: false });
 
                     if (!error && data) {
-                        dbOrders = data.map(o => ({
-                            orderId: o.id,
-                            customer: o.customer_details || {},
-                            shipping: o.shipping_address || {},
-                            refund_details: o.refund_details || o.customer_details?.refund_details || null,
-                            items: (o.order_items || []).map(item => ({
-                                id: item.product_id,
-                                name: item.products?.name || item.name || 'Product',
-                                price: item.price || item.products?.price || 0,
-                                size: item.size || 'Default',
-                                color: item.color || 'N/A',
-                                qty: item.quantity || 1,
-                                img: (item.products?.product_images && item.products.product_images[0]?.url) || ''
-                            })),
-                            subtotal: Number(o.total_amount || 0),
-                            discount: 0,
-                            shippingCost: 0,
-                            total: Number(o.total_amount || 0),
-                            status: o.status === 'paid' ? 'Completed & Paid' : (o.status || 'Order Placed'),
-                            date: o.created_at || new Date().toISOString()
-                        }));
+                        dbOrders = data.map(o => {
+                            const rawItems = (o.order_items && o.order_items.length > 0)
+                                ? o.order_items.map(item => ({
+                                    id: item.product_id,
+                                    name: item.products?.name || item.name || 'Product',
+                                    price: item.price || item.products?.price || 0,
+                                    size: item.size || 'Default',
+                                    color: item.color || 'N/A',
+                                    qty: item.quantity || 1,
+                                    img: (item.products?.product_images && item.products.product_images[0]?.url) || item.image_url || item.img || ''
+                                }))
+                                : (Array.isArray(o.items) ? o.items.map(item => ({
+                                    id: item.id || item.product_id,
+                                    name: item.name || 'Product',
+                                    price: item.price || 0,
+                                    size: item.size || 'Default',
+                                    color: item.color || 'N/A',
+                                    qty: item.qty || item.quantity || 1,
+                                    img: item.img || item.image_url || ''
+                                })) : []);
+
+                            return {
+                                orderId: o.id,
+                                customer: o.customer_details || {},
+                                shipping: o.shipping_address || {},
+                                refund_details: o.refund_details || o.customer_details?.refund_details || null,
+                                items: rawItems,
+                                subtotal: Number(o.total_amount || 0),
+                                discount: 0,
+                                shippingCost: 0,
+                                total: Number(o.total_amount || 0),
+                                status: o.status === 'paid' ? 'Completed & Paid' : (o.status || 'Order Placed'),
+                                date: o.created_at || new Date().toISOString()
+                            };
+                        });
                     }
                 } catch (e) {
                     console.warn('Could not load DB orders:', e);

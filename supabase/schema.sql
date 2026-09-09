@@ -1,6 +1,3 @@
--- Supabase Database Schema for Kappa Clothing Store
-
--- 1. PROFILES (extends Supabase auth.users)
 create table if not exists public.profiles (
     id uuid references auth.users on delete cascade primary key,
     full_name text,
@@ -8,8 +5,6 @@ create table if not exists public.profiles (
     role text not null default 'customer',
     created_at timestamp with time zone default now()
 );
-
--- Enable RLS on profiles
 alter table public.profiles enable row level security;
 
 -- Policies for profiles

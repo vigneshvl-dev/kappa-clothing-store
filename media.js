@@ -8,7 +8,7 @@ let currentHomepageConfig = null;
 async function loadHomepageSettings() {
     const slideContainer = document.getElementById('hero-slides-editor-container');
     const reelsContainer = document.getElementById('reels-editor-container');
-    
+
     if (!slideContainer || !reelsContainer) return;
 
     slideContainer.innerHTML = '<p style="color:#666;">Loading homepage settings...</p>';
@@ -116,8 +116,6 @@ function renderHomepageForm() {
             womenImages = womenConfig.images || [];
             womenVideo = womenConfig.video || '';
         }
-
-        // Render image list for Men
         if (menImages.length > 0) {
             menImages.forEach(imgUrl => addEditorialImageRowElement('men', imgUrl));
         } else {
@@ -175,7 +173,7 @@ function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', 
     const div = document.createElement('div');
     div.className = 'hero-slide-row';
     div.style = 'border:1px solid #eee; border-radius:8px; padding:15px; background:#fafafa; display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:16px; align-items:center;';
-    
+
     const getPreviewSrc = (url) => url ? url : 'assets/duplicate.png';
 
     div.innerHTML = `
@@ -212,7 +210,7 @@ function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', 
         </div>
         <button type="button" class="btn-delete" style="background:#ff4d4d; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;" onclick="this.closest('.hero-slide-row').remove()">Delete</button>
     `;
-    
+
     slideContainer.appendChild(div);
 }
 
@@ -255,7 +253,7 @@ async function previewSlideFile(input, type) {
         const img = row.querySelector(`.${type}-preview-img`);
         img.src = URL.createObjectURL(file);
         input.croppedBlob = null; // Use original pristine uncompressed file by default
-        
+
         const meta = await getImageMetadata(file);
         if (meta) {
             let badge = row.querySelector(`.${type}-meta-badge`);
@@ -314,7 +312,7 @@ function addReelCardElement(videoUrl = '', posterUrl = '', index) {
     const div = document.createElement('div');
     div.className = 'card reel-card';
     div.style = 'padding:15px; border:1px solid #eee; border-radius:8px; background:#fcfcfc; display:flex; flex-direction:column; justify-content:space-between; position:relative;';
-    
+
     div.innerHTML = `
         <button type="button" class="btn-delete" style="position:absolute; top:10px; right:10px; background:#ff4d4d; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px;" onclick="this.closest('.reel-card').remove()">Delete</button>
         <h3 style="margin-top:0; font-size:14px; font-weight:700; border-bottom:1px solid #eee; padding-bottom:6px; margin-bottom:12px; padding-right:50px;">Reel Card</h3>
@@ -432,7 +430,7 @@ function triggerCropEditorialImage(imgElement) {
     const fileInput = row.querySelector('.editorial-image-file');
 
     if (typeof openCropper === 'function') {
-        openCropper(src, 4/5, (croppedBlob, croppedUrl) => {
+        openCropper(src, 4 / 5, (croppedBlob, croppedUrl) => {
             imgElement.src = croppedUrl;
             fileInput.croppedBlob = croppedBlob;
         });
