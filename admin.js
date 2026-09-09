@@ -1245,9 +1245,11 @@ function initProductForm() {
                 let targetProductId;
                 let startingImagePosition = 0;
 
+                const tagVal = (document.getElementById('prod-tag')?.value || 'NEW').trim().toUpperCase();
+
                 if (editingId) {
                     targetProductId = editingId;
-                    const { error: updateError } = await supabaseClient.from('products').update({
+                    const updateObj = {
                         name: document.getElementById('prod-name').value.trim(),
                         slug: generateSlug(document.getElementById('prod-name').value.trim()),
                         description: document.getElementById('prod-desc').value.trim(),
@@ -1255,9 +1257,24 @@ function initProductForm() {
                         compare_at_price: parseFloat(document.getElementById('prod-compare-price').value) || null,
                         category_id: document.getElementById('prod-category').value,
                         stock_quantity: totalBaseStock
-                    }).eq('id', editingId);
+                    };
+                    try { updateObj.tag = tagVal; } catch (_) {}
+
+                    let { error: updateError } = await supabaseClient.from('products').update(updateObj).eq('id', editingId);
+                    if (updateError && updateError.message && updateError.message.includes('tag')) {
+                        delete updateObj.tag;
+                        const retry = await supabaseClient.from('products').update(updateObj).eq('id', editingId);
+                        updateError = retry.error;
+                    }
 
                     if (updateError) throw updateError;
+
+                    // Store tag locally as fallback
+                    try {
+                        const tagsMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}');
+                        tagsMap[String(editingId)] = tagVal;
+                        localStorage.setItem('kappa_product_tags', JSON.stringify(tagsMap));
+                    } catch (_) {}
 
                     await supabaseClient.from('product_variants').delete().eq('product_id', editingId);
 
@@ -1278,7 +1295,7 @@ function initProductForm() {
                     }
 
                 } else {
-                    const { data: newProduct, error: insertError } = await supabaseClient.from('products').insert([{
+                    const insertObj = {
                         name: document.getElementById('prod-name').value.trim(),
                         slug: generateSlug(document.getElementById('prod-name').value.trim()),
                         description: document.getElementById('prod-desc').value.trim(),
@@ -1287,10 +1304,26 @@ function initProductForm() {
                         category_id: document.getElementById('prod-category').value,
                         stock_quantity: totalBaseStock,
                         is_active: true
-                    }]).select().single();
+                    };
+                    try { insertObj.tag = tagVal; } catch (_) {}
+
+                    let { data: newProduct, error: insertError } = await supabaseClient.from('products').insert([insertObj]).select().single();
+                    if (insertError && insertError.message && insertError.message.includes('tag')) {
+                        delete insertObj.tag;
+                        const retry = await supabaseClient.from('products').insert([insertObj]).select().single();
+                        insertError = retry.error;
+                        newProduct = retry.data;
+                    }
 
                     if (insertError) throw insertError;
                     targetProductId = newProduct.id;
+
+                    // Store tag locally as fallback
+                    try {
+                        const tagsMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}');
+                        tagsMap[String(targetProductId)] = tagVal;
+                        localStorage.setItem('kappa_product_tags', JSON.stringify(tagsMap));
+                    } catch (_) {}
 
                     if (variantRows.length > 0) {
                         const variantsToInsert = Array.from(variantRows).map(row => ({
