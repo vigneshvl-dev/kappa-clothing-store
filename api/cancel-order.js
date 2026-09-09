@@ -12,7 +12,6 @@ module.exports = async (req, res) => {
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
         return res.status(500).json({ error: "Supabase credentials not configured on server" });
     }
-
     try {
         console.log(`Updating order ${orderId} status to cancelled in Supabase via service role...`);
         const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
@@ -27,16 +26,13 @@ module.exports = async (req, res) => {
                 status: 'cancelled'
             })
         });
-
         if (!updateRes.ok) {
             const updateErr = await updateRes.text();
             console.error("Failed to cancel order status in Supabase:", updateRes.status, updateErr);
             return res.status(updateRes.status).json({ error: "Failed to update status: " + updateErr });
         }
-
         console.log(`✅ Order ${orderId} successfully marked as CANCELLED in database.`);
         return res.status(200).json({ success: true, message: "Order status updated to cancelled" });
-
     } catch (err) {
         console.error("Error in cancel-order endpoint:", err);
         return res.status(500).json({ error: err.message });

@@ -3142,12 +3142,22 @@ window.updateExplorePreview = function () {
 
 window.previewExploreImageFile = function (input) {
     if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById('explore-form-image-url').value = e.target.result;
-            updateExplorePreview();
-        };
-        reader.readAsDataURL(input.files[0]);
+        const file = input.files[0];
+        const objectUrl = URL.createObjectURL(file);
+        if (typeof openCropper === 'function') {
+            openCropper(objectUrl, 3 / 4, (croppedBlob, croppedUrl) => {
+                document.getElementById('explore-form-image-url').value = croppedUrl;
+                input.croppedBlob = croppedBlob;
+                updateExplorePreview();
+            });
+        } else {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('explore-form-image-url').value = e.target.result;
+                updateExplorePreview();
+            };
+            reader.readAsDataURL(file);
+        }
     }
 };
 
@@ -3176,7 +3186,9 @@ window.saveExploreCardForm = async function (e) {
 
         let image_url = document.getElementById('explore-form-image-url').value.trim();
         const imageFileInput = document.getElementById('explore-form-image-file');
-        const imageFile = imageFileInput ? imageFileInput.files[0] : null;
+        const rawFile = imageFileInput ? imageFileInput.files[0] : null;
+        const croppedBlob = imageFileInput ? imageFileInput.croppedBlob : null;
+        const imageFile = croppedBlob ? new File([croppedBlob], rawFile ? rawFile.name : "explore_card.jpg", { type: "image/jpeg" }) : rawFile;
 
         if (imageFile) {
             try {

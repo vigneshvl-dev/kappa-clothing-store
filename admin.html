@@ -814,22 +814,27 @@
         function saveCroppedImage() {
             if (!activeCropper) return;
 
-            // Get the cropped canvas
-            // Aspect ratio is handled dynamically by getting cropped area width/height ratio
-            const aspect = activeCropper.getData().width / activeCropper.getData().height;
+            // Get high resolution cropped canvas (preserves native cropped image crispness up to 3840px)
             const canvas = activeCropper.getCroppedCanvas({
-                width: 800,
-                height: Math.round(800 / aspect)
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+                maxWidth: 3840,
+                maxHeight: 3840
             });
 
+            if (!canvas) {
+                closeCropperModal();
+                return;
+            }
+
+            // Output ultra-high visual fidelity JPEG at 0.98 quality (near-lossless crispness)
             canvas.toBlob((blob) => {
                 if (blob && activeCropCallback) {
-                    // Call callback with cropped blob and a new file URL
                     const croppedFileUrl = URL.createObjectURL(blob);
                     activeCropCallback(blob, croppedFileUrl);
                 }
                 closeCropperModal();
-            }, 'image/jpeg', 0.9);
+            }, 'image/jpeg', 0.98);
         }
     </script>
 
