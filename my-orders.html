@@ -1086,12 +1086,11 @@
         }
 
         // ── CART FUNCTIONALITY ──
-        // Clear cart on fresh session load (when user first opens the website)
-        if (!sessionStorage.getItem("kappa_session_active")) {
-            localStorage.removeItem("kappa_cart");
-            sessionStorage.setItem("kappa_session_active", "true");
+        // Determine user-aware cart key (same logic as script.js / window.getCartKey)
+        function getLocalCartKey() {
+            return (typeof window.getCartKey === 'function') ? window.getCartKey() : 'kappa_cart_guest';
         }
-        let cart = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
+        let cart = JSON.parse(localStorage.getItem(getLocalCartKey()) || "[]");
         let discount = 0;
         let PRODUCTS = [];
         try {
@@ -1215,9 +1214,9 @@
             const inc = e.target.dataset.inc;
             const dec = e.target.dataset.dec;
             const rem = e.target.dataset.remove;
-            if (inc !== undefined) { cart[inc].qty = (cart[inc].qty || 1) + 1; localStorage.setItem('kappa_cart', JSON.stringify(cart)); renderCart(); }
-            if (dec !== undefined) { cart[dec].qty = (cart[dec].qty || 1) - 1; if (cart[dec].qty <= 0) cart.splice(dec, 1); localStorage.setItem('kappa_cart', JSON.stringify(cart)); renderCart(); }
-            if (rem !== undefined) { cart.splice(rem, 1); localStorage.setItem('kappa_cart', JSON.stringify(cart)); renderCart(); }
+            if (inc !== undefined) { cart[inc].qty = (cart[inc].qty || 1) + 1; localStorage.setItem(getLocalCartKey(), JSON.stringify(cart)); renderCart(); }
+            if (dec !== undefined) { cart[dec].qty = (cart[dec].qty || 1) - 1; if (cart[dec].qty <= 0) cart.splice(dec, 1); localStorage.setItem(getLocalCartKey(), JSON.stringify(cart)); renderCart(); }
+            if (rem !== undefined) { cart.splice(rem, 1); localStorage.setItem(getLocalCartKey(), JSON.stringify(cart)); renderCart(); }
         });
 
         // Promo code

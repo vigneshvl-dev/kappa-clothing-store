@@ -110,7 +110,12 @@ testDatabaseConnection();
     }
 
     /* ---------- STATE ---------- */
-    let cart = JSON.parse(localStorage.getItem("kappa_cart") || "[]");     // {id, size, qty}
+    // Cart key is per-user so different accounts never share a cart.
+    function getCartKey() {
+        const uid = currentUserSession && currentUserSession.user && currentUserSession.user.id;
+        return uid ? `kappa_cart_${uid}` : 'kappa_cart_guest';
+    }
+    let cart = JSON.parse(localStorage.getItem('kappa_cart_guest') || "[]");  // {id, size, qty}
     let wishlist = []; // [id]
     let discount = 0;
     let PRODUCTS = []; // Will be populated by storefront loader
@@ -1138,9 +1143,10 @@ testDatabaseConnection();
         showToast(`${finalName} added to cart`);
     }
     window.addToCart = addToCart;
+    window.getCartKey = getCartKey;  // Expose so product.html can use the same user-aware key
 
     function renderCart() {
-        localStorage.setItem("kappa_cart", JSON.stringify(cart));
+        localStorage.setItem(getCartKey(), JSON.stringify(cart));
         const wrap = document.getElementById("cartItems");
         const cartTotal = cart.reduce((a, c) => a + c.qty, 0);
         const cartCountEl = document.getElementById("cartCount");
@@ -1943,6 +1949,7 @@ testDatabaseConnection();
 
     // Listen for auth state changes (covers Google OAuth redirect)
     supabaseClient.auth.onAuthStateChange((event, session) => {
+        const prevSession = currentUserSession;
         currentUserSession = session;
         const profileBtn = document.getElementById('profileBtn');
         const profilePopup = document.getElementById('profilePopup');
@@ -1967,6 +1974,27 @@ testDatabaseConnection();
                 fullName: displayName,
                 loggedIn: true
             });
+
+            // ── CART: load this user's personal cart ──
+            if (event === 'SIGNED_IN' || !prevSession) {
+                const userCartKey = `kappa_cart_${session.user.id}`;
+                const savedUserCart = JSON.parse(localStorage.getItem(userCartKey) || '[]');
+                // Merge any guest-cart items that were added before login
+                const guestCart = JSON.parse(localStorage.getItem('kappa_cart_guest') || '[]');
+                if (guestCart.length > 0) {
+                    guestCart.forEach(gItem => {
+                        const existing = savedUserCart.find(u => u.id === gItem.id && u.size === gItem.size && u.color === gItem.color);
+                        if (existing) {
+                            existing.qty = (existing.qty || 1) + (gItem.qty || 1);
+                        } else {
+                            savedUserCart.push(gItem);
+                        }
+                    });
+                    localStorage.removeItem('kappa_cart_guest');
+                }
+                cart = savedUserCart;
+                renderCart();
+            }
 
             if (event === 'SIGNED_IN') {
                 if (localStorage.getItem('kappa_show_congrats_popup') === '1') {
@@ -2039,6 +2067,9 @@ testDatabaseConnection();
             if (panelSignup) panelSignup.classList.remove('active');
             if (panelDashboard) panelDashboard.classList.add('active');
         } else {
+            // ── CART: clear in-memory cart on sign-out so next user starts fresh ──
+            cart = [];
+            renderCart();
             clearUserFromLocalStorage();
             if (profileBtn) profileBtn.style.color = '';
             if (profilePopup) profilePopup.classList.remove('open');

@@ -2617,8 +2617,10 @@ window.handleAddToCart = function handleAddToCart() {
     };
 
     // Directly write to localStorage — reliable, no IIFE dependency
+    // Use the user-aware cart key so different accounts never share a cart.
     try {
-        let existingCart = JSON.parse(localStorage.getItem('kappa_cart') || '[]');
+        const cartKey = (typeof window.getCartKey === 'function') ? window.getCartKey() : 'kappa_cart_guest';
+        let existingCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
         const found = existingCart.find(c =>
             c.id == pd.id && c.size === sSize && c.color === sColor
         );
@@ -2627,7 +2629,7 @@ window.handleAddToCart = function handleAddToCart() {
         } else {
             existingCart.push(newItem);
         }
-        localStorage.setItem('kappa_cart', JSON.stringify(existingCart));
+        localStorage.setItem(cartKey, JSON.stringify(existingCart));
         console.log('✅ Added to cart:', pd.name, 'size:', sSize, 'color:', sColor, 'qty:', qty);
     } catch (e) {
         console.error('Failed to save cart:', e);

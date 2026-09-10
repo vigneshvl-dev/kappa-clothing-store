@@ -956,6 +956,13 @@
             await handleProceedToPayment(event);
         }
 
+        // Helper: get the per-user cart key (mirrors script.js logic)
+        async function getCartKey() {
+            const { data } = await supabaseClient.auth.getUser();
+            const uid = data && data.user && data.user.id;
+            return uid ? `kappa_cart_${uid}` : 'kappa_cart_guest';
+        }
+
         async function loadCheckoutDetails() {
             try {
                 const buyNowItemStr = localStorage.getItem("kappa_buy_now_item");
@@ -963,8 +970,9 @@
                     const buyNowItem = JSON.parse(buyNowItemStr);
                     cartItems = [{ ...buyNowItem, qty: buyNowItem.qty || 1 }];
                 } else {
-                    // Always read from the main cart (kappa_cart) — single source of truth
-                    cartItems = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
+                    // Always read from the user's personal cart — single source of truth
+                    const cartKey = await getCartKey();
+                    cartItems = JSON.parse(localStorage.getItem(cartKey) || "[]");
                     // Merge qty: kappa_cart stores each entry as qty:1, group by id+size+color
                     const merged = [];
                     cartItems.forEach(item => {
@@ -1062,14 +1070,15 @@
             document.getElementById('bill-zip').value = addr.pin;
         }
 
-        function removeSummaryItem(idx) {
+        async function removeSummaryItem(idx) {
             const removed = cartItems[idx];
             cartItems.splice(idx, 1);
 
             // Sync removal back to kappa_cart and kappa_buy_now_item
             try {
                 localStorage.removeItem("kappa_buy_now_item");
-                let raw = JSON.parse(localStorage.getItem("kappa_cart") || "[]");
+                const cartKey = await getCartKey();
+                let raw = JSON.parse(localStorage.getItem(cartKey) || "[]");
                 // Remove all matching entries (there may be multiple qty:1 entries)
                 let removedCount = removed.qty || 1;
                 raw = raw.filter(item => {
@@ -1079,7 +1088,7 @@
                     }
                     return true;
                 });
-                localStorage.setItem("kappa_cart", JSON.stringify(raw));
+                localStorage.setItem(cartKey, JSON.stringify(raw));
             } catch (e) { }
 
             renderSummary();
@@ -1486,7 +1495,8 @@
                 localStorage.setItem('kappa_orders', JSON.stringify(orders));
             }
 
-            localStorage.removeItem('kappa_cart');
+            const cartKey = await getCartKey();
+            localStorage.removeItem(cartKey);
             localStorage.removeItem('kappa_checkout_cart');
             localStorage.removeItem('kappa_buy_now_item');
             localStorage.removeItem('kappa_checkout_shipping');
