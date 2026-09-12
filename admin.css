@@ -437,6 +437,21 @@ textarea.admin-input {
     color: #15803d;
 }
 
+.trend-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.trend-purple {
+    background: #f3e8ff;
+    color: #7e22ce;
+}
+
+.trend-emerald {
+    background: #d1fae5;
+    color: #047857;
+}
+
 .trend-sub {
     color: #9ca3af;
     font-weight: 500;
