@@ -150,21 +150,6 @@ function renderHomepageForm() {
         }
     }
 
-    // 5. Render Shop Category Banners (MEN & WOMEN)
-    const categoryBanners = currentHomepageConfig.categoryBanners || {};
-    const menBannerUrl = typeof categoryBanners.men === 'string' ? categoryBanners.men : (categoryBanners.men?.url || 'assets/mens_denim_banner.png');
-    const womenBannerUrl = typeof categoryBanners.women === 'string' ? categoryBanners.women : (categoryBanners.women?.url || 'assets/WOMENFASHION.png');
-
-    const menBannerInput = document.getElementById('category-banner-men-url');
-    const menBannerPreview = document.getElementById('category-banner-men-preview');
-    if (menBannerInput) menBannerInput.value = menBannerUrl;
-    if (menBannerPreview) menBannerPreview.src = menBannerUrl || 'assets/mens_denim_banner.png';
-
-    const womenBannerInput = document.getElementById('category-banner-women-url');
-    const womenBannerPreview = document.getElementById('category-banner-women-preview');
-    if (womenBannerInput) womenBannerInput.value = womenBannerUrl;
-    if (womenBannerPreview) womenBannerPreview.src = womenBannerUrl || 'assets/WOMENFASHION.png';
-
 
 }
 
@@ -447,30 +432,9 @@ function previewEditorialVideo(input, gender) {
     }
 }
 
-async function previewCategoryBanner(input, gender) {
-    const file = input.files[0];
-    const preview = document.getElementById(`category-banner-${gender}-preview`);
-    if (file && preview) {
-        preview.src = URL.createObjectURL(file);
-        input.croppedBlob = null; // Use original pristine uncompressed file by default
-
-        const meta = await getImageMetadata(file);
-        if (meta) {
-            let badge = document.getElementById(`category-banner-${gender}-meta-badge`);
-            if (!badge) {
-                badge = document.createElement('div');
-                badge.id = `category-banner-${gender}-meta-badge`;
-                preview.parentElement.appendChild(badge);
-            }
-            badge.innerHTML = `<span class="img-meta-pill" style="display:inline-flex; align-items:center; gap:5px; background:#1e293b; color:#f8fafc; font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; margin-top:4px; border:1px solid #334155;">📷 ${meta.width}×${meta.height} px • ${meta.size} • <strong style="color:#fbbf24;">${meta.format}</strong></span>`;
-        }
-    }
-}
-
 window.addEditorialImageRow = addEditorialImageRow;
 window.previewEditorialImage = previewEditorialImage;
 window.previewEditorialVideo = previewEditorialVideo;
-window.previewCategoryBanner = previewCategoryBanner;
 
 
 
@@ -603,41 +567,13 @@ async function saveHomepageSettings() {
             editorialWomenVideo = await uploadHomepageFile(womenVideoFile, 'editorial_women_video');
         }
 
-        // 5. Gather Shop Category Banners for MEN & WOMEN
-        let menBannerUrl = document.getElementById('category-banner-men-url')?.value.trim() || '';
-        const menBannerFileInput = document.getElementById('category-banner-men-file');
-        const menBannerFile = menBannerFileInput ? menBannerFileInput.files[0] : null;
-        const menBannerCropped = menBannerFileInput ? menBannerFileInput.croppedBlob : null;
-
-        if (menBannerCropped) {
-            const fileToUpload = new File([menBannerCropped], menBannerFile ? menBannerFile.name : "men_banner.png", { type: menBannerCropped.type || "image/png" });
-            menBannerUrl = await uploadHomepageFile(fileToUpload, 'banner_men');
-        } else if (menBannerFile) {
-            menBannerUrl = await uploadHomepageFile(menBannerFile, 'banner_men');
-        }
-
-        let womenBannerUrl = document.getElementById('category-banner-women-url')?.value.trim() || '';
-        const womenBannerFileInput = document.getElementById('category-banner-women-file');
-        const womenBannerFile = womenBannerFileInput ? womenBannerFileInput.files[0] : null;
-        const womenBannerCropped = womenBannerFileInput ? womenBannerFileInput.croppedBlob : null;
-
-        if (womenBannerCropped) {
-            const fileToUpload = new File([womenBannerCropped], womenBannerFile ? womenBannerFile.name : "women_banner.png", { type: womenBannerCropped.type || "image/png" });
-            womenBannerUrl = await uploadHomepageFile(fileToUpload, 'banner_women');
-        } else if (womenBannerFile) {
-            womenBannerUrl = await uploadHomepageFile(womenBannerFile, 'banner_women');
-        }
 
 
-
+        
         const newConfig = {
             heroSlides,
             reels,
             storePromoVideo,
-            categoryBanners: {
-                men: menBannerUrl || 'assets/mens_denim_banner.png',
-                women: womenBannerUrl || 'assets/WOMENFASHION.png'
-            },
             editorial: {
                 men: {
                     images: menImages,

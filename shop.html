@@ -513,10 +513,6 @@
         </div>
     </div>
 
-    <!-- TOP HERO BANNER (FULL WIDTH AT TOP) -->
-    <div id="top-hero-banner" style="display: none; width: 100%; margin-top: 130px; margin-bottom: 15px; padding: 0;">
-        <img src="assets/mens_denim_banner.png" alt="MENS DENIM" style="width: 100%; height: auto; display: block;">
-    </div>
 
     <!-- EXPLORE SECTION (DYNAMIC CAROUSEL / GRID) -->
     <section id="explore-section">
@@ -1448,44 +1444,6 @@
             document.getElementById('current-category-title').innerText = categoryName.toUpperCase();
             document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading...</div>';
 
-            // Dynamic Category Banner Display (Single Top Full-Width Banner)
-            const bannerTopDiv = document.getElementById('top-hero-banner');
-            const bannerImg = bannerTopDiv ? bannerTopDiv.querySelector('img') : null;
-            const shopLayout = document.querySelector('.shop-layout');
-            const catNameUpper = (categoryName || '').toUpperCase();
-
-            let isMenCategory = catNameUpper.includes('MEN') || catNameUpper.includes('BOY');
-            let isWomenCategory = catNameUpper.includes('WOMEN') || catNameUpper.includes('GIRL');
-
-            if (!isMenCategory && !isWomenCategory && categoryId && allCategoriesData.length > 0) {
-                const catObj = allCategoriesData.find(c => c.id === categoryId);
-                if (catObj && catObj.parent_id) {
-                    const parentCat = allCategoriesData.find(c => c.id === catObj.parent_id);
-                    if (parentCat) {
-                        const pName = (parentCat.name || '').toUpperCase();
-                        if (pName.includes('MEN') || pName.includes('BOY')) isMenCategory = true;
-                        if (pName.includes('WOMEN') || pName.includes('GIRL')) isWomenCategory = true;
-                    }
-                }
-            }
-
-            if (bannerTopDiv) {
-                const menBanner = shopHomepageConfig?.categoryBanners?.men || 'assets/mens_denim_banner.png';
-                const womenBanner = shopHomepageConfig?.categoryBanners?.women || 'assets/WOMENFASHION.png';
-
-                if (isMenCategory && menBanner) {
-                    if (bannerImg) bannerImg.src = menBanner;
-                    bannerTopDiv.style.display = 'block';
-                    if (shopLayout) shopLayout.style.paddingTop = '20px';
-                } else if (isWomenCategory && womenBanner) {
-                    if (bannerImg) bannerImg.src = womenBanner;
-                    bannerTopDiv.style.display = 'block';
-                    if (shopLayout) shopLayout.style.paddingTop = '20px';
-                } else {
-                    bannerTopDiv.style.display = 'none';
-                    if (shopLayout) shopLayout.style.paddingTop = '150px';
-                }
-            }
 
             // Build the list of category IDs to fetch:
             currentCategoryIds = [];
