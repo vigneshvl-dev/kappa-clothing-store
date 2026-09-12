@@ -2790,57 +2790,151 @@ async function loadSettings() {
 // 14. DASHBOARD & ORDERS LOADERS
 // ==========================================
 
-// Global state for sales timeframe
+// Global state for sales timeframe & live orders cache
 let currentSalesTimeframe = '6months';
-let dashboardDataCache = null;
+let allLiveOrdersForDashboard = [];
 
-const SALES_TIMEFRAME_DATA = {
-    today: {
-        labels: ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
-        values: [1200, 3400, 6800, 5200, 8900, 6400],
-        orders: [2, 4, 8, 6, 11, 7],
-        total: '₹31,900',
-        peak: '₹8.9K (18:00)',
-        avg: '₹840',
-        ticks: ['₹0', '₹2.5K', '₹5K', '₹7.5K', '₹10K']
-    },
-    '7days': {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        values: [4200, 5800, 8100, 6900, 9400, 12600, 11200],
-        orders: [5, 7, 10, 8, 12, 16, 14],
-        total: '₹58,200',
-        peak: '₹12.6K (Sat)',
-        avg: '₹808',
-        ticks: ['₹0', '₹3.5K', '₹7K', '₹10.5K', '₹14K']
-    },
-    '30days': {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        values: [28500, 36200, 41800, 48900],
-        orders: [24, 30, 35, 39],
-        total: '₹155,400',
-        peak: '₹48.9K (W4)',
-        avg: '₹1,214',
-        ticks: ['₹0', '₹15K', '₹30K', '₹45K', '₹60K']
-    },
-    '6months': {
-        labels: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
-        values: [16500, 22000, 27500, 33000, 35400, 38500],
-        orders: [15, 19, 23, 27, 21, 23],
-        total: '₹169,900',
-        peak: '₹38.5K (Sep)',
-        avg: '₹1,327',
-        ticks: ['₹16.5K', '₹22K', '₹27.5K', '₹33K', '₹38.5K']
-    },
-    thisyear: {
-        labels: ['Jan-Feb', 'Mar-Apr', 'May-Jun', 'Jul-Aug', 'Sep-Oct', 'Nov-Dec'],
-        values: [38000, 54000, 62000, 78000, 92000, 105000],
-        orders: [35, 48, 52, 64, 75, 82],
-        total: '₹429,000',
-        peak: '₹105K (Q4)',
-        avg: '₹1,205',
-        ticks: ['₹0', '₹30K', '₹60K', '₹90K', '₹120K']
+function computeSalesChartData(timeframeKey, orders) {
+    const list = Array.isArray(orders) ? orders : [];
+    const now = new Date();
+
+    const getOrderAmt = (o) => {
+        const st = (o.status || '').toLowerCase().trim();
+        const stage = (o.order_stage || '').toLowerCase().trim();
+        if (stage === 'cancelled' || st.includes('cancel')) return 0;
+        return Number(o.total_amount || 0);
+    };
+
+    let labels = [];
+    let values = [];
+    let orderCounts = [];
+
+    if (timeframeKey === 'today') {
+        labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
+        values = [0, 0, 0, 0, 0, 0];
+        orderCounts = [0, 0, 0, 0, 0, 0];
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        list.forEach(o => {
+            if (!o.created_at) return;
+            const d = new Date(o.created_at);
+            if (d >= todayStart && d <= now) {
+                const hour = d.getHours();
+                const slotIdx = Math.min(5, Math.floor(hour / 4));
+                values[slotIdx] += getOrderAmt(o);
+                orderCounts[slotIdx]++;
+            }
+        });
+    } else if (timeframeKey === '7days') {
+        labels = [];
+        values = [];
+        orderCounts = [];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(now.getDate() - i);
+            const y = d.getFullYear();
+            const m = d.getMonth();
+            const dayNum = d.getDate();
+            const dayStart = new Date(y, m, dayNum, 0, 0, 0);
+            const dayEnd = new Date(y, m, dayNum, 23, 59, 59, 999);
+
+            labels.push(dayNames[d.getDay()]);
+            let dayRev = 0;
+            let dayOrders = 0;
+            list.forEach(o => {
+                if (!o.created_at) return;
+                const od = new Date(o.created_at);
+                if (od >= dayStart && od <= dayEnd) {
+                    dayRev += getOrderAmt(o);
+                    dayOrders++;
+                }
+            });
+            values.push(dayRev);
+            orderCounts.push(dayOrders);
+        }
+    } else if (timeframeKey === '30days') {
+        labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+        values = [0, 0, 0, 0];
+        orderCounts = [0, 0, 0, 0];
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        list.forEach(o => {
+            if (!o.created_at) return;
+            const od = new Date(o.created_at);
+            if (od >= thirtyDaysAgo && od <= now) {
+                const diffDays = Math.floor((od - thirtyDaysAgo) / (24 * 60 * 60 * 1000));
+                const weekIdx = Math.min(3, Math.floor(diffDays / 7.5));
+                values[weekIdx] += getOrderAmt(o);
+                orderCounts[weekIdx]++;
+            }
+        });
+    } else if (timeframeKey === 'thisyear') {
+        labels = ['Jan-Feb', 'Mar-Apr', 'May-Jun', 'Jul-Aug', 'Sep-Oct', 'Nov-Dec'];
+        values = [0, 0, 0, 0, 0, 0];
+        orderCounts = [0, 0, 0, 0, 0, 0];
+        const currentYear = now.getFullYear();
+
+        list.forEach(o => {
+            if (!o.created_at) return;
+            const od = new Date(o.created_at);
+            if (od.getFullYear() === currentYear) {
+                const month = od.getMonth();
+                const biIdx = Math.min(5, Math.floor(month / 2));
+                values[biIdx] += getOrderAmt(o);
+                orderCounts[biIdx]++;
+            }
+        });
+    } else {
+        // Default: 6months
+        labels = [];
+        values = [];
+        orderCounts = [];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const m = d.getMonth();
+            const y = d.getFullYear();
+            const mStart = new Date(y, m, 1);
+            const mEnd = new Date(y, m + 1, 0, 23, 59, 59, 999);
+
+            labels.push(monthNames[m]);
+            let mRev = 0;
+            let mOrders = 0;
+            list.forEach(o => {
+                if (!o.created_at) return;
+                const od = new Date(o.created_at);
+                if (od >= mStart && od <= mEnd) {
+                    mRev += getOrderAmt(o);
+                    mOrders++;
+                }
+            });
+            values.push(mRev);
+            orderCounts.push(mOrders);
+        }
     }
-};
+
+    const totalRev = values.reduce((a, b) => a + b, 0);
+    const totalOrdersInPeriod = orderCounts.reduce((a, b) => a + b, 0);
+    const maxVal = Math.max(...values, 0);
+    const peakIdx = values.indexOf(maxVal);
+    const peakLabel = (maxVal > 0 && peakIdx !== -1)
+        ? `₹${maxVal.toLocaleString('en-IN')} (${labels[peakIdx]})`
+        : '—';
+    const avgOrderVal = totalOrdersInPeriod > 0
+        ? `₹${Math.round(totalRev / totalOrdersInPeriod).toLocaleString('en-IN')}`
+        : '₹0';
+
+    return {
+        labels,
+        values,
+        orders: orderCounts,
+        total: `₹${totalRev.toLocaleString('en-IN')}`,
+        peak: peakLabel,
+        avg: avgOrderVal,
+        totalOrders: totalOrdersInPeriod
+    };
+}
 
 window.changeSalesTimeframe = function(timeframe, btn) {
     currentSalesTimeframe = timeframe;
@@ -2870,13 +2964,15 @@ async function loadDashboard() {
             cancelled: 0
         };
 
-        // 1. Fetch live orders from Supabase
+        // 1. Fetch live orders from Supabase (100% real database)
         const { data: orders } = await supabaseClient
             .from('orders')
             .select('id, total_amount, status, order_stage, created_at');
 
-        if (Array.isArray(orders) && orders.length > 0) {
-            orders.forEach(o => {
+        allLiveOrdersForDashboard = Array.isArray(orders) ? orders : [];
+
+        if (allLiveOrdersForDashboard.length > 0) {
+            allLiveOrdersForDashboard.forEach(o => {
                 liveOrdersCount++;
                 const st = (o.status || '').toLowerCase().trim();
                 const stage = (o.order_stage || '').toLowerCase().trim();
@@ -2904,15 +3000,15 @@ async function loadDashboard() {
             });
         }
 
-        // 2. Fetch products and customers counts
+        // 2. Fetch products and customers counts (100% real database)
         const { count: prodCount } = await supabaseClient.from('products').select('*', { count: 'exact', head: true });
         const { count: custCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
 
-        // 3. Baseline numbers for executive presentation (dynamically elevated with real database figures)
-        const finalRevenue = liveRevenue > 0 ? (45280 + liveRevenue) : 45280;
-        const finalOrders = 128 + liveOrdersCount;
-        const finalProducts = Math.max(156, prodCount || 156);
-        const finalCustomers = Math.max(94, custCount || 94);
+        // 3. Real database figures (No mock/dummy offsets)
+        const finalRevenue = liveRevenue;
+        const finalOrders = liveOrdersCount;
+        const finalProducts = prodCount || 0;
+        const finalCustomers = custCount || 0;
 
         // 4. Update Top Summary Cards
         const elRev = document.getElementById('dash-revenue');
@@ -2937,18 +3033,17 @@ async function loadDashboard() {
         const legCust = document.getElementById('stat-customers');
         if (legCust) legCust.textContent = finalCustomers;
 
-        // 5. Calculate Order Status Donut distribution
-        // Baseline breakdown totaling 128
+        // 5. Calculate Order Status Donut distribution (100% real live counts)
         const statusDistribution = {
-            delivered: 68 + liveStatusCounts.delivered,
-            on_the_way: 22 + liveStatusCounts.on_the_way,
-            processing: 14 + liveStatusCounts.processing,
-            incoming: 12 + liveStatusCounts.incoming,
-            packed: 9 + liveStatusCounts.packed,
-            cancelled: 3 + liveStatusCounts.cancelled
+            delivered: liveStatusCounts.delivered,
+            on_the_way: liveStatusCounts.on_the_way,
+            processing: liveStatusCounts.processing,
+            incoming: liveStatusCounts.incoming,
+            packed: liveStatusCounts.packed,
+            cancelled: liveStatusCounts.cancelled
         };
 
-        const totalDistOrders = Object.values(statusDistribution).reduce((a, b) => a + b, 0);
+        const totalDistOrders = liveOrdersCount;
 
         // Render Donut Chart
         renderOrderDonutChart(statusDistribution, totalDistOrders);
@@ -2956,10 +3051,10 @@ async function loadDashboard() {
         // 6. Render Sales Overview Chart
         renderSalesChart(currentSalesTimeframe);
 
-        // 7. Update Bottom Management Cards
+        // 7. Update Bottom Management Cards (100% real live counts)
         const pendingCount = statusDistribution.incoming + statusDistribution.processing;
         const cancelledCount = statusDistribution.cancelled;
-        const paymentTotal = livePaidTotal > 0 ? (35800 + livePaidTotal) : 35800;
+        const paymentTotal = livePaidTotal;
 
         const elPending = document.getElementById('dash-bottom-pending');
         if (elPending) elPending.textContent = pendingCount;
@@ -2979,12 +3074,12 @@ async function loadDashboard() {
     }
 }
 
-// ── RENDER SALES OVERVIEW SVG GRAPH ──
+// ── RENDER SALES OVERVIEW SVG GRAPH (100% Real Order Data) ──
 window.renderSalesChart = function(timeframeKey) {
     const container = document.getElementById('salesChartContainer');
     if (!container) return;
 
-    const data = SALES_TIMEFRAME_DATA[timeframeKey] || SALES_TIMEFRAME_DATA['6months'];
+    const data = computeSalesChartData(timeframeKey, allLiveOrdersForDashboard);
 
     // Update strip values
     const totEl = document.getElementById('sales-period-total');
@@ -2993,6 +3088,8 @@ window.renderSalesChart = function(timeframeKey) {
     if (peakEl) peakEl.textContent = data.peak;
     const avgEl = document.getElementById('sales-avg-order');
     if (avgEl) avgEl.textContent = data.avg;
+    const ordersEl = document.getElementById('sales-period-orders');
+    if (ordersEl) ordersEl.textContent = data.totalOrders;
 
     const W = 620;
     const H = 220;
@@ -3004,13 +3101,14 @@ window.renderSalesChart = function(timeframeKey) {
     const chartW = W - paddingLeft - paddingRight;
     const chartH = H - paddingTop - paddingBottom;
 
-    const minVal = Math.min(...data.values) * 0.85;
-    const maxVal = Math.max(...data.values) * 1.12;
-    const range = maxVal - minVal || 1;
+    const maxVal = Math.max(...data.values, 0);
+    const ceiling = maxVal > 0 ? Math.ceil(maxVal * 1.25) : 100;
+    const minVal = 0;
+    const range = ceiling - minVal || 1;
 
     // Calculate (x, y) coordinates for data points
     const points = data.values.map((v, i) => {
-        const x = paddingLeft + (i / (data.values.length - 1)) * chartW;
+        const x = paddingLeft + (i / Math.max(1, data.values.length - 1)) * chartW;
         const y = paddingTop + chartH - ((v - minVal) / range) * chartH;
         return { x, y, val: v, label: data.labels[i], orders: data.orders[i] };
     });
@@ -3035,7 +3133,8 @@ window.renderSalesChart = function(timeframeKey) {
     const ticksCount = 5;
     for (let i = 0; i < ticksCount; i++) {
         const lineY = paddingTop + (i / (ticksCount - 1)) * chartH;
-        const tickLabel = data.ticks ? (data.ticks[ticksCount - 1 - i] || '') : `₹${Math.round((maxVal - (i / (ticksCount - 1)) * (maxVal - minVal)) / 1000)}K`;
+        const tickVal = Math.round(ceiling * (1 - i / (ticksCount - 1)));
+        const tickLabel = tickVal >= 1000 ? `₹${(tickVal / 1000).toFixed(tickVal % 1000 === 0 ? 0 : 1)}K` : `₹${tickVal}`;
         gridLinesHtml += `
             <line x1="${paddingLeft}" y1="${lineY}" x2="${W - paddingRight}" y2="${lineY}" stroke="#f1f5f9" stroke-width="1.2" stroke-dasharray="4,4" />
             <text x="${paddingLeft - 8}" y="${lineY + 4}" text-anchor="end" font-size="11" font-weight="600" fill="#94a3b8">${tickLabel}</text>
@@ -3055,7 +3154,7 @@ window.renderSalesChart = function(timeframeKey) {
     points.forEach((p, idx) => {
         dataPointsHtml += `
             <g class="chart-point-group" data-idx="${idx}" style="cursor: pointer;">
-                <circle cx="${p.x}" cy="${p.y}" r="6" fill="#ffffff" stroke="#eab308" stroke-width="3.5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
+                <circle cx="${p.x}" cy="${p.y}" r="5.5" fill="#ffffff" stroke="#eab308" stroke-width="3" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
                 <circle cx="${p.x}" cy="${p.y}" r="14" fill="transparent" class="point-hit-area" />
                 <title>${p.label}: ₹${p.val.toLocaleString('en-IN')} (${p.orders} orders)</title>
             </g>
@@ -3075,7 +3174,7 @@ window.renderSalesChart = function(timeframeKey) {
             <!-- Area Gradient Fill -->
             <path d="${areaD}" fill="url(#salesGoldGradient)" />
             <!-- Line Stroke -->
-            <path d="${pathD}" fill="none" stroke="#eab308" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="${pathD}" fill="none" stroke="#eab308" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
             <!-- X Axis Labels -->
             ${xLabelsHtml}
             <!-- Data Points -->
@@ -3084,7 +3183,7 @@ window.renderSalesChart = function(timeframeKey) {
     `;
 };
 
-// ── RENDER ORDER STATUS DONUT CHART ──
+// ── RENDER ORDER STATUS DONUT CHART (100% Real Live Distribution) ──
 window.renderOrderDonutChart = function(counts, total) {
     const wrap = document.getElementById('donutChartWrap');
     const legend = document.getElementById('donutLegendContainer');
@@ -3108,27 +3207,29 @@ window.renderOrderDonutChart = function(counts, total) {
     let legendHtml = '';
 
     segments.forEach(s => {
-        const pct = (s.count / safeTotal);
+        const pct = total > 0 ? (s.count / safeTotal) : 0;
         const arcLength = pct * C;
         const offset = cumulativePct * C;
 
-        svgSlicesHtml += `
-            <circle cx="80" cy="80" r="${R}"
-                fill="transparent"
-                stroke="${s.color}"
-                stroke-width="20"
-                stroke-dasharray="${arcLength} ${C}"
-                stroke-dashoffset="${-offset}"
-                transform="rotate(-90 80 80)"
-                style="transition: stroke-width 0.2s, opacity 0.2s;"
-            >
-                <title>${s.label}: ${s.count} orders (${Math.round(pct * 100)}%)</title>
-            </circle>
-        `;
+        if (s.count > 0) {
+            svgSlicesHtml += `
+                <circle cx="80" cy="80" r="${R}"
+                    fill="transparent"
+                    stroke="${s.color}"
+                    stroke-width="20"
+                    stroke-dasharray="${arcLength} ${C}"
+                    stroke-dashoffset="${-offset}"
+                    transform="rotate(-90 80 80)"
+                    style="transition: stroke-width 0.2s, opacity 0.2s;"
+                >
+                    <title>${s.label}: ${s.count} orders (${Math.round(pct * 100)}%)</title>
+                </circle>
+            `;
+        }
 
         cumulativePct += pct;
 
-        const pctFormatted = Math.round(pct * 100);
+        const pctFormatted = total > 0 ? Math.round(pct * 100) : 0;
         legendHtml += `
             <div class="donut-legend-row" onclick="switchAdminOrdersFilter('${s.key}')" title="Filter by ${s.label}">
                 <div class="donut-legend-left">
