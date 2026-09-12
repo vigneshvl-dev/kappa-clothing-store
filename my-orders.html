@@ -237,6 +237,212 @@
         .btn-shop-now:hover {
             background: #333;
             transform: translateY(-1px);
+        /* ── Modern Customer Order Tracking & Stepper Styles ── */
+        .cust-order-card {
+            padding: 24px 28px;
+            border-bottom: 1px solid #f0f0ee;
+            transition: background 0.15s ease;
+        }
+        .cust-order-card:hover {
+            background: #fafaf8;
+        }
+        .cust-order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .cust-order-id-badge {
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: 800;
+            color: #111;
+            background: #f1f1ee;
+            padding: 3px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+        .cust-copy-btn {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cust-copy-btn:hover {
+            background: #111;
+            color: #fff;
+            border-color: #111;
+        }
+
+        /* 5-Step Order Stepper */
+        .cust-stepper-wrap {
+            margin: 16px 0 18px;
+            background: #fafaf8;
+            border: 1px solid #ebebea;
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+        .cust-stepper-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .cust-stepper {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: relative;
+        }
+        .cust-step {
+            flex: 1;
+            position: relative;
+            text-align: center;
+            padding: 0 4px;
+        }
+        .cust-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 13px;
+            left: 50%;
+            width: 100%;
+            height: 3px;
+            background: #e5e7eb;
+            z-index: 1;
+            transition: background 0.3s;
+        }
+        .cust-step.completed:not(:last-child)::after {
+            background: #16a34a;
+        }
+        .cust-step-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            position: relative;
+            z-index: 2;
+            background: #f3f4f6;
+            color: #9ca3af;
+            border: 2px solid #e5e7eb;
+            transition: all 0.25s;
+        }
+        .cust-step.completed .cust-step-icon {
+            background: #16a34a;
+            color: #fff;
+            border-color: #16a34a;
+        }
+        .cust-step.active .cust-step-icon {
+            background: #111;
+            color: #FFD700;
+            border-color: #111;
+            box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.3);
+            animation: pulse-cust-step 2s infinite;
+        }
+        @keyframes pulse-cust-step {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6); }
+            70% { box-shadow: 0 0 0 8px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+        .cust-step-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            line-height: 1.25;
+        }
+        .cust-step.completed .cust-step-label {
+            color: #16a34a;
+            font-weight: 700;
+        }
+        .cust-step.active .cust-step-label {
+            color: #111;
+            font-weight: 800;
+        }
+        .cust-step-time {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+
+        /* Delivery & Tracking Card */
+        .cust-delivery-card {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .cust-courier-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .cust-eta-pill {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f766e;
+            background: #ccfbf1;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cust-track-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .cust-track-btn:hover {
+            background: #333;
+            transform: translateY(-1px);
+        }
+        .cust-cancelled-banner {
+            background: #fef2f2;
+            border: 1.5px solid #fecaca;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 14px 0 16px;
         }
 
         /* ── Responsive ── */
@@ -390,21 +596,25 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line></svg>
                         All Orders
                     </button>
+                    <button class="order-filter-tab" onclick="filterOrders('active', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        Processing & Packed
+                    </button>
                     <button class="order-filter-tab" onclick="filterOrders('shipped', this)">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
                         Shipped
                     </button>
-                    <button class="order-filter-tab" onclick="filterOrders('cancelled', this)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-                        Cancelled
-                    </button>
                     <button class="order-filter-tab" onclick="filterOrders('out_for_delivery', this)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg>
                         Out for Delivery
                     </button>
-                    <button class="order-filter-tab" onclick="filterOrders('pending_review', this)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                        Pending Reviews
+                    <button class="order-filter-tab" onclick="filterOrders('delivered', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Delivered
+                    </button>
+                    <button class="order-filter-tab" onclick="filterOrders('cancelled', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                        Cancelled / Returned
                     </button>
                 </div>
 
@@ -504,23 +714,42 @@
 
         let allOrdersData = [];
 
-        function getStatusColor(status) {
+        window.copyText = function(text, btn) {
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => { btn.innerHTML = orig; }, 1600);
+                }
+            }).catch(() => {
+                alert(text);
+            });
+        };
+
+        function getStatusColor(status, stage) {
             const s = (status || '').toLowerCase();
-            if (s.includes('cancel')) return { bg: '#fdecea', color: '#c62828' };
-            if (s.includes('return')) return { bg: '#fff3e0', color: '#e65100' };
-            if (s.includes('delivered') || s.includes('completed') || s.includes('paid')) return { bg: '#e8f5e9', color: '#2e7d32' };
-            if (s.includes('shipped')) return { bg: '#e3f2fd', color: '#1565c0' };
-            if (s.includes('out') && s.includes('delivery')) return { bg: '#f3e5f5', color: '#6a1b9a' };
-            return { bg: '#fff9c4', color: '#f57f17' };
+            const st = (stage || '').toLowerCase();
+            if (st === 'cancelled' || s.includes('cancel')) return { bg: '#fdecea', color: '#c62828', label: 'Cancelled' };
+            if (st === 'returned' || s.includes('return')) return { bg: '#fff3e0', color: '#e65100', label: 'Returned' };
+            if (st === 'refunded' || s.includes('refund')) return { bg: '#f1f5f9', color: '#475569', label: 'Refunded' };
+            if (st === 'delivered' || s.includes('deliver')) return { bg: '#e8f5e9', color: '#16a34a', label: 'Delivered' };
+            if (st === 'out_for_delivery' || (s.includes('out') && s.includes('delivery'))) return { bg: '#e0e7ff', color: '#4338ca', label: 'Out for Delivery' };
+            if (st === 'shipped' || s.includes('shipped')) return { bg: '#ccfbf1', color: '#0f766e', label: 'Shipped' };
+            if (st === 'packed') return { bg: '#ffedd5', color: '#c2410c', label: 'Packed' };
+            if (st === 'processing') return { bg: '#f3e8ff', color: '#7e22ce', label: 'Processing' };
+            if (st === 'confirmed') return { bg: '#dbeafe', color: '#1d4ed8', label: 'Confirmed' };
+            return { bg: '#fef3c7', color: '#b45309', label: 'Order Placed' };
         }
 
-        function getFilterKey(status) {
+        function getFilterKey(status, stage) {
             const s = (status || '').toLowerCase();
-            if (s.includes('cancel')) return 'cancelled';
-            if (s.includes('return')) return 'returned';
-            if (s.includes('shipped')) return 'shipped';
-            if (s.includes('out') && s.includes('delivery')) return 'out_for_delivery';
-            if (s.includes('pending') || s === 'order placed') return 'pending_review';
+            const st = (stage || '').toLowerCase();
+            if (st === 'cancelled' || s.includes('cancel') || st === 'returned' || s.includes('return') || st === 'refunded' || s.includes('refund')) return 'cancelled';
+            if (st === 'delivered' || s.includes('deliver')) return 'delivered';
+            if (st === 'out_for_delivery' || (s.includes('out') && s.includes('delivery'))) return 'out_for_delivery';
+            if (st === 'shipped' || s.includes('shipped') || s.includes('dispatch')) return 'shipped';
+            if (st === 'packed' || st === 'processing' || st === 'confirmed' || st === 'incoming' || s.includes('paid') || s.includes('pending') || s === 'order placed') return 'active';
             return 'all';
         }
 
@@ -531,107 +760,237 @@
         }
 
         function renderOrderCard(order) {
-            const isCancelled = (order.status || '').toLowerCase().includes('cancel');
-            const isReturned = (order.status || '').toLowerCase().includes('return');
-            const statusStyle = getStatusColor(order.status);
+            const orderStage = (order.order_stage || '').toLowerCase() || ((order.status || '').toLowerCase() === 'paid' ? 'confirmed' : 'incoming');
+            const stageHistory = Array.isArray(order.stage_history) ? order.stage_history : [];
+            const delivery = order.delivery_details || {};
+            const isCancelled = orderStage === 'cancelled' || (order.status || '').toLowerCase().includes('cancel');
+            const isReturned = ['return_requested', 'returned', 'refunded'].includes(orderStage) || (order.status || '').toLowerCase().includes('return');
+            const isDelivered = orderStage === 'delivered';
+            const statusInfo = getStatusColor(order.status, orderStage);
+            const shortId = order.orderId ? String(order.orderId).substring(0, 8).toUpperCase() : 'N/A';
 
+            // Items list
             const itemsHtml = (order.items || []).map(item => {
                 const imgSrc = item.img || 'https://placehold.co/50x65/eaeaea/999?text=?';
                 return `
-                    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                        <div style="position: relative; width: 50px; height: 65px; flex-shrink: 0;">
-                            <img src="${imgSrc}" alt="${item.name}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 4px; background: #fff; border: 1px solid #eee; display: block;" onerror="this.src='https://placehold.co/50x65/eaeaea/999?text=?'">
+                    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: #fafafa; border: 1px solid #f0f0ee; border-radius: 8px; padding: 10px 14px;">
+                        <div style="position: relative; width: 52px; height: 68px; flex-shrink: 0;">
+                            <img src="${imgSrc}" alt="${item.name}" style="width: 52px; height: 68px; object-fit: cover; border-radius: 6px; background: #fff; border: 1px solid #eee; display: block;" onerror="this.src='https://placehold.co/50x65/eaeaea/999?text=?'">
                             ${isCancelled ? `
-                            <div style="position: absolute; inset: 0; background: rgba(198,40,40,0.82); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                                <span style="color:#fff; font-size:7px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; text-align:center; line-height:1.3; padding: 2px;">ORDER<br>CANCELLED</span>
-                            </div>` : ''}
-                            ${isReturned ? `
-                            <div style="position: absolute; inset: 0; background: rgba(230,81,0,0.82); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                                <span style="color:#fff; font-size:7px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; text-align:center; line-height:1.3; padding: 2px;">RETURN<br>REQUESTED</span>
+                            <div style="position: absolute; inset: 0; background: rgba(198,40,40,0.85); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <span style="color:#fff; font-size:7px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; text-align:center; line-height:1.3; padding: 2px;">CANCELLED</span>
                             </div>` : ''}
                         </div>
                         <div style="flex-grow: 1; min-width: 150px;">
-                            <div style="font-weight: 600; color: #111; font-size: 14px;">${item.name}</div>
-                            <div style="font-size: 12px; color: #777; margin-top: 4px;">
-                                <span style="background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 10px;">Size: ${item.size}</span>
-                                <span style="background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 10px; margin-left: 6px;">Color: ${item.color}</span>
-                                <span style="font-size: 10px; color: #555; margin-left: 6px;">Qty: ${item.qty}</span>
+                            <div style="font-weight: 700; color: #111; font-size: 14px;">${item.name}</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap;">
+                                <span style="background: #eef0f2; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600;">Size: ${item.size}</span>
+                                <span style="background: #eef0f2; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600;">Color: ${item.color}</span>
+                                <span style="font-size: 11px; color: #555; padding: 2px 4px;">Qty: ${item.qty}</span>
                             </div>
                         </div>
-                        <div style="font-weight: 700; color: #111; font-size: 14px;">₹${((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</div>
+                        <div style="font-weight: 800; color: #111; font-size: 15px;">₹${((item.price || 0) * (item.qty || 1)).toLocaleString('en-IN')}</div>
                     </div>
                 `;
             }).join('');
 
-            const refundInfo = order.refund_details || order.customer?.refund_details || null;
-            let refundSummaryHtml = '';
-            if (refundInfo) {
-                if (refundInfo.method === 'Bank Transfer' || refundInfo.account_number) {
-                    refundSummaryHtml = `
-                        <div style="font-size: 11px; color: #4a5568; background: #f7fafc; border: 1px solid #e2e8f0; padding: 4px 10px; border-radius: 5px; margin-top: 4px; display: inline-flex; align-items: center; gap: 6px;">
-                            <span>🏦 Refund to Bank: <strong>Ending in ${(refundInfo.account_number || '').slice(-4) || '****'}</strong> (${refundInfo.ifsc || ''})</span>
-                        </div>
-                    `;
-                } else if (refundInfo.upi_id) {
-                    refundSummaryHtml = `
-                        <div style="font-size: 11px; color: #4a5568; background: #f7fafc; border: 1px solid #e2e8f0; padding: 4px 10px; border-radius: 5px; margin-top: 4px; display: inline-flex; align-items: center; gap: 6px;">
-                            <span>⚡ Refund to UPI: <strong style="font-family: monospace;">${refundInfo.upi_id}</strong></span>
-                        </div>
-                    `;
+            // Stepper timeline
+            let stepperHtml = '';
+            if (isCancelled) {
+                const refundInfo = order.refund_details || order.customer?.refund_details || null;
+                let refundAccHtml = '';
+                if (refundInfo?.method === 'Bank Transfer' || refundInfo?.account_number) {
+                    refundAccHtml = `<div style="font-size: 11px; color: #475569; background: #fff; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 5px; margin-top: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>🏦 Refund to Bank Account ending in <strong>${(refundInfo.account_number || '').slice(-4) || '****'}</strong> (${refundInfo.ifsc || ''})</span>
+                    </div>`;
+                } else if (refundInfo?.upi_id) {
+                    refundAccHtml = `<div style="font-size: 11px; color: #475569; background: #fff; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 5px; margin-top: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>⚡ Refund to UPI ID: <strong style="font-family: monospace;">${refundInfo.upi_id}</strong></span>
+                    </div>`;
                 }
+                stepperHtml = `
+                    <div class="cust-cancelled-banner">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                            <div style="font-weight: 800; color: #b91c1c; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                ORDER CANCELLED
+                            </div>
+                            <span style="font-size: 11px; font-weight: 700; color: #991b1b; background: #fee2e2; padding: 2px 8px; border-radius: 4px;">Refund in 2–4 Working Days</span>
+                        </div>
+                        <div style="font-size: 12px; color: #7f1d1d; margin-top: 5px;">Payment will be refunded to your source account or customer UPI/Bank details.</div>
+                        ${refundAccHtml}
+                    </div>`;
+            } else if (isReturned) {
+                stepperHtml = `
+                    <div style="background:#fff7ed; border:1.5px solid #fed7aa; border-radius:10px; padding:12px 16px; margin:14px 0 16px;">
+                        <div style="font-weight:800; color:#c2410c; font-size:13px; display:flex; align-items:center; gap:6px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2.5"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.96"></path></svg>
+                            RETURN REQUEST SUBMITTED
+                        </div>
+                        <div style="font-size:12px; color:#9a3412; margin-top:3px;">Our team is reviewing your return request. Pickup details will be shared via SMS/WhatsApp.</div>
+                    </div>`;
+            } else {
+                // Standard 5-step lifecycle
+                const customerSteps = [
+                    { label: 'Ordered', stages: ['incoming', 'confirmed'], icon: '✓' },
+                    { label: 'Packed', stages: ['processing', 'packed'], icon: '📦' },
+                    { label: 'Shipped', stages: ['shipped'], icon: '🚚' },
+                    { label: 'Out for Delivery', stages: ['out_for_delivery'], icon: '🛵' },
+                    { label: 'Delivered', stages: ['delivered'], icon: '🏠' }
+                ];
+
+                let currentStepIdx = 0;
+                if (orderStage === 'delivered') currentStepIdx = 4;
+                else if (orderStage === 'out_for_delivery') currentStepIdx = 3;
+                else if (orderStage === 'shipped') currentStepIdx = 2;
+                else if (orderStage === 'packed' || orderStage === 'processing') currentStepIdx = 1;
+                else currentStepIdx = 0;
+
+                let stepsHtml = '';
+                customerSteps.forEach((st, idx) => {
+                    let stepClass = '';
+                    if (isDelivered || idx < currentStepIdx) stepClass = 'completed';
+                    else if (idx === currentStepIdx) stepClass = 'active';
+
+                    // Look for timestamp
+                    const hist = stageHistory.find(h => st.stages.includes(h.stage));
+                    let timeStr = '';
+                    if (hist?.timestamp) {
+                        const d = new Date(hist.timestamp);
+                        timeStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                    } else if (idx === 0 && order.date) {
+                        const d = new Date(order.date);
+                        timeStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                    }
+
+                    const dotContent = (isDelivered || idx < currentStepIdx) ? '✓' : (idx === currentStepIdx ? '●' : '○');
+
+                    stepsHtml += `
+                        <div class="cust-step ${stepClass}">
+                            <div class="cust-step-icon">${dotContent}</div>
+                            <div class="cust-step-label">${st.label}</div>
+                            ${timeStr ? `<div class="cust-step-time">${timeStr}</div>` : '<div class="cust-step-time">&nbsp;</div>'}
+                        </div>`;
+                });
+
+                stepperHtml = `
+                    <div class="cust-stepper-wrap">
+                        <div class="cust-stepper-title">
+                            <span>📦 Order Progress</span>
+                            <span style="font-size:11px; font-weight:700; color:#111;">Status: <strong style="color:${statusInfo.color};">${statusInfo.label}</strong></span>
+                        </div>
+                        <div class="cust-stepper">
+                            ${stepsHtml}
+                        </div>
+                    </div>`;
             }
 
-            const actionButtonsHtml = (!isCancelled && !isReturned) ? `
-                <div style="margin-top: 10px; font-size: 12px; color: red; font-weight: 700;">The products will be delivered within 2 to 5 days.</div>
-                <div style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button onclick="openCancelOrderModal('${order.orderId}')" style="padding: 8px 18px; background: #fff; color: #d32f2f; border: 1.5px solid #d32f2f; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.4px; transition: all 0.18s;">Cancel</button>
-                </div>
-            ` : (isCancelled ? `
-                <div style="margin-top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
-                    <div style="padding: 8px 14px; border-radius: 6px; background: ${statusStyle.bg}; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: ${statusStyle.color};">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>
-                        </svg>
-                        Order is cancelled
-                    </div>
-                    <div style="font-size: 12px; color: #d32f2f; font-weight: 700; margin-left: 2px; display: flex; align-items: center; gap: 4px;">
-                        Payment will be refund in 2-4 working days
-                    </div>
-                    ${refundSummaryHtml}
-                </div>
-            ` : `
-                <div style="margin-top: 12px; padding: 8px 14px; border-radius: 6px; background: ${statusStyle.bg}; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: ${statusStyle.color};">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.96"></path></svg>
-                    Return request submitted
-                </div>
-            `);
+            // Delivery & Tracking Box
+            let deliveryCardHtml = '';
+            const partner = delivery.partner || '';
+            const trackingId = delivery.tracking_id || '';
+            const etaDate = delivery.expected_delivery || '';
+            const etaDays = delivery.eta_days || '';
+            const trackUrl = delivery.tracking_url || '';
+
+            if (trackingId || partner) {
+                let etaDisplay = '';
+                if (etaDate) {
+                    const formattedEta = new Date(etaDate).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+                    etaDisplay = `<span class="cust-eta-pill">📅 Expected: <strong>${formattedEta}</strong></span>`;
+                } else if (etaDays) {
+                    etaDisplay = `<span class="cust-eta-pill">⏱️ ETA: <strong>${etaDays}</strong></span>`;
+                }
+
+                deliveryCardHtml = `
+                    <div class="cust-delivery-card">
+                        <div class="cust-delivery-info" style="flex-wrap:wrap;">
+                            <div class="cust-courier-pill">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                                ${partner || 'Courier Partner'}
+                            </div>
+                            ${trackingId ? `
+                                <div style="display:flex; align-items:center; gap:6px; font-size:12px;">
+                                    <span style="color:#64748b; font-weight:600;">AWB:</span>
+                                    <strong style="font-family:monospace; background:#fff; border:1px solid #cbd5e1; padding:2px 7px; border-radius:4px; font-size:12px; color:#0f172a;">${trackingId}</strong>
+                                    <button class="cust-copy-btn" onclick="copyText('${trackingId}', this)" title="Copy Tracking ID">Copy</button>
+                                </div>
+                            ` : ''}
+                            ${etaDisplay}
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            ${trackUrl ? `<a href="${trackUrl}" target="_blank" style="font-size:12px; font-weight:700; color:#2563eb; text-decoration:none; padding:6px 12px; border:1px solid #bfdbfe; border-radius:6px; background:#eff6ff;">Track on ${partner || 'Carrier'} ↗</a>` : ''}
+                            <a href="track-order.html?orderId=${order.orderId}" class="cust-track-btn">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                Track Package
+                            </a>
+                        </div>
+                    </div>`;
+            } else if (!isCancelled && !isReturned) {
+                deliveryCardHtml = `
+                    <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div style="font-size:12px; color:#475569; display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:16px;">📦</span>
+                            <span>${orderStage === 'packed' ? '<strong>Your order is packed!</strong> Courier partner pickup is scheduled.' : '<strong>Preparing your package:</strong> Quality check & packing in progress. Estimated delivery in 2–5 days.'}</span>
+                        </div>
+                        <a href="track-order.html?orderId=${order.orderId}" style="font-size:12px; font-weight:700; color:#111; text-decoration:none; border-bottom:1.5px solid #111; padding-bottom:1px;">
+                            Track Order Status →
+                        </a>
+                    </div>`;
+            }
+
+            // Can cancel if still in early stages (incoming, confirmed, processing, packed)
+            const canCancel = !isCancelled && !isReturned && ['incoming', 'confirmed', 'processing', 'packed'].includes(orderStage);
+            const shippingName = order.shipping?.full_name || order.customer?.name || '';
+            const shippingCity = [order.shipping?.city, order.shipping?.state].filter(Boolean).join(', ') || '';
 
             return `
-                <div style="padding: 24px 28px; border-bottom: 1px solid #f0f0ee;" data-status-key="${getFilterKey(order.status)}">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                <div class="cust-order-card" data-status-key="${getFilterKey(order.status, orderStage)}">
+                    <!-- Header -->
+                    <div class="cust-order-header">
                         <div>
-                            <div style="font-size: 12px; color: #999; margin-top: 4px;">${new Date(order.date).toLocaleString()}</div>
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                <span class="cust-order-id-badge">#${shortId}</span>
+                                <button class="cust-copy-btn" onclick="copyText('${order.orderId}', this)" title="Copy Order ID">📋 Copy</button>
+                                <span style="font-size:11px; font-weight:700; color:#16a34a; background:#e8f5e9; padding:2px 8px; border-radius:4px;">✓ PAID</span>
+                            </div>
+                            <div style="font-size:12px; color:#888; margin-top:5px;">Placed on: ${new Date(order.date).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="background: ${statusStyle.bg}; color: ${statusStyle.color}; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">${order.status}</span>
-                            <button onclick="clearOrder('${order.orderId}', this)" title="Clear Order" style="background: none; border: none; color: #999; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; transition: color 0.2s;" onmouseover="this.style.color='#d32f2f'" onmouseout="this.style.color='#999'">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                </svg>
-                            </button>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="background:${statusInfo.bg}; color:${statusInfo.color}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700;">${statusInfo.label}</span>
+                            <button onclick="clearOrder('${order.orderId}', this)" title="Remove from view" style="background:none; border:none; color:#bbb; cursor:pointer; padding:4px; font-size:14px; transition:color 0.2s;" onmouseover="this.style.color='#d32f2f'" onmouseout="this.style.color='#bbb'">✕</button>
                         </div>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
+
+                    <!-- Stepper Progress -->
+                    ${stepperHtml}
+
+                    <!-- Delivery & Tracking Card -->
+                    ${deliveryCardHtml}
+
+                    <!-- Items List -->
+                    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
                         ${itemsHtml}
                     </div>
-                    <div style="display: flex; justify-content: flex-end; gap: 24px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0ee; flex-wrap: wrap;">
-                        <div style="font-size: 13px; color: #555;">Subtotal: <span style="font-weight: 600;">₹${(order.subtotal || 0).toLocaleString('en-IN')}</span></div>
-                        <div style="font-size: 13px; color: #555;">Discount: <span style="font-weight: 600;">− ₹${(order.discount || 0).toLocaleString('en-IN')}</span></div>
-                        <div style="font-size: 13px; color: #555;">Shipping: <span style="font-weight: 600;">₹${(order.shippingCost || 0).toLocaleString('en-IN')}</span></div>
-                        <div style="font-size: 16px; font-weight: 700; color: #111;">Total: ₹${(order.total || 0).toLocaleString('en-IN')}</div>
+
+                    <!-- Footer Details -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding-top:14px; border-top:1px solid #f0f0ee; flex-wrap:wrap; gap:12px;">
+                        <div style="font-size:12px; color:#666;">
+                            ${shippingName ? `📍 <strong>Deliver to:</strong> ${shippingName}${shippingCity ? ` (${shippingCity})` : ''}` : ''}
+                        </div>
+                        <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap;">
+                            ${order.shippingCost ? `<div style="font-size:12px; color:#666;">Shipping: ₹${order.shippingCost}</div>` : '<div style="font-size:12px; color:#16a34a; font-weight:600;">Free Delivery</div>'}
+                            <div style="font-size:16px; font-weight:800; color:#111;">Total: ₹${(order.total || 0).toLocaleString('en-IN')}</div>
+                        </div>
                     </div>
-                    ${actionButtonsHtml}
+
+                    <!-- Actions -->
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; flex-wrap:wrap;">
+                        ${canCancel ? `<button onclick="openCancelOrderModal('${order.orderId}')" style="padding:7px 16px; background:#fff; color:#d32f2f; border:1.5px solid #d32f2f; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:0.4px;">Cancel Order</button>` : ''}
+                        <a href="track-order.html?orderId=${order.orderId}" style="padding:7px 16px; background:#111; color:#fff; border-radius:6px; font-size:12px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+                            🔍 View Tracking
+                        </a>
+                    </div>
                 </div>
             `;
         }
@@ -642,7 +1001,7 @@
 
             let filtered = orders;
             if (filterType && filterType !== 'all') {
-                filtered = orders.filter(o => getFilterKey(o.status) === filterType);
+                filtered = orders.filter(o => getFilterKey(o.status, o.order_stage) === filterType);
             }
 
             if (filtered.length === 0) {
@@ -776,9 +1135,13 @@
                                 items: rawItems,
                                 subtotal: Number(o.total_amount || 0),
                                 discount: 0,
-                                shippingCost: 0,
+                                shippingCost: Number(o.delivery_details?.shipping_charge || 0),
                                 total: Number(o.total_amount || 0),
-                                status: o.status === 'paid' ? 'Completed & Paid' : (o.status || 'Order Placed'),
+                                status: o.status === 'paid' ? 'Paid' : (o.status || 'Order Placed'),
+                                order_stage: o.order_stage || (o.status === 'paid' ? 'confirmed' : 'incoming'),
+                                stage_history: Array.isArray(o.stage_history) ? o.stage_history : [],
+                                delivery_details: o.delivery_details || {},
+                                payment_method: o.payment_method || (o.razorpay_payment_id ? 'Razorpay' : ''),
                                 date: o.created_at || new Date().toISOString()
                             };
                         });
@@ -957,12 +1320,14 @@
                     try {
                         await supabaseClient.from('orders').update({
                             status: 'cancelled',
+                            order_stage: 'cancelled',
                             customer_details: updatedCust,
                             refund_details: refundPayload
                         }).eq('id', pendingCancelOrderId);
                     } catch (_) {
                         await supabaseClient.from('orders').update({
                             status: 'cancelled',
+                            order_stage: 'cancelled',
                             customer_details: updatedCust
                         }).eq('id', pendingCancelOrderId);
                     }
@@ -990,7 +1355,7 @@
                 // Update Supabase if logged in
                 const { data: session } = await supabaseClient.auth.getSession();
                 if (session?.session?.user) {
-                    await supabaseClient.from('orders').update({ status: 'returned' }).eq('id', orderId);
+                    await supabaseClient.from('orders').update({ status: 'returned', order_stage: 'return_requested' }).eq('id', orderId);
                 }
             } catch (e) {
                 console.warn('Supabase return update notice:', e);
