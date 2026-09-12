@@ -463,21 +463,23 @@
 
             // 3. Fallback to localStorage orders
             if (!orderData) {
-                const localKeys = ['my_orders', 'guest_orders', 'user_orders', 'kappa_orders'];
-                for (const k of localKeys) {
-                    try {
-                        const raw = localStorage.getItem(k);
-                        if (!raw) continue;
-                        const arr = JSON.parse(raw);
-                        if (Array.isArray(arr)) {
-                            const found = arr.find(o => {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (!k) continue;
+                    if (k.startsWith('kappa_orders') || k.startsWith('user_orders') || k === 'my_orders' || k === 'guest_orders' || k === 'kappa_active_order') {
+                        try {
+                            const raw = localStorage.getItem(k);
+                            if (!raw) continue;
+                            const parsed = JSON.parse(raw);
+                            const list = Array.isArray(parsed) ? parsed : (parsed && typeof parsed === 'object' ? [parsed] : []);
+                            const found = list.find(o => {
                                 const idStr = (o.orderId || o.id || '').toString().toLowerCase();
                                 const trkStr = (o.delivery_details?.tracking_id || '').toString().toLowerCase();
                                 return idStr.includes(cleanQ.toLowerCase()) || (trkStr && trkStr.includes(cleanQ.toLowerCase()));
                             });
                             if (found) { orderData = found; break; }
-                        }
-                    } catch (e) {}
+                        } catch (e) {}
+                    }
                 }
             }
 

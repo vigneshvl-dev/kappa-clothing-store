@@ -1034,19 +1034,21 @@
         const profilePopup = document.getElementById('profilePopup');
         let currentUser = null;
 
-        supabaseClient.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                window.location.href = 'index.html';
-                return;
-            }
-            currentUser = session.user;
-            const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
-            const initial = name.charAt(0).toUpperCase();
+        supabaseClient.auth.getSession().then(async ({ data: { session } }) => {
+            currentUser = session?.user || null;
+            if (currentUser) {
+                const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
+                const initial = name.charAt(0).toUpperCase();
 
-            document.getElementById('sidebarAvatar').textContent = initial;
-            document.getElementById('sidebarUserName').textContent = name;
-            document.getElementById('profilePopupName').textContent = name;
-            document.getElementById('profilePopupAvatarPlaceholder').textContent = initial;
+                const sbAv = document.getElementById('sidebarAvatar');
+                if (sbAv) sbAv.textContent = initial;
+                const sbName = document.getElementById('sidebarUserName');
+                if (sbName) sbName.textContent = name;
+                const ppName = document.getElementById('profilePopupName');
+                if (ppName) ppName.textContent = name;
+                const ppAv = document.getElementById('profilePopupAvatarPlaceholder');
+                if (ppAv) ppAv.textContent = initial;
+            }
 
             if (profileBtn) {
                 profileBtn.addEventListener('click', (e) => {
@@ -1066,6 +1068,26 @@
                     }
                 }
             });
+
+            // Reload orders as soon as authenticated user session resolves
+            await loadMyOrders();
+        });
+
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            currentUser = session?.user || null;
+            if (currentUser) {
+                const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
+                const initial = name.charAt(0).toUpperCase();
+                const sbAv = document.getElementById('sidebarAvatar');
+                if (sbAv) sbAv.textContent = initial;
+                const sbName = document.getElementById('sidebarUserName');
+                if (sbName) sbName.textContent = name;
+                const ppName = document.getElementById('profilePopupName');
+                if (ppName) ppName.textContent = name;
+                const ppAv = document.getElementById('profilePopupAvatarPlaceholder');
+                if (ppAv) ppAv.textContent = initial;
+            }
+            await loadMyOrders();
         });
 
         const popupLogout = document.getElementById('popupLogout');
@@ -1097,17 +1119,70 @@
             try {
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
-                    if (key && key.startsWith('kappa_orders')) {
+                    if (key && (key.startsWith('kappa_orders') || key === 'kappa_active_order' || key === 'kappa_last_order')) {
                         try {
                             const parsed = JSON.parse(localStorage.getItem(key) || '[]');
                             if (Array.isArray(parsed)) {
                                 localOrders = localOrders.concat(parsed);
+                            } else if (parsed && typeof parsed === 'object' && (parsed.orderId || parsed.id)) {
+                                localOrders.push(parsed);
                             }
                         } catch (err) {}
                     }
                 }
             } catch (e) {
                 localOrders = [];
+            }
+
+            // Normalize local orders
+            const normalizedLocalOrders = localOrders.map(o => {
+                if (!o) return null;
+                const ordId = o.orderId || o.id;
+                if (!ordId) return null;
+                const s = (o.status || '').toLowerCase();
+                let stage = (o.order_stage || '').toLowerCase();
+                if (!stage) {
+                    if (s === 'paid' || s.includes('paid')) stage = 'confirmed';
+                    else if (s.includes('cancel')) stage = 'cancelled';
+                    else if (s.includes('return')) stage = 'returned';
+                    else if (s.includes('deliver')) stage = 'delivered';
+                    else stage = 'incoming';
+                }
+                return {
+                    orderId: ordId,
+                    customer: o.customer || o.customer_details || {},
+                    shipping: o.shipping || o.shipping_address || {},
+                    refund_details: o.refund_details || null,
+                    items: Array.isArray(o.items) ? o.items.map(it => ({
+                        id: it.id || it.product_id,
+                        name: it.name || 'Product',
+                        price: it.price || it.price_at_purchase || 0,
+                        size: it.size || 'Default',
+                        color: it.color || 'N/A',
+                        qty: it.qty || it.quantity || 1,
+                        img: it.img || it.image_url || ''
+                    })) : [],
+                    subtotal: Number(o.subtotal || o.total || 0),
+                    discount: Number(o.discount || 0),
+                    shippingCost: Number(o.shippingCost || o.delivery_details?.shipping_charge || 0),
+                    total: Number(o.total || o.total_amount || 0),
+                    status: o.status || 'Paid',
+                    order_stage: stage,
+                    stage_history: Array.isArray(o.stage_history) && o.stage_history.length > 0 ? o.stage_history : [
+                        { stage: stage, label: 'Order Placed', timestamp: o.date || new Date().toISOString() }
+                    ],
+                    delivery_details: o.delivery_details || {},
+                    payment_method: o.payment_method || (o.paymentId ? 'Razorpay' : ''),
+                    date: o.date || o.created_at || new Date().toISOString()
+                };
+            }).filter(Boolean);
+
+            // Fetch DB orders if user session is available
+            if (!currentUser) {
+                try {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (session?.user) currentUser = session.user;
+                } catch (_) {}
             }
 
             let dbOrders = [];
@@ -1119,58 +1194,77 @@
                         .eq('user_id', currentUser.id)
                         .order('created_at', { ascending: false });
 
-                    if (!error && data) {
-                        dbOrders = data.map(o => {
-                            const rawItems = (o.order_items && o.order_items.length > 0)
-                                ? o.order_items.map(item => ({
-                                    id: item.product_id,
-                                    name: item.products?.name || item.name || 'Product',
-                                    price: item.price || item.products?.price || 0,
-                                    size: item.size || 'Default',
-                                    color: item.color || 'N/A',
-                                    qty: item.quantity || 1,
-                                    img: (item.products?.product_images && item.products.product_images[0]?.url) || item.image_url || item.img || ''
-                                }))
-                                : (Array.isArray(o.items) ? o.items.map(item => ({
-                                    id: item.id || item.product_id,
-                                    name: item.name || 'Product',
-                                    price: item.price || 0,
-                                    size: item.size || 'Default',
-                                    color: item.color || 'N/A',
-                                    qty: item.qty || item.quantity || 1,
-                                    img: item.img || item.image_url || ''
-                                })) : []);
+                    let foundOrders = (!error && Array.isArray(data)) ? data : [];
 
-                            return {
-                                orderId: o.id,
-                                customer: o.customer_details || {},
-                                shipping: o.shipping_address || {},
-                                refund_details: o.refund_details || o.customer_details?.refund_details || null,
-                                items: rawItems,
-                                subtotal: Number(o.total_amount || 0),
-                                discount: 0,
-                                shippingCost: Number(o.delivery_details?.shipping_charge || 0),
-                                total: Number(o.total_amount || 0),
-                                status: o.status === 'paid' ? 'Paid' : (o.status || 'Order Placed'),
-                                order_stage: o.order_stage || (o.status === 'paid' ? 'confirmed' : 'incoming'),
-                                stage_history: Array.isArray(o.stage_history) ? o.stage_history : [],
-                                delivery_details: o.delivery_details || {},
-                                payment_method: o.payment_method || (o.razorpay_payment_id ? 'Razorpay' : ''),
-                                date: o.created_at || new Date().toISOString()
-                            };
-                        });
+                    // Also fetch any orders where customer_details email matches user email
+                    if (currentUser.email) {
+                        try {
+                            const { data: emailOrders, error: emErr } = await supabaseClient
+                                .from('orders')
+                                .select('*, order_items(*, products(name, price, product_images(url)))')
+                                .contains('customer_details', { email: currentUser.email })
+                                .order('created_at', { ascending: false });
+
+                            if (!emErr && Array.isArray(emailOrders)) {
+                                emailOrders.forEach(eo => {
+                                    if (!foundOrders.some(existing => String(existing.id) === String(eo.id))) {
+                                        foundOrders.push(eo);
+                                    }
+                                });
+                            }
+                        } catch (_) {}
                     }
+
+                    dbOrders = foundOrders.map(o => {
+                        const rawItems = (o.order_items && o.order_items.length > 0)
+                            ? o.order_items.map(item => ({
+                                id: item.product_id,
+                                name: item.products?.name || item.name || 'Product',
+                                price: item.price_at_purchase || item.price || item.products?.price || 0,
+                                size: item.size || 'Default',
+                                color: item.color || 'N/A',
+                                qty: item.quantity || 1,
+                                img: (item.products?.product_images && item.products.product_images[0]?.url) || item.image_url || item.img || ''
+                            }))
+                            : (Array.isArray(o.items) ? o.items.map(item => ({
+                                id: item.id || item.product_id,
+                                name: item.name || 'Product',
+                                price: item.price || item.price_at_purchase || 0,
+                                size: item.size || 'Default',
+                                color: item.color || 'N/A',
+                                qty: item.qty || item.quantity || 1,
+                                img: item.img || item.image_url || ''
+                            })) : []);
+
+                        return {
+                            orderId: o.id,
+                            customer: o.customer_details || {},
+                            shipping: o.shipping_address || {},
+                            refund_details: o.refund_details || o.customer_details?.refund_details || null,
+                            items: rawItems,
+                            subtotal: Number(o.total_amount || 0),
+                            discount: 0,
+                            shippingCost: Number(o.delivery_details?.shipping_charge || 0),
+                            total: Number(o.total_amount || 0),
+                            status: o.status === 'paid' ? 'Paid' : (o.status || 'Order Placed'),
+                            order_stage: o.order_stage || (o.status === 'paid' ? 'confirmed' : 'incoming'),
+                            stage_history: Array.isArray(o.stage_history) ? o.stage_history : [],
+                            delivery_details: o.delivery_details || {},
+                            payment_method: o.payment_method || (o.razorpay_payment_id ? 'Razorpay' : ''),
+                            date: o.created_at || new Date().toISOString()
+                        };
+                    });
                 } catch (e) {
                     console.warn('Could not load DB orders:', e);
                 }
             }
 
-            // Combine DB orders & local storage orders, deduplicating by orderId
+            // Combine DB orders & local storage orders, prioritizing DB orders (source of truth)
             const orderMap = new Map();
-            localOrders.forEach(o => {
+            dbOrders.forEach(o => {
                 if (o && o.orderId) orderMap.set(String(o.orderId), o);
             });
-            dbOrders.forEach(o => {
+            normalizedLocalOrders.forEach(o => {
                 if (o && o.orderId && !orderMap.has(String(o.orderId))) {
                     orderMap.set(String(o.orderId), o);
                 }

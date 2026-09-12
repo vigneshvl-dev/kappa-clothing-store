@@ -1438,22 +1438,13 @@
                 } catch (_) {}
             }
 
-            // 3. Optional DB RPC function for logged in users
-            let newOrderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
-            try {
-                if (user && supabaseClient) {
-                    const { data: result } = await supabaseClient.rpc('create_secure_order', orderPayload);
-                    if (result) {
-                        if (typeof result === 'string' || typeof result === 'number') {
-                            newOrderId = result;
-                        } else if (Array.isArray(result) && result[0]) {
-                            newOrderId = result[0].order_id || result[0].id || result[0];
-                        } else if (typeof result === 'object') {
-                            newOrderId = result.order_id || result.id;
-                        }
-                    }
-                }
-            } catch (_) {}
+            // 3. Generate standard UUID for the order so it is database-compliant
+            const newOrderId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+                ? crypto.randomUUID()
+                : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
 
             localStorage.setItem('kappa_active_order_id', newOrderId);
             localStorage.setItem('kappa_customer_details', JSON.stringify(customerDetails));
@@ -1461,6 +1452,45 @@
             const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * (item.qty || 1)), 0);
             const discountAmt = Math.min(discountAmount, subtotal);
             const total = Math.max(subtotal - discountAmt + shippingCost, 0);
+
+            // Pre-insert order to Supabase so it exists in DB immediately
+            try {
+                if (supabaseClient) {
+                    const initialOrderRow = {
+                        id: newOrderId,
+                        user_id: user ? user.id : null,
+                        status: 'pending',
+                        order_stage: 'incoming',
+                        total_amount: total,
+                        customer_details: customerDetails,
+                        shipping_address: shippingAddress,
+                        stage_history: [
+                            { stage: 'incoming', label: 'Order Placed', timestamp: new Date().toISOString() }
+                        ],
+                        delivery_details: {
+                            shipping_charge: shippingCost
+                        },
+                        payment_method: 'Razorpay',
+                        created_at: new Date().toISOString()
+                    };
+
+                    const { error: insErr } = await supabaseClient.from('orders').upsert([initialOrderRow]);
+                    if (!insErr && cartItems && cartItems.length > 0) {
+                        const lineItems = cartItems.map(item => ({
+                            order_id: newOrderId,
+                            product_id: (item.id && String(item.id).length > 20) ? item.id : null,
+                            quantity: item.qty || 1,
+                            price_at_purchase: item.price || 0,
+                            size: item.size || null,
+                            color: item.color || null,
+                            image_url: item.img || item.customImg || null
+                        }));
+                        await supabaseClient.from('order_items').insert(lineItems);
+                    }
+                }
+            } catch (dbErr) {
+                console.warn('Pre-insert DB order note:', dbErr);
+            }
 
             const orderRecord = {
                 orderId: newOrderId,
@@ -1480,6 +1510,17 @@
                 shippingCost,
                 total,
                 status: 'Paid',
+                order_stage: 'incoming',
+                stage_history: [
+                    { stage: 'incoming', label: 'Order Placed', timestamp: new Date().toISOString() }
+                ],
+                delivery_details: {
+                    partner: '',
+                    tracking_id: '',
+                    expected_date: '',
+                    shipping_charge: shippingCost
+                },
+                payment_method: 'Razorpay',
                 date: new Date().toISOString()
             };
 
@@ -1493,6 +1534,16 @@
                 const orders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
                 orders.unshift(orderRecord);
                 localStorage.setItem('kappa_orders', JSON.stringify(orders));
+
+                try {
+                    const { data } = await supabaseClient.auth.getUser();
+                    if (data?.user?.id) {
+                        const userKey = `kappa_orders_${data.user.id}`;
+                        const uOrders = JSON.parse(localStorage.getItem(userKey) || '[]');
+                        uOrders.unshift(orderRecord);
+                        localStorage.setItem(userKey, JSON.stringify(uOrders));
+                    }
+                } catch (_) {}
             }
 
             const cartKey = await getCartKey();
@@ -1569,6 +1620,7 @@
                                     .from('orders')
                                     .update({
                                         status: 'paid',
+                                        order_stage: 'incoming',
                                         razorpay_payment_id: response.razorpay_payment_id
                                     })
                                     .eq('id', dbOrderId);
