@@ -866,135 +866,6 @@ window.searchOrders = function(query) {
 
 
 
-    if (paidOrders.length === 0) {
-        container.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-                <h2 style="margin:0;">Orders</h2>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-secondary" onclick="loadOrders()" style="padding:8px 16px; font-weight:700; background:#000; color:#fff; border-radius:8px; cursor:pointer;">
-                        📦 Active Orders (0)
-                    </button>
-                    <button class="btn-secondary" onclick="renderRecycleBinView()" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
-                        🗑️ Recycle Bin (${recycled.length})
-                    </button>
-                </div>
-            </div>
-            <p style="color:#666; padding:20px 0;">No active paid orders found.</p>`;
-        return;
-    }
-
-    let html = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-            <h2 style="margin:0;">Orders</h2>
-            <div style="display:flex; gap:10px;">
-                <button class="btn-secondary" onclick="loadOrders()" style="padding:8px 16px; font-weight:700; background:#000; color:#fff; border-radius:8px; cursor:pointer;">
-                    📦 Active Orders (${paidOrders.length})
-                </button>
-                <button class="btn-secondary" onclick="renderRecycleBinView()" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
-                    🗑️ Recycle Bin (${recycled.length})
-                </button>
-            </div>
-        </div>
-        <table class="stock-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Ordered Items (Name, Size, Color, Qty)</th>
-                    <th>Payment Status</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>`;
-
-    paidOrders.forEach(order => {
-        const dateObj = new Date(order.created_at);
-        const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const currentStatus = (order.status || 'pending').toLowerCase();
-        const paymentStatus = (order.payment_status || 'pending').toLowerCase();
-        const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!order.razorpay_payment_id;
-        const rzpId = order.razorpay_payment_id || order.payment_id || '';
-        const hasRefundInfo = order.refund_details || order.customer_details?.refund_details;
-        const isSettled = hasRefundInfo?.refund_status === 'refunded' || currentStatus === 'refunded';
-
-        // Build items summary HTML
-        let itemsSummaryHtml = '';
-        if (order.order_items && order.order_items.length > 0) {
-            itemsSummaryHtml = order.order_items.map(item => {
-                const name = item.products?.name || 'Product';
-                const size = item.size || 'N/A';
-                const color = item.color || 'N/A';
-                const qty = item.quantity || 1;
-                const img = item.image_url || item.products?.product_images?.[0]?.url;
-                const imgHtml = img ? `<img src="${img}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; border:1px solid #ddd; flex-shrink:0;">` : '';
-                return `<div style="margin-bottom:8px; font-size:12px; line-height:1.4; display:flex; align-items:center; gap:8px;">
-                    ${imgHtml}
-                    <div>
-                        <strong style="color:#111; font-size:13px;">${name}</strong>
-                        <div style="margin-top:2px; display:flex; gap:4px; flex-wrap:wrap;">
-                            <span class="item-tag tag-qty">Qty: ${qty}</span>
-                            <span class="item-tag tag-size">Size: ${size}</span>
-                            <span class="item-tag tag-color">Color: ${color}</span>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-        } else {
-            itemsSummaryHtml = '<span style="color:#999; font-size:12px;">No items recorded</span>';
-        }
-
-        let paymentStatusHtml = '';
-        if (currentStatus === 'cancelled' || currentStatus.includes('cancel')) {
-            const refundMethod = hasRefundInfo?.method || (hasRefundInfo?.upi_id ? 'UPI' : (hasRefundInfo?.account_number ? 'Bank' : ''));
-
-            if (isSettled) {
-                paymentStatusHtml = `<span class="badge status-paid" style="background:#27ae60; color:#fff; padding:3px 6px; border-radius:4px; font-weight:bold; font-size:10px;">REFUNDED</span>
-                <div style="font-size:11px; color:#27ae60; font-weight:bold; margin-top:4px;">✓ Repaid to Customer</div>`;
-            } else {
-                paymentStatusHtml = `<span class="badge status-cancelled" style="background:#e74c3c; color:#fff; padding:3px 6px; border-radius:4px; font-weight:bold; font-size:10px;">CANCELLED</span>
-                <div style="font-size:11px; color:#c0392b; font-weight:bold; margin-top:4px;">⚠️ Repay: ₹${order.total_amount}</div>
-                ${refundMethod ? `<div style="font-size:10px; color:#4a5568; background:#edf2f7; padding:2px 6px; border-radius:3px; margin-top:2px; display:inline-block; font-weight:600;">Pay via ${refundMethod}</div>` : ''}`;
-            }
-        } else if (isPaid) {
-            paymentStatusHtml = `<span class="badge status-paid">PAID</span>
-            <div style="font-size:11px; color:#27ae60; font-weight:bold; margin-top:4px; display:flex; align-items:center; gap:3px;">
-                💳 Paid in Razorpay
-            </div>`;
-            if (rzpId) {
-                paymentStatusHtml += `<div style="font-size:10px; color:#555; font-family:monospace; margin-top:2px;">Txn: ${rzpId}</div>`;
-            }
-        } else {
-            paymentStatusHtml = `<span class="badge status-pending">PENDING</span>
-            <div style="font-size:11px; color:#e67e22; font-weight:bold; margin-top:4px;">⚠️ Unpaid (Razorpay)</div>`;
-        }
-
-        const isRepayPending = currentStatus.includes('cancel') && !isSettled;
-
-        html += `<tr>
-                 <td style="white-space:nowrap;"><small>${formattedDate}</small></td>
-                 <td><strong>#${order.id.toString().substring(0, 8)}</strong></td>
-                 <td>${order.user_id ? "Registered" : "Guest"}</td>
-                 <td style="min-width:240px;">${itemsSummaryHtml}</td>
-                 <td>${paymentStatusHtml}</td>
-                 <td><strong>₹${order.total_amount}</strong></td>
-                 <td>
-                    <button class="btn-black" onclick="showOrderDetails('${order.id}')" style="${isRepayPending ? 'background:#c0392b; color:#fff;' : ''}">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        ${isRepayPending ? 'View & Repay' : 'View Details'}
-                    </button>
-                    <button class="btn-black" onclick="deleteOrder('${order.id}')" style="background:#c0392b; margin-top:4px; width:100%;">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path></svg>
-                        Delete
-                    </button>
-                 </td>
-                 </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    container.innerHTML = html;
-}
 
 window.updateOrderStatus = async function (orderId, newStatus) {
     try {
@@ -2080,7 +1951,471 @@ window.showOrderDetails = async function (orderId) {
     const content = document.getElementById('orderDetailsContent');
 
     overlay.style.display = 'flex';
-    content.innerHTML = "Loading...";
+    content.innerHTML = `<div style="text-align:center; padding:40px; color:#888;">
+        <div style="font-size:30px; margin-bottom:10px;">⏳</div>
+        <div>Loading order details...</div>
+    </div>`;
+
+    const { data, error } = await supabaseClient
+        .from('orders')
+        .select(`
+            *,
+            order_items (
+                quantity,
+                price_at_purchase,
+                size,
+                color,
+                image_url,
+                products ( name, product_images ( url ) )
+            )
+        `)
+        .eq('id', orderId)
+        .single();
+
+    if (error || !data) {
+        content.innerHTML = '<p style="color:red; padding:20px;">Error loading order details.</p>';
+        return;
+    }
+
+    const cust = data.customer_details || {};
+    const addr = data.shipping_address || {};
+    const currentStatus = (data.status || 'pending').toLowerCase();
+    const paymentStatus = (data.payment_status || 'pending').toLowerCase();
+    const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!data.razorpay_payment_id;
+    const rzpId = data.razorpay_payment_id || data.payment_id || '';
+    const isCancelled = currentStatus.includes('cancel') || (data.order_stage || '') === 'cancelled';
+    const isReturned = currentStatus.includes('return') || ['return_requested','returned'].includes(data.order_stage || '');
+    const refundInfo = data.refund_details || cust.refund_details || cust.cancellation_details || data.cancellation_details || null;
+    const phoneClean = (cust.phone || '').replace(/[^0-9]/g, '').slice(-10);
+    const orderStage = data.order_stage || (isCancelled ? 'cancelled' : 'incoming');
+    const stageHistory = Array.isArray(data.stage_history) ? data.stage_history : [];
+    const deliveryDetails = data.delivery_details || {};
+
+    // ── 1. PAYMENT BANNER ──────────────────────────────────────────────────────
+    let paymentBannerHtml = '';
+    if (isCancelled) {
+        paymentBannerHtml = `
+            <div style="background:#fef2f2; border:1.5px solid #fecaca; border-radius:10px; padding:14px 16px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <div style="font-size:14px; font-weight:800; color:#b91c1c; display:flex; align-items:center; gap:6px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                        ORDER CANCELLED — REFUND DUE
+                    </div>
+                    <div style="font-size:12px; color:#991b1b; margin-top:3px;">Repay <strong>₹${data.total_amount}</strong> using customer's payment details below.</div>
+                </div>
+                <span class="badge status-cancelled" style="font-size:12px; padding:5px 12px;">CANCELLED</span>
+            </div>`;
+    } else if (isPaid) {
+        paymentBannerHtml = `
+            <div style="background:#e8f8f0; border:1px solid #a3e6be; border-radius:10px; padding:12px 16px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div style="font-size:13px; font-weight:700; color:#1e7e44; display:flex; align-items:center; gap:6px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#1e7e44"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        PAID VIA RAZORPAY
+                    </div>
+                    <div style="font-size:11px; color:#2e6b45; margin-top:2px;">${rzpId ? `Txn ID: <strong style="font-family:monospace;">${rzpId}</strong>` : 'Payment verified.'}</div>
+                </div>
+                <span class="badge status-paid" style="font-size:12px; padding:5px 12px;">PAID</span>
+            </div>`;
+    } else {
+        paymentBannerHtml = `
+            <div style="background:#fff8ec; border:1px solid #fbd38d; border-radius:10px; padding:12px 16px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between;">
+                <div style="font-size:13px; font-weight:700; color:#c05621;">⚠️ UNPAID / PENDING PAYMENT</div>
+                <span class="badge status-pending" style="font-size:12px; padding:5px 12px;">UNPAID</span>
+            </div>`;
+    }
+
+    // ── 2. ORDER HEADER ────────────────────────────────────────────────────────
+    const placedDate = new Date(data.created_at).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    let headerHtml = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid #f0f0f0; flex-wrap:wrap; gap:10px;">
+            <div>
+                <div style="font-size:22px; font-weight:800; color:#111; font-family:monospace; letter-spacing:0.5px;">Order #${data.id.toString().substring(0,8).toUpperCase()}</div>
+                <div style="font-size:12px; color:#888; margin-top:3px;">Placed on: ${placedDate}</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:11px; color:#888; text-transform:uppercase; font-weight:600;">Total Amount</div>
+                <div style="font-size:24px; font-weight:800; color:#111;">₹${data.total_amount}</div>
+            </div>
+        </div>`;
+
+    // ── 3. ORDER STATUS TIMELINE ───────────────────────────────────────────────
+    const isException = EXCEPTION_STAGES.includes(orderStage);
+    let timelineHtml = `<div class="order-detail-section">
+        <div class="order-detail-section-title">📍 Order Status Timeline</div>`;
+
+    if (isException) {
+        const excLabel = STAGE_LABELS[orderStage] || orderStage;
+        timelineHtml += `<div style="display:flex; align-items:center; gap:10px; padding:10px 14px; background:#fef2f2; border-radius:8px; border:1px solid #fecaca;">
+            <div class="step-dot exception" style="width:28px; height:28px; border-radius:50%; background:#fee2e2; border:2px solid #dc2626; display:flex; align-items:center; justify-content:center; color:#dc2626; font-weight:800; font-size:12px; flex-shrink:0;">!</div>
+            <div>
+                <div style="font-weight:700; color:#dc2626; font-size:14px;">${excLabel}</div>
+                ${stageHistory.length > 0 ? `<div style="font-size:11px; color:#999; margin-top:2px;">${new Date(stageHistory[stageHistory.length-1]?.timestamp || Date.now()).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</div>` : ''}
+            </div>
+        </div>`;
+    } else {
+        timelineHtml += `<div class="order-timeline">`;
+        ORDER_STAGES.forEach((stage, idx) => {
+            const stageIdx = ORDER_STAGES.indexOf(orderStage);
+            let stepClass = '';
+            if (idx < stageIdx) stepClass = 'done';
+            else if (idx === stageIdx) stepClass = 'current';
+            const histEntry = stageHistory.find(h => h.stage === stage);
+            const timeLabel = histEntry ? new Date(histEntry.timestamp).toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '';
+            const dotIcon = idx < stageIdx ? '✓' : (idx === stageIdx ? '●' : '○');
+            const shortLabels = { incoming:'Incoming', confirmed:'Confirmed', processing:'Processing', packed:'Packed', shipped:'Shipped', out_for_delivery:'Out for Del.', delivered:'Delivered' };
+            timelineHtml += `
+                <div class="timeline-step ${stepClass}">
+                    <div class="step-dot">${dotIcon}</div>
+                    <div class="step-label">${shortLabels[stage] || stage}</div>
+                    ${timeLabel ? `<div class="step-time">${timeLabel}</div>` : '<div class="step-time">&nbsp;</div>'}
+                </div>`;
+        });
+        timelineHtml += `</div>`;
+    }
+    timelineHtml += `</div>`;
+
+    // ── 4. UPDATE ORDER STAGE ──────────────────────────────────────────────────
+    const allStages = [...ORDER_STAGES, ...EXCEPTION_STAGES];
+    let stageOptions = allStages.map(s => `<option value="${s}" ${s === orderStage ? 'selected' : ''}>${STAGE_LABELS[s] || s}</option>`).join('');
+    let updateStageHtml = `
+        <div class="order-action-bar">
+            <div style="font-size:12px; font-weight:700; color:#555; white-space:nowrap;">Update Stage:</div>
+            <select class="stage-select" id="stage-select-${data.id}">${stageOptions}</select>
+            <button class="btn-update-stage" onclick="updateOrderStage('${data.id}', document.getElementById('stage-select-${data.id}').value)">
+                ✅ Update Status
+            </button>
+            ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hi ' + (cust.name||'') + '! Your Kappa Clothing order #' + data.id.toString().substring(0,8).toUpperCase() + ' status has been updated. Current status: ' + (STAGE_LABELS[orderStage]||orderStage) + '. Total: ₹' + data.total_amount + '.')}" target="_blank" class="btn-whatsapp-notify">💬 Notify Customer</a>` : ''}
+        </div>`;
+
+    // ── 5. CUSTOMER + SHIPPING GRID ────────────────────────────────────────────
+    let custGridHtml = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
+            <div class="order-detail-section" style="margin-bottom:0;">
+                <div class="order-detail-section-title">👤 Customer Info</div>
+                <div style="font-size:14px; font-weight:700; color:#111; margin-bottom:4px;">${cust.name || 'N/A'}</div>
+                <div style="font-size:13px; color:#555; margin-bottom:3px;">
+                    ${cust.email ? `<a href="mailto:${cust.email}" style="color:#3498db; text-decoration:none;">${cust.email}</a>` : 'No email'}
+                </div>
+                <div style="font-size:13px; color:#555; margin-bottom:6px;">📞 ${cust.phone || 'N/A'}</div>
+                ${phoneClean ? `<a href="https://wa.me/91${phoneClean}" target="_blank" class="btn-whatsapp-notify" style="font-size:11px; padding:5px 10px; margin-top:4px;">💬 WhatsApp</a>` : ''}
+            </div>
+            <div class="order-detail-section" style="margin-bottom:0;">
+                <div class="order-detail-section-title">📍 Delivery Address</div>
+                <div style="font-size:13px; color:#111; line-height:1.7;">
+                    <div style="font-weight:700;">${addr.full_name || cust.name || 'N/A'}</div>
+                    <div>${addr.address || addr.line1 || 'N/A'}</div>
+                    ${addr.line2 ? `<div>${addr.line2}</div>` : ''}
+                    <div>${[addr.city, addr.state].filter(Boolean).join(', ') || 'N/A'}</div>
+                    <div>PIN: ${addr.zip || addr.pincode || 'N/A'}</div>
+                </div>
+            </div>
+        </div>`;
+
+    // ── 6. DELIVERY DETAILS SECTION ────────────────────────────────────────────
+    const etaOptions = ['2-4 days','3-5 days','5-7 days','7-10 days','Custom'].map(v => `<option value="${v}" ${deliveryDetails.eta_days===v?'selected':''}>${v}</option>`).join('');
+    let deliveryHtml = `
+        <div class="order-detail-section">
+            <div class="order-detail-section-title">🚚 Delivery Details</div>
+            <div class="delivery-form-grid">
+                <div>
+                    <label class="delivery-form-label">Delivery Partner</label>
+                    <input class="delivery-form-input" id="del-partner-${data.id}" type="text" placeholder="e.g. Delhivery, DTDC, Ekart..." value="${deliveryDetails.partner || ''}">
+                </div>
+                <div>
+                    <label class="delivery-form-label">Tracking ID / AWB</label>
+                    <input class="delivery-form-input" id="del-tracking-${data.id}" type="text" placeholder="e.g. 1234567890" value="${deliveryDetails.tracking_id || ''}">
+                </div>
+                <div>
+                    <label class="delivery-form-label">Expected Delivery Date</label>
+                    <input class="delivery-form-input" id="del-eta-date-${data.id}" type="date" value="${deliveryDetails.expected_delivery || ''}">
+                </div>
+                <div>
+                    <label class="delivery-form-label">ETA Window (days)</label>
+                    <select class="delivery-form-input" id="del-eta-days-${data.id}">
+                        <option value="">Select window...</option>
+                        ${etaOptions}
+                    </select>
+                </div>
+                <div>
+                    <label class="delivery-form-label">Shipping Charge (₹)</label>
+                    <input class="delivery-form-input" id="del-charge-${data.id}" type="number" placeholder="0" value="${deliveryDetails.shipping_charge || ''}">
+                </div>
+                <div>
+                    <label class="delivery-form-label">Tracking URL (optional)</label>
+                    <input class="delivery-form-input" id="del-track-url-${data.id}" type="url" placeholder="https://..." value="${deliveryDetails.tracking_url || ''}">
+                </div>
+            </div>
+            <button class="btn-save-delivery" onclick="saveDeliveryDetails('${data.id}')">
+                💾 Save Delivery Info
+            </button>
+            ${deliveryDetails.tracking_id ? `<a href="${deliveryDetails.tracking_url || '#'}" target="_blank" style="margin-top:10px; margin-left:10px; display:inline-flex; align-items:center; gap:5px; padding:8px 14px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; font-size:12px; font-weight:700; color:#334155; text-decoration:none;">🔍 Track Shipment</a>` : ''}
+        </div>`;
+
+    // ── 7. PAYMENT INFO ────────────────────────────────────────────────────────
+    let paymentInfoHtml = `
+        <div class="order-detail-section">
+            <div class="order-detail-section-title">💳 Payment Information</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; font-size:13px;">
+                <div>
+                    <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:3px;">Status</div>
+                    <div>${isPaid ? '<span class="badge status-paid" style="font-size:11px;">PAID</span>' : '<span class="badge status-pending" style="font-size:11px;">UNPAID</span>'}</div>
+                </div>
+                <div>
+                    <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:3px;">Method</div>
+                    <div style="font-weight:700;">${data.payment_method || 'Razorpay'}</div>
+                </div>
+                <div>
+                    <div style="font-size:11px; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:3px;">Amount Paid</div>
+                    <div style="font-weight:800; font-size:16px;">₹${data.total_amount}</div>
+                </div>
+            </div>
+            ${rzpId ? `<div style="margin-top:10px; padding:10px 12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <div>
+                    <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Razorpay Transaction ID</div>
+                    <div style="font-family:monospace; font-size:13px; font-weight:800; color:#0f172a; margin-top:2px;">${rzpId}</div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button onclick="copyRefundText('${rzpId}', this)" style="background:#475569; color:#fff; border:none; padding:5px 10px; border-radius:5px; font-size:11px; cursor:pointer; font-weight:600;">Copy ID</button>
+                    <a href="https://dashboard.razorpay.com/app/payments/${rzpId}" target="_blank" style="background:#2563eb; color:#fff; text-decoration:none; padding:5px 12px; border-radius:5px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">Razorpay ↗</a>
+                </div>
+            </div>` : ''}
+        </div>`;
+
+    // ── 8. ORDER ITEMS ─────────────────────────────────────────────────────────
+    let itemsHtml = `
+        <div class="order-detail-section">
+            <div class="order-detail-section-title">🛍️ Ordered Items</div>
+            <div style="display:flex; flex-direction:column; gap:10px; max-height:320px; overflow-y:auto; padding-right:4px;">`;
+
+    if (data.order_items && data.order_items.length > 0) {
+        let subtotal = 0;
+        data.order_items.forEach(item => {
+            const productName = item.products?.name || 'Unknown Product';
+            const price = item.price_at_purchase || 0;
+            const qty = item.quantity || 1;
+            const size = item.size || 'N/A';
+            const color = item.color || 'N/A';
+            const lineTotal = price * qty;
+            subtotal += lineTotal;
+            const imgUrl = item.image_url || item.products?.product_images?.[0]?.url;
+            const imgEl = imgUrl
+                ? `<img src="${imgUrl}" alt="${productName}" style="width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid #e5e7eb; flex-shrink:0;">`
+                : `<div style="width:72px; height:72px; background:#f0f0f0; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:22px; color:#aaa;">🛍️</div>`;
+            itemsHtml += `
+                <div style="border:1px solid #eaeaea; border-radius:10px; padding:12px 14px; display:flex; align-items:center; gap:14px; background:#fafafa;">
+                    ${imgEl}
+                    <div style="flex-grow:1;">
+                        <div style="font-weight:700; font-size:14px; color:#111; margin-bottom:5px;">${productName}</div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px;">
+                            <span class="item-tag tag-color">Color: ${color}</span>
+                            <span class="item-tag tag-size">Size: ${size}</span>
+                            <span class="item-tag tag-qty">Qty: ${qty}</span>
+                        </div>
+                        <div style="font-size:12px; color:#666;">Unit: <strong>₹${price}</strong></div>
+                    </div>
+                    <div style="text-align:right; flex-shrink:0;">
+                        <div style="font-size:10px; color:#888; text-transform:uppercase; font-weight:600;">Total</div>
+                        <div style="font-weight:800; font-size:16px; color:#111;">₹${lineTotal}</div>
+                    </div>
+                </div>`;
+        });
+        itemsHtml += `
+            <div style="display:flex; justify-content:flex-end; padding-top:8px; border-top:1px solid #f0f0f0; margin-top:4px;">
+                <div style="font-size:15px; font-weight:800; color:#111;">Grand Total: ₹${data.total_amount}</div>
+            </div>`;
+    } else {
+        itemsHtml += `<div style="color:#e74c3c; padding:15px; text-align:center; background:#fff5f5; border-radius:8px;">No products found for this order.</div>`;
+    }
+    itemsHtml += `</div></div>`;
+
+    // ── 9. REFUND / REPAYMENT SECTION (existing logic preserved) ───────────────
+    let repaymentSectionHtml = '';
+    if (isCancelled || isReturned) {
+        const hasCustomUpi = !!refundInfo?.upi_id;
+        const hasBank = !!(refundInfo?.account_number && refundInfo?.ifsc);
+        const upiId = refundInfo?.upi_id || (phoneClean ? phoneClean + '@upi' : '');
+        const isRefundSettled = refundInfo?.refund_status === 'refunded' || currentStatus === 'refunded';
+
+        let detailsInnerHtml = '';
+        if (hasBank && (!hasCustomUpi || refundInfo?.method === 'Bank Transfer')) {
+            detailsInnerHtml = `
+                <div style="background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:8px; padding:14px 16px; margin-top:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                        <span style="font-size:13px; font-weight:700; color:#1e40af;">🏦 Bank Account Details (NEFT / IMPS)</span>
+                        <button onclick="copyRefundText('Account Holder: ${refundInfo.account_holder || cust.name || ''}\\nAccount No: ${refundInfo.account_number}\\nIFSC: ${refundInfo.ifsc}\\nBank: ${refundInfo.bank_name || ''}\\nAmount: ₹${data.total_amount}', this)" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 10px; border-radius:5px; font-size:11px; font-weight:700; cursor:pointer; color:#334155;">📋 Copy All</button>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:13px;">
+                        <div><div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Account Holder</div><div style="font-weight:700; color:#0f172a; margin-top:2px;">${refundInfo.account_holder || cust.name || 'N/A'}</div></div>
+                        <div><div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Bank Name</div><div style="font-weight:700; color:#0f172a; margin-top:2px;">${refundInfo.bank_name || 'N/A'}</div></div>
+                        <div>
+                            <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">Account Number</div>
+                            <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                                <strong style="font-family:monospace; font-size:14px; color:#0f172a; background:#fff; padding:2px 8px; border-radius:4px; border:1px solid #cbd5e1;">${refundInfo.account_number}</strong>
+                                <button onclick="copyRefundText('${refundInfo.account_number}', this)" style="padding:2px 8px; font-size:11px; background:#334155; color:#fff; border:none; border-radius:4px; cursor:pointer;">Copy</button>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase;">IFSC Code</div>
+                            <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                                <strong style="font-family:monospace; font-size:14px; color:#0f172a; background:#fff; padding:2px 8px; border-radius:4px; border:1px solid #cbd5e1;">${refundInfo.ifsc}</strong>
+                                <button onclick="copyRefundText('${refundInfo.ifsc}', this)" style="padding:2px 8px; font-size:11px; background:#334155; color:#fff; border:none; border-radius:4px; cursor:pointer;">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        } else if (upiId) {
+            detailsInnerHtml = `
+                <div style="background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:8px; padding:14px 16px; margin-top:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                        <span style="font-size:13px; font-weight:700; color:#1e40af;">⚡ UPI ID ${hasCustomUpi ? '(Customer Provided)' : '(From Phone)'}</span>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="copyRefundText('${upiId}', this)" style="background:#334155; color:#fff; border:none; padding:5px 12px; border-radius:5px; font-size:11px; font-weight:700; cursor:pointer;">📋 Copy UPI</button>
+                            <a href="upi://pay?pa=${upiId}&pn=${encodeURIComponent(cust.name||'Customer')}&am=${data.total_amount}&cu=INR" style="background:#16a34a; color:#fff; text-decoration:none; padding:5px 12px; border-radius:5px; font-size:11px; font-weight:700;">⚡ Pay via UPI</a>
+                        </div>
+                    </div>
+                    <span style="font-family:monospace; font-size:16px; font-weight:800; color:#0f172a; background:#fff; border:1.5px solid #cbd5e1; padding:6px 14px; border-radius:6px; display:inline-block;">${upiId}</span>
+                </div>`;
+        } else {
+            detailsInnerHtml = `<div style="background:#fffbeb; border:1px solid #fef3c7; border-radius:8px; padding:12px 14px; margin-top:10px; font-size:12px; color:#92400e;">ℹ️ Customer has not entered UPI or Bank details. Click "Edit Refund Info" below to record their details.</div>`;
+        }
+
+        const isRefundSettledBool = isRefundSettled;
+        repaymentSectionHtml = `
+            <div style="background:#fff; border:2px solid #dc2626; border-radius:10px; padding:18px; margin-bottom:16px; box-shadow:0 4px 16px rgba(220,38,38,0.08);">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #fee2e2; padding-bottom:12px; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:34px; height:34px; border-radius:8px; background:#fee2e2; display:flex; align-items:center; justify-content:center; color:#dc2626; font-size:16px; font-weight:800;">₹</div>
+                        <div>
+                            <div style="font-size:14px; font-weight:800; color:#991b1b;">CUSTOMER REPAYMENT / REFUND DETAILS</div>
+                            <div style="font-size:12px; color:#7f1d1d; margin-top:1px;">Total to Repay: <strong style="color:#dc2626; font-size:14px;">₹${data.total_amount}</strong></div>
+                        </div>
+                    </div>
+                    ${isRefundSettledBool ? '<span class="badge status-paid" style="background:#16a34a; color:#fff; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:11px;">REFUND SETTLED</span>' : '<span class="badge status-cancelled" style="background:#dc2626; color:#fff; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:11px;">REPAYMENT PENDING</span>'}
+                </div>
+                <div style="display:flex; gap:16px; font-size:12px; color:#475569; background:#fef2f2; padding:8px 12px; border-radius:6px; margin-bottom:12px; flex-wrap:wrap;">
+                    <div><strong>Reason:</strong> ${refundInfo?.reason || 'Customer cancelled order'}</div>
+                    ${refundInfo?.cancelled_at ? `<div><strong>Cancelled On:</strong> ${new Date(refundInfo.cancelled_at).toLocaleString()}</div>` : ''}
+                </div>
+                ${detailsInnerHtml}
+                ${rzpId ? `<div style="background:#f1f5f9; border-radius:8px; padding:12px 16px; margin-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;"><div><div style="font-size:10px; color:#475569; font-weight:700; text-transform:uppercase;">Razorpay Payment ID</div><div style="font-family:monospace; font-size:13px; font-weight:800; color:#0f172a; margin-top:2px;">${rzpId}</div></div><div style="display:flex; gap:8px;"><button onclick="copyRefundText('${rzpId}', this)" style="background:#475569; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:600;">Copy ID</button><a href="https://dashboard.razorpay.com/app/payments/${rzpId}" target="_blank" style="background:#2563eb; color:#fff; text-decoration:none; padding:5px 12px; border-radius:4px; font-size:11px; font-weight:700;">Refund via Razorpay ↗</a></div></div>` : ''}
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1.5px solid #fee2e2; flex-wrap:wrap; gap:10px;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (cust.name||'') + ', regarding your refund of ₹' + data.total_amount + ' for Kappa Clothing order #' + data.id.toString().substring(0,8).toUpperCase() + '...')}" target="_blank" class="btn-whatsapp-notify">💬 WhatsApp Customer</a>` : ''}
+                        <button onclick="openAdminEditRefundModal('${data.id}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#334155; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">✏️ Edit Refund Info</button>
+                    </div>
+                    <div>
+                        ${isRefundSettledBool ? `<div style="display:inline-flex; align-items:center; gap:6px; background:#dcfce7; color:#15803d; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:800;">✓ Refund Completed (${refundInfo?.refund_ref ? 'Ref: ' + refundInfo.refund_ref : new Date(refundInfo?.refunded_at||Date.now()).toLocaleDateString()})</div>`
+                        : `<button onclick="adminMarkOrderRefunded('${data.id}', ${data.total_amount})" style="background:#dc2626; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(220,38,38,0.3);">✅ Mark as Refunded / Repaid</button>`}
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    // ── 10. FOOTER ACTIONS ─────────────────────────────────────────────────────
+    let footerHtml = `
+        <div style="margin-top:20px; padding-top:16px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <button onclick="document.getElementById('orderDetailsOverlay').style.display='none'" style="background:#f1f5f9; color:#334155; border:1px solid #e2e8f0; padding:9px 18px; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px;">✕ Close</button>
+            <button onclick="deleteOrder('${data.id}')" style="background:#dc2626; color:#fff; padding:9px 18px; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Move to Recycle Bin
+            </button>
+        </div>`;
+
+    // ── ASSEMBLE ────────────────────────────────────────────────────────────────
+    content.innerHTML = `
+        <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color:#333;">
+            ${paymentBannerHtml}
+            ${headerHtml}
+            ${timelineHtml}
+            ${updateStageHtml}
+            ${repaymentSectionHtml}
+            ${custGridHtml}
+            ${deliveryHtml}
+            ${paymentInfoHtml}
+            ${itemsHtml}
+            ${footerHtml}
+        </div>`;
+};
+
+// ── UPDATE ORDER STAGE ──────────────────────────────────────────────────────────
+window.updateOrderStage = async function (orderId, newStage) {
+    if (!newStage) return alert('Please select a stage.');
+    const btn = event?.target;
+    if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+
+    try {
+        // Fetch current history
+        const { data: ord } = await supabaseClient.from('orders').select('stage_history').eq('id', orderId).single();
+        const existing = Array.isArray(ord?.stage_history) ? ord.stage_history : [];
+        const newEntry = { stage: newStage, timestamp: new Date().toISOString() };
+        const updatedHistory = [...existing.filter(h => h.stage !== newStage), newEntry];
+
+        const { error } = await supabaseClient.from('orders').update({
+            order_stage: newStage,
+            stage_history: updatedHistory
+        }).eq('id', orderId);
+
+        if (error) throw error;
+
+        // Reload detail panel and orders list
+        await showOrderDetails(orderId);
+        await loadOrders();
+
+    } catch (err) {
+        console.error('Error updating order stage:', err);
+        alert('Failed to update stage: ' + (err.message || err));
+        if (btn) { btn.textContent = '✅ Update Status'; btn.disabled = false; }
+    }
+};
+
+// ── SAVE DELIVERY DETAILS ───────────────────────────────────────────────────────
+window.saveDeliveryDetails = async function (orderId) {
+    const partner   = document.getElementById(`del-partner-${orderId}`)?.value.trim() || '';
+    const tracking  = document.getElementById(`del-tracking-${orderId}`)?.value.trim() || '';
+    const etaDate   = document.getElementById(`del-eta-date-${orderId}`)?.value || '';
+    const etaDays   = document.getElementById(`del-eta-days-${orderId}`)?.value || '';
+    const charge    = document.getElementById(`del-charge-${orderId}`)?.value || '';
+    const trackUrl  = document.getElementById(`del-track-url-${orderId}`)?.value.trim() || '';
+
+    const deliveryDetails = {
+        partner,
+        tracking_id: tracking,
+        expected_delivery: etaDate,
+        eta_days: etaDays,
+        shipping_charge: charge ? parseFloat(charge) : null,
+        tracking_url: trackUrl,
+        delivery_status: tracking ? 'shipped' : 'not_shipped',
+        updated_at: new Date().toISOString()
+    };
+
+    try {
+        const { error } = await supabaseClient.from('orders').update({ delivery_details: deliveryDetails }).eq('id', orderId);
+        if (error) throw error;
+
+        // Auto-advance stage to 'shipped' if tracking added and stage is still early
+        if (tracking) {
+            const { data: ord } = await supabaseClient.from('orders').select('order_stage, stage_history').eq('id', orderId).single();
+            const earlyStages = ['incoming', 'confirmed', 'processing', 'packed'];
+            if (earlyStages.includes(ord?.order_stage)) {
+                const existing = Array.isArray(ord.stage_history) ? ord.stage_history : [];
+                const newEntry = { stage: 'shipped', timestamp: new Date().toISOString() };
+                await supabaseClient.from('orders').update({
+                    order_stage: 'shipped',
+                    stage_history: [...existing.filter(h => h.stage !== 'shipped'), newEntry]
+                }).eq('id', orderId);
+            }
+        }
+
+        alert('✅ Delivery details saved!');
+        await showOrderDetails(orderId);
+        await loadOrders();
+    } catch (err) {
+        console.error('Error saving delivery details:', err);
+        alert('Failed to save delivery details: ' + (err.message || err));
+    }
+};
+
 
     const { data, error } = await supabaseClient
         .from('orders')
