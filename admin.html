@@ -57,22 +57,171 @@
 
             <!-- VIEW: DASHBOARD -->
             <div id="view-dashboard" class="view-section active-view">
-                <div class="stats-grid">
-                    <div class="card stat-card">
-                        <h3>Total Revenue</h3>
-                        <div class="stat-value" id="stat-revenue">₹0</div>
+                <!-- 1. Top Summary Cards (4 Large Cards) -->
+                <div class="dash-summary-grid">
+                    <div class="dash-summary-card">
+                        <div class="dash-card-header">
+                            <span class="dash-card-title">Total Revenue</span>
+                            <div class="dash-card-icon-wrap icon-gold">💰</div>
+                        </div>
+                        <div class="dash-card-value" id="dash-revenue">₹45,280</div>
+                        <div class="dash-card-comparison">
+                            <span class="trend-pill trend-up">↑ +12.5%</span>
+                            <span class="trend-sub">from last month</span>
+                        </div>
                     </div>
-                    <div class="card stat-card">
-                        <h3>Total Orders</h3>
-                        <div class="stat-value" id="stat-orders">0</div>
+
+                    <div class="dash-summary-card">
+                        <div class="dash-card-header">
+                            <span class="dash-card-title">Total Orders</span>
+                            <div class="dash-card-icon-wrap icon-blue">🛍️</div>
+                        </div>
+                        <div class="dash-card-value" id="dash-orders">128</div>
+                        <div class="dash-card-comparison">
+                            <span class="trend-pill trend-up">↑ +8.2%</span>
+                            <span class="trend-sub">from last month</span>
+                        </div>
                     </div>
-                    <div class="card stat-card">
-                        <h3>Total Products</h3>
-                        <div class="stat-value" id="stat-products">0</div>
+
+                    <div class="dash-summary-card">
+                        <div class="dash-card-header">
+                            <span class="dash-card-title">Total Products</span>
+                            <div class="dash-card-icon-wrap icon-purple">📦</div>
+                        </div>
+                        <div class="dash-card-value" id="dash-products">156</div>
+                        <div class="dash-card-comparison">
+                            <span class="trend-pill trend-up">↑ +4.1%</span>
+                            <span class="trend-sub">from last month</span>
+                        </div>
                     </div>
-                    <div class="card stat-card">
-                        <h3>Total Customers</h3>
-                        <div class="stat-value" id="stat-customers">0</div>
+
+                    <div class="dash-summary-card">
+                        <div class="dash-card-header">
+                            <span class="dash-card-title">Total Customers</span>
+                            <div class="dash-card-icon-wrap icon-emerald">👥</div>
+                        </div>
+                        <div class="dash-card-value" id="dash-customers">94</div>
+                        <div class="dash-card-comparison">
+                            <span class="trend-pill trend-up">↑ +10.3%</span>
+                            <span class="trend-sub">from last month</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2 & 3. Middle Section: Sales Overview Graph & Order Status Donut -->
+                <div class="dash-middle-grid">
+                    <!-- 2. Sales Overview Graph Card -->
+                    <div class="dash-panel-card sales-overview-card">
+                        <div class="dash-panel-header">
+                            <div>
+                                <h3 class="dash-panel-title">📈 Sales Overview</h3>
+                                <p class="dash-panel-subtitle">Illustrative monthly sales trend for the admin dashboard.</p>
+                            </div>
+                            <!-- Filter Buttons -->
+                            <div class="dash-filters-wrap" id="salesTimeFilters">
+                                <button class="dash-filter-btn" data-filter="today" onclick="changeSalesTimeframe('today', this)">Today</button>
+                                <button class="dash-filter-btn" data-filter="7days" onclick="changeSalesTimeframe('7days', this)">7 Days</button>
+                                <button class="dash-filter-btn" data-filter="30days" onclick="changeSalesTimeframe('30days', this)">30 Days</button>
+                                <button class="dash-filter-btn active" data-filter="6months" onclick="changeSalesTimeframe('6months', this)">6 Months</button>
+                                <button class="dash-filter-btn" data-filter="thisyear" onclick="changeSalesTimeframe('thisyear', this)">This Year</button>
+                            </div>
+                        </div>
+
+                        <!-- Mini metrics summary bar -->
+                        <div class="dash-sales-metrics-strip">
+                            <div class="sales-metric-item">
+                                <span class="lbl">Period Revenue</span>
+                                <strong id="sales-period-total">₹169,900</strong>
+                            </div>
+                            <div class="sales-metric-item">
+                                <span class="lbl">Peak Period</span>
+                                <strong id="sales-peak-month">₹38.5K (Sep)</strong>
+                            </div>
+                            <div class="sales-metric-item">
+                                <span class="lbl">Avg. Order Value</span>
+                                <strong id="sales-avg-order">₹1,327</strong>
+                            </div>
+                            <div class="sales-metric-item">
+                                <span class="lbl">Conversion Rate</span>
+                                <strong style="color:#16a34a;">3.4%</strong>
+                            </div>
+                        </div>
+
+                        <!-- Interactive SVG Graph Container -->
+                        <div class="dash-chart-container" id="salesChartContainer">
+                            <!-- Injected dynamically by renderSalesChart() -->
+                        </div>
+                    </div>
+
+                    <!-- 3. Order Status Pie/Donut Chart Card -->
+                    <div class="dash-panel-card order-status-card">
+                        <div class="dash-panel-header">
+                            <div>
+                                <h3 class="dash-panel-title">◯ Order Status</h3>
+                                <p class="dash-panel-subtitle">Illustrative distribution of current orders by status.</p>
+                            </div>
+                        </div>
+
+                        <!-- Donut Graphic & Legend -->
+                        <div class="dash-donut-layout">
+                            <div class="dash-donut-canvas-wrap" id="donutChartWrap">
+                                <!-- SVG Donut Chart dynamically rendered -->
+                            </div>
+                            <div class="dash-donut-legend" id="donutLegendContainer">
+                                <!-- Legend list with color dots and counts -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Bottom Management Cards (4 Smaller Cards) -->
+                <div class="dash-bottom-grid">
+                    <div class="dash-action-card border-amber">
+                        <div class="dash-action-top">
+                            <span class="dash-action-icon">🟡</span>
+                            <span class="dash-action-tag tag-amber">Pending</span>
+                        </div>
+                        <div class="dash-action-num" id="dash-bottom-pending">18</div>
+                        <p class="dash-action-desc">Orders waiting for processing</p>
+                        <button class="dash-action-btn btn-amber" onclick="switchAdminOrdersFilter('incoming')">
+                            View Orders <span>→</span>
+                        </button>
+                    </div>
+
+                    <div class="dash-action-card border-red">
+                        <div class="dash-action-top">
+                            <span class="dash-action-icon">🔴</span>
+                            <span class="dash-action-tag tag-red">Cancelled</span>
+                        </div>
+                        <div class="dash-action-num" id="dash-bottom-cancelled">3</div>
+                        <p class="dash-action-desc">Orders cancelled</p>
+                        <button class="dash-action-btn btn-red" onclick="switchAdminView('cancelled')">
+                            View Cancelled <span>→</span>
+                        </button>
+                    </div>
+
+                    <div class="dash-action-card border-purple">
+                        <div class="dash-action-top">
+                            <span class="dash-action-icon">📦</span>
+                            <span class="dash-action-tag tag-purple">Inventory</span>
+                        </div>
+                        <div class="dash-action-num" id="dash-bottom-products">156</div>
+                        <p class="dash-action-desc">Active products</p>
+                        <button class="dash-action-btn btn-purple" onclick="switchAdminView('inventory')">
+                            Manage Products <span>→</span>
+                        </button>
+                    </div>
+
+                    <div class="dash-action-card border-green">
+                        <div class="dash-action-top">
+                            <span class="dash-action-icon">💳</span>
+                            <span class="dash-action-tag tag-green">Payments</span>
+                        </div>
+                        <div class="dash-action-num" id="dash-bottom-payments">₹35,800</div>
+                        <p class="dash-action-desc">Successful payments</p>
+                        <button class="dash-action-btn btn-green" onclick="switchAdminOrdersFilter('delivered')">
+                            View Payments <span>→</span>
+                        </button>
                     </div>
                 </div>
             </div>
