@@ -558,6 +558,84 @@ window.deleteCategory = async function (id) {
     }
 };
 
+// ==========================================
+// ORDER MANAGEMENT — CONSTANTS & HELPERS
+// ==========================================
+const ORDER_STAGES = ['incoming', 'confirmed', 'processing', 'packed', 'shipped', 'out_for_delivery', 'delivered'];
+const EXCEPTION_STAGES = ['cancelled', 'return_requested', 'returned', 'refunded'];
+
+const STAGE_LABELS = {
+    incoming: '🟡 Incoming',
+    confirmed: '🔵 Confirmed',
+    processing: '🟣 Processing',
+    packed: '🟠 Packed',
+    shipped: '🚚 Shipped',
+    out_for_delivery: '🛵 Out for Delivery',
+    delivered: '🟢 Delivered',
+    cancelled: '🔴 Cancelled',
+    return_requested: '↩️ Return Requested',
+    returned: '📦 Returned',
+    refunded: '💰 Refunded'
+};
+
+const STAGE_SHORT = {
+    incoming: 'Incoming',
+    confirmed: 'Confirmed',
+    processing: 'Processing',
+    packed: 'Packed',
+    shipped: 'Shipped',
+    out_for_delivery: 'Out for Delivery',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled',
+    return_requested: 'Return Req.',
+    returned: 'Returned',
+    refunded: 'Refunded'
+};
+
+const DELIVERY_STATUS_LABELS = {
+    not_shipped: 'Not Shipped',
+    shipped: 'Shipped',
+    out_for_delivery: 'Out for Delivery',
+    delivered: 'Delivered'
+};
+
+function getStageBadgeHtml(stage) {
+    const cls = 'stage-' + (stage || 'incoming');
+    const label = STAGE_SHORT[stage] || stage || 'Incoming';
+    return `<span class="stage-badge ${cls}">${label}</span>`;
+}
+
+function getDeliveryChipHtml(deliveryDetails) {
+    const ds = deliveryDetails?.delivery_status || 'not_shipped';
+    const label = DELIVERY_STATUS_LABELS[ds] || 'Not Shipped';
+    const cls = ds !== 'not_shipped' ? ds : '';
+    return `<span class="delivery-chip ${cls}">${label}</span>`;
+}
+
+function getEtaHtml(deliveryDetails, createdAt) {
+    if (deliveryDetails?.expected_delivery) {
+        const d = new Date(deliveryDetails.expected_delivery);
+        const label = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        return `<span class="eta-badge">📅 ${label}</span>`;
+    }
+    if (deliveryDetails?.eta_days) {
+        return `<span class="eta-badge">⏱ ${deliveryDetails.eta_days}</span>`;
+    }
+    // default 2-4 days estimate from order date
+    if (createdAt) {
+        const base = new Date(createdAt);
+        const from = new Date(base); from.setDate(from.getDate() + 2);
+        const to = new Date(base); to.setDate(to.getDate() + 4);
+        const fmt = d => d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        return `<span class="eta-badge" style="opacity:0.65">~${fmt(from)}–${fmt(to)}</span>`;
+    }
+    return '';
+}
+
+// Store fetched orders globally for filter/search
+let _allFetchedOrders = [];
+let _activeOrderFilter = 'all';
+
 async function loadOrders() {
     const container = document.querySelector('#view-orders .card');
 
@@ -581,7 +659,212 @@ async function loadOrders() {
         return currentStatus === 'paid' || currentStatus.includes('cancel') || currentStatus.includes('refund') || !!order.razorpay_payment_id;
     });
 
+    _allFetchedOrders = paidOrders;
     const recycled = getRecycledOrders();
+    renderOrdersView(paidOrders, recycled, _activeOrderFilter, '');
+}
+
+function renderOrdersView(orders, recycled, filterStage, searchQuery) {
+    const container = document.querySelector('#view-orders .card');
+    if (!container) return;
+
+    // Compute stat counts
+    const counts = {
+        all: orders.length,
+        incoming: orders.filter(o => !o.order_stage || o.order_stage === 'incoming').length,
+        processing: orders.filter(o => o.order_stage === 'processing').length,
+        packed: orders.filter(o => o.order_stage === 'packed').length,
+        shipped: orders.filter(o => o.order_stage === 'shipped').length,
+        out_for_delivery: orders.filter(o => o.order_stage === 'out_for_delivery').length,
+        delivered: orders.filter(o => o.order_stage === 'delivered').length,
+        cancelled: orders.filter(o => (o.status || '').toLowerCase().includes('cancel') || o.order_stage === 'cancelled').length,
+    };
+
+    // Summary cards
+    let statsHtml = `
+        <div class="order-stat-cards">
+            <div class="order-stat-card ${filterStage === 'all' ? 'active-stat' : ''}" onclick="filterOrders('all')">
+                <div class="stat-icon">📦</div>
+                <div class="stat-label">Total Orders</div>
+                <div class="stat-num">${counts.all}</div>
+            </div>
+            <div class="order-stat-card ${filterStage === 'incoming' ? 'active-stat' : ''}" onclick="filterOrders('incoming')">
+                <div class="stat-icon">🟡</div>
+                <div class="stat-label">Incoming</div>
+                <div class="stat-num">${counts.incoming}</div>
+            </div>
+            <div class="order-stat-card ${filterStage === 'processing' ? 'active-stat' : ''}" onclick="filterOrders('processing')">
+                <div class="stat-icon">🟣</div>
+                <div class="stat-label">Processing</div>
+                <div class="stat-num">${counts.processing}</div>
+            </div>
+            <div class="order-stat-card ${filterStage === 'out_for_delivery' ? 'active-stat' : ''}" onclick="filterOrders('out_for_delivery')">
+                <div class="stat-icon">🛵</div>
+                <div class="stat-label">Out for Del.</div>
+                <div class="stat-num">${counts.out_for_delivery}</div>
+            </div>
+            <div class="order-stat-card ${filterStage === 'delivered' ? 'active-stat' : ''}" onclick="filterOrders('delivered')">
+                <div class="stat-icon">🟢</div>
+                <div class="stat-label">Delivered</div>
+                <div class="stat-num">${counts.delivered}</div>
+            </div>
+            <div class="order-stat-card ${filterStage === 'cancelled' ? 'active-stat' : ''}" onclick="filterOrders('cancelled')">
+                <div class="stat-icon">🔴</div>
+                <div class="stat-label">Cancelled</div>
+                <div class="stat-num">${counts.cancelled}</div>
+            </div>
+        </div>`;
+
+    // Header + recycle bin button
+    let headerHtml = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+            <h2 style="margin:0; font-size:20px; font-weight:800;">Orders</h2>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-secondary" onclick="loadOrders()" style="padding:8px 16px; font-weight:700; background:#000; color:#fff; border-radius:8px; cursor:pointer;">
+                    📦 Active Orders (${orders.length})
+                </button>
+                <button class="btn-secondary" onclick="renderRecycleBinView()" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
+                    🗑️ Recycle Bin (${recycled.length})
+                </button>
+            </div>
+        </div>`;
+
+    // Filter tabs
+    const allTabs = ['all', 'incoming', 'confirmed', 'processing', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'];
+    const tabLabels = { all: 'All', incoming: 'Incoming', confirmed: 'Confirmed', processing: 'Processing', packed: 'Packed', shipped: 'Shipped', out_for_delivery: 'Out for Delivery', delivered: 'Delivered', cancelled: 'Cancelled' };
+    let tabsHtml = `<div class="order-filter-tabs">`;
+    allTabs.forEach(t => {
+        tabsHtml += `<button class="order-filter-tab ${filterStage === t ? 'active-tab' : ''}" onclick="filterOrders('${t}')">${tabLabels[t]}</button>`;
+    });
+    tabsHtml += `</div>`;
+
+    // Search bar
+    let searchHtml = `
+        <div class="order-search-bar">
+            <input class="order-search-input" id="order-search-input" type="text" placeholder="🔍 Search by Order ID, Customer Name or Phone..." value="${searchQuery || ''}" oninput="searchOrders(this.value)">
+        </div>`;
+
+    // Apply filter + search
+    let filtered = [...orders];
+    if (filterStage && filterStage !== 'all') {
+        if (filterStage === 'incoming') {
+            filtered = filtered.filter(o => !o.order_stage || o.order_stage === 'incoming');
+        } else if (filterStage === 'cancelled') {
+            filtered = filtered.filter(o => (o.status || '').toLowerCase().includes('cancel') || o.order_stage === 'cancelled');
+        } else {
+            filtered = filtered.filter(o => o.order_stage === filterStage);
+        }
+    }
+    if (searchQuery && searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        filtered = filtered.filter(o => {
+            const cust = o.customer_details || {};
+            const idStr = (o.id || '').toString().toLowerCase();
+            const name = (cust.name || '').toLowerCase();
+            const phone = (cust.phone || '').replace(/\D/g, '');
+            return idStr.includes(q) || name.includes(q) || phone.includes(q.replace(/\D/g, ''));
+        });
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = statsHtml + headerHtml + tabsHtml + searchHtml +
+            `<div style="text-align:center; padding:50px 20px; color:#888;">
+                <div style="font-size:40px; margin-bottom:12px;">🔍</div>
+                <p style="font-size:15px;">No orders found for this filter.</p>
+            </div>`;
+        return;
+    }
+
+    // Build table
+    let tableHtml = `
+        <div style="overflow-x:auto;">
+        <table class="stock-table" style="min-width:900px;">
+            <thead>
+                <tr>
+                    <th style="white-space:nowrap;">Date</th>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Order Status</th>
+                    <th>Delivery</th>
+                    <th>ETA</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+    filtered.forEach(order => {
+        const dateObj = new Date(order.created_at);
+        const formattedDate = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' ' +
+            dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const currentStatus = (order.status || 'pending').toLowerCase();
+        const paymentStatus = (order.payment_status || 'pending').toLowerCase();
+        const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!order.razorpay_payment_id;
+        const isCancelled = currentStatus.includes('cancel') || order.order_stage === 'cancelled';
+        const refundInfo = order.refund_details || order.customer_details?.refund_details || null;
+        const isSettled = refundInfo?.refund_status === 'refunded' || currentStatus === 'refunded';
+        const cust = order.customer_details || {};
+        const customerName = cust.name || cust.full_name || (order.user_id ? 'Registered' : 'Guest');
+        const deliveryDetails = order.delivery_details || {};
+        const orderStage = order.order_stage || (isCancelled ? 'cancelled' : 'incoming');
+        const isRepayPending = isCancelled && !isSettled;
+
+        // Payment badge
+        let payBadge = '';
+        if (isCancelled) {
+            payBadge = isSettled
+                ? `<span class="badge status-paid" style="font-size:10px; padding:3px 7px;">REFUNDED</span>`
+                : `<span class="badge status-cancelled" style="font-size:10px; padding:3px 7px;">CANCELLED</span>
+                   <div style="font-size:10px; color:#c0392b; font-weight:700; margin-top:2px;">⚠️ Repay ₹${order.total_amount}</div>`;
+        } else if (isPaid) {
+            payBadge = `<span class="badge status-paid" style="font-size:10px; padding:3px 7px;">PAID</span>`;
+        } else {
+            payBadge = `<span class="badge status-pending" style="font-size:10px; padding:3px 7px;">PENDING</span>`;
+        }
+
+        tableHtml += `<tr>
+            <td style="white-space:nowrap; font-size:12px;"><small>${formattedDate}</small></td>
+            <td><strong style="font-family:monospace; font-size:13px;">#${order.id.toString().substring(0, 8).toUpperCase()}</strong></td>
+            <td>
+                <div style="font-weight:600; font-size:13px; color:#111;">${customerName}</div>
+                ${cust.phone ? `<div style="font-size:11px; color:#888;">${cust.phone}</div>` : ''}
+            </td>
+            <td><strong style="font-size:14px;">₹${order.total_amount}</strong></td>
+            <td>${payBadge}</td>
+            <td>${getStageBadgeHtml(orderStage)}</td>
+            <td>${getDeliveryChipHtml(deliveryDetails)}</td>
+            <td>${getEtaHtml(deliveryDetails, order.created_at)}</td>
+            <td>
+                <button class="btn-black" onclick="showOrderDetails('${order.id}')" style="${isRepayPending ? 'background:#c0392b; color:#fff;' : ''}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    ${isRepayPending ? 'View & Repay' : 'View Details'}
+                </button>
+                <button class="btn-black" onclick="deleteOrder('${order.id}')" style="background:#c0392b; margin-top:4px; width:100%;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path></svg>
+                    Delete
+                </button>
+            </td>
+        </tr>`;
+    });
+
+    tableHtml += `</tbody></table></div>`;
+    container.innerHTML = statsHtml + headerHtml + tabsHtml + searchHtml + tableHtml;
+}
+
+// Filter tabs handler
+window.filterOrders = function(stage) {
+    _activeOrderFilter = stage;
+    const searchVal = document.getElementById('order-search-input')?.value || '';
+    renderOrdersView(_allFetchedOrders, getRecycledOrders(), stage, searchVal);
+};
+
+// Search handler
+window.searchOrders = function(query) {
+    renderOrdersView(_allFetchedOrders, getRecycledOrders(), _activeOrderFilter, query);
+};
+
+
 
     if (paidOrders.length === 0) {
         container.innerHTML = `
