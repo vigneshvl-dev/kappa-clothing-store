@@ -810,6 +810,71 @@
         </div>
     </div>
 
+    <!-- ADMIN PROCESS REFUND MODAL -->
+    <div class="overlay" id="adminProcessRefundModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(3px); z-index:1150; align-items:center; justify-content:center;">
+        <div class="side-panel"
+            style="background:#fff; padding:24px; width:520px; max-width:94vw; max-height:90vh; overflow-y:auto; border-radius:14px; box-shadow:0 16px 40px rgba(0,0,0,0.3);">
+            <div class="side-head"
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #eee; padding-bottom:12px;">
+                <h3 style="font-size:17px; font-weight:800; color:#111; margin:0; display:flex; align-items:center; gap:8px;">
+                    💳 Process Order Refund
+                </h3>
+                <button type="button" onclick="document.getElementById('adminProcessRefundModal').style.display='none'"
+                    style="background:none; border:none; font-size:20px; cursor:pointer; color:#666; font-weight:bold; padding:4px 8px;">✕</button>
+            </div>
+            <form id="adminProcessRefundForm" onsubmit="saveProcessRefund(event)"
+                style="display:flex; flex-direction:column; gap:16px;">
+                <input type="hidden" id="processRefundOrderId">
+
+                <div id="processRefundOrderSummary" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px;">
+                    <!-- Filled dynamically: Customer, Amount, Payment Method, Status -->
+                </div>
+
+                <div id="processRefundCustomerDetails" style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:14px;">
+                    <!-- Filled dynamically: Customer UPI ID or Bank details with copy button -->
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;">
+                        Refund Status *
+                    </label>
+                    <select id="processRefundStatusSelect" class="admin-input" style="width:100%; box-sizing:border-box; font-weight:600; padding:10px;" onchange="toggleProcessRefundFields()">
+                        <option value="pending">⏳ Pending (Refund requested, not yet initiated)</option>
+                        <option value="processing">🔄 Processing (Refund initiated / in progress)</option>
+                        <option value="refunded">✅ Refunded (Refund completed & amount sent)</option>
+                        <option value="no_refund">⚪ No Refund Required (Unpaid COD / N/A)</option>
+                    </select>
+                </div>
+
+                <div id="processRefundRefDiv" style="display:none;">
+                    <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;">
+                        Transaction UTR / Reference ID *
+                    </label>
+                    <input type="text" id="processRefundRefInput" class="admin-input" placeholder="e.g. UPI-984123456 or NEFT-102938" style="width:100%; box-sizing:border-box; font-family:monospace;">
+                    <span style="font-size:11px; color:#64748b; margin-top:3px; display:block;">Enter bank/UPI payment reference number for customer record.</span>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;">
+                        Refund Remarks / Admin Note
+                    </label>
+                    <textarea id="processRefundNotesInput" class="admin-input" placeholder="Optional notes (e.g. Refund processed via PhonePe UPI)" style="width:100%; box-sizing:border-box; height:64px; resize:vertical;"></textarea>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; border-top:1px solid #eee; padding-top:14px; flex-wrap:wrap; gap:10px;">
+                    <button type="button" onclick="openAdminEditRefundModal(document.getElementById('processRefundOrderId').value)" style="background:#fff; border:1px solid #cbd5e1; color:#475569; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                        ✏️ Edit Customer Payment Info
+                    </button>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('adminProcessRefundModal').style.display='none'">Cancel</button>
+                        <button type="submit" class="btn-black" style="background:#16a34a; color:#fff; font-weight:800; padding:8px 18px;">Save Refund Status</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- IMAGE CROPPER MODAL -->
     <div id="cropper-modal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(5px);">

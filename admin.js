@@ -2344,6 +2344,171 @@ window.showOrderDetails = async function (orderId) {
         </div>`;
 
     // ── ASSEMBLE ────────────────────────────────────────────────────────────────
+    // ── ASSEMBLE ────────────────────────────────────────────────────────────────
+    if (isCancelled) {
+        const shortId = data.id.toString().substring(0,8).toUpperCase();
+        const currentReason = refundInfo?.reason || 'Customer Request';
+        let reasonOptionsHtml = CANCELLATION_REASONS.map(r => `
+            <option value="${r}" ${r === currentReason ? 'selected' : ''}>${r}</option>
+        `).join('');
+        if (!CANCELLATION_REASONS.includes(currentReason)) {
+            reasonOptionsHtml += `<option value="${currentReason}" selected>${currentReason}</option>`;
+        }
+
+        const cancelledDateStr = refundInfo?.cancelled_at 
+            ? new Date(refundInfo.cancelled_at).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+            : placedDate;
+
+        let refStatus = (refundInfo?.refund_status || '').toLowerCase().trim();
+        if (!refStatus) {
+            if (currentStatus.includes('refund') || orderStage === 'refunded') refStatus = 'refunded';
+            else if (!isPaid) refStatus = 'no_refund';
+            else refStatus = 'pending';
+        }
+
+        let refundBadgeHtml = '';
+        if (refStatus === 'pending') refundBadgeHtml = `<span class="refund-badge pending">Pending</span>`;
+        else if (refStatus === 'processing') refundBadgeHtml = `<span class="refund-badge processing">Processing</span>`;
+        else if (refStatus === 'refunded') refundBadgeHtml = `<span class="refund-badge refunded">Refunded</span>`;
+        else refundBadgeHtml = `<span class="refund-badge no-refund">No Refund Required</span>`;
+
+        let custRefundBox = '';
+        if (refundInfo?.upi_id || refundInfo?.method === 'UPI') {
+            const upi = refundInfo.upi_id || (phoneClean ? phoneClean + '@upi' : '');
+            custRefundBox = `
+                <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:14px; margin-top:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <div style="font-size:11px; font-weight:800; color:#0369a1; text-transform:uppercase;">Customer Refund Payment Account</div>
+                            <div style="font-size:15px; font-weight:800; color:#0c4a6e; font-family:monospace; margin-top:2px;">📱 UPI ID: ${upi || 'Not provided'}</div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            ${upi ? `<button onclick="copyTextToClipboard('${upi}', this)" style="background:#0284c7; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">📋 Copy UPI ID</button>` : ''}
+                            ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (cust.name||'') + ', regarding your refund of ₹' + data.total_amount + ' for Kappa Clothing order #' + shortId + '...')}" target="_blank" class="btn-whatsapp-notify" style="padding:6px 12px; font-size:12px;">💬 WhatsApp</a>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+        } else if (refundInfo?.account_number || refundInfo?.method === 'Bank Transfer') {
+            const accNum = refundInfo.account_number || '';
+            const ifsc = refundInfo.ifsc || '';
+            const holder = refundInfo.account_holder || cust.name || '';
+            const bank = refundInfo.bank_name || '';
+            const bankText = `Bank: ${bank}\nHolder: ${holder}\nAccount: ${accNum}\nIFSC: ${ifsc}`;
+
+            custRefundBox = `
+                <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:14px; margin-top:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <div style="font-size:11px; font-weight:800; color:#0369a1; text-transform:uppercase;">Customer Bank Account Details</div>
+                            <div style="font-size:13px; color:#0c4a6e; margin-top:4px; line-height:1.5;">
+                                <div><strong>Holder:</strong> ${holder}</div>
+                                <div><strong>Account No:</strong> <span style="font-family:monospace; font-weight:700;">${accNum}</span></div>
+                                <div><strong>IFSC Code:</strong> <span style="font-family:monospace; font-weight:700;">${ifsc}</span></div>
+                                ${bank ? `<div><strong>Bank:</strong> ${bank}</div>` : ''}
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="copyTextToClipboard(\`${bankText}\`, this)" style="background:#0284c7; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">📋 Copy Bank Info</button>
+                        </div>
+                    </div>
+                </div>`;
+        } else {
+            custRefundBox = `
+                <div style="background:#fffbeb; border:1px solid #fef3c7; border-radius:10px; padding:12px 14px; margin-top:10px; font-size:12px; color:#92400e; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>ℹ️ Customer has not entered UPI or Bank details.</div>
+                    <button onclick="openAdminEditRefundModal('${data.id}')" style="background:#d97706; color:#fff; border:none; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">✏️ Edit Refund Info</button>
+                </div>`;
+        }
+
+        content.innerHTML = `
+            <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color:#333;">
+                <div style="background:#fef2f2; border:1.5px solid #fecaca; border-radius:12px; padding:16px 20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <div style="font-size:12px; font-weight:800; color:#dc2626; text-transform:uppercase; letter-spacing:1px;">CANCELLED ORDER</div>
+                        <div style="font-size:24px; font-weight:800; color:#0f172a; font-family:monospace; margin-top:2px;">#${shortId}</div>
+                        <div style="font-size:12px; color:#991b1b; margin-top:2px;">Placed on: ${placedDate}</div>
+                    </div>
+                    <span class="badge status-cancelled" style="font-size:12px; padding:6px 14px; border-radius:20px;">CANCELLED</span>
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; margin-bottom:16px;">
+                    <div style="font-size:14px; font-weight:800; color:#0f172a; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                        👤 Customer
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; font-size:13px; color:#334155;">
+                        <div><strong>Name:</strong> ${cust.name || cust.full_name || 'Guest'}</div>
+                        <div><strong>Phone:</strong> ${cust.phone || 'N/A'}</div>
+                        <div><strong>Email:</strong> ${cust.email || 'N/A'}</div>
+                        <div style="grid-column:1/-1;"><strong>Delivery Address:</strong> ${addr.address_line1 || cust.address || ''} ${addr.city || ''} ${addr.state || ''} ${addr.pincode || ''}</div>
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; margin-bottom:16px;">
+                    <div style="font-size:14px; font-weight:800; color:#0f172a; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                        🛍️ Order Items
+                    </div>
+                    ${itemsHtml}
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; margin-bottom:16px;">
+                    <div style="font-size:14px; font-weight:800; color:#0f172a; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                        ❌ Cancellation Details
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; font-size:13px; color:#334155;">
+                        <div>
+                            <strong>Reason:</strong>
+                            <select onchange="updateOrderCancellationReason('${data.id}', this.value)" style="margin-left:6px; padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:12px; font-weight:600; background:#fff; color:#334155; cursor:pointer;">
+                                ${reasonOptionsHtml}
+                            </select>
+                        </div>
+                        <div><strong>Cancelled By:</strong> ${refundInfo?.cancelled_by || 'Customer'}</div>
+                        <div><strong>Cancelled On:</strong> ${cancelledDateStr}</div>
+                        <div style="grid-column:1/-1;"><strong>Remarks:</strong> ${refundInfo?.remarks || 'Customer requested cancellation'}</div>
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; margin-bottom:16px;">
+                    <div style="font-size:14px; font-weight:800; color:#0f172a; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                        💳 Payment Info
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; font-size:13px; color:#334155;">
+                        <div><strong>Order Amount:</strong> <span style="font-weight:800; font-size:15px; color:#0f172a;">₹${data.total_amount}</span></div>
+                        <div><strong>Payment Status:</strong> ${isPaid ? '<span class="badge status-paid" style="font-size:11px;">PAID</span>' : '<span class="badge status-pending" style="font-size:11px;">UNPAID</span>'}</div>
+                        <div><strong>Payment Method:</strong> ${cust.payment_method || data.payment_method || (data.razorpay_payment_id ? 'Razorpay / UPI' : 'COD')}</div>
+                        ${rzpId ? `<div><strong>Txn ID:</strong> <span style="font-family:monospace;">${rzpId}</span></div>` : ''}
+                    </div>
+                </div>
+
+                <div style="background:#fff; border:2px solid #38bdf8; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 4px 12px rgba(56,189,248,0.08);">
+                    <div style="font-size:14px; font-weight:800; color:#0369a1; border-bottom:1.5px solid #e0f2fe; padding-bottom:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <span>💰 Refund & Customer Payment Details</span>
+                        ${refundBadgeHtml}
+                    </div>
+                    <div style="display:flex; gap:16px; font-size:13px; color:#334155; margin-bottom:10px; flex-wrap:wrap;">
+                        <div><strong>Refund Amount:</strong> <span style="font-weight:800; font-size:16px; color:#dc2626;">₹${data.total_amount}</span></div>
+                        <div><strong>Refund Status:</strong> <strong style="text-transform:uppercase;">${refStatus}</strong></div>
+                        ${refundInfo?.refund_ref ? `<div><strong>Ref/UTR:</strong> <span style="font-family:monospace; font-weight:700;">${refundInfo.refund_ref}</span></div>` : ''}
+                    </div>
+                    ${custRefundBox}
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:24px; border-top:1px solid #e2e8f0; padding-top:16px; flex-wrap:wrap; gap:10px;">
+                    <button onclick="document.getElementById('orderDetailsOverlay').style.display='none'; if (typeof loadCancelledOrders === 'function') loadCancelledOrders();" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:9px 18px; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px;">
+                        ← Back to Cancelled Orders
+                    </button>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="openAdminEditRefundModal('${data.id}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#334155; padding:9px 16px; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px;">
+                            ✏️ Edit Refund Info
+                        </button>
+                        <button onclick="openProcessRefundModal('${data.id}')" style="background:#0f172a; color:#fff; border:none; padding:9px 20px; border-radius:8px; font-weight:800; cursor:pointer; font-size:13px; box-shadow:0 4px 12px rgba(15,23,42,0.25);">
+                            💳 Process Refund
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        return;
+    }
+
     content.innerHTML = `
         <div style="font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color:#333;">
             ${paymentBannerHtml}
@@ -3337,12 +3502,54 @@ window.deleteOrder = async function (orderId) {
     }
 };
 
-// ── CANCELLED ORDERS LOADER ──
+// ==========================================
+// CANCELLED ORDERS & REFUND MANAGEMENT MODULE
+// ==========================================
+let currentCancelledFilter = 'all';
+let currentCancelledSearch = '';
+let cachedCancelledOrdersList = [];
+
+const CANCELLATION_REASONS = [
+    'Customer changed mind',
+    'Wrong size',
+    'Wrong product ordered',
+    'Product unavailable',
+    'Delivery delay',
+    'Payment issue',
+    'Duplicate order',
+    'Other'
+];
+
+window.filterCancelledOrders = function (filterType) {
+    currentCancelledFilter = filterType;
+    renderCancelledOrdersView();
+};
+
+window.searchCancelledOrders = function (query) {
+    currentCancelledSearch = (query || '').toLowerCase().trim();
+    renderCancelledOrdersView();
+};
+
+window.copyTextToClipboard = function (text, btn) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+        if (btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = '✓ Copied!';
+            setTimeout(() => { btn.innerHTML = original; }, 2000);
+        } else {
+            alert('Copied to clipboard!');
+        }
+    }).catch(err => {
+        console.error('Clipboard write error:', err);
+        alert('Copy details:\n' + text);
+    });
+};
+
 async function loadCancelledOrders() {
     const container = document.getElementById('view-cancelled');
     if (!container) return;
-    const card = container.querySelector('.card') || container;
-    card.innerHTML = '<p style="color:#666;">Loading cancelled orders...</p>';
+    container.innerHTML = '<div style="padding:40px; text-align:center; color:#666;"><div style="font-size:32px; margin-bottom:10px;">⏳</div><div>Loading cancelled orders & refund requests...</div></div>';
 
     try {
         const { data: orders, error } = await supabaseClient
@@ -3352,71 +3559,502 @@ async function loadCancelledOrders() {
 
         if (error) throw error;
 
-        // Filter: Keep ONLY CANCELLED orders
-        const cancelledOrders = (orders || []).filter(ord => {
+        // Filter: Keep CANCELLED or REFUNDED orders
+        cachedCancelledOrdersList = (orders || []).filter(ord => {
             const st = (ord.status || '').toLowerCase().trim();
-            return st.includes('cancel');
+            const stg = (ord.order_stage || '').toLowerCase().trim();
+            return st.includes('cancel') || st.includes('refund') || stg === 'cancelled' || stg === 'refunded';
         });
 
-        if (cancelledOrders.length === 0) {
-            card.innerHTML = '<h2 class="card-title">Cancelled Orders</h2><p style="color:#888;">No cancelled orders found.</p>';
-            return;
-        }
-
-        let html = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-            <h2 class="card-title" style="margin:0;">Cancelled Orders (${cancelledOrders.length})</h2>
-        </div>
-        <div style="overflow-x:auto;">
-            <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
-                <thead>
-                    <tr style="border-bottom:2px solid #eee; background:#fafafa;">
-                        <th style="padding:12px;">Order ID</th>
-                        <th style="padding:12px;">Customer</th>
-                        <th style="padding:12px;">Date</th>
-                        <th style="padding:12px;">Amount</th>
-                        <th style="padding:12px;">Status</th>
-                        <th style="padding:12px; text-align:right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-        cancelledOrders.forEach(ord => {
-            const cust = ord.customer_details || {};
-            const orderIdShort = ord.id ? (ord.id.substring(0, 8) + '...') : 'N/A';
-            const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
-            const refundInfo = ord.refund_details || cust.refund_details || null;
-            const isRefunded = (ord.status || '').toLowerCase().includes('refund') || refundInfo?.refund_status === 'refunded';
-
-            let statusBadge = isRefunded
-                ? `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#e2e3e5; color:#383d41;">REFUNDED</span>`
-                : `<span style="padding:4px 10px; border-radius:12px; font-size:12px; font-weight:700; background:#f8d7da; color:#721c24;">CANCELLED</span>`;
-
-            html += `
-            <tr style="border-bottom:1px solid #eee;">
-                <td style="padding:12px; font-family:monospace; font-weight:700; color:#111;">#${orderIdShort}</td>
-                <td style="padding:12px;">
-                    <div style="font-weight:600;">${cust.name || cust.full_name || 'Guest'}</div>
-                    <div style="font-size:12px; color:#777;">${cust.phone || cust.email || ''}</div>
-                </td>
-                <td style="padding:12px; font-size:13px; color:#666;">${dateStr}</td>
-                <td style="padding:12px; font-weight:700; color:#111;">₹${ord.total_amount || 0}</td>
-                <td style="padding:12px;">${statusBadge}</td>
-                <td style="padding:12px; text-align:right; white-space:nowrap;">
-                    <button class="btn-secondary" style="padding:6px 12px; font-size:12px; cursor:pointer;" onclick="showOrderDetails('${ord.id}')">View Details</button>
-                    <button class="btn-delete" style="padding:6px 12px; font-size:12px; background:#dc2626; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-left:6px; font-weight:600;" onclick="deleteOrder('${ord.id}')">Delete</button>
-                </td>
-            </tr>`;
-        });
-
-        html += `</tbody></table></div>`;
-        card.innerHTML = html;
-
+        renderCancelledOrdersView();
     } catch (e) {
         console.error('Error loading cancelled orders:', e);
-        card.innerHTML = '<p style="color:red;">Error loading cancelled orders.</p>';
+        container.innerHTML = '<div style="padding:40px; text-align:center; color:#dc2626;">❌ Error loading cancelled orders.</div>';
     }
 }
+
+function parseOrderRefundDetails(ord) {
+    const cust = ord.customer_details || {};
+    const refundInfo = ord.refund_details || cust.refund_details || ord.cancellation_details || {};
+    const isPaid = (ord.payment_status || '').toLowerCase() === 'paid' || (ord.status || '').toLowerCase().includes('paid') || !!ord.razorpay_payment_id;
+    
+    let refStatus = (refundInfo.refund_status || '').toLowerCase().trim();
+    if (!refStatus) {
+        if ((ord.status || '').toLowerCase().includes('refund') || (ord.order_stage || '') === 'refunded') {
+            refStatus = 'refunded';
+        } else if (!isPaid) {
+            refStatus = 'no_refund';
+        } else {
+            refStatus = 'pending';
+        }
+    }
+
+    const cancelledBy = refundInfo.cancelled_by || (ord.cancelled_by_admin ? 'Admin' : 'Customer');
+
+    return {
+        cust,
+        refundInfo,
+        isPaid,
+        refStatus,
+        cancelledBy
+    };
+}
+
+function renderCancelledOrdersView() {
+    const container = document.getElementById('view-cancelled');
+    if (!container) return;
+
+    const allOrders = cachedCancelledOrdersList || [];
+
+    let totalCancelledCount = allOrders.length;
+    let refundPendingCount = 0;
+    let refundedCount = 0;
+    let customerCancelledCount = 0;
+    let adminCancelledCount = 0;
+    let totalCancelledValue = 0;
+
+    allOrders.forEach(ord => {
+        const { refStatus, cancelledBy } = parseOrderRefundDetails(ord);
+        totalCancelledValue += Number(ord.total_amount || 0);
+
+        if (refStatus === 'pending' || refStatus === 'processing') {
+            refundPendingCount++;
+        } else if (refStatus === 'refunded') {
+            refundedCount++;
+        }
+
+        if (cancelledBy.toLowerCase() === 'admin') {
+            adminCancelledCount++;
+        } else {
+            customerCancelledCount++;
+        }
+    });
+
+    // Apply Filter Tab
+    let filtered = allOrders.filter(ord => {
+        const { refStatus, cancelledBy } = parseOrderRefundDetails(ord);
+        if (currentCancelledFilter === 'customer') {
+            return cancelledBy.toLowerCase() !== 'admin';
+        } else if (currentCancelledFilter === 'admin') {
+            return cancelledBy.toLowerCase() === 'admin';
+        } else if (currentCancelledFilter === 'pending') {
+            return refStatus === 'pending' || refStatus === 'processing';
+        } else if (currentCancelledFilter === 'refunded') {
+            return refStatus === 'refunded';
+        }
+        return true;
+    });
+
+    // Apply Search
+    if (currentCancelledSearch) {
+        filtered = filtered.filter(ord => {
+            const cust = ord.customer_details || {};
+            const idMatch = (ord.id || '').toLowerCase().includes(currentCancelledSearch);
+            const nameMatch = (cust.name || cust.full_name || '').toLowerCase().includes(currentCancelledSearch);
+            const phoneMatch = (cust.phone || '').toLowerCase().includes(currentCancelledSearch);
+            const emailMatch = (cust.email || '').toLowerCase().includes(currentCancelledSearch);
+            return idMatch || nameMatch || phoneMatch || emailMatch;
+        });
+    }
+
+    // Summary Cards Grid HTML
+    const cardsHtml = `
+        <div class="cancelled-summary-grid">
+            <div class="cancelled-summary-card">
+                <div class="cancelled-card-icon red">❌</div>
+                <div class="cancelled-card-info">
+                    <span class="cancelled-card-label">Cancelled Orders</span>
+                    <span class="cancelled-card-val">${totalCancelledCount}</span>
+                </div>
+            </div>
+            <div class="cancelled-summary-card">
+                <div class="cancelled-card-icon orange">⏳</div>
+                <div class="cancelled-card-info">
+                    <span class="cancelled-card-label">Refund Pending</span>
+                    <span class="cancelled-card-val">${refundPendingCount}</span>
+                </div>
+            </div>
+            <div class="cancelled-summary-card">
+                <div class="cancelled-card-icon green">✅</div>
+                <div class="cancelled-card-info">
+                    <span class="cancelled-card-label">Refunded</span>
+                    <span class="cancelled-card-val">${refundedCount}</span>
+                </div>
+            </div>
+            <div class="cancelled-summary-card">
+                <div class="cancelled-card-icon purple">💰</div>
+                <div class="cancelled-card-info">
+                    <span class="cancelled-card-label">Cancelled Value</span>
+                    <span class="cancelled-card-val">₹${totalCancelledValue.toLocaleString('en-IN')}</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Filters Toolbar HTML
+    const toolbarHtml = `
+        <div class="cancelled-filters-toolbar">
+            <div class="cancelled-pills-group">
+                <div class="cancelled-pill ${currentCancelledFilter === 'all' ? 'active' : ''}" onclick="filterCancelledOrders('all')">
+                    All <span class="cancelled-pill-count">${totalCancelledCount}</span>
+                </div>
+                <div class="cancelled-pill ${currentCancelledFilter === 'customer' ? 'active' : ''}" onclick="filterCancelledOrders('customer')">
+                    Customer Cancelled <span class="cancelled-pill-count">${customerCancelledCount}</span>
+                </div>
+                <div class="cancelled-pill ${currentCancelledFilter === 'admin' ? 'active' : ''}" onclick="filterCancelledOrders('admin')">
+                    Admin Cancelled <span class="cancelled-pill-count">${adminCancelledCount}</span>
+                </div>
+                <div class="cancelled-pill ${currentCancelledFilter === 'pending' ? 'active' : ''}" onclick="filterCancelledOrders('pending')">
+                    Refund Pending <span class="cancelled-pill-count">${refundPendingCount}</span>
+                </div>
+                <div class="cancelled-pill ${currentCancelledFilter === 'refunded' ? 'active' : ''}" onclick="filterCancelledOrders('refunded')">
+                    Refunded <span class="cancelled-pill-count">${refundedCount}</span>
+                </div>
+            </div>
+            <div class="cancelled-search-box">
+                <span class="cancelled-search-icon">🔍</span>
+                <input type="text" class="cancelled-search-input" placeholder="Search Order ID / Customer..." value="${currentCancelledSearch}" oninput="searchCancelledOrders(this.value)">
+            </div>
+        </div>
+    `;
+
+    // Table Rows HTML
+    let tableRowsHtml = '';
+    if (filtered.length === 0) {
+        tableRowsHtml = `<tr><td colspan="9" style="padding:40px; text-align:center; color:#888;">No cancelled orders found.</td></tr>`;
+    } else {
+        filtered.forEach(ord => {
+            const { cust, refundInfo, isPaid, refStatus } = parseOrderRefundDetails(ord);
+            const shortId = ord.id ? ord.id.substring(0, 8).toUpperCase() : 'N/A';
+            const orderDateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'N/A';
+            const cancelledDateStr = refundInfo.cancelled_at || ord.updated_at
+                ? new Date(refundInfo.cancelled_at || ord.updated_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                : orderDateStr;
+            const currentReason = refundInfo.reason || 'Customer Request';
+
+            const payMethodStr = cust.payment_method || ord.payment_method || (ord.razorpay_payment_id ? 'Razorpay' : 'UPI/COD');
+            const payBadge = isPaid
+                ? `<span style="background:#dcfce7; color:#15803d; padding:4px 9px; border-radius:12px; font-size:11px; font-weight:700;">Paid (${payMethodStr})</span>`
+                : `<span style="background:#f1f5f9; color:#64748b; padding:4px 9px; border-radius:12px; font-size:11px; font-weight:700;">Unpaid (${payMethodStr})</span>`;
+
+            let reasonOptionsHtml = CANCELLATION_REASONS.map(r => `
+                <option value="${r}" ${r === currentReason ? 'selected' : ''}>${r}</option>
+            `).join('');
+            if (!CANCELLATION_REASONS.includes(currentReason)) {
+                reasonOptionsHtml += `<option value="${currentReason}" selected>${currentReason}</option>`;
+            }
+
+            let refundBadgeHtml = '';
+            if (refStatus === 'pending') {
+                refundBadgeHtml = `<span class="refund-badge pending">Pending</span>`;
+            } else if (refStatus === 'processing') {
+                refundBadgeHtml = `<span class="refund-badge processing">Processing</span>`;
+            } else if (refStatus === 'refunded') {
+                refundBadgeHtml = `<span class="refund-badge refunded">Refunded</span>`;
+            } else {
+                refundBadgeHtml = `<span class="refund-badge no-refund">No Refund Required</span>`;
+            }
+
+            tableRowsHtml += `
+                <tr style="border-bottom:1px solid #f1f5f9; transition:background 0.15s;" onmouseenter="this.style.background='#fafafa'" onmouseleave="this.style.background='transparent'">
+                    <td style="padding:14px 12px; font-family:monospace; font-weight:800; color:#0f172a; font-size:13px;">
+                        <a href="javascript:void(0)" onclick="showOrderDetails('${ord.id}')" style="color:#0f172a; text-decoration:none; border-bottom:1px dashed #94a3b8;">#${shortId}</a>
+                    </td>
+                    <td style="padding:14px 12px;">
+                        <div style="font-weight:700; color:#0f172a; font-size:13px;">${cust.name || cust.full_name || 'Guest'}</div>
+                        <div style="font-size:11px; color:#64748b; margin-top:2px;">${cust.phone || cust.email || ''}</div>
+                    </td>
+                    <td style="padding:14px 12px; font-size:13px; color:#475569; font-weight:500;">${orderDateStr}</td>
+                    <td style="padding:14px 12px; font-size:13px; color:#475569; font-weight:500;">${cancelledDateStr}</td>
+                    <td style="padding:14px 12px; font-weight:800; color:#0f172a; font-size:14px;">₹${ord.total_amount || 0}</td>
+                    <td style="padding:14px 12px;">${payBadge}</td>
+                    <td style="padding:14px 12px;">
+                        <select onchange="updateOrderCancellationReason('${ord.id}', this.value)" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:12px; background:#fff; font-weight:600; color:#334155; cursor:pointer;">
+                            ${reasonOptionsHtml}
+                        </select>
+                    </td>
+                    <td style="padding:14px 12px;">${refundBadgeHtml}</td>
+                    <td style="padding:14px 12px; text-align:right; white-space:nowrap;">
+                        <button class="btn-secondary" style="padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer;" onclick="showOrderDetails('${ord.id}')">View</button>
+                        <button style="padding:6px 12px; font-size:12px; font-weight:700; background:#0f172a; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-left:6px;" onclick="openProcessRefundModal('${ord.id}')">Process Refund</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    const tableHtml = `
+        <div class="card" style="padding:0; overflow:hidden; border-radius:14px; border:1px solid #eef0f3; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #e2e8f0; background:#f8fafc; color:#475569; font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">
+                            <th style="padding:14px 12px;">Order ID</th>
+                            <th style="padding:14px 12px;">Customer</th>
+                            <th style="padding:14px 12px;">Order Date</th>
+                            <th style="padding:14px 12px;">Cancelled Date</th>
+                            <th style="padding:14px 12px;">Amount</th>
+                            <th style="padding:14px 12px;">Payment</th>
+                            <th style="padding:14px 12px;">Cancellation Reason</th>
+                            <th style="padding:14px 12px;">Refund</th>
+                            <th style="padding:14px 12px; text-align:right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRowsHtml}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = `
+        <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h2 style="font-size:22px; font-weight:800; color:#0f172a; margin:0; display:flex; align-items:center; gap:8px;">
+                    ❌ Cancelled Orders
+                </h2>
+                <p style="font-size:13px; color:#64748b; margin-top:4px;">Manage cancelled orders, track refund statuses, and issue customer refunds.</p>
+            </div>
+        </div>
+        ${cardsHtml}
+        ${toolbarHtml}
+        ${tableHtml}
+    `;
+}
+
+window.openProcessRefundModal = async function (orderId) {
+    const modal = document.getElementById('adminProcessRefundModal');
+    if (!modal) return;
+    document.getElementById('processRefundOrderId').value = orderId;
+
+    const summaryDiv = document.getElementById('processRefundOrderSummary');
+    const custDiv = document.getElementById('processRefundCustomerDetails');
+    const statusSelect = document.getElementById('processRefundStatusSelect');
+    const refInput = document.getElementById('processRefundRefInput');
+    const notesInput = document.getElementById('processRefundNotesInput');
+
+    if (summaryDiv) summaryDiv.innerHTML = '<p style="color:#666;">Loading order details...</p>';
+    if (custDiv) custDiv.innerHTML = '';
+
+    modal.style.display = 'flex';
+
+    try {
+        const { data: ord, error } = await supabaseClient
+            .from('orders')
+            .select('*')
+            .eq('id', orderId)
+            .single();
+
+        if (error || !ord) throw new Error('Order not found');
+
+        const { cust, refundInfo, isPaid, refStatus } = parseOrderRefundDetails(ord);
+        const shortId = ord.id ? ord.id.substring(0, 8).toUpperCase() : 'N/A';
+        const amount = ord.total_amount || 0;
+
+        summaryDiv.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <div style="font-size:16px; font-weight:800; color:#0f172a; font-family:monospace;">Order #${shortId}</div>
+                    <div style="font-size:13px; color:#475569; margin-top:2px;">Customer: <strong>${cust.name || cust.full_name || 'Guest'}</strong> (${cust.phone || cust.email || 'N/A'})</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:11px; color:#64748b; font-weight:700; text-transform:uppercase;">Refund Amount</div>
+                    <div style="font-size:22px; font-weight:800; color:#dc2626;">₹${amount}</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:10px; font-size:12px; color:#475569; flex-wrap:wrap; background:#ffffff; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
+                <div><strong>Payment Status:</strong> ${isPaid ? '<span style="color:#16a34a; font-weight:700;">PAID</span>' : '<span style="color:#dc2626; font-weight:700;">UNPAID</span>'}</div>
+                <div><strong>Payment Method:</strong> ${cust.payment_method || ord.payment_method || (ord.razorpay_payment_id ? 'Razorpay' : 'UPI / COD')}</div>
+                ${ord.razorpay_payment_id ? `<div><strong>Razorpay Txn:</strong> <span style="font-family:monospace;">${ord.razorpay_payment_id}</span></div>` : ''}
+            </div>
+        `;
+
+        let custDetailHtml = '';
+        if (refundInfo.upi_id || refundInfo.method === 'UPI') {
+            const upi = refundInfo.upi_id || (cust.phone ? cust.phone.replace(/[^0-9]/g, '').slice(-10) + '@upi' : '');
+            custDetailHtml = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <div style="font-size:11px; font-weight:800; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px;">Customer Refund Payment Account</div>
+                        <div style="font-size:15px; font-weight:800; color:#0c4a6e; font-family:monospace; margin-top:3px;">
+                            📱 UPI ID: ${upi || 'Not entered yet'}
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        ${upi ? `<button type="button" onclick="copyTextToClipboard('${upi}', this)" style="background:#0284c7; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">📋 Copy UPI ID</button>` : ''}
+                        ${cust.phone ? `<a href="https://wa.me/91${cust.phone.replace(/[^0-9]/g, '').slice(-10)}?text=${encodeURIComponent('Hello ' + (cust.name || '') + ', regarding your refund of ₹' + amount + ' for Kappa Clothing order #' + shortId + '...')}" target="_blank" class="btn-whatsapp-notify" style="padding:6px 12px; font-size:12px;">💬 WhatsApp</a>` : ''}
+                    </div>
+                </div>
+            `;
+        } else if (refundInfo.account_number || refundInfo.method === 'Bank Transfer') {
+            const accNum = refundInfo.account_number || '';
+            const ifsc = refundInfo.ifsc || '';
+            const holder = refundInfo.account_holder || cust.name || '';
+            const bank = refundInfo.bank_name || '';
+            const bankText = `Bank: ${bank}\nHolder: ${holder}\nAccount: ${accNum}\nIFSC: ${ifsc}`;
+
+            custDetailHtml = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <div style="font-size:11px; font-weight:800; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px;">Customer Bank Account Details</div>
+                        <div style="font-size:13px; color:#0c4a6e; margin-top:4px; line-height:1.5;">
+                            <div><strong>Holder:</strong> ${holder}</div>
+                            <div><strong>Account No:</strong> <span style="font-family:monospace; font-weight:700;">${accNum}</span></div>
+                            <div><strong>IFSC Code:</strong> <span style="font-family:monospace; font-weight:700;">${ifsc}</span></div>
+                            ${bank ? `<div><strong>Bank:</strong> ${bank}</div>` : ''}
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" onclick="copyTextToClipboard(\`${bankText}\`, this)" style="background:#0284c7; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">📋 Copy Bank Info</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            custDetailHtml = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div style="font-size:13px; color:#b45309; font-weight:600;">
+                        ⚠️ Customer has not provided UPI ID or Bank details yet.
+                    </div>
+                    <button type="button" onclick="openAdminEditRefundModal('${ord.id}')" style="background:#d97706; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">
+                        ✏️ Enter Payment Details
+                    </button>
+                </div>
+            `;
+        }
+
+        custDiv.innerHTML = custDetailHtml;
+
+        if (statusSelect) {
+            if (['pending', 'processing', 'refunded', 'no_refund'].includes(refStatus)) {
+                statusSelect.value = refStatus;
+            } else {
+                statusSelect.value = isPaid ? 'pending' : 'no_refund';
+            }
+        }
+        if (refInput) refInput.value = refundInfo.refund_ref || '';
+        if (notesInput) notesInput.value = refundInfo.remarks || '';
+
+        toggleProcessRefundFields();
+    } catch (e) {
+        console.error('Error loading process refund modal:', e);
+        if (summaryDiv) summaryDiv.innerHTML = '<p style="color:red;">Failed to load order for refund processing.</p>';
+    }
+};
+
+window.toggleProcessRefundFields = function () {
+    const status = document.getElementById('processRefundStatusSelect')?.value;
+    const refDiv = document.getElementById('processRefundRefDiv');
+    if (refDiv) {
+        if (status === 'refunded') {
+            refDiv.style.display = 'block';
+        } else {
+            refDiv.style.display = 'none';
+        }
+    }
+};
+
+window.saveProcessRefund = async function (e) {
+    if (e) e.preventDefault();
+    const orderId = document.getElementById('processRefundOrderId')?.value;
+    if (!orderId) return;
+
+    const status = document.getElementById('processRefundStatusSelect')?.value || 'pending';
+    const refId = document.getElementById('processRefundRefInput')?.value.trim() || '';
+    const notes = document.getElementById('processRefundNotesInput')?.value.trim() || '';
+
+    try {
+        const { data: ord } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+        if (!ord) throw new Error('Order not found');
+
+        const cust = ord.customer_details || {};
+        const existingRefund = ord.refund_details || cust.refund_details || {};
+
+        const updatedRefund = {
+            ...existingRefund,
+            refund_status: status,
+            refund_ref: refId || existingRefund.refund_ref || (status === 'refunded' ? 'Manual Refund' : ''),
+            refunded_at: status === 'refunded' ? (existingRefund.refunded_at || new Date().toISOString()) : existingRefund.refunded_at,
+            remarks: notes || existingRefund.remarks || ''
+        };
+
+        const updatedCust = {
+            ...cust,
+            refund_details: updatedRefund
+        };
+
+        const updatePayload = {
+            customer_details: updatedCust,
+            refund_details: updatedRefund
+        };
+
+        if (status === 'refunded') {
+            updatePayload.status = 'refunded';
+            updatePayload.order_stage = 'refunded';
+        } else {
+            updatePayload.status = 'cancelled';
+            updatePayload.order_stage = 'cancelled';
+        }
+
+        try {
+            await supabaseClient.from('orders').update(updatePayload).eq('id', orderId);
+        } catch (_) {
+            delete updatePayload.refund_details;
+            await supabaseClient.from('orders').update(updatePayload).eq('id', orderId);
+        }
+
+        document.getElementById('adminProcessRefundModal').style.display = 'none';
+        alert(`Refund status updated to "${status.toUpperCase()}"!`);
+
+        if (typeof showOrderDetails === 'function' && document.getElementById('orderDetailsOverlay')?.style.display !== 'none') {
+            await showOrderDetails(orderId);
+        }
+        await loadCancelledOrders();
+        if (typeof loadOrders === 'function') await loadOrders();
+    } catch (err) {
+        console.error('Error saving process refund:', err);
+        alert('Failed to save refund status: ' + (err.message || err));
+    }
+};
+
+window.updateOrderCancellationReason = async function (orderId, newReason) {
+    if (!orderId || !newReason) return;
+    try {
+        const { data: ord } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+        if (!ord) return;
+
+        const cust = ord.customer_details || {};
+        const existingRefund = ord.refund_details || cust.refund_details || {};
+
+        const updatedRefund = {
+            ...existingRefund,
+            reason: newReason,
+            cancelled_at: existingRefund.cancelled_at || new Date().toISOString()
+        };
+
+        const updatedCust = {
+            ...cust,
+            refund_details: updatedRefund
+        };
+
+        try {
+            await supabaseClient.from('orders').update({
+                customer_details: updatedCust,
+                refund_details: updatedRefund
+            }).eq('id', orderId);
+        } catch (_) {
+            await supabaseClient.from('orders').update({
+                customer_details: updatedCust
+            }).eq('id', orderId);
+        }
+
+        alert(`Cancellation reason updated to "${newReason}"`);
+        await loadCancelledOrders();
+    } catch (e) {
+        console.error('Error updating cancellation reason:', e);
+        alert('Error updating cancellation reason: ' + (e.message || e));
+    }
+};
 
 // ── SIDEBAR NOTIFICATION BADGES ──
 async function updateSidebarOrderBadges() {
