@@ -317,3 +317,99 @@ WHERE (o.delivery_details->>'tracking_id' IS NULL
        OR o.delivery_details->>'tracking_id' = '')
   AND COALESCE(o.order_stage, 'incoming') NOT IN ('cancelled','delivered','returned','refunded')
 ORDER BY o.created_at ASC;
+
+
+-- =============================================================================
+-- SECTION 7: CATEGORIES & PRODUCT CATALOG MANAGEMENT
+-- =============================================================================
+
+-- ── 7A. VIEW ALL CATEGORIES & SUBCATEGORIES HIERARCHY WITH PRODUCT COUNTS ─────
+SELECT
+    COALESCE(p.name, '— (Root Category)')       AS parent_category,
+    c.id                                        AS category_id,
+    c.name                                      AS category_name,
+    c.slug                                      AS category_slug,
+    COUNT(prod.id)                              AS total_products,
+    COALESCE(SUM(prod.stock_quantity), 0)       AS total_stock_in_category
+FROM public.categories c
+LEFT JOIN public.categories p ON c.parent_id = p.id
+LEFT JOIN public.products prod ON prod.category_id = c.id
+GROUP BY p.name, c.id, c.name, c.slug
+ORDER BY COALESCE(p.name, c.name), c.parent_id NULLS FIRST, c.name;
+
+
+-- ── 7B. VIEW ALL PRODUCTS WITH THEIR CATEGORY & VARIANTS ─────────────────────
+SELECT
+    p.id                                    AS product_id,
+    p.name                                  AS product_name,
+    p.sku,
+    COALESCE(c.name, 'Uncategorized')       AS category_name,
+    parent.name                             AS parent_category,
+    p.price                                 AS selling_price,
+    p.compare_at_price                      AS original_price,
+    p.stock_quantity                        AS total_stock,
+    p.is_active,
+    COUNT(v.id)                             AS variant_count
+FROM public.products p
+LEFT JOIN public.categories c ON p.category_id = c.id
+LEFT JOIN public.categories parent ON c.parent_id = parent.id
+LEFT JOIN public.product_variants v ON v.product_id = p.id
+GROUP BY p.id, p.name, p.sku, c.name, parent.name, p.price, p.compare_at_price, p.stock_quantity, p.is_active
+ORDER BY p.created_at DESC;
+
+
+-- ── 7C. SEED DEFAULT MAIN & SUB CATEGORIES (Safe Insert - skips existing) ────
+-- Run this if your categories table is empty or missing standard apparel categories:
+DO $$
+DECLARE
+    v_men_id uuid;
+    v_women_id uuid;
+    v_unisex_id uuid;
+    v_kids_id uuid;
+BEGIN
+    -- 1. Root Categories
+    INSERT INTO public.categories (name, slug, parent_id)
+    VALUES ('Men', 'men', NULL)
+    ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
+    RETURNING id INTO v_men_id;
+
+    INSERT INTO public.categories (name, slug, parent_id)
+    VALUES ('Women', 'women', NULL)
+    ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
+    RETURNING id INTO v_women_id;
+
+    INSERT INTO public.categories (name, slug, parent_id)
+    VALUES ('Unisex', 'unisex', NULL)
+    ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
+    RETURNING id INTO v_unisex_id;
+
+    INSERT INTO public.categories (name, slug, parent_id)
+    VALUES ('Kids', 'kids', NULL)
+    ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
+    RETURNING id INTO v_kids_id;
+
+    -- 2. Men Subcategories
+    INSERT INTO public.categories (name, slug, parent_id) VALUES
+        ('T-Shirts', 'men-t-shirts', v_men_id),
+        ('Shirts', 'men-shirts', v_men_id),
+        ('Pants', 'men-pants', v_men_id),
+        ('Jeans', 'men-jeans', v_men_id),
+        ('Trousers', 'men-trousers', v_men_id),
+        ('Shorts', 'men-shorts', v_men_id),
+        ('Hoodies', 'men-hoodies', v_men_id),
+        ('Jackets', 'men-jackets', v_men_id)
+    ON CONFLICT (slug) DO NOTHING;
+
+    -- 3. Women Subcategories
+    INSERT INTO public.categories (name, slug, parent_id) VALUES
+        ('Tops', 'women-tops', v_women_id),
+        ('Dresses', 'women-dresses', v_women_id),
+        ('T-Shirts', 'women-t-shirts', v_women_id),
+        ('Shirts', 'women-shirts', v_women_id),
+        ('Jeans', 'women-jeans', v_women_id),
+        ('Trousers', 'women-trousers', v_women_id),
+        ('Skirts', 'women-skirts', v_women_id),
+        ('Hoodies', 'women-hoodies', v_women_id)
+    ON CONFLICT (slug) DO NOTHING;
+END $$;
+

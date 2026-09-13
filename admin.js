@@ -1344,66 +1344,94 @@ function initProductForm() {
         sizes: { 'S': 5, 'M': 10, 'L': 12, 'XL': 8, 'XXL': 3 },
         minStock: 5
     });
+    populateProductCategoryDropdown();
 }
 
-window.handleGenderChange = function () {
-    const gender = document.getElementById('prod-gender')?.value || '';
+window.populateProductCategoryDropdown = async function (selectedVal = '') {
     const catSelect = document.getElementById('prod-category');
     if (!catSelect) return;
 
-    const allCats = window.allAdminCategories || allAdminCategories || [];
-    let html = `<option value="" disabled selected>Select Category ▼</option>`;
+    if (!window.allAdminCategories || window.allAdminCategories.length === 0) {
+        try {
+            const { data } = await supabaseClient
+                .from('categories')
+                .select('id, name, parent_id, slug')
+                .order('name', { ascending: true });
+            if (data && Array.isArray(data)) {
+                window.allAdminCategories = data;
+                allAdminCategories = data;
+            }
+        } catch (_) {}
+    }
 
-    if (Array.isArray(allCats) && allCats.length > 0) {
+    const allCats = window.allAdminCategories || [];
+    const gender = (document.getElementById('prod-gender')?.value || '').trim();
+
+    let html = `<option value="" disabled ${!selectedVal ? 'selected' : ''}>Select Category ▼</option>`;
+
+    if (allCats.length > 0) {
         const roots = allCats.filter(c => !c.parent_id);
         const children = allCats.filter(c => c.parent_id);
 
-        // 1. Check if a root category matches the selected Gender (e.g. "Men", "Women", "Kids", "Unisex")
-        const matchingRoot = roots.find(r => r.name.toLowerCase().trim() === gender.toLowerCase().trim());
-
-        if (matchingRoot) {
-            const rootChildren = children.filter(c => c.parent_id === matchingRoot.id);
-            if (rootChildren.length > 0) {
-                rootChildren.forEach(cat => {
-                    html += `<option value="${cat.name}" data-id="${cat.id}">${cat.name}</option>`;
-                });
-            } else {
-                html += `<option value="${matchingRoot.name}" data-id="${matchingRoot.id}">${matchingRoot.name}</option>`;
-            }
-        } else {
-            // 2. If no direct root match, render all categories grouped by their parent or as list
-            roots.forEach(r => {
-                const myChildren = children.filter(c => c.parent_id === r.id);
-                if (myChildren.length > 0) {
-                    html += `<optgroup label="${r.name}">`;
-                    myChildren.forEach(c => {
-                        html += `<option value="${c.name}" data-id="${c.id}">${c.name}</option>`;
+        // 1. If a gender is selected and matches a root, show that root's categories prominently first
+        if (gender) {
+            const matchingRoot = roots.find(r => r.name.toLowerCase() === gender.toLowerCase());
+            if (matchingRoot) {
+                const rootChildren = children.filter(c => c.parent_id === matchingRoot.id);
+                if (rootChildren.length > 0) {
+                    html += `<optgroup label="Categories for ${matchingRoot.name}">`;
+                    rootChildren.forEach(cat => {
+                        const isSel = (selectedVal === cat.name || selectedVal === cat.id);
+                        html += `<option value="${cat.name}" data-id="${cat.id}" ${isSel ? 'selected' : ''}>${cat.name}</option>`;
                     });
                     html += `</optgroup>`;
-                } else {
-                    html += `<option value="${r.name}" data-id="${r.id}">${r.name}</option>`;
                 }
-            });
-
-            const orphans = children.filter(c => !roots.some(r => r.id === c.parent_id));
-            if (orphans.length > 0) {
-                html += `<optgroup label="Other Categories">`;
-                orphans.forEach(c => {
-                    html += `<option value="${c.name}" data-id="${c.id}">${c.name}</option>`;
-                });
-                html += `</optgroup>`;
             }
         }
+
+        // 2. Render ALL categories from Categories tab organized by Parent Category
+        roots.forEach(r => {
+            const myChildren = children.filter(c => c.parent_id === r.id);
+            html += `<optgroup label="${r.name}">`;
+            const isRootSel = (selectedVal === r.name || selectedVal === r.id);
+            html += `<option value="${r.name}" data-id="${r.id}" ${isRootSel ? 'selected' : ''}>${r.name} (Main Category)</option>`;
+
+            myChildren.forEach(c => {
+                const isChildSel = (selectedVal === c.name || selectedVal === c.id);
+                html += `<option value="${c.name}" data-id="${c.id}" ${isChildSel ? 'selected' : ''}>${c.name}</option>`;
+            });
+            html += `</optgroup>`;
+        });
+
+        // 3. Standalone categories without parent
+        const orphans = children.filter(c => !roots.some(r => r.id === c.parent_id));
+        if (orphans.length > 0) {
+            html += `<optgroup label="Other Categories">`;
+            orphans.forEach(c => {
+                const isOrphanSel = (selectedVal === c.name || selectedVal === c.id);
+                html += `<option value="${c.name}" data-id="${c.id}" ${isOrphanSel ? 'selected' : ''}>${c.name}</option>`;
+            });
+            html += `</optgroup>`;
+        }
     } else {
-        // Fallback to standard apparel categories
-        const availableCats = GENDER_CATEGORIES[gender] || GENDER_CATEGORIES['Men'] || ['Shirts', 'T-Shirts', 'Pants', 'Jeans', 'Trousers', 'Shorts', 'Jackets', 'Hoodies'];
-        availableCats.forEach(cat => {
-            html += `<option value="${cat}">${cat}</option>`;
+        // Fallback default list if no categories created yet
+        const defaultCats = ['Shirts', 'T-Shirts', 'Pants', 'Jeans', 'Trousers', 'Shorts', 'Jackets', 'Hoodies', 'Dresses', 'Skirts'];
+        defaultCats.forEach(cat => {
+            const isSel = (selectedVal === cat);
+            html += `<option value="${cat}" ${isSel ? 'selected' : ''}>${cat}</option>`;
         });
     }
 
     catSelect.innerHTML = html;
+    if (selectedVal) {
+        catSelect.value = selectedVal;
+    }
     updateLiveProductSummary();
+};
+
+window.handleGenderChange = function () {
+    const currentVal = document.getElementById('prod-category')?.value || '';
+    populateProductCategoryDropdown(currentVal);
 };
 
 window.handleCategoryChange = function () {
