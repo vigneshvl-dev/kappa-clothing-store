@@ -875,6 +875,74 @@
         </div>
     </div>
 
+    <!-- ADMIN NOTIFY CUSTOMER WHATSAPP MODAL -->
+    <div class="overlay" id="adminNotifyMessageModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(3px); z-index:1160; align-items:center; justify-content:center;">
+        <div class="side-panel"
+            style="background:#fff; padding:24px; width:540px; max-width:94vw; max-height:90vh; overflow-y:auto; border-radius:14px; box-shadow:0 16px 40px rgba(0,0,0,0.3);">
+            <div class="side-head"
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #eee; padding-bottom:12px;">
+                <h3 style="font-size:17px; font-weight:800; color:#111; margin:0; display:flex; align-items:center; gap:8px;">
+                    💬 Notify Customer on WhatsApp
+                </h3>
+                <button type="button" onclick="closeAdminNotifyModal()"
+                    style="background:none; border:none; font-size:20px; cursor:pointer; color:#666; font-weight:bold; padding:4px 8px;">✕</button>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:14px;">
+                <input type="hidden" id="adminNotifyOrderId">
+                
+                <div id="adminNotifySummary" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; font-size:13px; color:#334155;">
+                    <!-- Filled dynamically -->
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#475569; margin-bottom:5px;">
+                        Customer Phone Number
+                    </label>
+                    <input type="text" id="adminNotifyPhoneInput" class="admin-input" placeholder="10-digit mobile number" style="width:100%; box-sizing:border-box; font-weight:600;">
+                </div>
+
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <label style="font-size:12px; font-weight:700; color:#475569;">
+                            Choose Message Template
+                        </label>
+                        <span style="font-size:11px; color:#64748b;">(Clean text, no emojis)</span>
+                    </div>
+                    <select id="adminNotifyTemplateSelect" class="admin-input" style="width:100%; box-sizing:border-box; font-weight:600;" onchange="applyAdminNotifyTemplate()">
+                        <option value="status_update">Standard Status Update</option>
+                        <option value="tracking_dispatch">Shipping & Tracking Dispatch</option>
+                        <option value="delivery_eta">Delivery ETA & Arrival Update</option>
+                        <option value="cancellation_refund">Order Cancellation & Refund</option>
+                        <option value="custom">Custom Blank Message</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <label style="font-size:12px; font-weight:700; color:#475569;">
+                            Edit WhatsApp Message Text
+                        </label>
+                        <button type="button" onclick="copyNotifyMessageText()" style="background:none; border:none; color:#2563eb; font-size:12px; font-weight:700; cursor:pointer; padding:0;">
+                            📋 Copy Text
+                        </button>
+                    </div>
+                    <textarea id="adminNotifyMessageText" class="admin-input" rows="10" placeholder="Type your custom notification message here..." style="width:100%; box-sizing:border-box; font-family:inherit; font-size:13px; line-height:1.5; resize:vertical;"></textarea>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; border-top:1px solid #eee; padding-top:14px; flex-wrap:wrap; gap:10px;">
+                    <button type="button" class="btn-secondary" onclick="closeAdminNotifyModal()" style="padding:9px 16px;">Cancel</button>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" onclick="sendAdminNotifyWhatsApp()" style="background:#25D366; color:#fff; border:none; padding:9px 20px; border-radius:8px; font-size:13px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(37,211,102,0.35);">
+                            💬 Open WhatsApp & Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- IMAGE CROPPER MODAL -->
     <div id="cropper-modal"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(5px);">

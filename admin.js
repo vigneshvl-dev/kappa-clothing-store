@@ -2060,30 +2060,26 @@ window.showOrderDetails = async function (orderId) {
     const allStages = [...ORDER_STAGES, ...EXCEPTION_STAGES];
     let stageOptions = allStages.map(s => `<option value="${s}" ${s === orderStage ? 'selected' : ''}>${STAGE_LABELS[s] || s}</option>`).join('');
 
-    // Build rich WhatsApp message with product image & names
+    // Build rich WhatsApp message with product names & clean details (no image links)
     const _waItems   = (data.order_items && data.order_items.length > 0) ? data.order_items : [];
-    const _waImgUrl  = _waItems[0]?.image_url
-                    || _waItems[0]?.products?.product_images?.[0]?.url
-                    || '';
     const _waNames   = _waItems.length > 0
         ? _waItems.map(i => (i.products?.name || i.name || 'Product') + (i.size && i.size !== 'N/A' ? ' (' + i.size + ')' : '')).join(', ')
         : 'Your order';
     const _waShortId = data.id.toString().substring(0, 8).toUpperCase();
     const _waStatus  = STAGE_LABELS[orderStage] || orderStage;
     const _waNotifyMsg = [
-        `Hi ${cust.name || 'there'}! 👋`,
+        `Hi ${cust.name || 'there'}!`,
         ``,
-        `Your *KAPPA Clothing* order has been updated! 🖤`,
+        `Your KAPPA Clothing order has been updated!`,
         ``,
-        `🛒 *Order ID:* #${_waShortId}`,
-        `📦 *Status:* ${_waStatus}`,
-        `🛍️ *Items:* ${_waNames}`,
-        `💰 *Total:* ₹${data.total_amount}`,
-        _waImgUrl ? `🖼️ *Product:* ${_waImgUrl}` : '',
+        `Order ID: #${_waShortId}`,
+        `Status: ${_waStatus}`,
+        `Items: ${_waNames}`,
+        `Total: Rs. ${data.total_amount}`,
         ``,
-        `Thank you for shopping with KAPPA! 🖤`,
+        `Thank you for shopping with KAPPA!`,
         `For any queries, reply to this message.`
-    ].filter(l => l !== null && l !== undefined && !(l === '' && false)).join('\n');
+    ].join('\n');
 
     let updateStageHtml = `
         <div class="order-action-bar">
@@ -2093,6 +2089,9 @@ window.showOrderDetails = async function (orderId) {
                 ✅ Update Status
             </button>
             ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent(_waNotifyMsg)}" target="_blank" class="btn-whatsapp-notify">💬 Notify Customer</a>` : ''}
+            <button type="button" onclick="openNotifyCustomerModal('${data.id}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#334155; padding:7px 13px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Edit message before sending">
+                ✏️ Edit Message
+            </button>
         </div>`;
 
     // ── 5. CUSTOMER + SHIPPING GRID ────────────────────────────────────────────
@@ -2105,7 +2104,11 @@ window.showOrderDetails = async function (orderId) {
                     ${cust.email ? `<a href="mailto:${cust.email}" style="color:#3498db; text-decoration:none;">${cust.email}</a>` : 'No email'}
                 </div>
                 <div style="font-size:13px; color:#555; margin-bottom:6px;">📞 ${cust.phone || 'N/A'}</div>
-                ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent(_waNotifyMsg)}" target="_blank" class="btn-whatsapp-notify" style="font-size:11px; padding:5px 10px; margin-top:4px;">💬 WhatsApp</a>` : ''}
+                ${phoneClean ? `
+                    <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+                        <a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent(_waNotifyMsg)}" target="_blank" class="btn-whatsapp-notify" style="font-size:11px; padding:5px 10px;">💬 WhatsApp</a>
+                        <button type="button" onclick="openNotifyCustomerModal('${data.id}')" style="background:#f8fafc; border:1px solid #cbd5e1; color:#334155; font-size:11px; padding:5px 10px; border-radius:6px; font-weight:700; cursor:pointer;">✏️ Edit</button>
+                    </div>` : ''}
             </div>
             <div class="order-detail-section" style="margin-bottom:0;">
                 <div class="order-detail-section-title">📍 Delivery Address</div>
@@ -2309,21 +2312,21 @@ window.showOrderDetails = async function (orderId) {
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
                         ${phoneClean ? (() => {
                             const _refWaMsg = [
-                                `Hello ${cust.name || 'there'} 👋`,
+                                `Hello ${cust.name || 'there'},`,
                                 ``,
-                                `Regarding your *KAPPA Clothing* order cancellation:`,
+                                `Regarding your KAPPA Clothing order cancellation:`,
                                 ``,
-                                `🛒 *Order ID:* #${data.id.toString().substring(0,8).toUpperCase()}`,
-                                `💰 *Refund Amount:* ₹${data.total_amount}`,
-                                _waImgUrl ? `🖼️ *Product:* ${_waImgUrl}` : '',
+                                `Order ID: #${data.id.toString().substring(0,8).toUpperCase()}`,
+                                `Refund Amount: Rs. ${data.total_amount}`,
                                 ``,
-                                `Your refund will be processed to your provided UPI/Bank account within 2–4 working days.`,
+                                `Your refund will be processed to your provided UPI/Bank account within 2-4 working days.`,
                                 ``,
-                                `Thank you for your patience. — KAPPA Team 🖤`
-                            ].filter(l => l !== null && l !== undefined).join('\n');
+                                `Thank you for your patience. - KAPPA Team`
+                            ].join('\n');
                             return `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent(_refWaMsg)}" target="_blank" class="btn-whatsapp-notify">💬 WhatsApp Customer</a>`;
                         })() : ''}
-                        <button onclick="openAdminEditRefundModal('${data.id}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#334155; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">✏️ Edit Refund Info</button>
+                        <button onclick="openNotifyCustomerModal('${data.id}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#334155; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">✏️ Edit Message</button>
+                        <button onclick="openAdminEditRefundModal('${data.id}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#334155; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">💳 Edit Refund Info</button>
                     </div>
                     <div>
                         ${isRefundSettledBool ? `<div style="display:inline-flex; align-items:center; gap:6px; background:#dcfce7; color:#15803d; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:800;">✓ Refund Completed (${refundInfo?.refund_ref ? 'Ref: ' + refundInfo.refund_ref : new Date(refundInfo?.refunded_at||Date.now()).toLocaleDateString()})</div>`
@@ -4770,3 +4773,193 @@ window.removeTempSelectedProduct = function (id) {
     updateSelectedProdTagsUI();
 };
 window.loadExploreCardsAdmin = loadExploreCardsAdmin;
+
+// ── CUSTOMER NOTIFICATION WHATSAPP MODAL LOGIC ──
+let currentNotifyOrderData = null;
+
+window.openNotifyCustomerModal = async function (orderId) {
+    if (!orderId) return;
+    try {
+        const modal = document.getElementById('adminNotifyMessageModal');
+        if (!modal) {
+            alert('Notification modal element not found.');
+            return;
+        }
+
+        // Fetch order details
+        let order = null;
+        if (Array.isArray(window.currentOrdersData)) {
+            order = window.currentOrdersData.find(o => o.id === orderId);
+        }
+        if (!order) {
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .select('*, order_items(*, products(*, product_images(*)))')
+                .eq('id', orderId)
+                .single();
+            if (error || !data) throw error || new Error('Order not found');
+            order = data;
+        }
+
+        currentNotifyOrderData = order;
+
+        const cust = order.customer_details || {};
+        const rawPhone = cust.phone || '';
+        const cleanPhone = rawPhone.replace(/[^0-9]/g, '').slice(-10);
+        const shortId = order.id.toString().substring(0, 8).toUpperCase();
+        const stage = order.order_stage || order.status || 'incoming';
+        const stageLabel = (typeof STAGE_LABELS !== 'undefined' && STAGE_LABELS[stage]) ? STAGE_LABELS[stage] : stage;
+
+        document.getElementById('adminNotifyOrderId').value = orderId;
+        document.getElementById('adminNotifyPhoneInput').value = cleanPhone;
+
+        const summaryEl = document.getElementById('adminNotifySummary');
+        if (summaryEl) {
+            summaryEl.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div><strong>Order:</strong> #${shortId}</div>
+                    <div><strong>Customer:</strong> ${cust.name || 'N/A'}</div>
+                    <div><strong>Stage:</strong> <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-weight:700; font-size:11px;">${stageLabel.toUpperCase()}</span></div>
+                    <div><strong>Total:</strong> Rs. ${order.total_amount}</div>
+                </div>
+            `;
+        }
+
+        const templateSelect = document.getElementById('adminNotifyTemplateSelect');
+        if (templateSelect) {
+            if (stage === 'cancelled' || order.status === 'cancelled') {
+                templateSelect.value = 'cancellation_refund';
+            } else if (order.delivery_details?.tracking_id) {
+                templateSelect.value = 'tracking_dispatch';
+            } else {
+                templateSelect.value = 'status_update';
+            }
+        }
+
+        applyAdminNotifyTemplate();
+        modal.style.display = 'flex';
+    } catch (err) {
+        console.error('Error opening notify modal:', err);
+        alert('Failed to load order details: ' + (err.message || err));
+    }
+};
+
+window.closeAdminNotifyModal = function () {
+    const modal = document.getElementById('adminNotifyMessageModal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.applyAdminNotifyTemplate = function () {
+    if (!currentNotifyOrderData) return;
+
+    const templateType = document.getElementById('adminNotifyTemplateSelect')?.value || 'status_update';
+    const order = currentNotifyOrderData;
+    const cust = order.customer_details || {};
+    const shortId = order.id.toString().substring(0, 8).toUpperCase();
+    const stage = order.order_stage || order.status || 'incoming';
+    const stageLabel = (typeof STAGE_LABELS !== 'undefined' && STAGE_LABELS[stage]) ? STAGE_LABELS[stage] : stage;
+
+    const items = (order.order_items && order.order_items.length > 0) ? order.order_items : [];
+    const itemNames = items.length > 0
+        ? items.map(i => (i.products?.name || i.name || 'Product') + (i.size && i.size !== 'N/A' ? ' (' + i.size + ')' : '')).join(', ')
+        : 'Your order items';
+
+    const del = order.delivery_details || {};
+    const trackingId = del.tracking_id || '';
+    const courier = del.partner || 'Standard Courier';
+    const eta = del.eta_days || '2-4 working days';
+
+    let msg = '';
+
+    if (templateType === 'status_update') {
+        msg = [
+            `Hi ${cust.name || 'there'}!`,
+            ``,
+            `Your KAPPA Clothing order has been updated!`,
+            ``,
+            `Order ID: #${shortId}`,
+            `Status: ${stageLabel}`,
+            `Items: ${itemNames}`,
+            `Total: Rs. ${order.total_amount}`,
+            ``,
+            `Thank you for shopping with KAPPA!`,
+            `For any queries, reply to this message.`
+        ].join('\n');
+    } else if (templateType === 'tracking_dispatch') {
+        msg = [
+            `Hi ${cust.name || 'there'}!`,
+            ``,
+            `Great news! Your KAPPA Clothing order #${shortId} has been dispatched.`,
+            ``,
+            `Courier Partner: ${courier}`,
+            trackingId ? `Tracking ID: ${trackingId}` : `Tracking ID: Will be updated shortly`,
+            `Estimated Delivery: ${eta}`,
+            `Items: ${itemNames}`,
+            ``,
+            `Thank you for shopping with KAPPA!`,
+            `For any tracking help, reply to this message.`
+        ].join('\n');
+    } else if (templateType === 'delivery_eta') {
+        msg = [
+            `Hi ${cust.name || 'there'}!`,
+            ``,
+            `Regarding your KAPPA Clothing order #${shortId}:`,
+            ``,
+            `Estimated Delivery: ${eta}`,
+            `Current Status: ${stageLabel}`,
+            `Total Amount: Rs. ${order.total_amount}`,
+            ``,
+            `Thank you for choosing KAPPA! We are ensuring fast and safe delivery.`
+        ].join('\n');
+    } else if (templateType === 'cancellation_refund') {
+        msg = [
+            `Hello ${cust.name || 'there'},`,
+            ``,
+            `Regarding your KAPPA Clothing order cancellation:`,
+            ``,
+            `Order ID: #${shortId}`,
+            `Refund Amount: Rs. ${order.total_amount}`,
+            ``,
+            `Your refund will be processed to your provided UPI/Bank account within 2-4 working days.`,
+            ``,
+            `Thank you for your patience. - KAPPA Team`
+        ].join('\n');
+    } else if (templateType === 'custom') {
+        msg = `Hi ${cust.name || 'there'},\n\nRegarding your KAPPA Clothing order #${shortId}:\n\n`;
+    }
+
+    const textarea = document.getElementById('adminNotifyMessageText');
+    if (textarea) textarea.value = msg;
+};
+
+window.copyNotifyMessageText = function () {
+    const textarea = document.getElementById('adminNotifyMessageText');
+    if (!textarea || !textarea.value) return;
+    navigator.clipboard.writeText(textarea.value).then(() => {
+        alert('Message copied to clipboard!');
+    }).catch(() => {
+        textarea.select();
+        document.execCommand('copy');
+        alert('Message copied to clipboard!');
+    });
+};
+
+window.sendAdminNotifyWhatsApp = function () {
+    const phoneInput = document.getElementById('adminNotifyPhoneInput');
+    const textarea = document.getElementById('adminNotifyMessageText');
+
+    const phone = phoneInput ? phoneInput.value.replace(/[^0-9]/g, '').slice(-10) : '';
+    const text = textarea ? textarea.value.trim() : '';
+
+    if (!phone) {
+        alert('Please enter a valid 10-digit customer mobile number.');
+        return;
+    }
+    if (!text) {
+        alert('Please enter a message to send.');
+        return;
+    }
+
+    const waUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, '_blank');
+};
