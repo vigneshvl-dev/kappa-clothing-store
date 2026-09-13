@@ -1517,11 +1517,31 @@
                 console.warn('Supabase cancellation notice:', err);
             }
 
-            updateLocalOrderStatus(pendingCancelOrderId, 'Cancelled', refundPayload);
+            // ── Immediately update in-memory order so the card flips to Cancelled right away ──
+            const cancelledOrderId = pendingCancelOrderId;
+            if (Array.isArray(allOrdersData)) {
+                allOrdersData.forEach(o => {
+                    if (String(o.orderId) === String(cancelledOrderId) || String(o.id) === String(cancelledOrderId)) {
+                        o.status = 'Cancelled';
+                        o.order_stage = 'cancelled';
+                        o.refund_details = refundPayload;
+                        o.cancellation_reason = selectedReason;
+                    }
+                });
+            }
 
             closeCancelOrderModal();
             if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Cancel Order'; }
+
+            // Re-render immediately with current filter so the card shows Cancelled state now
+            const activeTabNow = document.querySelector('.order-filter-tab.active');
+            const currentFilter = activeTabNow?.getAttribute('onclick')?.match(/filterOrders\('([^']+)'/)?.[1] || 'all';
+            renderOrdersList(allOrdersData, currentFilter);
+
             showToast('Order has been cancelled successfully');
+
+            // Also sync localStorage & re-fetch from DB in background
+            updateLocalOrderStatus(cancelledOrderId, 'Cancelled', refundPayload);
         }
 
         async function cancelOrder(orderId, btn) {
