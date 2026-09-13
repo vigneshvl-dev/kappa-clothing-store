@@ -148,7 +148,7 @@ window.switchAdminView = async function (targetName) {
                 case 'reviews': if (typeof loadReviews === 'function') await loadReviews(); break;
                 case 'customers': if (typeof loadCustomers === 'function') await loadCustomers(); break;
                 case 'settings': if (typeof loadSettings === 'function') await loadSettings(); break;
-                case 'products': clearProductForm(); break;
+                case 'products': clearProductForm(); initProductForm(); break;
                 case 'homepage': if (typeof loadHomepageSettings === 'function') await loadHomepageSettings(); break;
                 case 'explore': if (typeof loadExploreCardsAdmin === 'function') await loadExploreCardsAdmin(); break;
                 case 'promocodes': if (typeof loadPromoCodes === 'function') await loadPromoCodes(); break;
@@ -170,17 +170,15 @@ function initSidebar() {
     });
 }
 
+// clearProductForm is defined later in the file with the full implementation (line ~1888)
+// This stub prevents errors from the switchAdminView binding above
 function clearProductForm() {
-    const form = document.getElementById('add-product-form');
-    if (!form) return;
-    form.reset();
-    document.getElementById('editing-product-id').value = '';
-    document.getElementById('btn-submit-product').textContent = "Publish Product to Storefront";
-    document.getElementById('stock-table-container').innerHTML = '';
-    document.getElementById('prod-images').setAttribute('required', 'true');
-    document.getElementById('existing-images-preview').innerHTML = '';
-    document.getElementById('new-images-preview').innerHTML = '';
-
+    // Will be overridden by the full implementation below
+    // Proxy call — actual logic is in the full clearProductForm defined after initProductForm
+    const editIdEl = document.getElementById('editing-product-id');
+    if (editIdEl) editIdEl.value = '';
+    const submitBtn = document.getElementById('btn-submit-product');
+    if (submitBtn) submitBtn.textContent = 'Add Product';
     pendingImageFiles = [];
 }
 
@@ -2242,120 +2240,176 @@ window.editProduct = async function (id) {
 
     if (error || !data) { alert("Error fetching product details."); return; }
 
+    // Sort images by position
     if (data.product_images) {
-        data.product_images.sort((a, b) => a.position - b.position);
+        data.product_images.sort((a, b) => (a.position || 0) - (b.position || 0));
     }
 
+    // Switch to Add Product view
     document.querySelectorAll('.sidebar-menu li').forEach(nav => nav.classList.remove('active'));
     document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
+    const sidebarItem = document.querySelector('.sidebar-menu li[data-target="products"]');
+    if (sidebarItem) sidebarItem.classList.add('active');
+    const viewEl = document.getElementById('view-products');
+    if (viewEl) viewEl.classList.add('active-view');
+    const pageTitle = document.getElementById('dynamic-page-title');
+    if (pageTitle) pageTitle.textContent = 'Edit Product';
 
-    document.querySelector('.sidebar-menu li[data-target="products"]').classList.add('active');
-    document.getElementById('view-products').classList.add('active-view');
-    document.getElementById('dynamic-page-title').textContent = "Edit Product";
-
+    // --- Parse metadata tag embedded in description ---
     let rawDesc = data.description || '';
-    let extractedTag = data.tag;
-    if (rawDesc.includes('[TAG:')) {
-        const match = rawDesc.match(/\[TAG:([^\]]+)\]/i);
-        if (match && match[1]) extractedTag = match[1].trim().toUpperCase();
-        rawDesc = rawDesc.replace(/\s*\[TAG:[^\]]+\]/gi, '').trim();
-    }
-
-    document.getElementById('editing-product-id').value = data.id;
-    document.getElementById('prod-name').value = data.name;
-    document.getElementById('prod-category').value = data.category_id;
-    document.getElementById('prod-price').value = data.price;
-    document.getElementById('prod-compare-price').value = data.compare_at_price || '';
-    document.getElementById('prod-desc').value = rawDesc;
-
-    let tagMap = {};
-    try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
-    const prodTagEl = document.getElementById('prod-tag');
-    if (prodTagEl) {
-        prodTagEl.value = extractedTag || tagMap[String(data.id)] || 'NEW';
-    }
-
-    const stockTableContainer = document.getElementById('stock-table-container');
-    if (data.product_variants && data.product_variants.length > 0) {
-        const colors = [...new Set(data.product_variants.map(v => v.color).filter(c => c !== 'Default'))];
-        const sizes = [...new Set(data.product_variants.map(v => v.size).filter(s => s !== 'Default'))];
-
-        document.getElementById('variant-colors').value = colors.join(', ');
-        document.getElementById('variant-sizes').value = sizes.join(', ');
-
-        let overrides = {};
-        try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { }
-        const prodOverride = overrides[String(data.id)] || null;
-
-        let tableHTML = `<table class="stock-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Stock Qty</th><th style="text-align:center;">Action</th></tr></thead><tbody>`;
-        data.product_variants.forEach(variant => {
-            let vStock = Number(variant.stock_quantity || 0);
-            if (prodOverride && prodOverride.variants && prodOverride.variants[variant.size]) {
-                vStock = Math.max(0, vStock - prodOverride.variants[variant.size]);
-            }
-            tableHTML += `<tr class="variant-row" data-color="${variant.color}" data-size="${variant.size}">
-                <td><strong>${variant.color}</strong></td>
-                <td><strong>${variant.size}</strong></td>
-                <td><input type="text" class="stock-input variant-sku" placeholder="SKU" value="${variant.sku || ''}"></td>
-                <td><input type="number" class="stock-input variant-stock" value="${vStock}" min="0" required></td>
-                <td style="text-align:center;">
-                    <button type="button" class="btn-delete" style="padding:4px 10px; font-size:12px; background:#fff0f0; color:#e53e3e; border:1px solid #fed7d7; border-radius:6px; cursor:pointer;" onclick="removeVariantRow(this)" title="Delete Variant">
-                        ✕
-                    </button>
-                </td>
-            </tr>`;
+    let metaGender = '';
+    let metaSubCat = '';
+    let metaTax = '5%';
+    const metaMatch = rawDesc.match(/\[META:([^\]]+)\]/i);
+    if (metaMatch && metaMatch[1]) {
+        const parts = metaMatch[1].split('|');
+        parts.forEach(part => {
+            const [key, val] = part.split('=');
+            if (key === 'gender') metaGender = val || '';
+            else if (key === 'subcat') metaSubCat = val || '';
+            else if (key === 'tax') metaTax = val || '5%';
         });
-        tableHTML += `</tbody></table>`;
-        stockTableContainer.innerHTML = tableHTML;
-    } else {
-        document.getElementById('variant-colors').value = '';
-        document.getElementById('variant-sizes').value = '';
-        stockTableContainer.innerHTML = '';
+        rawDesc = rawDesc.replace(/\s*\[META:[^\]]+\]/gi, '').trim();
     }
 
-    const existingImagesDiv = document.getElementById('existing-images-preview');
-    const fileInput = document.getElementById('prod-images');
+    // --- Try rich variants from localStorage ---
+    let richData = null;
+    try {
+        const richStore = JSON.parse(localStorage.getItem('kappa_rich_variants') || '{}');
+        richData = richStore[String(data.id)] || null;
+    } catch (_) {}
+
+    // --- Fill Basic Info ---
+    const editIdEl = document.getElementById('editing-product-id');
+    if (editIdEl) editIdEl.value = data.id;
+
+    const nameEl = document.getElementById('prod-name');
+    if (nameEl) nameEl.value = data.name || '';
+
+    const gender = richData?.gender || metaGender || '';
+    const genderEl = document.getElementById('prod-gender');
+    if (genderEl && gender) {
+        genderEl.value = gender;
+        // Trigger category options update
+        handleGenderChange();
+    }
+
+    const category = richData?.category || '';
+    const catEl = document.getElementById('prod-category');
+    if (catEl && category) {
+        catEl.value = category;
+    }
+
+    const subCat = richData?.subCategory || metaSubCat || '';
+    const subCatEl = document.getElementById('prod-subcategory');
+    if (subCatEl && subCat) subCatEl.value = subCat;
+
+    const skuEl = document.getElementById('prod-sku');
+    if (skuEl) skuEl.value = data.sku || '';
+
+    const descEl = document.getElementById('prod-desc');
+    if (descEl) descEl.value = rawDesc;
+
+    // --- Fill Pricing ---
+    const priceEl = document.getElementById('prod-price');
+    if (priceEl) priceEl.value = data.price || '';
+
+    const comparePriceEl = document.getElementById('prod-compare-price');
+    if (comparePriceEl) comparePriceEl.value = data.compare_at_price || '';
+
+    const taxEl = document.getElementById('prod-tax');
+    const tax = richData?.tax || metaTax || '5%';
+    if (taxEl) taxEl.value = tax;
+
+    calculateDiscountAndSummary();
+
+    // --- Fill Status ---
+    const isActive = data.is_active;
+    const activeRadio = document.querySelector('input[name="prod-status"][value="Active"]');
+    const draftRadio = document.querySelector('input[name="prod-status"][value="Draft"]');
+    if (activeRadio && draftRadio) {
+        if (isActive) activeRadio.checked = true;
+        else draftRadio.checked = true;
+    }
+
+    // --- Build color variants from rich data or product_variants ---
+    colorVariantsData = [];
+
+    if (richData && richData.variants && richData.variants.length > 0) {
+        // Use rich variant data (has frontImg, backImg, sizes obj)
+        colorVariantsData = richData.variants.map(v => ({ ...v }));
+    } else if (data.product_variants && data.product_variants.length > 0) {
+        // Reconstruct from flat product_variants table
+        const colorMap = {};
+        data.product_variants.forEach(pv => {
+            const colorKey = pv.color || 'Default';
+            if (!colorMap[colorKey]) {
+                colorMap[colorKey] = {
+                    colorName: colorKey,
+                    colorCode: '#000000',
+                    frontImg: '',
+                    backImg: '',
+                    sizes: {},
+                    minStock: 5
+                };
+            }
+            if (pv.size && pv.size !== 'Default') {
+                colorMap[colorKey].sizes[pv.size] = parseInt(pv.stock_quantity) || 0;
+            }
+        });
+
+        // Try to attach images
+        if (data.product_images) {
+            data.product_images.forEach(img => {
+                const parts = img.url.split('#');
+                const cleanUrl = parts[0];
+                const colorTag = parts[1] || '';
+                const side = parts[2] || '';
+                if (colorTag && colorMap[colorTag]) {
+                    if (side === 'front') colorMap[colorTag].frontImg = cleanUrl;
+                    else if (side === 'back') colorMap[colorTag].backImg = cleanUrl;
+                }
+            });
+        }
+
+        colorVariantsData = Object.values(colorMap);
+    }
+
+    // --- Handle default fallback image ---
+    currentDefaultImageFile = null;
+    currentDefaultImageUrl = '';
+    const defaultImgContainer = document.getElementById('default-image-preview-container');
+    const defaultImgPreview = document.getElementById('default-image-preview');
+    const defaultImgName = document.getElementById('default-image-name');
 
     if (data.product_images && data.product_images.length > 0) {
-        let imgHtml = '<div style="width:100%; font-size: 13px; color: #666; margin-bottom: 5px;">Currently Uploaded Images:</div>';
-
-        data.product_images.forEach((img, index) => {
-            const isCover = index === 0;
-            const badge = isCover ? '<div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); color:white; font-size:9px; text-align:center; padding:2px; font-weight:bold; z-index:5;">COVER</div>' : '';
-
-            const makeCoverBtn = !isCover ? `<button type="button" onclick="setExistingAsCover('${img.id}', '${data.id}')" style="position:absolute; bottom:2px; left:2px; right:2px; background:#f1c40f; color:#000; border:none; border-radius:3px; font-size:9px; padding:2px 0; cursor:pointer; z-index:10; font-weight:bold;">Set Cover</button>` : '';
-
-            const parts = img.url.split('#');
-            const cleanUrl = parts[0];
-            const colorTag = parts[1] || '';
-
-            imgHtml += `
-            <div style="position: relative; width: 105px; border: 1px solid #ccc; border-radius: 6px; padding: 4px; display: inline-block; margin-right: 10px; margin-bottom: 10px; background: #fff; vertical-align: top;">
-                <div style="position: relative; width: 100%; height: 85px; overflow: hidden; border-radius: 4px;">
-                    <img src="${cleanUrl}" style="width: 100%; height: 100%; object-fit: cover;">
-                    ${badge}
-                    ${makeCoverBtn}
-                    <button type="button" onclick="deleteProductImage('${img.id}', '${img.url}', '${data.id}')" style="position:absolute; top:2px; right:2px; background:#e74c3c; color:white; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center; z-index:10;">&times;</button>
-                </div>
-                <input type="text" placeholder="Color (e.g. Red)" value="${colorTag}" 
-                       onchange="updateImageColor('${img.id}', '${cleanUrl}', this.value)" 
-                       style="width: 100%; font-size: 10px; padding: 4px 6px; margin-top: 4px; border: 1px solid #ddd; border-radius: 4px; height: 26px;">
-            </div>`;
-        });
-        existingImagesDiv.innerHTML = imgHtml;
-        fileInput.removeAttribute('required');
-    } else {
-        existingImagesDiv.innerHTML = '';
-        fileInput.setAttribute('required', 'true');
+        // Position 0 = default/fallback image
+        const fallbackImg = data.product_images.find(img => (img.position || 0) === 0 && !img.url.includes('#'));
+        if (fallbackImg) {
+            currentDefaultImageUrl = fallbackImg.url;
+            if (defaultImgPreview) defaultImgPreview.src = fallbackImg.url;
+            if (defaultImgName) defaultImgName.textContent = 'Default product image';
+            if (defaultImgContainer) defaultImgContainer.style.display = 'flex';
+        } else if (defaultImgContainer) {
+            defaultImgContainer.style.display = 'none';
+        }
+    } else if (defaultImgContainer) {
+        defaultImgContainer.style.display = 'none';
     }
 
-    fileInput.value = '';
-    pendingImageFiles = [];
-    document.getElementById('new-images-preview').innerHTML = '';
+    // --- Render variant cards and summary ---
+    renderAllColorVariants();
+    updateLiveProductSummary();
 
-    document.getElementById('btn-submit-product').textContent = "Save Changes";
-    window.scrollTo(0, 0);
-}
+    // Update submit button text
+    const submitBtn = document.getElementById('btn-submit-product');
+    if (submitBtn) submitBtn.textContent = 'Save Product Changes';
+
+    // Scroll to top
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) mainContent.scrollTop = 0;
+    else window.scrollTo(0, 0);
+};
 
 window.showOrderDetails = async function (orderId) {
     const overlay = document.getElementById('orderDetailsOverlay');
