@@ -4,7 +4,7 @@ module.exports = async (req, res) => {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method Not Allowed" });
     }
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId, items } = req.body;
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
         return res.status(400).json({ error: "Missing required verification fields: razorpay_order_id, razorpay_payment_id, and razorpay_signature are required" });
     }
@@ -22,6 +22,22 @@ module.exports = async (req, res) => {
         if (generated_signature === razorpay_signature) {
             if (orderId && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
                 console.log(`Updating order ${orderId} status to paid in Supabase via service role...`);
+                const updatePayload = {
+                    status: 'paid',
+                    order_stage: 'incoming',
+                    razorpay_payment_id: razorpay_payment_id
+                };
+                if (Array.isArray(items) && items.length > 0) {
+                    updatePayload.items = items.map(it => ({
+                        id: it.id,
+                        name: it.name || 'Product',
+                        price: Number(it.price || 0),
+                        size: it.size || 'Default',
+                        color: it.color || 'N/A',
+                        qty: Number(it.qty || it.quantity || 1),
+                        img: it.img || it.customImg || it.image_url || 'assets/Frame 1.jpg'
+                    }));
+                }
                 const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
                     method: 'PATCH',
                     headers: {
@@ -30,11 +46,7 @@ module.exports = async (req, res) => {
                         'Content-Type': 'application/json',
                         'Prefer': 'return=minimal'
                     },
-                    body: JSON.stringify({
-                        status: 'paid',
-                        order_stage: 'incoming',
-                        razorpay_payment_id: razorpay_payment_id
-                    })
+                    body: JSON.stringify(updatePayload)
                 });
 
                 if (!updateRes.ok) {
