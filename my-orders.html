@@ -992,8 +992,11 @@
                     </div>`;
             });
 
-            const etaBadge = (!isCancelled && etaDays)
-                ? `<div class="order-eta-badge">📦 Estimated delivery: ${etaDays}</div>`
+            const rawEta = etaDays || (order.delivery_details && order.delivery_details.eta_days) || '';
+            const displayEta = rawEta ? rawEta : 'Delivery within 2–5 working days';
+
+            const etaBadge = (!isCancelled && !isDelivered)
+                ? `<div class="order-eta-badge">📦 ${displayEta.toLowerCase().includes('delivery') || displayEta.toLowerCase().includes('estimated') ? displayEta : 'Delivery within ' + displayEta}</div>`
                 : '';
 
             return `
@@ -1016,7 +1019,7 @@
             const isCancelled = orderStage === 'cancelled' || statusLower.includes('cancel');
             const isReturned = orderStage === 'returned' || statusLower.includes('return');
             const isDelivered = orderStage === 'delivered' || statusLower.includes('deliver');
-            const canCancel = !isCancelled && !isReturned && !isDelivered && ['incoming', 'confirmed', 'processing', 'packed'].includes(orderStage);
+            const canCancel = !isCancelled && !isReturned && !isDelivered;
 
             const cancelDetails = order.refund_details || order.customer?.refund_details || order.customer_details?.refund_details || {};
             const cancelReason = cancelDetails.reason || order.cancellation_reason || order.customer?.cancellation_reason || '';

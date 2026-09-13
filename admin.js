@@ -2154,10 +2154,18 @@ window.showOrderDetails = async function (orderId) {
                     <input class="delivery-form-input" id="del-eta-date-${data.id}" type="date" value="${deliveryDetails.expected_delivery || ''}">
                 </div>
                 <div>
-                    <label class="delivery-form-label">Delivery ETA Message (shown to customer)</label>
-                    <input class="delivery-form-input" id="del-eta-days-${data.id}" type="text"
-                        placeholder="e.g. 2-4 working days, 3-5 business days..."
+                    <label class="delivery-form-label">Delivery ETA Message (shown to customer in My Orders)</label>
+                    <input list="del-eta-presets-${data.id}" class="delivery-form-input" id="del-eta-days-${data.id}" type="text"
+                        placeholder="e.g. Delivery within 2-5 working days"
                         value="${deliveryDetails.eta_days || ''}">
+                    <datalist id="del-eta-presets-${data.id}">
+                        <option value="Delivery within 2-5 working days">Delivery within 2-5 working days</option>
+                        <option value="Delivery within 2-4 working days">Delivery within 2-4 working days</option>
+                        <option value="Delivery within 3-5 business days">Delivery within 3-5 business days</option>
+                        <option value="Delivery within 24-48 hours">Delivery within 24-48 hours</option>
+                        <option value="Delivery within 5-7 working days">Delivery within 5-7 working days</option>
+                        <option value="Out for delivery today">Out for delivery today</option>
+                    </datalist>
                 </div>
                 <div>
                     <label class="delivery-form-label">Shipping Charge (₹)</label>
