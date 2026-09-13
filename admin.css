@@ -1357,4 +1357,173 @@ textarea.admin-input {
 .btn-whatsapp-notify:hover {
     background: #1ebe5a;
     transform: translateY(-1px);
-}
+}
+
+/* ==========================================
+   CANCELLED ORDERS DASHBOARD MODULE
+   ========================================== */
+.cancelled-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.cancelled-summary-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid #eef0f3;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cancelled-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.cancelled-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.cancelled-card-icon.red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.cancelled-card-icon.orange { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+.cancelled-card-icon.green { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.cancelled-card-icon.purple { background: #faf5ff; color: #9333ea; border: 1px solid #e9d5ff; }
+
+.cancelled-card-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.cancelled-card-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.cancelled-card-val {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.cancelled-filters-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 20px;
+    background: #ffffff;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 1px solid #eef0f3;
+}
+
+.cancelled-pills-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cancelled-pill {
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cancelled-pill:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.cancelled-pill.active {
+    background: #0f172a;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+}
+
+.cancelled-pill-count {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.cancelled-pill:not(.active) .cancelled-pill-count {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.cancelled-search-box {
+    position: relative;
+    min-width: 280px;
+}
+
+.cancelled-search-input {
+    width: 100%;
+    padding: 9px 14px 9px 36px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 13px;
+    outline: none;
+    transition: border 0.2s;
+}
+
+.cancelled-search-input:focus {
+    border-color: #0f172a;
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+}
+
+.cancelled-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.refund-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.refund-badge.pending { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.refund-badge.processing { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.refund-badge.refunded { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.refund-badge.no-refund { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
