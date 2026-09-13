@@ -217,41 +217,26 @@ async function verifyAdmin() {
 // ==========================================
 // 5. DATA LOADERS
 // ==========================================
+let allAdminCategories = [];
+
 async function loadCategories() {
-    const categorySelect = document.getElementById('prod-category');
-    if (!categorySelect) return;
+    try {
+        const { data: categories, error } = await supabaseClient
+            .from('categories')
+            .select('id, name, parent_id, slug')
+            .order('name', { ascending: true });
 
-    const { data: categories, error } = await supabaseClient.from('categories').select('id, name, parent_id');
-    if (error || !categories) return;
+        if (error || !categories) return;
 
-    categorySelect.innerHTML = `<option value="" disabled selected>Select Category</option>`;
+        allAdminCategories = categories;
+        window.allAdminCategories = categories;
 
-    // Only show SUB-CATEGORIES (children with a parent_id) — not root parents like Men/Women
-    const roots = categories.filter(c => !c.parent_id).sort((a, b) => a.name.localeCompare(b.name));
-    const children = categories.filter(c => c.parent_id);
-
-    roots.forEach(root => {
-        const group = document.createElement('optgroup');
-        group.label = root.name;
-
-        // Allow selecting the main category itself
-        const rootOption = document.createElement('option');
-        rootOption.value = root.id;
-        rootOption.textContent = `${root.name} (Main Category)`;
-        group.appendChild(rootOption);
-
-        const myChildren = children
-            .filter(c => c.parent_id === root.id)
-            .sort((a, b) => a.name.localeCompare(b.name));
-
-        myChildren.forEach(child => {
-            const childOption = document.createElement('option');
-            childOption.value = child.id;
-            childOption.textContent = child.name;
-            group.appendChild(childOption);
-        });
-        categorySelect.appendChild(group);
-    });
+        if (typeof handleGenderChange === 'function') {
+            handleGenderChange();
+        }
+    } catch (err) {
+        console.warn('Error loading categories:', err);
+    }
 }
 
 async function loadParentCategories() {
@@ -1362,15 +1347,60 @@ function initProductForm() {
 }
 
 window.handleGenderChange = function () {
-    const gender = document.getElementById('prod-gender')?.value || 'Men';
+    const gender = document.getElementById('prod-gender')?.value || '';
     const catSelect = document.getElementById('prod-category');
     if (!catSelect) return;
 
-    const availableCats = GENDER_CATEGORIES[gender] || GENDER_CATEGORIES['Men'];
+    const allCats = window.allAdminCategories || allAdminCategories || [];
     let html = `<option value="" disabled selected>Select Category ▼</option>`;
-    availableCats.forEach(cat => {
-        html += `<option value="${cat}">${cat}</option>`;
-    });
+
+    if (Array.isArray(allCats) && allCats.length > 0) {
+        const roots = allCats.filter(c => !c.parent_id);
+        const children = allCats.filter(c => c.parent_id);
+
+        // 1. Check if a root category matches the selected Gender (e.g. "Men", "Women", "Kids", "Unisex")
+        const matchingRoot = roots.find(r => r.name.toLowerCase().trim() === gender.toLowerCase().trim());
+
+        if (matchingRoot) {
+            const rootChildren = children.filter(c => c.parent_id === matchingRoot.id);
+            if (rootChildren.length > 0) {
+                rootChildren.forEach(cat => {
+                    html += `<option value="${cat.name}" data-id="${cat.id}">${cat.name}</option>`;
+                });
+            } else {
+                html += `<option value="${matchingRoot.name}" data-id="${matchingRoot.id}">${matchingRoot.name}</option>`;
+            }
+        } else {
+            // 2. If no direct root match, render all categories grouped by their parent or as list
+            roots.forEach(r => {
+                const myChildren = children.filter(c => c.parent_id === r.id);
+                if (myChildren.length > 0) {
+                    html += `<optgroup label="${r.name}">`;
+                    myChildren.forEach(c => {
+                        html += `<option value="${c.name}" data-id="${c.id}">${c.name}</option>`;
+                    });
+                    html += `</optgroup>`;
+                } else {
+                    html += `<option value="${r.name}" data-id="${r.id}">${r.name}</option>`;
+                }
+            });
+
+            const orphans = children.filter(c => !roots.some(r => r.id === c.parent_id));
+            if (orphans.length > 0) {
+                html += `<optgroup label="Other Categories">`;
+                orphans.forEach(c => {
+                    html += `<option value="${c.name}" data-id="${c.id}">${c.name}</option>`;
+                });
+                html += `</optgroup>`;
+            }
+        }
+    } else {
+        // Fallback to standard apparel categories
+        const availableCats = GENDER_CATEGORIES[gender] || GENDER_CATEGORIES['Men'] || ['Shirts', 'T-Shirts', 'Pants', 'Jeans', 'Trousers', 'Shorts', 'Jackets', 'Hoodies'];
+        availableCats.forEach(cat => {
+            html += `<option value="${cat}">${cat}</option>`;
+        });
+    }
 
     catSelect.innerHTML = html;
     updateLiveProductSummary();
@@ -1800,12 +1830,22 @@ window.saveProductForm = async function (e) {
         const metadataTag = `[META:gender=${gender}|subcat=${subCategory}|tax=${tax}]`;
         const finalDesc = `${desc} ${metadataTag}`.trim();
 
+        const catSelect = document.getElementById('prod-category');
+        const selectedOpt = catSelect ? catSelect.options[catSelect.selectedIndex] : null;
+        let resolvedCatId = selectedOpt?.getAttribute('data-id') || null;
+
+        if (!resolvedCatId && window.allAdminCategories) {
+            const found = window.allAdminCategories.find(c => c.name.toLowerCase() === (category || '').toLowerCase() || c.id === category);
+            if (found) resolvedCatId = found.id;
+        }
+
         const prodDataObj = {
             name: name,
             slug: generateSlug(name),
             description: finalDesc,
             price: sellPrice,
             compare_at_price: comparePrice,
+            category_id: resolvedCatId,
             stock_quantity: totalStockSum,
             sku: sku,
             is_active: status === 'Active' && isAvailable
