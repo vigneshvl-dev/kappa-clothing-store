@@ -211,6 +211,7 @@ async function verifyAdmin() {
     // Load dashboard stats on verify success
     await loadDashboard();
     updateSidebarOrderBadges();
+    setInterval(updateSidebarOrderBadges, 15000);
 
     loadCategories();
 }
