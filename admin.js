@@ -3431,6 +3431,11 @@ window.openAdminEditRefundModal = async function (orderId) {
         if (accIfsc) accIfsc.value = refund.ifsc || '';
         if (bankName) bankName.value = refund.bank_name || '';
 
+        const statusSelect = document.getElementById('adminRefundStatusSelect');
+        if (statusSelect) {
+            statusSelect.value = refund.refund_status === 'refunded' ? 'refunded' : 'refunded';
+        }
+
         toggleAdminRefundFields();
     } catch (e) {
         console.warn('Could not prefill refund modal:', e);
@@ -3458,11 +3463,18 @@ window.saveAdminRefundDetails = async function (e) {
     if (!orderId) return;
 
     const method = document.getElementById('adminRefundMethodSelect')?.value || 'UPI';
+    const chosenStatus = document.getElementById('adminRefundStatusSelect')?.value || 'refunded';
     let refundPayload = {
         method: method,
+        refund_status: chosenStatus,
         updated_by_admin: true,
         updated_at: new Date().toISOString()
     };
+
+    if (chosenStatus === 'refunded') {
+        refundPayload.refunded_at = new Date().toISOString();
+        refundPayload.refund_ref = 'Manual Refund';
+    }
 
     if (method === 'UPI') {
         const upi = document.getElementById('adminUpiInput')?.value.trim();
@@ -3494,21 +3506,23 @@ window.saveAdminRefundDetails = async function (e) {
         const mergedRefund = { ...existingRefund, ...refundPayload };
         const updatedCust = { ...cust, refund_details: mergedRefund };
 
-        try {
-            await supabaseClient.from('orders').update({
-                customer_details: updatedCust,
-                refund_details: mergedRefund
-            }).eq('id', orderId);
-        } catch (_) {
-            await supabaseClient.from('orders').update({
-                customer_details: updatedCust
-            }).eq('id', orderId);
+        const updatePayload = {
+            customer_details: updatedCust,
+            refund_details: mergedRefund,
+            order_stage: chosenStatus === 'refunded' ? 'refunded' : 'cancelled'
+        };
+
+        const { error: upErr } = await supabaseClient.from('orders').update(updatePayload).eq('id', orderId);
+        if (upErr) {
+            delete updatePayload.refund_details;
+            await supabaseClient.from('orders').update(updatePayload).eq('id', orderId);
         }
 
         document.getElementById('adminRefundEditModal').style.display = 'none';
-        alert('Customer refund details saved successfully!');
-        showOrderDetails(orderId);
-        loadOrders();
+        alert(`Refund details saved! Status: ${chosenStatus.toUpperCase()}`);
+        if (typeof showOrderDetails === 'function') showOrderDetails(orderId);
+        if (typeof loadOrders === 'function') await loadOrders();
+        if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
     } catch (err) {
         console.error('Error saving refund details:', err);
         alert('Error saving refund details: ' + (err.message || err));
@@ -3536,22 +3550,16 @@ window.adminMarkOrderRefunded = async function (orderId, amount) {
             refund_details: updatedRefund
         };
 
-        try {
-            await supabaseClient.from('orders').update({
-                status: 'refunded',
-                customer_details: updatedCust,
-                refund_details: updatedRefund
-            }).eq('id', orderId);
-        } catch (_) {
-            await supabaseClient.from('orders').update({
-                status: 'refunded',
-                customer_details: updatedCust
-            }).eq('id', orderId);
-        }
+        await supabaseClient.from('orders').update({
+            order_stage: 'refunded',
+            customer_details: updatedCust,
+            refund_details: updatedRefund
+        }).eq('id', orderId);
 
         alert(`Refund of ₹${amount} recorded as completed! Reference: ${refId || 'Manual'}`);
-        showOrderDetails(orderId);
-        loadOrders();
+        if (typeof showOrderDetails === 'function') showOrderDetails(orderId);
+        if (typeof loadOrders === 'function') await loadOrders();
+        if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
     } catch (err) {
         console.error('Error recording refund:', err);
         alert('Failed to mark order as refunded: ' + (err.message || err));
@@ -4745,13 +4753,8 @@ window.saveProcessRefund = async function (e) {
             refund_details: updatedRefund
         };
 
-        if (status === 'refunded') {
-            updatePayload.status = 'refunded';
-            updatePayload.order_stage = 'refunded';
-        } else {
-            updatePayload.status = 'cancelled';
-            updatePayload.order_stage = 'cancelled';
-        }
+        updatePayload.status = 'cancelled';
+        updatePayload.order_stage = (status === 'refunded') ? 'refunded' : 'cancelled';
 
         try {
             await supabaseClient.from('orders').update(updatePayload).eq('id', orderId);
