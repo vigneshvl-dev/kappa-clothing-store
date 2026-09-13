@@ -1409,7 +1409,33 @@
 
             let dbOrders = [];
             if (currentUser && currentUser.id) {
+                // ── Auto-sync localStorage orders into DB (recovers orders blocked by old RLS) ──
                 try {
+                    for (const lo of normalizedLocalOrders) {
+                        if (!lo || !lo.orderId) continue;
+                        const { data: existing } = await supabaseClient
+                            .from('orders').select('id').eq('id', lo.orderId).maybeSingle();
+                        if (!existing) {
+                            await supabaseClient.from('orders').upsert([{
+                                id: lo.orderId,
+                                user_id: currentUser.id,
+                                status: (lo.status || 'paid').toLowerCase(),
+                                order_stage: lo.order_stage || 'incoming',
+                                total_amount: lo.total || 0,
+                                customer_details: lo.customer || {},
+                                shipping_address: lo.shipping || {},
+                                payment_method: lo.payment_method || 'Razorpay',
+                                items: lo.items || [],
+                                stage_history: lo.stage_history || [],
+                                delivery_details: lo.delivery_details || {},
+                                created_at: lo.date || new Date().toISOString()
+                            }]);
+                        }
+                    }
+                } catch (_) {}
+
+                try {
+
                     const { data, error } = await supabaseClient
                         .from('orders')
                         .select('*, order_items(*, products(name, price, product_images(url)))')
