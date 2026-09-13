@@ -125,8 +125,24 @@ window.switchAdminView = async function (targetName) {
         try {
             switch (targetName) {
                 case 'dashboard': if (typeof loadDashboard === 'function') await loadDashboard(); break;
-                case 'orders': if (typeof loadOrders === 'function') await loadOrders(); break;
-                case 'cancelled': if (typeof loadCancelledOrders === 'function') await loadCancelledOrders(); break;
+                case 'orders': 
+                    if (typeof markOrdersAsSeen === 'function' && Array.isArray(_allFetchedOrders) && _allFetchedOrders.length > 0) {
+                        markOrdersAsSeen(_allFetchedOrders.map(o => o.id));
+                    } else {
+                        const ob = document.getElementById('nav-badge-orders');
+                        if (ob) { ob.textContent = '0'; ob.style.display = 'none'; }
+                    }
+                    if (typeof loadOrders === 'function') await loadOrders(); 
+                    break;
+                case 'cancelled': 
+                    if (typeof markCancelledOrdersAsSeen === 'function' && Array.isArray(cachedCancelledOrdersList) && cachedCancelledOrdersList.length > 0) {
+                        markCancelledOrdersAsSeen(cachedCancelledOrdersList.map(o => o.id));
+                    } else {
+                        const cb = document.getElementById('nav-badge-cancelled');
+                        if (cb) { cb.textContent = '0'; cb.style.display = 'none'; }
+                    }
+                    if (typeof loadCancelledOrders === 'function') await loadCancelledOrders(); 
+                    break;
                 case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break;
                 case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
                 case 'reviews': if (typeof loadReviews === 'function') await loadReviews(); break;
