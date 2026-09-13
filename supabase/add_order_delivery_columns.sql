@@ -15,8 +15,13 @@ ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_details jsonb DEFAUL
 -- Store payment method for display (populated at checkout)
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_method text;
 
+-- Store refund details & customer cancellation reason
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS refund_details jsonb DEFAULT '{}'::jsonb;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS cancellation_reason text;
+
 -- Update any existing paid orders to have 'incoming' stage if not set
 UPDATE public.orders
 SET order_stage = 'incoming'
 WHERE order_stage IS NULL
    OR order_stage = '';
+

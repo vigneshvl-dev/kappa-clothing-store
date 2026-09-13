@@ -393,6 +393,12 @@
             color: #333;
             line-height: 1.4;
         }
+        .cust-footer-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
         .cust-total-info {
             display: flex;
             align-items: baseline;
@@ -407,6 +413,95 @@
             font-size: 19px;
             font-weight: 800;
             color: #111;
+        }
+        .cust-btn-cancel-order {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: #ffffff;
+            color: #dc2626;
+            border: 1.5px solid #fca5a5;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            text-decoration: none;
+        }
+        .cust-btn-cancel-order:hover {
+            background: #fef2f2;
+            border-color: #dc2626;
+            color: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.12);
+        }
+        .cust-btn-cancel-order:active {
+            transform: translateY(0);
+        }
+        .cust-cancelled-info-card {
+            background: #fffafa;
+            border: 1px solid #fed7d7;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .cust-cancelled-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .cust-cancelled-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #c53030;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cust-cancelled-date {
+            font-size: 12px;
+            color: #9b2c2c;
+            font-weight: 600;
+        }
+        .cust-cancelled-body {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .cust-cancelled-reason-line {
+            font-size: 13px;
+            color: #4a5568;
+            line-height: 1.4;
+        }
+        .cust-cancelled-reason-line strong {
+            color: #1a202c;
+            font-weight: 700;
+        }
+        .cust-cancelled-refund-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #718096;
+            margin-top: 2px;
+        }
+        .cust-cancelled-refund-pill {
+            background: #feebc8;
+            color: #c05621;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
         }
 
         /* ── Responsive ── */
@@ -726,9 +821,30 @@
             renderOrdersList(allOrdersData, type);
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function renderOrderCard(order) {
             const orderStage = (order.order_stage || '').toLowerCase() || ((order.status || '').toLowerCase() === 'paid' ? 'confirmed' : 'incoming');
             const statusInfo = getStatusColor(order.status, orderStage);
+
+            const statusLower = (order.status || '').toLowerCase();
+            const isCancelled = orderStage === 'cancelled' || statusLower.includes('cancel');
+            const isReturned = orderStage === 'returned' || statusLower.includes('return');
+            const isDelivered = orderStage === 'delivered' || statusLower.includes('deliver');
+            const canCancel = !isCancelled && !isReturned && !isDelivered && ['incoming', 'confirmed', 'processing', 'packed'].includes(orderStage);
+
+            const cancelDetails = order.refund_details || order.customer?.refund_details || order.customer_details?.refund_details || {};
+            const cancelReason = cancelDetails.reason || order.cancellation_reason || order.customer?.cancellation_reason || '';
+            const cancelDateStr = cancelDetails.cancelled_at ? new Date(cancelDetails.cancelled_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+            const refundMethodStr = cancelDetails.method ? (cancelDetails.method === 'UPI' ? ('UPI (' + (cancelDetails.upi_id || 'ID on file') + ')') : ('Bank Transfer' + (cancelDetails.account_number ? ' (A/C ••••' + cancelDetails.account_number.slice(-4) + ')' : ''))) : '';
 
             // Raw items with guaranteed particular product details
             const rawOrderItems = (Array.isArray(order.items) && order.items.length > 0)
@@ -790,12 +906,36 @@
                         </div>
                     </div>
 
+                    <!-- Cancellation & Reason Notice Banner (Shown when Order is Cancelled) -->
+                    ${isCancelled ? `
+                        <div class="cust-cancelled-info-card">
+                            <div class="cust-cancelled-info-header">
+                                <div class="cust-cancelled-title-wrap">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e53e3e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                    Order Cancelled
+                                </div>
+                                ${cancelDateStr ? `<span class="cust-cancelled-date">Cancelled on ${cancelDateStr}</span>` : ''}
+                            </div>
+                            <div class="cust-cancelled-body">
+                                <div class="cust-cancelled-reason-line">
+                                    <span style="color:#718096; font-weight:600;">Reason:</span> 
+                                    <strong>${cancelReason ? escapeHtml(cancelReason) : 'Cancellation requested by customer'}</strong>
+                                </div>
+                                <div class="cust-cancelled-refund-line">
+                                    <span>Refund Status:</span>
+                                    <span class="cust-cancelled-refund-pill">Pending (2–4 Working Days)</span>
+                                    ${refundMethodStr ? `<span style="color:#4a5568;">• Repayment via <strong>${escapeHtml(refundMethodStr)}</strong></span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+
                     <!-- Particular Products Added List -->
                     <div class="cust-order-products-container">
                         ${itemsHtml}
                     </div>
 
-                    <!-- Clean Order Footer: Delivery destination & Total paid only (No Options / Actions buttons) -->
+                    <!-- Order Footer: Delivery destination, Total, and Cancel Order Option -->
                     <div class="cust-order-footer">
                         <div class="cust-shipping-info">
                             ${(shippingName || shippingAddressLine) ? `
@@ -803,9 +943,17 @@
                                 <div class="cust-shipping-text">${[shippingName, shippingAddressLine].filter(Boolean).join(' • ')}</div>
                             ` : ''}
                         </div>
-                        <div class="cust-total-info">
-                            <span class="cust-total-label">Total Amount:</span>
-                            <span class="cust-total-amount">₹${(order.total || 0).toLocaleString('en-IN')}</span>
+                        <div class="cust-footer-actions">
+                            <div class="cust-total-info">
+                                <span class="cust-total-label">Total Amount:</span>
+                                <span class="cust-total-amount">₹${(order.total || 0).toLocaleString('en-IN')}</span>
+                            </div>
+                            ${canCancel ? `
+                                <button type="button" class="cust-btn-cancel-order" onclick="openCancelOrderModal('${order.orderId}')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                    Cancel Order
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -1178,6 +1326,16 @@
         let pendingCancelOrderTotal = 0;
         let pendingCancelOrderCustPhone = '';
 
+        function handleCancelReasonChange(val) {
+            const wrap = document.getElementById('cancelCustomReasonWrap');
+            if (wrap) {
+                wrap.style.display = (val === 'Other') ? 'block' : 'none';
+                if (val === 'Other') {
+                    document.getElementById('cancelCustomReasonInput')?.focus();
+                }
+            }
+        }
+
         function openCancelOrderModal(orderId) {
             const order = allOrdersData.find(o => String(o.orderId) === String(orderId) || String(o.id) === String(orderId));
             if (!order) {
@@ -1187,12 +1345,20 @@
 
             pendingCancelOrderId = orderId;
             pendingCancelOrderTotal = order.total || order.subtotal || 0;
-            pendingCancelOrderCustPhone = order.customer?.phone || '';
+            pendingCancelOrderCustPhone = order.customer?.phone || order.shipping?.phone || '';
 
             const subEl = document.getElementById('cancelOrderModalSub');
-            if (subEl) subEl.textContent = `Order #${String(orderId).substring(0, 8)} • Total: ₹${pendingCancelOrderTotal.toLocaleString('en-IN')}`;
+            if (subEl) subEl.textContent = `Refund Amount: ₹${pendingCancelOrderTotal.toLocaleString('en-IN')}`;
             const amountEl = document.getElementById('cancelRefundAmountText');
             if (amountEl) amountEl.textContent = `₹${pendingCancelOrderTotal.toLocaleString('en-IN')}`;
+
+            // Reset reason inputs
+            const reasonSelect = document.getElementById('cancelReasonSelect');
+            if (reasonSelect) reasonSelect.value = 'Changed my mind';
+            const customWrap = document.getElementById('cancelCustomReasonWrap');
+            if (customWrap) customWrap.style.display = 'none';
+            const customInput = document.getElementById('cancelCustomReasonInput');
+            if (customInput) customInput.value = '';
 
             // Check if phone available for quick UPI fill
             const cleanPhone = pendingCancelOrderCustPhone.replace(/[^0-9]/g, '').slice(-10);
@@ -1209,7 +1375,7 @@
             const upiInput = document.getElementById('cancelUpiInput');
             if (upiInput) upiInput.value = '';
             const accHolder = document.getElementById('cancelAccHolder');
-            if (accHolder) accHolder.value = order.customer?.name || '';
+            if (accHolder) accHolder.value = order.customer?.name || order.shipping?.name || '';
             const accNum = document.getElementById('cancelAccNum');
             if (accNum) accNum.value = '';
             const accIfsc = document.getElementById('cancelAccIfsc');
@@ -1265,10 +1431,21 @@
             const btn = document.getElementById('btnConfirmCancelSubmit');
             const method = document.querySelector('input[name="refundMethod"]:checked')?.value || 'upi';
 
+            let selectedReason = document.getElementById('cancelReasonSelect')?.value || 'Changed my mind';
+            if (selectedReason === 'Other') {
+                const customVal = document.getElementById('cancelCustomReasonInput')?.value.trim();
+                if (!customVal) {
+                    alert('Please enter your reason for cancellation.');
+                    document.getElementById('cancelCustomReasonInput')?.focus();
+                    return;
+                }
+                selectedReason = customVal;
+            }
+
             let refundPayload = {
                 method: method === 'upi' ? 'UPI' : 'Bank Transfer',
                 amount: pendingCancelOrderTotal,
-                reason: document.getElementById('cancelReasonSelect')?.value || 'Changed my mind',
+                reason: selectedReason,
                 cancelled_at: new Date().toISOString(),
                 refund_status: 'pending'
             };
@@ -1316,7 +1493,8 @@
                     const existingCust = (currentOrd && currentOrd.customer_details) || {};
                     const updatedCust = {
                         ...existingCust,
-                        refund_details: refundPayload
+                        refund_details: refundPayload,
+                        cancellation_reason: selectedReason
                     };
 
                     try {
@@ -1324,7 +1502,8 @@
                             status: 'cancelled',
                             order_stage: 'cancelled',
                             customer_details: updatedCust,
-                            refund_details: refundPayload
+                            refund_details: refundPayload,
+                            cancellation_reason: selectedReason
                         }).eq('id', pendingCancelOrderId);
                     } catch (_) {
                         await supabaseClient.from('orders').update({
@@ -1416,7 +1595,7 @@
             try {
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
-                    if (key && key.startsWith('kappa_orders')) {
+                    if (key && (key.startsWith('kappa_orders') || key === 'kappa_active_order' || key === 'kappa_last_order')) {
                         try {
                             const raw = localStorage.getItem(key);
                             if (raw) {
@@ -1426,13 +1605,25 @@
                                     orders.forEach(o => {
                                         if (String(o.orderId) === String(orderId) || String(o.id) === String(orderId)) {
                                             o.status = newStatus;
-                                            if (refundDetails) o.refund_details = refundDetails;
+                                            o.order_stage = newStatus.toLowerCase();
+                                            if (refundDetails) {
+                                                o.refund_details = refundDetails;
+                                                if (refundDetails.reason) o.cancellation_reason = refundDetails.reason;
+                                            }
                                             changed = true;
                                         }
                                     });
                                     if (changed) {
                                         localStorage.setItem(key, JSON.stringify(orders));
                                     }
+                                } else if (orders && typeof orders === 'object' && (String(orders.orderId) === String(orderId) || String(orders.id) === String(orderId))) {
+                                    orders.status = newStatus;
+                                    orders.order_stage = newStatus.toLowerCase();
+                                    if (refundDetails) {
+                                        orders.refund_details = refundDetails;
+                                        if (refundDetails.reason) orders.cancellation_reason = refundDetails.reason;
+                                    }
+                                    localStorage.setItem(key, JSON.stringify(orders));
                                 }
                             }
                         } catch (err) {}
@@ -1442,7 +1633,11 @@
                     allOrdersData.forEach(o => {
                         if (String(o.orderId) === String(orderId) || String(o.id) === String(orderId)) {
                             o.status = newStatus;
-                            if (refundDetails) o.refund_details = refundDetails;
+                            o.order_stage = newStatus.toLowerCase();
+                            if (refundDetails) {
+                                o.refund_details = refundDetails;
+                                if (refundDetails.reason) o.cancellation_reason = refundDetails.reason;
+                            }
                         }
                     });
                 }
@@ -1725,15 +1920,21 @@
 
                 <!-- Cancellation Reason -->
                 <div style="margin-top:14px;">
-                    <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:6px;">Reason for Cancellation (Optional)</label>
-                    <select id="cancelReasonSelect" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:13px; background:#fff;">
+                    <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                        Reason for Cancellation <span style="color:#dc2626;">*</span>
+                    </label>
+                    <select id="cancelReasonSelect" onchange="handleCancelReasonChange(this.value)" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:13px; background:#fff; font-family:inherit; color:#111;">
                         <option value="Changed my mind">Changed my mind</option>
                         <option value="Ordered wrong size or color">Ordered wrong size or color</option>
                         <option value="Delivery time is too long">Delivery time is too long</option>
                         <option value="Found cheaper alternative">Found cheaper alternative</option>
                         <option value="Ordered by mistake">Ordered by mistake</option>
-                        <option value="Other">Other</option>
+                        <option value="Want to change delivery address or phone">Want to change delivery address or phone</option>
+                        <option value="Other">Other (Please specify)</option>
                     </select>
+                    <div id="cancelCustomReasonWrap" style="display:none; margin-top:8px;">
+                        <textarea id="cancelCustomReasonInput" placeholder="Please enter your specific reason for cancelling this order..." rows="2" style="width:100%; box-sizing:border-box; padding:8px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:13px; font-family:inherit; resize:vertical;"></textarea>
+                    </div>
                 </div>
             </div>
 
