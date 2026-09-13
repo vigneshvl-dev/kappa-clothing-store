@@ -1441,17 +1441,22 @@
                 clickedElement.classList.add('active');
             }
 
-            document.getElementById('current-category-title').innerText = categoryName.toUpperCase();
-            document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading...</div>';
+            const catName = categoryName || 'ALL PRODUCTS';
+            const catNameUpper = catName.toUpperCase();
 
+            const titleEl = document.getElementById('current-category-title');
+            if (titleEl) titleEl.innerText = catNameUpper;
+
+            const gridEl = document.getElementById('shop-product-grid');
+            if (gridEl) gridEl.innerHTML = '<div class="empty-state">Loading...</div>';
 
             // Build the list of category IDs to fetch:
             currentCategoryIds = [];
 
             if (categoryId) {
                 currentCategoryIds = getDescendantCatIds(categoryId);
-            } else if (catNameUpper.includes('MEN') || catNameUpper.includes('BOY')) {
-                const menRoots = allCategoriesData.filter(c => {
+            } else if (catNameUpper === 'MEN' || (catNameUpper.includes('MEN') && !catNameUpper.includes('WOMEN')) || catNameUpper.includes('BOY')) {
+                const menRoots = (allCategoriesData || []).filter(c => {
                     const n = (c.name || '').toLowerCase();
                     return !c.parent_id && (n === 'men' || n === "men's" || n === 'boys' || (n.includes('men') && !n.includes('women')));
                 });
@@ -1459,8 +1464,8 @@
                     currentCategoryIds = currentCategoryIds.concat(getDescendantCatIds(r.id));
                 });
                 currentCategoryIds = Array.from(new Set(currentCategoryIds));
-            } else if (catNameUpper.includes('WOMEN') || catNameUpper.includes('GIRL')) {
-                const womenRoots = allCategoriesData.filter(c => {
+            } else if (catNameUpper === 'WOMEN' || catNameUpper.includes('WOMEN') || catNameUpper.includes('GIRL')) {
+                const womenRoots = (allCategoriesData || []).filter(c => {
                     const n = (c.name || '').toLowerCase();
                     return !c.parent_id && (n === 'women' || n === "women's" || n === 'girls' || n.includes('women'));
                 });
@@ -1732,6 +1737,9 @@
                 }
 
                 const badgeText = resolveProductBadge(product);
+                const comparePriceHTML = (product.compare_at_price && Number(product.compare_at_price) > Number(product.price))
+                    ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>`
+                    : '';
 
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
@@ -1797,6 +1805,10 @@
                     .sort((a, b) => (a.position || 0) - (b.position || 0))
                     .map(img => ({ url: img.url.split('#')[0], label: img.url.split('#')[1] || '' }));
                 const badgeText = resolveProductBadge(product);
+                const imageUrl = allImages.length > 0 ? allImages[0].url : 'assets/sleeping sis.png';
+                const comparePriceHTML = (product.compare_at_price && Number(product.compare_at_price) > Number(product.price))
+                    ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>`
+                    : '';
 
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
@@ -1808,7 +1820,7 @@
                             ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
                         </div>
                         <h3>${product.name || 'Untitled Product'}</h3>
-                        <p class="boys-price">₹${product.price || 0}</p>
+                        <p class="boys-price">₹${product.price || 0} ${comparePriceHTML}</p>
                     </div>
                 `;
             }).join('');
