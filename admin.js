@@ -840,6 +840,10 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery) {
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     ${isRepayPending ? 'View & Repay' : 'View Details'}
                 </button>
+                ${(!isPaid && !isCancelled) ? `
+                <button class="btn-black" onclick="markOrderAsPaid('${order.id}')" style="background:#16a34a; margin-top:4px; width:100%;">
+                    ✓ Mark as Paid
+                </button>` : ''}
                 <button class="btn-black" onclick="deleteOrder('${order.id}')" style="background:#c0392b; margin-top:4px; width:100%;">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path></svg>
                     Delete
