@@ -3749,9 +3749,11 @@ function computeSalesChartData(timeframeKey, orders) {
 
     const getOrderAmt = (o) => {
         const st = (o.status || '').toLowerCase().trim();
+        const pst = (o.payment_status || '').toLowerCase().trim();
         const stage = (o.order_stage || '').toLowerCase().trim();
         if (stage === 'cancelled' || st.includes('cancel')) return 0;
-        return Number(o.total_amount || 0);
+        const isPaid = st === 'paid' || st === 'confirmed' || st === 'delivered' || pst === 'paid' || !!o.razorpay_payment_id;
+        return isPaid ? Number(o.total_amount || 0) : 0;
     };
 
     let labels = [];
@@ -3916,7 +3918,7 @@ async function loadDashboard() {
         // 1. Fetch live orders from Supabase (100% real database)
         const { data: orders } = await supabaseClient
             .from('orders')
-            .select('id, total_amount, status, order_stage, created_at');
+            .select('id, total_amount, status, payment_status, razorpay_payment_id, order_stage, created_at');
 
         allLiveOrdersForDashboard = Array.isArray(orders) ? orders : [];
 
@@ -3924,16 +3926,19 @@ async function loadDashboard() {
             allLiveOrdersForDashboard.forEach(o => {
                 liveOrdersCount++;
                 const st = (o.status || '').toLowerCase().trim();
+                const pst = (o.payment_status || '').toLowerCase().trim();
                 const stage = (o.order_stage || '').toLowerCase().trim();
                 const amt = Number(o.total_amount || 0);
+                const isCancelled = stage === 'cancelled' || st.includes('cancel');
+                const isPaid = (st === 'paid' || st === 'confirmed' || st === 'delivered' || pst === 'paid' || !!o.razorpay_payment_id) && !isCancelled;
 
-                if (st === 'paid' || st === 'confirmed' || st === 'delivered') {
+                if (isPaid) {
                     liveRevenue += amt;
                     livePaidTotal += amt;
                 }
 
                 // Map to distribution bucket
-                if (stage === 'cancelled' || st.includes('cancel')) {
+                if (isCancelled) {
                     liveStatusCounts.cancelled++;
                 } else if (stage === 'delivered' || st.includes('deliver')) {
                     liveStatusCounts.delivered++;

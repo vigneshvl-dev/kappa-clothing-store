@@ -1911,20 +1911,37 @@
                             if (dbOrderId && supabaseClient) {
                                 const updateObj = {
                                     status: 'paid',
+                                    payment_status: 'paid',
                                     order_stage: 'incoming',
-                                    razorpay_payment_id: response.razorpay_payment_id
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id || null
                                 };
                                 if (orderRecord && Array.isArray(orderRecord.items) && orderRecord.items.length > 0) {
                                     updateObj.items = orderRecord.items;
                                 }
-                                await supabaseClient
+                                // Update DB record
+                                const { error: upErr } = await supabaseClient
                                     .from('orders')
                                     .update(updateObj)
                                     .eq('id', dbOrderId);
+                                if (upErr) {
+                                    console.warn('Payment status update failed (attempt 1):', upErr.message);
+                                    await new Promise(r => setTimeout(r, 600));
+                                    const { error: upErr2 } = await supabaseClient
+                                        .from('orders')
+                                        .update(updateObj)
+                                        .eq('id', dbOrderId);
+                                    if (upErr2) console.error('Payment status update failed (attempt 2):', upErr2.message);
+                                }
                             }
-                        } catch (_) {}
+                        } catch (err) {
+                            console.warn('Payment post-process note:', err);
+                        }
 
                         if (orderRecord) {
+                            orderRecord.status = 'Paid';
+                            orderRecord.payment_status = 'paid';
+                            orderRecord.razorpay_payment_id = response.razorpay_payment_id;
                             orderRecord.paymentId = response.razorpay_payment_id || ('pay_' + Date.now());
                         }
 

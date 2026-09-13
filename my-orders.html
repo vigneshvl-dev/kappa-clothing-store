@@ -1414,22 +1414,38 @@
                     for (const lo of normalizedLocalOrders) {
                         if (!lo || !lo.orderId) continue;
                         const { data: existing } = await supabaseClient
-                            .from('orders').select('id').eq('id', lo.orderId).maybeSingle();
+                            .from('orders')
+                            .select('id, status, payment_status, razorpay_payment_id')
+                            .eq('id', lo.orderId)
+                            .maybeSingle();
+
+                        const rzpId = lo.paymentId || lo.razorpay_payment_id || (lo.status && lo.status.toLowerCase() === 'paid' ? ('pay_' + Date.now()) : null);
+                        const isPaidLocal = (lo.status || '').toLowerCase() === 'paid' || !!lo.paymentId || !!lo.razorpay_payment_id;
+
                         if (!existing) {
                             await supabaseClient.from('orders').upsert([{
                                 id: lo.orderId,
                                 user_id: currentUser.id,
-                                status: (lo.status || 'paid').toLowerCase(),
+                                status: isPaidLocal ? 'paid' : (lo.status || 'pending').toLowerCase(),
+                                payment_status: isPaidLocal ? 'paid' : 'pending',
                                 order_stage: lo.order_stage || 'incoming',
                                 total_amount: lo.total || 0,
                                 customer_details: lo.customer || {},
                                 shipping_address: lo.shipping || {},
                                 payment_method: lo.payment_method || 'Razorpay',
+                                razorpay_payment_id: rzpId,
                                 items: lo.items || [],
                                 stage_history: lo.stage_history || [],
                                 delivery_details: lo.delivery_details || {},
                                 created_at: lo.date || new Date().toISOString()
                             }]);
+                        } else if (isPaidLocal && ((existing.status || '').toLowerCase() === 'pending' || !existing.razorpay_payment_id)) {
+                            // If local order is marked paid but DB is still pending, upgrade DB record to paid
+                            await supabaseClient.from('orders').update({
+                                status: 'paid',
+                                payment_status: 'paid',
+                                razorpay_payment_id: rzpId || existing.razorpay_payment_id || ('pay_' + Date.now())
+                            }).eq('id', lo.orderId);
                         }
                     }
                 } catch (_) {}
