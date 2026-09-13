@@ -125,23 +125,23 @@ window.switchAdminView = async function (targetName) {
         try {
             switch (targetName) {
                 case 'dashboard': if (typeof loadDashboard === 'function') await loadDashboard(); break;
-                case 'orders': 
+                case 'orders':
                     if (typeof markOrdersAsSeen === 'function' && Array.isArray(_allFetchedOrders) && _allFetchedOrders.length > 0) {
                         markOrdersAsSeen(_allFetchedOrders.map(o => o.id));
                     } else {
                         const ob = document.getElementById('nav-badge-orders');
                         if (ob) { ob.textContent = '0'; ob.style.display = 'none'; }
                     }
-                    if (typeof loadOrders === 'function') await loadOrders(); 
+                    if (typeof loadOrders === 'function') await loadOrders();
                     break;
-                case 'cancelled': 
+                case 'cancelled':
                     if (typeof markCancelledOrdersAsSeen === 'function' && Array.isArray(cachedCancelledOrdersList) && cachedCancelledOrdersList.length > 0) {
                         markCancelledOrdersAsSeen(cachedCancelledOrdersList.map(o => o.id));
                     } else {
                         const cb = document.getElementById('nav-badge-cancelled');
                         if (cb) { cb.textContent = '0'; cb.style.display = 'none'; }
                     }
-                    if (typeof loadCancelledOrders === 'function') await loadCancelledOrders(); 
+                    if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
                     break;
                 case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break;
                 case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
@@ -654,12 +654,9 @@ async function loadOrders() {
         `)
         .order('created_at', { ascending: false });
 
-    const paidOrders = (data || []).filter(order => {
-        const currentStatus = (order.status || 'pending').toLowerCase();
-        return currentStatus === 'paid' || currentStatus.includes('cancel') || currentStatus.includes('refund') || !!order.razorpay_payment_id;
-    });
+    const allOrders = (data || []);
 
-    _allFetchedOrders = paidOrders;
+    _allFetchedOrders = allOrders;
     if (typeof markOrdersAsSeen === 'function') {
         markOrdersAsSeen(paidOrders.map(o => o.id));
     }
@@ -856,14 +853,14 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery) {
 }
 
 // Filter tabs handler
-window.filterOrders = function(stage) {
+window.filterOrders = function (stage) {
     _activeOrderFilter = stage;
     const searchVal = document.getElementById('order-search-input')?.value || '';
     renderOrdersView(_allFetchedOrders, getRecycledOrders(), stage, searchVal);
 };
 
 // Search handler
-window.searchOrders = function(query) {
+window.searchOrders = function (query) {
     renderOrdersView(_allFetchedOrders, getRecycledOrders(), _activeOrderFilter, query);
 };
 
@@ -1119,7 +1116,7 @@ window.deleteOrder = async function (orderId) {
 /* ============ ADMIN REVIEWS SYSTEM ============ */
 window.allAdminReviewsData = [];
 
-window.loadReviews = async function() {
+window.loadReviews = async function () {
     const listContainer = document.getElementById('admin-reviews-list-container');
     if (listContainer) {
         listContainer.innerHTML = '<p style="color:#666; text-align:center; padding:30px 0;">Loading customer reviews...</p>';
@@ -1184,7 +1181,7 @@ window.loadReviews = async function() {
     }
 };
 
-window.filterAdminReviews = function() {
+window.filterAdminReviews = function () {
     const searchVal = document.getElementById('admin-reviews-search')?.value?.trim().toLowerCase() || '';
     const starVal = document.getElementById('admin-reviews-star-filter')?.value || 'all';
 
@@ -1209,7 +1206,7 @@ window.filterAdminReviews = function() {
     renderAdminReviewsList(filtered);
 };
 
-window.renderAdminReviewsList = function(reviews) {
+window.renderAdminReviewsList = function (reviews) {
     const container = document.getElementById('admin-reviews-list-container');
     if (!container) return;
 
@@ -1227,22 +1224,22 @@ window.renderAdminReviewsList = function(reviews) {
     const html = `
         <div style="display:flex; flex-direction:column; gap:14px;">
             ${reviews.map(r => {
-                const prodName = r.products?.name || 'Storefront Product';
-                const prodSlug = r.products?.slug || '';
-                const prodLink = prodSlug ? `product.html?slug=${prodSlug}` : '#';
-                const imgs = r.products?.product_images || [];
-                const imgUrl = imgs.length > 0 ? imgs[0].url : 'assets/Frame 1.jpg';
-                const reviewer = r.customer_name || r.reviewer_name || 'Customer';
-                const email = r.customer_email || 'No email provided';
-                const initial = reviewer.charAt(0).toUpperCase() || 'C';
-                const rating = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
-                const starStr = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-                const isApproved = r.is_approved !== false;
-                const title = r.review_title ? `<div style="font-weight:700; font-size:14px; color:#111; margin-bottom:4px;">${escapeHtmlAdmin(r.review_title)}</div>` : '';
-                const comment = r.review_text || r.comment || '';
-                const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const prodName = r.products?.name || 'Storefront Product';
+        const prodSlug = r.products?.slug || '';
+        const prodLink = prodSlug ? `product.html?slug=${prodSlug}` : '#';
+        const imgs = r.products?.product_images || [];
+        const imgUrl = imgs.length > 0 ? imgs[0].url : 'assets/Frame 1.jpg';
+        const reviewer = r.customer_name || r.reviewer_name || 'Customer';
+        const email = r.customer_email || 'No email provided';
+        const initial = reviewer.charAt(0).toUpperCase() || 'C';
+        const rating = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
+        const starStr = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        const isApproved = r.is_approved !== false;
+        const title = r.review_title ? `<div style="font-weight:700; font-size:14px; color:#111; margin-bottom:4px;">${escapeHtmlAdmin(r.review_title)}</div>` : '';
+        const comment = r.review_text || r.comment || '';
+        const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
 
-                return `
+        return `
                     <div style="border:1px solid #eee; border-radius:10px; padding:18px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.02); display:flex; flex-direction:column; gap:12px;">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
                             <!-- Reviewer and Product Info -->
@@ -1290,14 +1287,14 @@ window.renderAdminReviewsList = function(reviews) {
                         </div>
                     </div>
                 `;
-            }).join('')}
+    }).join('')}
         </div>
     `;
 
     container.innerHTML = html;
 };
 
-window.toggleAdminReviewApproval = async function(reviewId, currentStatus) {
+window.toggleAdminReviewApproval = async function (reviewId, currentStatus) {
     const newStatus = !currentStatus;
     try {
         const { error: e1 } = await supabaseClient.from('product_reviews').update({ is_approved: newStatus }).eq('id', reviewId);
@@ -1311,7 +1308,7 @@ window.toggleAdminReviewApproval = async function(reviewId, currentStatus) {
     }
 };
 
-window.deleteAdminReview = async function(reviewId) {
+window.deleteAdminReview = async function (reviewId) {
     if (!confirm('Are you sure you want to permanently delete this review?')) return;
     try {
         const { error: e1 } = await supabaseClient.from('product_reviews').delete().eq('id', reviewId);
@@ -1553,7 +1550,7 @@ window.populateProductCategoryDropdown = async function (selectedVal = '') {
                 window.allAdminCategories = data;
                 allAdminCategories = data;
             }
-        } catch (_) {}
+        } catch (_) { }
     }
 
     const allCats = window.allAdminCategories || [];
@@ -2092,7 +2089,7 @@ window.saveProductForm = async function (e) {
                         color: v.colorName.trim(),
                         size: sz,
                         stock_quantity: parseInt(v.sizes[sz]) || 0,
-                        sku: `${sku}-${v.colorName.substring(0,3).toUpperCase()}-${sz}`
+                        sku: `${sku}-${v.colorName.substring(0, 3).toUpperCase()}-${sz}`
                     });
                 });
             });
@@ -2143,7 +2140,7 @@ window.saveProductForm = async function (e) {
                     variants: colorVariantsData
                 };
                 localStorage.setItem('kappa_rich_variants', JSON.stringify(richVariantsStore));
-            } catch (_) {}
+            } catch (_) { }
         }
 
         alert(editingId ? "✓ Product updated successfully" : "✓ Product added successfully");
@@ -2537,7 +2534,7 @@ window.editProduct = async function (id) {
     try {
         const richStore = JSON.parse(localStorage.getItem('kappa_rich_variants') || '{}');
         richData = richStore[String(data.id)] || null;
-    } catch (_) {}
+    } catch (_) { }
 
     // --- Fill Basic Info ---
     const editIdEl = document.getElementById('editing-product-id');
@@ -2709,7 +2706,7 @@ window.showOrderDetails = async function (orderId) {
     const isPaid = paymentStatus === 'paid' || currentStatus === 'paid' || !!data.razorpay_payment_id;
     const rzpId = data.razorpay_payment_id || data.payment_id || '';
     const isCancelled = currentStatus.includes('cancel') || (data.order_stage || '') === 'cancelled';
-    const isReturned = currentStatus.includes('return') || ['return_requested','returned'].includes(data.order_stage || '');
+    const isReturned = currentStatus.includes('return') || ['return_requested', 'returned'].includes(data.order_stage || '');
     const refundInfo = data.refund_details || cust.refund_details || cust.cancellation_details || data.cancellation_details || null;
     const phoneClean = (cust.phone || '').replace(/[^0-9]/g, '').slice(-10);
     const orderStage = data.order_stage || (isCancelled ? 'cancelled' : 'incoming');
@@ -2751,11 +2748,11 @@ window.showOrderDetails = async function (orderId) {
     }
 
     // ── 2. ORDER HEADER ────────────────────────────────────────────────────────
-    const placedDate = new Date(data.created_at).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const placedDate = new Date(data.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     let headerHtml = `
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid #f0f0f0; flex-wrap:wrap; gap:10px;">
             <div>
-                <div style="font-size:22px; font-weight:800; color:#111; font-family:monospace; letter-spacing:0.5px;">Order #${data.id.toString().substring(0,8).toUpperCase()}</div>
+                <div style="font-size:22px; font-weight:800; color:#111; font-family:monospace; letter-spacing:0.5px;">Order #${data.id.toString().substring(0, 8).toUpperCase()}</div>
                 <div style="font-size:12px; color:#888; margin-top:3px;">Placed on: ${placedDate}</div>
             </div>
             <div style="text-align:right;">
@@ -2775,7 +2772,7 @@ window.showOrderDetails = async function (orderId) {
             <div class="step-dot exception" style="width:28px; height:28px; border-radius:50%; background:#fee2e2; border:2px solid #dc2626; display:flex; align-items:center; justify-content:center; color:#dc2626; font-weight:800; font-size:12px; flex-shrink:0;">!</div>
             <div>
                 <div style="font-weight:700; color:#dc2626; font-size:14px;">${excLabel}</div>
-                ${stageHistory.length > 0 ? `<div style="font-size:11px; color:#999; margin-top:2px;">${new Date(stageHistory[stageHistory.length-1]?.timestamp || Date.now()).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</div>` : ''}
+                ${stageHistory.length > 0 ? `<div style="font-size:11px; color:#999; margin-top:2px;">${new Date(stageHistory[stageHistory.length - 1]?.timestamp || Date.now()).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>` : ''}
             </div>
         </div>`;
     } else {
@@ -2786,9 +2783,9 @@ window.showOrderDetails = async function (orderId) {
             if (idx < stageIdx) stepClass = 'done';
             else if (idx === stageIdx) stepClass = 'current';
             const histEntry = stageHistory.find(h => h.stage === stage);
-            const timeLabel = histEntry ? new Date(histEntry.timestamp).toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '';
+            const timeLabel = histEntry ? new Date(histEntry.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '';
             const dotIcon = idx < stageIdx ? '✓' : (idx === stageIdx ? '●' : '○');
-            const shortLabels = { incoming:'Incoming', confirmed:'Confirmed', processing:'Processing', packed:'Packed', shipped:'Shipped', out_for_delivery:'Out for Del.', delivered:'Delivered' };
+            const shortLabels = { incoming: 'Incoming', confirmed: 'Confirmed', processing: 'Processing', packed: 'Packed', shipped: 'Shipped', out_for_delivery: 'Out for Del.', delivered: 'Delivered' };
             timelineHtml += `
                 <div class="timeline-step ${stepClass}">
                     <div class="step-dot">${dotIcon}</div>
@@ -2805,12 +2802,12 @@ window.showOrderDetails = async function (orderId) {
     let stageOptions = allStages.map(s => `<option value="${s}" ${s === orderStage ? 'selected' : ''}>${STAGE_LABELS[s] || s}</option>`).join('');
 
     // Build rich WhatsApp message with product names & clean details (no image links)
-    const _waItems   = (data.order_items && data.order_items.length > 0) ? data.order_items : [];
-    const _waNames   = _waItems.length > 0
+    const _waItems = (data.order_items && data.order_items.length > 0) ? data.order_items : [];
+    const _waNames = _waItems.length > 0
         ? _waItems.map(i => (i.products?.name || i.name || 'Product') + (i.size && i.size !== 'N/A' ? ' (' + i.size + ')' : '')).join(', ')
         : 'Your order';
     const _waShortId = data.id.toString().substring(0, 8).toUpperCase();
-    const _waStatus  = STAGE_LABELS[orderStage] || orderStage;
+    const _waStatus = STAGE_LABELS[orderStage] || orderStage;
     const _waNotifyMsg = [
         `Hi ${cust.name || 'there'}!`,
         ``,
@@ -2867,7 +2864,7 @@ window.showOrderDetails = async function (orderId) {
         </div>`;
 
     // ── 6. DELIVERY DETAILS SECTION ────────────────────────────────────────────
-    const etaOptions = ['2-4 days','3-5 days','5-7 days','7-10 days','Custom'].map(v => `<option value="${v}" ${deliveryDetails.eta_days===v?'selected':''}>${v}</option>`).join('');
+    const etaOptions = ['2-4 days', '3-5 days', '5-7 days', '7-10 days', 'Custom'].map(v => `<option value="${v}" ${deliveryDetails.eta_days === v ? 'selected' : ''}>${v}</option>`).join('');
     let deliveryHtml = `
         <div class="order-detail-section">
             <div class="order-detail-section-title">🚚 Delivery Details</div>
@@ -3045,7 +3042,7 @@ window.showOrderDetails = async function (orderId) {
                         <span style="font-size:13px; font-weight:700; color:#1e40af;">⚡ UPI ID ${hasCustomUpi ? '(Customer Provided)' : '(From Phone)'}</span>
                         <div style="display:flex; gap:8px;">
                             <button onclick="copyRefundText('${upiId}', this)" style="background:#334155; color:#fff; border:none; padding:5px 12px; border-radius:5px; font-size:11px; font-weight:700; cursor:pointer;">📋 Copy UPI</button>
-                            <a href="upi://pay?pa=${upiId}&pn=${encodeURIComponent(cust.name||'Customer')}&am=${data.total_amount}&cu=INR" style="background:#16a34a; color:#fff; text-decoration:none; padding:5px 12px; border-radius:5px; font-size:11px; font-weight:700;">⚡ Pay via UPI</a>
+                            <a href="upi://pay?pa=${upiId}&pn=${encodeURIComponent(cust.name || 'Customer')}&am=${data.total_amount}&cu=INR" style="background:#16a34a; color:#fff; text-decoration:none; padding:5px 12px; border-radius:5px; font-size:11px; font-weight:700;">⚡ Pay via UPI</a>
                         </div>
                     </div>
                     <span style="font-family:monospace; font-size:16px; font-weight:800; color:#0f172a; background:#fff; border:1.5px solid #cbd5e1; padding:6px 14px; border-radius:6px; display:inline-block;">${upiId}</span>
@@ -3076,26 +3073,26 @@ window.showOrderDetails = async function (orderId) {
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1.5px solid #fee2e2; flex-wrap:wrap; gap:10px;">
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
                         ${phoneClean ? (() => {
-                            const _refWaMsg = [
-                                `Hello ${cust.name || 'there'},`,
-                                ``,
-                                `Regarding your KAPPA Clothing order cancellation:`,
-                                ``,
-                                `Order ID: #${data.id.toString().substring(0,8).toUpperCase()}`,
-                                `Refund Amount: Rs. ${data.total_amount}`,
-                                ``,
-                                `Your refund will be processed to your provided UPI/Bank account within 2-4 working days.`,
-                                ``,
-                                `Thank you for your patience. - KAPPA Team`
-                            ].join('\n');
-                            return `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent(_refWaMsg)}" target="_blank" class="btn-whatsapp-notify">💬 WhatsApp Customer</a>`;
-                        })() : ''}
+                const _refWaMsg = [
+                    `Hello ${cust.name || 'there'},`,
+                    ``,
+                    `Regarding your KAPPA Clothing order cancellation:`,
+                    ``,
+                    `Order ID: #${data.id.toString().substring(0, 8).toUpperCase()}`,
+                    `Refund Amount: Rs. ${data.total_amount}`,
+                    ``,
+                    `Your refund will be processed to your provided UPI/Bank account within 2-4 working days.`,
+                    ``,
+                    `Thank you for your patience. - KAPPA Team`
+                ].join('\n');
+                return `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent(_refWaMsg)}" target="_blank" class="btn-whatsapp-notify">💬 WhatsApp Customer</a>`;
+            })() : ''}
                         <button onclick="openNotifyCustomerModal('${data.id}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#334155; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">✏️ Edit Message</button>
                         <button onclick="openAdminEditRefundModal('${data.id}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#334155; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">💳 Edit Refund Info</button>
                     </div>
                     <div>
-                        ${isRefundSettledBool ? `<div style="display:inline-flex; align-items:center; gap:6px; background:#dcfce7; color:#15803d; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:800;">✓ Refund Completed (${refundInfo?.refund_ref ? 'Ref: ' + refundInfo.refund_ref : new Date(refundInfo?.refunded_at||Date.now()).toLocaleDateString()})</div>`
-                        : `<button onclick="adminMarkOrderRefunded('${data.id}', ${data.total_amount})" style="background:#dc2626; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(220,38,38,0.3);">✅ Mark as Refunded / Repaid</button>`}
+                        ${isRefundSettledBool ? `<div style="display:inline-flex; align-items:center; gap:6px; background:#dcfce7; color:#15803d; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:800;">✓ Refund Completed (${refundInfo?.refund_ref ? 'Ref: ' + refundInfo.refund_ref : new Date(refundInfo?.refunded_at || Date.now()).toLocaleDateString()})</div>`
+                : `<button onclick="adminMarkOrderRefunded('${data.id}', ${data.total_amount})" style="background:#dc2626; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(220,38,38,0.3);">✅ Mark as Refunded / Repaid</button>`}
                     </div>
                 </div>
             </div>`;
@@ -3114,7 +3111,7 @@ window.showOrderDetails = async function (orderId) {
     // ── ASSEMBLE ────────────────────────────────────────────────────────────────
     // ── ASSEMBLE ────────────────────────────────────────────────────────────────
     if (isCancelled) {
-        const shortId = data.id.toString().substring(0,8).toUpperCase();
+        const shortId = data.id.toString().substring(0, 8).toUpperCase();
         const currentReason = refundInfo?.reason || 'Customer Request';
         let reasonOptionsHtml = CANCELLATION_REASONS.map(r => `
             <option value="${r}" ${r === currentReason ? 'selected' : ''}>${r}</option>
@@ -3123,8 +3120,8 @@ window.showOrderDetails = async function (orderId) {
             reasonOptionsHtml += `<option value="${currentReason}" selected>${currentReason}</option>`;
         }
 
-        const cancelledDateStr = refundInfo?.cancelled_at 
-            ? new Date(refundInfo.cancelled_at).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+        const cancelledDateStr = refundInfo?.cancelled_at
+            ? new Date(refundInfo.cancelled_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
             : placedDate;
 
         let refStatus = (refundInfo?.refund_status || '').toLowerCase().trim();
@@ -3152,7 +3149,7 @@ window.showOrderDetails = async function (orderId) {
                         </div>
                         <div style="display:flex; gap:8px;">
                             ${upi ? `<button onclick="copyTextToClipboard('${upi}', this)" style="background:#0284c7; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">📋 Copy UPI ID</button>` : ''}
-                            ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (cust.name||'') + ', regarding your refund of ₹' + data.total_amount + ' for Kappa Clothing order #' + shortId + '...')}" target="_blank" class="btn-whatsapp-notify" style="padding:6px 12px; font-size:12px;">💬 WhatsApp</a>` : ''}
+                            ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (cust.name || '') + ', regarding your refund of ₹' + data.total_amount + ' for Kappa Clothing order #' + shortId + '...')}" target="_blank" class="btn-whatsapp-notify" style="padding:6px 12px; font-size:12px;">💬 WhatsApp</a>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -3325,12 +3322,12 @@ window.updateOrderStage = async function (orderId, newStage) {
 
 // ── SAVE DELIVERY DETAILS ───────────────────────────────────────────────────────
 window.saveDeliveryDetails = async function (orderId) {
-    const partner   = document.getElementById(`del-partner-${orderId}`)?.value.trim() || '';
-    const tracking  = document.getElementById(`del-tracking-${orderId}`)?.value.trim() || '';
-    const etaDate   = document.getElementById(`del-eta-date-${orderId}`)?.value || '';
-    const etaDays   = document.getElementById(`del-eta-days-${orderId}`)?.value || '';
-    const charge    = document.getElementById(`del-charge-${orderId}`)?.value || '';
-    const trackUrl  = document.getElementById(`del-track-url-${orderId}`)?.value.trim() || '';
+    const partner = document.getElementById(`del-partner-${orderId}`)?.value.trim() || '';
+    const tracking = document.getElementById(`del-tracking-${orderId}`)?.value.trim() || '';
+    const etaDate = document.getElementById(`del-eta-date-${orderId}`)?.value || '';
+    const etaDays = document.getElementById(`del-eta-days-${orderId}`)?.value || '';
+    const charge = document.getElementById(`del-charge-${orderId}`)?.value || '';
+    const trackUrl = document.getElementById(`del-track-url-${orderId}`)?.value.trim() || '';
 
     let finalTrackUrl = trackUrl;
     if (!finalTrackUrl && tracking) {
@@ -3888,14 +3885,14 @@ function computeSalesChartData(timeframeKey, orders) {
     };
 }
 
-window.changeSalesTimeframe = function(timeframe, btn) {
+window.changeSalesTimeframe = function (timeframe, btn) {
     currentSalesTimeframe = timeframe;
     document.querySelectorAll('#salesTimeFilters .dash-filter-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
     renderSalesChart(timeframe);
 };
 
-window.switchAdminOrdersFilter = async function(stage) {
+window.switchAdminOrdersFilter = async function (stage) {
     await window.switchAdminView('orders');
     if (typeof window.filterOrders === 'function') {
         window.filterOrders(stage);
@@ -4027,7 +4024,7 @@ async function loadDashboard() {
 }
 
 // ── RENDER SALES OVERVIEW SVG GRAPH (100% Real Order Data) ──
-window.renderSalesChart = function(timeframeKey) {
+window.renderSalesChart = function (timeframeKey) {
     const container = document.getElementById('salesChartContainer');
     if (!container) return;
 
@@ -4136,7 +4133,7 @@ window.renderSalesChart = function(timeframeKey) {
 };
 
 // ── RENDER ORDER STATUS DONUT CHART (100% Real Live Distribution) ──
-window.renderOrderDonutChart = function(counts, total) {
+window.renderOrderDonutChart = function (counts, total) {
     const wrap = document.getElementById('donutChartWrap');
     const legend = document.getElementById('donutLegendContainer');
     if (!wrap || !legend) return;
@@ -4328,7 +4325,7 @@ function parseOrderRefundDetails(ord) {
     const cust = ord.customer_details || {};
     const refundInfo = ord.refund_details || cust.refund_details || ord.cancellation_details || {};
     const isPaid = (ord.payment_status || '').toLowerCase() === 'paid' || (ord.status || '').toLowerCase().includes('paid') || !!ord.razorpay_payment_id;
-    
+
     let refStatus = (refundInfo.refund_status || '').toLowerCase().trim();
     if (!refStatus) {
         if ((ord.status || '').toLowerCase().includes('refund') || (ord.order_stage || '') === 'refunded') {
@@ -4833,7 +4830,7 @@ window.markOrdersAsSeen = function (orderIds) {
             ordersBadge.textContent = '0';
             ordersBadge.style.display = 'none';
         }
-    } catch (_) {}
+    } catch (_) { }
 };
 
 window.markCancelledOrdersAsSeen = function (cancelledIds) {
@@ -4849,7 +4846,7 @@ window.markCancelledOrdersAsSeen = function (cancelledIds) {
             cancelledBadge.textContent = '0';
             cancelledBadge.style.display = 'none';
         }
-    } catch (_) {}
+    } catch (_) { }
 };
 
 async function updateSidebarOrderBadges() {
