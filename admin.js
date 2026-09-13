@@ -2112,11 +2112,10 @@ window.showOrderDetails = async function (orderId) {
                     <input class="delivery-form-input" id="del-eta-date-${data.id}" type="date" value="${deliveryDetails.expected_delivery || ''}">
                 </div>
                 <div>
-                    <label class="delivery-form-label">ETA Window (days)</label>
-                    <select class="delivery-form-input" id="del-eta-days-${data.id}">
-                        <option value="">Select window...</option>
-                        ${etaOptions}
-                    </select>
+                    <label class="delivery-form-label">Delivery ETA Message (shown to customer)</label>
+                    <input class="delivery-form-input" id="del-eta-days-${data.id}" type="text"
+                        placeholder="e.g. 2-4 working days, 3-5 business days..."
+                        value="${deliveryDetails.eta_days || ''}">
                 </div>
                 <div>
                     <label class="delivery-form-label">Shipping Charge (₹)</label>
