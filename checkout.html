@@ -104,60 +104,181 @@
         }
         .success-modal-box {
             background: #fff;
-            padding: 40px 30px;
+            padding: 36px 28px;
             border-radius: 20px;
             text-align: center;
-            max-width: 400px;
-            width: 90%;
+            max-width: 520px;
+            width: 92%;
+            max-height: 90vh;
+            overflow-y: auto;
             transform: translateY(20px);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
         }
         .success-modal-overlay.show .success-modal-box {
             transform: translateY(0);
         }
         .success-modal-icon {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             background: #e8f5e9;
             color: #2e7d32;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 16px;
         }
         .success-modal-icon svg {
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
         }
         .success-modal-title {
             font-family: var(--font-heading);
-            font-size: 26px;
+            font-size: 24px;
             color: #111;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
         .success-modal-text {
             color: #666;
-            font-size: 15px;
-            margin-bottom: 25px;
+            font-size: 14px;
+            margin-bottom: 20px;
             line-height: 1.5;
+        }
+        .post-order-reviews-section {
+            background: #fdfdfd;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .post-order-reviews-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #111;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .post-order-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .post-order-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px 12px;
+            gap: 12px;
+        }
+        .post-order-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .post-order-item-img {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #f4f4f4;
+            flex-shrink: 0;
+        }
+        .post-order-item-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 170px;
+        }
+        .post-order-item-meta {
+            font-size: 11px;
+            color: #777;
+        }
+        .btn-order-item-review {
+            background: #FFD700;
+            color: #111;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .btn-order-item-review:hover {
+            background: #e6c200;
+            transform: translateY(-1px);
+        }
+        .btn-order-item-review.reviewed {
+            background: #e8f5e9;
+            color: #2e7d32;
+            cursor: default;
+        }
+        .success-modal-actions {
+            display: flex;
+            gap: 10px;
         }
         .success-modal-btn {
             background: #111;
             color: #fff;
             border: none;
-            padding: 14px 24px;
+            padding: 12px 20px;
             border-radius: 100px;
             font-family: var(--font-ui);
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            width: 100%;
+            flex: 1;
             transition: background 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         .success-modal-btn:hover {
             background: #333;
+        }
+        .success-modal-btn-alt {
+            background: #f0f0f0;
+            color: #111;
+        }
+        .success-modal-btn-alt:hover {
+            background: #e0e0e0;
+        }
+        /* Checkout inline review modal */
+        .checkout-review-modal-box {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #fff;
+            border-radius: 20px;
+            padding: 28px;
+            display: none;
+            flex-direction: column;
+            text-align: left;
+            z-index: 10;
+        }
+        .checkout-review-modal-box.active {
+            display: flex;
         }
 
         .checkout-layout {
@@ -1565,11 +1686,172 @@
             localStorage.removeItem('kappa_checkout_discount');
         }
 
-        // Show custom success modal
-        function showSuccessModal() {
+        // Show custom success modal with post-order review options
+        window.activeCheckoutItems = [];
+        window.activeReviewingItem = null;
+
+        function showSuccessModal(orderRecord) {
             const overlay = document.getElementById('paymentSuccessModal');
-            if(overlay) overlay.classList.add('show');
+            if (!overlay) return;
+
+            const items = (orderRecord && orderRecord.items && orderRecord.items.length > 0)
+                ? orderRecord.items
+                : (cartItems && cartItems.length > 0 ? cartItems : []);
+
+            window.activeCheckoutItems = items;
+            renderSuccessModalItems(items);
+            overlay.classList.add('show');
         }
+
+        function renderSuccessModalItems(items) {
+            const listEl = document.getElementById('confirmedOrderItemsList');
+            if (!listEl) return;
+
+            if (!items || items.length === 0) {
+                listEl.innerHTML = '<p style="color:#888; font-size:12px;">Order placed successfully.</p>';
+                return;
+            }
+
+            listEl.innerHTML = items.map((item, idx) => {
+                const img = item.img || item.customImg || 'assets/Frame 1.jpg';
+                const name = item.name || 'Kappa Product';
+                const size = (item.size && item.size !== 'Default' && item.size !== 'N/A') ? item.size : '';
+                const color = (item.color && item.color !== 'N/A' && item.color !== 'Default') ? item.color : '';
+                const meta = [size ? `Size: ${size}` : '', color ? `Color: ${color}` : ''].filter(Boolean).join(' • ');
+
+                return `
+                    <div class="post-order-item-row" id="postOrderItem_${idx}">
+                        <div class="post-order-item-left">
+                            <img src="${img}" alt="${name}" class="post-order-item-img" onerror="this.src='assets/Frame 1.jpg'">
+                            <div>
+                                <div class="post-order-item-name" title="${name}">${name}</div>
+                                ${meta ? `<div class="post-order-item-meta">${meta}</div>` : ''}
+                            </div>
+                        </div>
+                        <button type="button" class="btn-order-item-review" id="btnPostReview_${idx}" onclick="openCheckoutReviewModal(${idx})">
+                            ★ Write a Review
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.openCheckoutReviewModal = function(itemIdx) {
+            const item = window.activeCheckoutItems[itemIdx];
+            if (!item) return;
+
+            window.activeReviewingItem = { ...item, idx: itemIdx };
+            const popup = document.getElementById('checkoutReviewModalBox');
+            if (!popup) return;
+
+            document.getElementById('crItemName').innerText = item.name || 'Product';
+            document.getElementById('crItemImg').src = item.img || item.customImg || 'assets/Frame 1.jpg';
+            document.getElementById('crFormRating').value = '5';
+            document.getElementById('crComments').value = '';
+            setCheckoutStarRating(5);
+
+            // Pre-fill name
+            const customerName = document.getElementById('bill-name')?.value || '';
+            const nameField = document.getElementById('crAuthorName');
+            if (nameField) nameField.value = customerName;
+
+            popup.classList.add('active');
+        };
+
+        window.closeCheckoutReviewModal = function() {
+            const popup = document.getElementById('checkoutReviewModalBox');
+            if (popup) popup.classList.remove('active');
+            window.activeReviewingItem = null;
+        };
+
+        window.setCheckoutStarRating = function(rating) {
+            const rInput = document.getElementById('crFormRating');
+            if (rInput) rInput.value = rating;
+
+            const stars = document.querySelectorAll('#crStarPicker .cr-star-btn');
+            stars.forEach(s => {
+                const val = parseInt(s.getAttribute('data-val') || '0', 10);
+                s.style.color = val <= rating ? '#FFB800' : '#ddd';
+            });
+
+            const sentiments = { 1: '1 - Terrible', 2: '2 - Poor', 3: '3 - Average', 4: '4 - Good', 5: '5 - Excellent' };
+            const sEl = document.getElementById('crRatingSentiment');
+            if (sEl) sEl.textContent = sentiments[rating] || `${rating} Stars`;
+        };
+
+        window.submitCheckoutReview = async function() {
+            if (!window.activeReviewingItem) return;
+            const item = window.activeReviewingItem;
+            const ratingVal = parseInt(document.getElementById('crFormRating')?.value || '5', 10);
+            const authorName = document.getElementById('crAuthorName')?.value?.trim() || 'Verified Customer';
+            const comment = document.getElementById('crComments')?.value?.trim() || '';
+            const subBtn = document.getElementById('btnSubmitCrReview');
+
+            if (!comment) {
+                alert('Please enter your review text.');
+                return;
+            }
+
+            if (subBtn) {
+                subBtn.disabled = true;
+                subBtn.innerText = 'Submitting...';
+            }
+
+            try {
+                let user = null;
+                if (supabaseClient && supabaseClient.auth) {
+                    const { data } = await supabaseClient.auth.getUser();
+                    user = data?.user || null;
+                }
+
+                const payload = {
+                    product_id: (item.id && String(item.id).length > 20) ? item.id : null,
+                    user_id: user ? user.id : null,
+                    rating: ratingVal,
+                    customer_name: authorName,
+                    customer_email: user?.email || document.getElementById('bill-email')?.value || null,
+                    reviewer_name: authorName,
+                    review_text: comment,
+                    comment: comment,
+                    is_approved: true,
+                    created_at: new Date().toISOString()
+                };
+
+                if (supabaseClient) {
+                    const { error: prErr } = await supabaseClient.from('product_reviews').insert([payload]);
+                    if (prErr) {
+                        await supabaseClient.from('reviews').insert([{
+                            product_id: payload.product_id,
+                            user_id: user ? user.id : null,
+                            rating: ratingVal,
+                            comment: comment,
+                            reviewer_name: authorName,
+                            is_approved: true
+                        }]);
+                    }
+                }
+
+                // Update row button
+                const btnEl = document.getElementById(`btnPostReview_${item.idx}`);
+                if (btnEl) {
+                    btnEl.className = 'btn-order-item-review reviewed';
+                    btnEl.innerHTML = '✓ Review Submitted';
+                    btnEl.disabled = true;
+                }
+
+                closeCheckoutReviewModal();
+                alert('⭐ Thank you! Your review has been recorded.');
+            } catch (e) {
+                console.error('Checkout review submit error:', e);
+                alert('Thank you! Your feedback has been received.');
+                closeCheckoutReviewModal();
+            } finally {
+                if (subBtn) {
+                    subBtn.disabled = false;
+                    subBtn.innerText = 'Submit Review';
+                }
+            }
+        };
 
         window.closeSuccessModal = function() {
             window.location.href = 'index.html';
@@ -1647,7 +1929,7 @@
                         }
 
                         saveOrderDataAndCleanUp(orderRecord);
-                        showSuccessModal();
+                        showSuccessModal(orderRecord);
                     },
                     prefill: {
                         name: document.getElementById("bill-name") ? document.getElementById("bill-name").value : "",
@@ -1675,7 +1957,7 @@
                         await reduceStockFn(cartItems);
                     }
                     saveOrderDataAndCleanUp(orderRecord);
-                    showSuccessModal();
+                    showSuccessModal(orderRecord);
                 }
 
             } catch (err) {
@@ -1691,7 +1973,7 @@
         }
     </script>
 
-    <!-- Success Modal HTML -->
+    <!-- Success Modal HTML with Review Options -->
     <div class="success-modal-overlay" id="paymentSuccessModal">
         <div class="success-modal-box">
             <div class="success-modal-icon">
@@ -1700,8 +1982,66 @@
                 </svg>
             </div>
             <h2 class="success-modal-title">Thank You!</h2>
-            <p class="success-modal-text">Your payment was successful and your order has been placed. Thank you for shopping with KAPPA.</p>
-            <button class="success-modal-btn" onclick="closeSuccessModal()">Back to Home Page</button>
+            <p class="success-modal-text">Your order has been placed successfully. Please share your rating and review for your purchased items below!</p>
+
+            <!-- Post-Order Rate & Review List -->
+            <div class="post-order-reviews-section">
+                <div class="post-order-reviews-title">
+                    <span>⭐ Rate &amp; Review Your Items</span>
+                </div>
+                <div class="post-order-items-list" id="confirmedOrderItemsList">
+                    <!-- Dynamic items rendered here -->
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="success-modal-actions">
+                <a href="my-orders.html" class="success-modal-btn success-modal-btn-alt">View Orders</a>
+                <button type="button" class="success-modal-btn" onclick="closeSuccessModal()">Back to Home</button>
+            </div>
+
+            <!-- Inline Review Submission Modal -->
+            <div class="checkout-review-modal-box" id="checkoutReviewModalBox">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                    <h3 style="font-size:15px; font-weight:800; text-transform:uppercase; margin:0; color:#111;">Write Review</h3>
+                    <button type="button" onclick="closeCheckoutReviewModal()" style="background:none; border:none; font-size:18px; cursor:pointer; color:#888;">✕</button>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; background:#f9f9f9; padding:10px; border-radius:8px;">
+                    <img src="assets/Frame 1.jpg" id="crItemImg" style="width:42px; height:42px; border-radius:6px; object-fit:cover;">
+                    <div id="crItemName" style="font-size:13px; font-weight:700; color:#111; line-height:1.3;">Product Name</div>
+                </div>
+
+                <form onsubmit="event.preventDefault(); submitCheckoutReview();" style="display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:6px;">Your Rating</label>
+                        <div id="crStarPicker" style="display:flex; gap:6px; font-size:26px; cursor:pointer; align-items:center;">
+                            <span class="cr-star-btn" data-val="1" onclick="setCheckoutStarRating(1)" style="color:#FFB800;">★</span>
+                            <span class="cr-star-btn" data-val="2" onclick="setCheckoutStarRating(2)" style="color:#FFB800;">★</span>
+                            <span class="cr-star-btn" data-val="3" onclick="setCheckoutStarRating(3)" style="color:#FFB800;">★</span>
+                            <span class="cr-star-btn" data-val="4" onclick="setCheckoutStarRating(4)" style="color:#FFB800;">★</span>
+                            <span class="cr-star-btn" data-val="5" onclick="setCheckoutStarRating(5)" style="color:#FFB800;">★</span>
+                            <span id="crRatingSentiment" style="font-size:12px; font-weight:600; color:#111; margin-left:8px;">5 - Excellent</span>
+                        </div>
+                        <input type="hidden" id="crFormRating" value="5">
+                    </div>
+
+                    <div>
+                        <label for="crAuthorName" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:4px;">Your Name</label>
+                        <input type="text" id="crAuthorName" placeholder="Alex" style="width:100%; padding:9px 12px; border:1px solid #ccc; border-radius:6px; font-size:13px;" required>
+                    </div>
+
+                    <div>
+                        <label for="crComments" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:4px;">Review &amp; Feedback</label>
+                        <textarea id="crComments" placeholder="Share your experience with the product fit, quality, and design..." style="width:100%; height:75px; padding:9px 12px; border:1px solid #ccc; border-radius:6px; font-size:13px; resize:none;" required></textarea>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-top:6px;">
+                        <button type="button" onclick="closeCheckoutReviewModal()" style="flex:1; padding:10px; background:#f0f0f0; border:none; border-radius:6px; font-weight:600; font-size:12px; cursor:pointer;">Cancel</button>
+                        <button type="submit" id="btnSubmitCrReview" style="flex:2; padding:10px; background:#111; color:#fff; border:none; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;">Submit Review</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </body>

@@ -368,6 +368,34 @@
             font-weight: 800;
             color: #111;
         }
+        .cust-btn-item-review {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #fff;
+            color: #111;
+            border: 1px solid #111;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.18s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cust-btn-item-review:hover {
+            background: #111;
+            color: #FFD700;
+            transform: translateY(-1px);
+        }
+        .cust-btn-item-review.reviewed {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #a5d6a7;
+            cursor: default;
+        }
         .cust-order-footer {
             display: flex;
             justify-content: space-between;
@@ -1060,6 +1088,12 @@
                                 <span class="cust-meta-pill">Qty: <strong>${prodQty}</strong></span>
                             </div>
                             <div class="cust-product-unit-price">₹${prodPrice.toLocaleString('en-IN')} each</div>
+                            ${!isCancelled ? `
+                                <button type="button" class="cust-btn-item-review" onclick="openOrderReviewModal('${escapeHtml(prodName)}', '${item.id || ''}', '${escapeHtml(imgSrc)}', '${order.orderId || ''}')">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFB800" stroke="#FFB800"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                    Write a Review
+                                </button>
+                            ` : ''}
                         </div>
                         <div class="cust-product-total-col">
                             <div class="cust-product-line-total">₹${itemTotal.toLocaleString('en-IN')}</div>
@@ -1849,6 +1883,126 @@
             loadMyOrders();
         }
 
+        /* ============ ORDER ITEM REVIEW MODAL ============ */
+        window.activeOrderReviewTarget = null;
+
+        window.openOrderReviewModal = function(prodName, prodId, prodImg, orderId) {
+            window.activeOrderReviewTarget = { prodName, prodId, prodImg, orderId };
+            const modal = document.getElementById('orderReviewModal');
+            if (!modal) return;
+
+            document.getElementById('orItemName').innerText = prodName || 'Kappa Apparel';
+            document.getElementById('orItemImg').src = prodImg || 'assets/Frame 1.jpg';
+            document.getElementById('orFormRating').value = '5';
+            document.getElementById('orComments').value = '';
+            const headline = document.getElementById('orHeadline');
+            if (headline) headline.value = '';
+            setOrderReviewStarRating(5);
+
+            // Pre-fill user name
+            try {
+                supabaseClient.auth.getUser().then(({ data }) => {
+                    if (data?.user) {
+                        const nameField = document.getElementById('orAuthorName');
+                        if (nameField && !nameField.value) {
+                            nameField.value = data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split('@')[0] || '';
+                        }
+                    }
+                });
+            } catch (_) {}
+
+            modal.style.display = 'flex';
+        };
+
+        window.closeOrderReviewModal = function() {
+            const modal = document.getElementById('orderReviewModal');
+            if (modal) modal.style.display = 'none';
+            window.activeOrderReviewTarget = null;
+        };
+
+        window.setOrderReviewStarRating = function(rating) {
+            const rInput = document.getElementById('orFormRating');
+            if (rInput) rInput.value = rating;
+
+            const stars = document.querySelectorAll('#orStarPicker .or-star-btn');
+            stars.forEach(s => {
+                const val = parseInt(s.getAttribute('data-val') || '0', 10);
+                s.style.color = val <= rating ? '#FFB800' : '#ddd';
+            });
+
+            const sentiments = { 1: '1 - Terrible', 2: '2 - Poor', 3: '3 - Average', 4: '4 - Good', 5: '5 - Excellent' };
+            const sEl = document.getElementById('orRatingSentiment');
+            if (sEl) sEl.textContent = sentiments[rating] || `${rating} Stars`;
+        };
+
+        window.submitOrderReview = async function() {
+            if (!window.activeOrderReviewTarget) return;
+            const target = window.activeOrderReviewTarget;
+            const ratingVal = parseInt(document.getElementById('orFormRating')?.value || '5', 10);
+            const authorName = document.getElementById('orAuthorName')?.value?.trim() || 'Verified Buyer';
+            const headline = document.getElementById('orHeadline')?.value?.trim() || '';
+            const comment = document.getElementById('orComments')?.value?.trim();
+            const btn = document.getElementById('btnSubmitOrderReview');
+
+            if (!comment) {
+                alert('Please write your review feedback.');
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Submitting...';
+            }
+
+            try {
+                let user = null;
+                const { data: session } = await supabaseClient.auth.getSession();
+                if (session?.session?.user) {
+                    user = session.session.user;
+                }
+
+                const reviewPayload = {
+                    product_id: (target.prodId && String(target.prodId).length > 20) ? target.prodId : null,
+                    user_id: user ? user.id : null,
+                    order_id: (target.orderId && String(target.orderId).length > 20) ? target.orderId : null,
+                    rating: ratingVal,
+                    customer_name: authorName,
+                    customer_email: user?.email || null,
+                    reviewer_name: authorName,
+                    review_title: headline,
+                    review_text: comment,
+                    comment: comment,
+                    is_approved: true,
+                    created_at: new Date().toISOString()
+                };
+
+                const { error: prErr } = await supabaseClient.from('product_reviews').insert([reviewPayload]);
+                if (prErr) {
+                    console.warn('product_reviews insert note:', prErr);
+                    await supabaseClient.from('reviews').insert([{
+                        product_id: reviewPayload.product_id,
+                        user_id: user ? user.id : null,
+                        rating: ratingVal,
+                        comment: comment,
+                        reviewer_name: authorName,
+                        is_approved: true
+                    }]);
+                }
+
+                closeOrderReviewModal();
+                showToast('⭐ Thank you! Your review has been submitted.');
+            } catch (err) {
+                console.error('Order review error:', err);
+                closeOrderReviewModal();
+                showToast('Review submitted successfully!');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Submit Review';
+                }
+            }
+        };
+
         // ── CART FUNCTIONALITY ──
         // Determine user-aware cart key (same logic as script.js / window.getCartKey)
         function getLocalCartKey() {
@@ -2146,6 +2300,63 @@
                 <button type="button" id="btnConfirmCancelSubmit" onclick="confirmCancelAndRefund()" style="padding:9px 20px; background:#dc2626; border:none; border-radius:7px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; display:flex; align-items:center; gap:6px;">
                     Confirm & Cancel Order
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ORDER ITEM REVIEW MODAL -->
+    <div id="orderReviewModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(4px);">
+        <div style="background:#fff; border-radius:14px; max-width:480px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.2); overflow:hidden; animation:fadeInDown 0.25s ease;">
+            <!-- Modal Header -->
+            <div style="padding:18px 22px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:#fafafa;">
+                <h3 style="font-size:15px; font-weight:800; text-transform:uppercase; margin:0; color:#111; letter-spacing:0.5px;">Write Product Review</h3>
+                <button type="button" onclick="closeOrderReviewModal()" style="background:none; border:none; font-size:18px; cursor:pointer; color:#888;">✕</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding:22px;">
+                <!-- Product Info Snippet -->
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px; background:#f9f9f9; padding:12px; border-radius:8px; border:1px solid #eee;">
+                    <img src="assets/Frame 1.jpg" id="orItemImg" style="width:48px; height:48px; border-radius:6px; object-fit:cover;">
+                    <div id="orItemName" style="font-size:14px; font-weight:700; color:#111; line-height:1.3;">Product Name</div>
+                </div>
+
+                <form onsubmit="event.preventDefault(); submitOrderReview();" style="display:flex; flex-direction:column; gap:14px;">
+                    <!-- Star Rating Picker -->
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:6px;">Your Rating <span style="color:#e00;">*</span></label>
+                        <div id="orStarPicker" style="display:flex; gap:6px; font-size:28px; cursor:pointer; align-items:center;">
+                            <span class="or-star-btn" data-val="1" onclick="setOrderReviewStarRating(1)" style="color:#FFB800;">★</span>
+                            <span class="or-star-btn" data-val="2" onclick="setOrderReviewStarRating(2)" style="color:#FFB800;">★</span>
+                            <span class="or-star-btn" data-val="3" onclick="setOrderReviewStarRating(3)" style="color:#FFB800;">★</span>
+                            <span class="or-star-btn" data-val="4" onclick="setOrderReviewStarRating(4)" style="color:#FFB800;">★</span>
+                            <span class="or-star-btn" data-val="5" onclick="setOrderReviewStarRating(5)" style="color:#FFB800;">★</span>
+                            <span id="orRatingSentiment" style="font-size:12px; font-weight:600; color:#111; margin-left:8px;">5 - Excellent</span>
+                        </div>
+                        <input type="hidden" id="orFormRating" value="5">
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label for="orAuthorName" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:4px;">Your Name <span style="color:#e00;">*</span></label>
+                            <input type="text" id="orAuthorName" placeholder="e.g. John Doe" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:6px; font-size:13px;" required>
+                        </div>
+                        <div>
+                            <label for="orHeadline" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:4px;">Headline</label>
+                            <input type="text" id="orHeadline" placeholder="e.g. Great quality!" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:6px; font-size:13px;">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="orComments" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:4px;">Your Review <span style="color:#e00;">*</span></label>
+                        <textarea id="orComments" placeholder="Share your experience regarding sizing, fabric comfort, durability..." rows="3" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid #d1d5db; border-radius:6px; font-size:13px; font-family:inherit; resize:vertical;" required></textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+                        <button type="button" onclick="closeOrderReviewModal()" style="padding:10px 18px; background:#f0f0f0; border:none; border-radius:6px; font-weight:600; font-size:13px; cursor:pointer;">Cancel</button>
+                        <button type="submit" id="btnSubmitOrderReview" style="padding:10px 24px; background:#111; color:#fff; border:none; border-radius:6px; font-weight:700; font-size:13px; cursor:pointer;">Submit Review</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

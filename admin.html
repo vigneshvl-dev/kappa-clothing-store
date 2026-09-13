@@ -497,8 +497,55 @@
 
             <!-- VIEW: REVIEWS -->
             <div id="view-reviews" class="view-section">
+                <!-- Summary Metrics -->
+                <div class="dash-summary-grid" style="margin-bottom: 24px;">
+                    <div class="summary-card">
+                        <div class="sc-title">Total Reviews</div>
+                        <div class="sc-value" id="admin-reviews-total">0</div>
+                        <div class="sc-sub">All time reviews</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="sc-title">Avg Store Rating</div>
+                        <div class="sc-value" id="admin-reviews-avg">0.0 <span style="font-size:18px; color:#FFD700;">★</span></div>
+                        <div class="sc-sub" id="admin-reviews-stars-sub">★★★★★</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="sc-title">5-Star Ratings</div>
+                        <div class="sc-value" id="admin-reviews-five-star">0</div>
+                        <div class="sc-sub">Top tier feedback</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="sc-title">Approval Status</div>
+                        <div class="sc-value" id="admin-reviews-approved-count">0</div>
+                        <div class="sc-sub">Published to store</div>
+                    </div>
+                </div>
+
+                <!-- Main Card & Filter Toolbar -->
                 <div class="card">
-                    <!-- Dynamic content injected here -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+                        <div>
+                            <h2 class="card-title" style="margin: 0;">Customer Reviews &amp; Moderation</h2>
+                            <p style="font-size: 13px; color: #888; margin-top: 4px;">Manage, filter, moderate, and delete store reviews</p>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <input type="text" id="admin-reviews-search" class="admin-input" placeholder="Search reviewer, product, comment..." oninput="filterAdminReviews()" style="width: 250px;">
+                            <select id="admin-reviews-star-filter" class="admin-input" onchange="filterAdminReviews()" style="width: 140px;">
+                                <option value="all">All Ratings</option>
+                                <option value="5">5 Stars (★★★★★)</option>
+                                <option value="4">4 Stars (★★★★)</option>
+                                <option value="3">3 Stars (★★★)</option>
+                                <option value="2">2 Stars (★★)</option>
+                                <option value="1">1 Star (★)</option>
+                            </select>
+                            <button type="button" class="btn-secondary" onclick="loadReviews()" style="padding: 8px 14px;">↻ Refresh</button>
+                        </div>
+                    </div>
+
+                    <!-- Reviews List Container -->
+                    <div id="admin-reviews-list-container">
+                        <p style="color: #666; text-align: center; padding: 40px 0;">Loading customer reviews...</p>
+                    </div>
                 </div>
             </div>
 
