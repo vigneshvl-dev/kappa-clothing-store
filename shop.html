@@ -19,14 +19,32 @@
         rel="stylesheet">
 
     <style>
+        body {
+            padding-top: calc(var(--marquee-h, 46px) + var(--nav-h, 84px));
+        }
+
+        @media (max-width: 768px) {
+            .marquee {
+                display: none !important;
+            }
+
+            body {
+                padding-top: var(--nav-h, 84px) !important;
+            }
+
+            .navbar {
+                top: 0 !important;
+            }
+        }
+
         /* ==========================================
            EXPLORE SECTION CAROUSEL & CARDS
            ========================================== */
         #explore-section {
             width: 100%;
             max-width: 1400px;
-            margin: 20px auto 30px auto;
-            padding: 0 20px;
+            margin: 24px auto 30px auto;
+            padding: 0 40px;
             font-family: 'Jost', sans-serif;
             display: none;
         }
@@ -379,7 +397,6 @@
             .shop-layout {
                 flex-direction: column;
                 padding: 20px;
-                padding-top: 150px;
             }
 
             .sidebar {
@@ -532,7 +549,7 @@
         </div>
     </section>
 
-    <div class="shop-layout" style="padding-top: 20px;">
+    <div class="shop-layout">
         <!-- SIDEBAR -->
         <aside class="sidebar" style="min-width: 240px; max-width: 260px; font-family: 'Jost', sans-serif;">
             <div style="font-size: 22px; font-weight: 500; color: #111; margin-bottom: 20px;">Filters</div>
