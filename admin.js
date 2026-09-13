@@ -677,6 +677,9 @@ async function loadOrders() {
     });
 
     _allFetchedOrders = paidOrders;
+    if (typeof markOrdersAsSeen === 'function') {
+        markOrdersAsSeen(paidOrders.map(o => o.id));
+    }
     const recycled = getRecycledOrders();
     renderOrdersView(paidOrders, recycled, _activeOrderFilter, '');
 }
@@ -3623,6 +3626,10 @@ async function loadCancelledOrders() {
             return st.includes('cancel') || st.includes('refund') || stg === 'cancelled' || stg === 'refunded';
         });
 
+        if (typeof markCancelledOrdersAsSeen === 'function') {
+            markCancelledOrdersAsSeen(cachedCancelledOrdersList.map(o => o.id));
+        }
+
         renderCancelledOrdersView();
     } catch (e) {
         console.error('Error loading cancelled orders:', e);
@@ -4113,44 +4120,133 @@ window.updateOrderCancellationReason = async function (orderId, newReason) {
     }
 };
 
-// ── SIDEBAR NOTIFICATION BADGES ──
+// ── SIDEBAR NOTIFICATION BADGES & UNSEEN ORDER TRACKER ──
+function getSeenOrders() {
+    try {
+        return JSON.parse(localStorage.getItem('kappa_admin_seen_orders') || '[]');
+    } catch (_) { return []; }
+}
+
+function getSeenCancelledOrders() {
+    try {
+        return JSON.parse(localStorage.getItem('kappa_admin_seen_cancelled') || '[]');
+    } catch (_) { return []; }
+}
+
+window.markOrdersAsSeen = function (orderIds) {
+    try {
+        const seen = new Set(getSeenOrders());
+        (orderIds || []).forEach(id => {
+            if (id) seen.add(String(id));
+        });
+        localStorage.setItem('kappa_admin_seen_orders', JSON.stringify(Array.from(seen)));
+
+        const ordersBadge = document.getElementById('nav-badge-orders');
+        if (ordersBadge) {
+            ordersBadge.textContent = '0';
+            ordersBadge.style.display = 'none';
+        }
+    } catch (_) {}
+};
+
+window.markCancelledOrdersAsSeen = function (cancelledIds) {
+    try {
+        const seen = new Set(getSeenCancelledOrders());
+        (cancelledIds || []).forEach(id => {
+            if (id) seen.add(String(id));
+        });
+        localStorage.setItem('kappa_admin_seen_cancelled', JSON.stringify(Array.from(seen)));
+
+        const cancelledBadge = document.getElementById('nav-badge-cancelled');
+        if (cancelledBadge) {
+            cancelledBadge.textContent = '0';
+            cancelledBadge.style.display = 'none';
+        }
+    } catch (_) {}
+};
+
 async function updateSidebarOrderBadges() {
     const ordersBadge = document.getElementById('nav-badge-orders');
     const cancelledBadge = document.getElementById('nav-badge-cancelled');
 
     try {
-        const { data: orders } = await supabaseClient.from('orders').select('status');
-        if (orders) {
-            let activeCount = 0;
-            let cancelledCount = 0;
+        const { data: orders, error } = await supabaseClient
+            .from('orders')
+            .select('id, status, order_stage, created_at')
+            .order('created_at', { ascending: false });
 
-            orders.forEach(o => {
-                const st = (o.status || '').toLowerCase().trim();
-                if (st !== 'pending') {
-                    if (st.includes('cancel')) {
-                        cancelledCount++;
-                    } else {
-                        activeCount++;
+        if (error || !orders) return;
+
+        // On very first load of admin dashboard, initialize known orders as already seen so badge starts at 0
+        const isFirstInit = localStorage.getItem('kappa_admin_badges_initialized') !== 'true';
+        if (isFirstInit) {
+            const allOrderIds = orders.filter(o => !((o.status || '').toLowerCase().includes('cancel') || o.order_stage === 'cancelled')).map(o => String(o.id));
+            const allCancelledIds = orders.filter(o => ((o.status || '').toLowerCase().includes('cancel') || o.order_stage === 'cancelled')).map(o => String(o.id));
+            localStorage.setItem('kappa_admin_seen_orders', JSON.stringify(allOrderIds));
+            localStorage.setItem('kappa_admin_seen_cancelled', JSON.stringify(allCancelledIds));
+            localStorage.setItem('kappa_admin_badges_initialized', 'true');
+        }
+
+        const seenOrders = new Set(getSeenOrders());
+        const seenCancelled = new Set(getSeenCancelledOrders());
+
+        const isOrdersActive = document.querySelector('.sidebar-menu li[data-target="orders"]')?.classList.contains('active');
+        const isCancelledActive = document.querySelector('.sidebar-menu li[data-target="cancelled"]')?.classList.contains('active');
+
+        let newOrdersCount = 0;
+        let newCancelledCount = 0;
+        const currentActiveIds = [];
+        const currentCancelledIds = [];
+
+        orders.forEach(o => {
+            const st = (o.status || '').toLowerCase().trim();
+            const stage = (o.order_stage || '').toLowerCase().trim();
+            const idStr = String(o.id);
+
+            if (st !== 'pending') {
+                if (st.includes('cancel') || stage === 'cancelled') {
+                    currentCancelledIds.push(idStr);
+                    if (!seenCancelled.has(idStr)) {
+                        newCancelledCount++;
+                    }
+                } else {
+                    currentActiveIds.push(idStr);
+                    if (!seenOrders.has(idStr)) {
+                        newOrdersCount++;
                     }
                 }
-            });
-
-            if (ordersBadge) {
-                if (activeCount > 0) {
-                    ordersBadge.textContent = activeCount;
-                    ordersBadge.style.display = 'inline-flex';
-                } else {
-                    ordersBadge.style.display = 'none';
-                }
             }
+        });
 
-            if (cancelledBadge) {
-                if (cancelledCount > 0) {
-                    cancelledBadge.textContent = cancelledCount;
-                    cancelledBadge.style.display = 'inline-flex';
-                } else {
-                    cancelledBadge.style.display = 'none';
-                }
+        // If admin is currently looking at Orders tab, auto-mark active orders as seen
+        if (isOrdersActive && currentActiveIds.length > 0) {
+            markOrdersAsSeen(currentActiveIds);
+            newOrdersCount = 0;
+        }
+
+        // If admin is currently looking at Cancelled tab, auto-mark cancelled orders as seen
+        if (isCancelledActive && currentCancelledIds.length > 0) {
+            markCancelledOrdersAsSeen(currentCancelledIds);
+            newCancelledCount = 0;
+        }
+
+        if (ordersBadge) {
+            if (newOrdersCount > 0) {
+                ordersBadge.textContent = newOrdersCount;
+                ordersBadge.style.display = 'inline-flex';
+            } else {
+                ordersBadge.textContent = '0';
+                ordersBadge.style.display = 'none';
+            }
+        }
+
+        if (cancelledBadge) {
+            if (newCancelledCount > 0) {
+                cancelledBadge.textContent = newCancelledCount;
+                cancelledBadge.style.display = 'inline-flex';
+            } else {
+                cancelledBadge.textContent = '0';
+                cancelledBadge.style.display = 'none';
             }
         }
     } catch (e) {
