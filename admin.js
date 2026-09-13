@@ -658,10 +658,10 @@ async function loadOrders() {
 
     _allFetchedOrders = allOrders;
     if (typeof markOrdersAsSeen === 'function') {
-        markOrdersAsSeen(paidOrders.map(o => o.id));
+        markOrdersAsSeen(allOrders.map(o => o.id));
     }
     const recycled = getRecycledOrders();
-    renderOrdersView(paidOrders, recycled, _activeOrderFilter, '');
+    renderOrdersView(allOrders, recycled, _activeOrderFilter, '');
 }
 
 function renderOrdersView(orders, recycled, filterStage, searchQuery) {
