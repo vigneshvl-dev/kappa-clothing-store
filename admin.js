@@ -1329,207 +1329,617 @@ window.removePendingImage = function (index) {
     renderPendingImages();
 }
 
+// ==========================================
+// ADVANCED PRODUCT MANAGEMENT & VARIANTS MODULE
+// ==========================================
+
+const GENDER_CATEGORIES = {
+    'Men': ['Shirts', 'T-Shirts', 'Pants', 'Jeans', 'Trousers', 'Shorts', 'Jackets', 'Hoodies'],
+    'Women': ['Tops', 'T-Shirts', 'Shirts', 'Pants', 'Jeans', 'Trousers', 'Dresses', 'Skirts', 'Jackets', 'Hoodies'],
+    'Unisex': ['Shirts', 'T-Shirts', 'Pants', 'Jeans', 'Trousers', 'Shorts', 'Jackets', 'Hoodies', 'Dresses', 'Skirts'],
+    'Kids': ['Shirts', 'T-Shirts', 'Pants', 'Jeans', 'Trousers', 'Shorts', 'Jackets', 'Hoodies', 'Dresses', 'Skirts']
+};
+
+const CATEGORY_SIZES = {
+    'Pants': ['28', '30', '32', '34', '36', '38', '40'],
+    'Jeans': ['28', '30', '32', '34', '36', '38', '40'],
+    'Trousers': ['28', '30', '32', '34', '36', '38', '40'],
+    'Default': ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+};
+
+let currentDefaultImageFile = null;
+let currentDefaultImageUrl = '';
+let colorVariantsData = [];
+
 function initProductForm() {
-    const btnGenerateVariants = document.getElementById('btn-generate-variants');
-    const stockTableContainer = document.getElementById('stock-table-container');
-    const addProductForm = document.getElementById('add-product-form');
+    colorVariantsData = [];
+    addColorVariant({
+        colorName: 'Black',
+        colorCode: '#000000',
+        frontImg: '',
+        backImg: '',
+        sizes: { 'S': 5, 'M': 10, 'L': 12, 'XL': 8, 'XXL': 3 },
+        minStock: 5
+    });
+}
 
-    if (btnGenerateVariants) {
-        btnGenerateVariants.addEventListener('click', () => {
-            const colors = document.getElementById('variant-colors').value.split(',').map(c => c.trim()).filter(c => c !== "");
-            const sizes = document.getElementById('variant-sizes').value.split(',').map(s => s.trim()).filter(s => s !== "");
-            if (colors.length === 0 && sizes.length === 0) return;
+window.handleGenderChange = function () {
+    const gender = document.getElementById('prod-gender')?.value || 'Men';
+    const catSelect = document.getElementById('prod-category');
+    if (!catSelect) return;
 
-            const finalColors = colors.length > 0 ? colors : ['Default'];
-            const finalSizes = sizes.length > 0 ? sizes : ['Default'];
+    const availableCats = GENDER_CATEGORIES[gender] || GENDER_CATEGORIES['Men'];
+    let html = `<option value="" disabled selected>Select Category ▼</option>`;
+    availableCats.forEach(cat => {
+        html += `<option value="${cat}">${cat}</option>`;
+    });
 
-            let overrides = {};
-            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { }
-            const editingId = document.getElementById('editing-product-id')?.value;
-            const prodOverride = editingId ? (overrides[String(editingId)] || null) : null;
+    catSelect.innerHTML = html;
+    updateLiveProductSummary();
+};
 
-            let tableHTML = `<table class="stock-table"><thead><tr><th>Color</th><th>Size</th><th>SKU</th><th>Stock Qty</th><th style="text-align:center;">Action</th></tr></thead><tbody>`;
-            finalColors.forEach(color => {
-                finalSizes.forEach(size => {
-                    let vStock = 10;
-                    if (prodOverride && prodOverride.variants && prodOverride.variants[size]) {
-                        vStock = Math.max(0, vStock - prodOverride.variants[size]);
-                    }
-                    tableHTML += `<tr class="variant-row" data-color="${color}" data-size="${size}">
-                        <td><strong>${color}</strong></td>
-                        <td><strong>${size}</strong></td>
-                        <td><input type="text" class="stock-input variant-sku" placeholder="SKU"></td>
-                        <td><input type="number" class="stock-input variant-stock" value="${vStock}" min="0" required></td>
-                        <td style="text-align:center;">
-                            <button type="button" class="btn-delete" style="padding:4px 10px; font-size:12px; background:#fff0f0; color:#e53e3e; border:1px solid #fed7d7; border-radius:6px; cursor:pointer;" onclick="removeVariantRow(this)" title="Delete Variant">
-                                ✕
-                            </button>
-                        </td>
-                    </tr>`;
-                });
-            });
-            tableHTML += `</tbody></table>`;
-            stockTableContainer.innerHTML = tableHTML;
-        });
+window.handleCategoryChange = function () {
+    renderAllColorVariants();
+    updateLiveProductSummary();
+};
+
+window.generateAutoSKU = function () {
+    const gender = (document.getElementById('prod-gender')?.value || 'GEN').substring(0, 3).toUpperCase();
+    const cat = (document.getElementById('prod-category')?.value || 'CAT').substring(0, 3).toUpperCase();
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    const sku = `KAPPA-${gender}-${cat}-${randomNum}`;
+    const skuInput = document.getElementById('prod-sku');
+    if (skuInput) skuInput.value = sku;
+    updateLiveProductSummary();
+};
+
+window.calculateDiscountAndSummary = function () {
+    const origPrice = parseFloat(document.getElementById('prod-compare-price')?.value) || 0;
+    const sellPrice = parseFloat(document.getElementById('prod-price')?.value) || 0;
+    const discountBadge = document.getElementById('prod-discount-badge');
+
+    if (origPrice > 0 && sellPrice > 0 && origPrice > sellPrice) {
+        const discountPct = Math.round(((origPrice - sellPrice) / origPrice) * 100);
+        if (discountBadge) {
+            discountBadge.textContent = `${discountPct}% OFF`;
+            discountBadge.style.display = 'flex';
+        }
+    } else {
+        if (discountBadge) discountBadge.textContent = '0% OFF';
+    }
+    updateLiveProductSummary();
+};
+
+window.handleDefaultImageUpload = function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    currentDefaultImageFile = file;
+
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+        currentDefaultImageUrl = evt.target.result;
+        const previewImg = document.getElementById('default-image-preview');
+        const previewName = document.getElementById('default-image-name');
+        const container = document.getElementById('default-image-preview-container');
+
+        if (previewImg) previewImg.src = currentDefaultImageUrl;
+        if (previewName) previewName.textContent = file.name;
+        if (container) container.style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+};
+
+window.removeDefaultImage = function () {
+    currentDefaultImageFile = null;
+    currentDefaultImageUrl = '';
+    const container = document.getElementById('default-image-preview-container');
+    const input = document.getElementById('prod-default-image-input');
+    if (container) container.style.display = 'none';
+    if (input) input.value = '';
+};
+
+window.addColorVariant = function (initialData = null) {
+    const defaultSizesObj = getActiveSizeSystem().reduce((acc, sz) => { acc[sz] = 5; return acc; }, {});
+    const newVariant = initialData || {
+        colorName: '',
+        colorCode: '#000000',
+        frontImg: '',
+        backImg: '',
+        sizes: defaultSizesObj,
+        minStock: 5
+    };
+    colorVariantsData.push(newVariant);
+    renderAllColorVariants();
+    updateLiveProductSummary();
+};
+
+window.removeColorVariant = function (index) {
+    colorVariantsData.splice(index, 1);
+    renderAllColorVariants();
+    updateLiveProductSummary();
+};
+
+function getActiveSizeSystem() {
+    const category = document.getElementById('prod-category')?.value || '';
+    if (['Pants', 'Jeans', 'Trousers'].includes(category)) {
+        return CATEGORY_SIZES['Pants'];
+    }
+    return CATEGORY_SIZES['Default'];
+}
+
+function renderAllColorVariants() {
+    const container = document.getElementById('color-variants-list');
+    if (!container) return;
+
+    if (colorVariantsData.length === 0) {
+        colorVariantsData = [{
+            colorName: 'Black',
+            colorCode: '#000000',
+            frontImg: '',
+            backImg: '',
+            sizes: { 'S': 5, 'M': 10, 'L': 12, 'XL': 8, 'XXL': 3 },
+            minStock: 5
+        }];
     }
 
-    window.removeVariantRow = function (btn) {
-        const row = btn.closest('tr');
-        if (!row) return;
-        row.remove();
-        const tableContainer = document.getElementById('stock-table-container');
-        const remainingRows = tableContainer ? tableContainer.querySelectorAll('.variant-row') : [];
-        if (remainingRows.length === 0 && tableContainer) {
-            tableContainer.innerHTML = '<p style="color:#aaa; text-align:center; padding:15px; font-style:italic;">No variants. Click "Generate Variant Matrix" to add colors & sizes.</p>';
-        }
-    };
+    const availableSizes = getActiveSizeSystem();
 
-    if (addProductForm) {
-        addProductForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.textContent = "Processing...";
-            submitBtn.disabled = true;
+    let html = '';
+    colorVariantsData.forEach((variant, vIdx) => {
+        let sizeCheckboxesHtml = availableSizes.map(sz => {
+            const isChecked = variant.sizes && variant.sizes[sz] !== undefined && variant.sizes[sz] !== null;
+            return `
+                <label class="size-checkbox-pill ${isChecked ? 'checked' : ''}" id="pill-variant-${vIdx}-${sz}">
+                    <input type="checkbox" style="display:none;" ${isChecked ? 'checked' : ''} onchange="toggleVariantSize(${vIdx}, '${sz}', this.checked)">
+                    <span>${sz}</span>
+                </label>
+            `;
+        }).join('');
 
-            try {
-                const editingId = document.getElementById('editing-product-id').value;
-                const variantRows = document.querySelectorAll('.variant-row');
-                let totalBaseStock = 0;
-                variantRows.forEach(row => totalBaseStock += parseInt(row.querySelector('.variant-stock').value) || 0);
-
-                let targetProductId;
-                let startingImagePosition = 0;
-
-                const tagVal = (document.getElementById('prod-tag')?.value || 'NEW').trim().toUpperCase();
-                const rawDesc = document.getElementById('prod-desc').value.trim();
-                const cleanDesc = rawDesc.replace(/\s*\[TAG:[^\]]+\]/gi, '').trim();
-                const finalDesc = tagVal ? `${cleanDesc} [TAG:${tagVal}]` : cleanDesc;
-
-                if (editingId) {
-                    targetProductId = editingId;
-                    const updateObj = {
-                        name: document.getElementById('prod-name').value.trim(),
-                        slug: generateSlug(document.getElementById('prod-name').value.trim()),
-                        description: finalDesc,
-                        price: parseFloat(document.getElementById('prod-price').value),
-                        compare_at_price: parseFloat(document.getElementById('prod-compare-price').value) || null,
-                        category_id: document.getElementById('prod-category').value,
-                        stock_quantity: totalBaseStock
-                    };
-                    try { updateObj.tag = tagVal; } catch (_) {}
-
-                    let { error: updateError } = await supabaseClient.from('products').update(updateObj).eq('id', editingId);
-                    if (updateError && updateError.message && updateError.message.includes('tag')) {
-                        delete updateObj.tag;
-                        const retry = await supabaseClient.from('products').update(updateObj).eq('id', editingId);
-                        updateError = retry.error;
-                    }
-
-                    if (updateError) throw updateError;
-
-                    // Store tag locally as fallback
-                    try {
-                        const tagsMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}');
-                        tagsMap[String(editingId)] = tagVal;
-                        localStorage.setItem('kappa_product_tags', JSON.stringify(tagsMap));
-                    } catch (_) {}
-
-                    await supabaseClient.from('product_variants').delete().eq('product_id', editingId);
-
-                    if (variantRows.length > 0) {
-                        const variantsToInsert = Array.from(variantRows).map(row => ({
-                            product_id: editingId,
-                            color: row.getAttribute('data-color'),
-                            size: row.getAttribute('data-size'),
-                            sku: row.querySelector('.variant-sku').value.trim() || null,
-                            stock_quantity: parseInt(row.querySelector('.variant-stock').value)
-                        }));
-                        await supabaseClient.from('product_variants').insert(variantsToInsert);
-                    }
-
-                    const { data: existingImgs } = await supabaseClient.from('product_images').select('position').eq('product_id', editingId).order('position', { ascending: false }).limit(1);
-                    if (existingImgs && existingImgs.length > 0) {
-                        startingImagePosition = existingImgs[0].position + 1;
-                    }
-
-                } else {
-                    const insertObj = {
-                        name: document.getElementById('prod-name').value.trim(),
-                        slug: generateSlug(document.getElementById('prod-name').value.trim()),
-                        description: finalDesc,
-                        price: parseFloat(document.getElementById('prod-price').value),
-                        compare_at_price: parseFloat(document.getElementById('prod-compare-price').value) || null,
-                        category_id: document.getElementById('prod-category').value,
-                        stock_quantity: totalBaseStock,
-                        is_active: true
-                    };
-                    try { insertObj.tag = tagVal; } catch (_) {}
-
-                    let { data: newProduct, error: insertError } = await supabaseClient.from('products').insert([insertObj]).select().single();
-                    if (insertError && insertError.message && insertError.message.includes('tag')) {
-                        delete insertObj.tag;
-                        const retry = await supabaseClient.from('products').insert([insertObj]).select().single();
-                        insertError = retry.error;
-                        newProduct = retry.data;
-                    }
-
-                    if (insertError) throw insertError;
-                    targetProductId = newProduct.id;
-
-                    // Store tag locally as fallback
-                    try {
-                        const tagsMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}');
-                        tagsMap[String(targetProductId)] = tagVal;
-                        localStorage.setItem('kappa_product_tags', JSON.stringify(tagsMap));
-                    } catch (_) {}
-
-                    if (variantRows.length > 0) {
-                        const variantsToInsert = Array.from(variantRows).map(row => ({
-                            product_id: targetProductId,
-                            color: row.getAttribute('data-color'),
-                            size: row.getAttribute('data-size'),
-                            sku: row.querySelector('.variant-sku').value.trim() || null,
-                            stock_quantity: parseInt(row.querySelector('.variant-stock').value)
-                        }));
-                        await supabaseClient.from('product_variants').insert(variantsToInsert);
-                    }
-                }
-
-                const fileInput = document.getElementById('prod-images');
-                if (fileInput && fileInput.files.length > 0) {
-                    const imageRows = [];
-
-                    for (const [index, file] of pendingImageFiles.entries()) {
-                        const filePath = `${targetProductId}/${Date.now()}_${file.name}`;
-                        const { error: uploadError } = await supabaseClient.storage.from('product-images').upload(filePath, file);
-                        if (uploadError) throw uploadError;
-
-                        const { data: { publicUrl } } = supabaseClient.storage.from('product-images').getPublicUrl(filePath);
-
-                        let finalUrl = publicUrl;
-                        if (file._colorTag) {
-                            finalUrl += `#${file._colorTag}`;
-                        }
-
-                        imageRows.push({ product_id: targetProductId, url: finalUrl, position: startingImagePosition + index });
-                    }
-                    await supabaseClient.from('product_images').insert(imageRows);
-                }
-
-                alert(editingId ? "Product updated successfully!" : "Product published successfully!");
-                try {
-                    localStorage.removeItem("kappa_cached_products");
-                } catch (e) { }
-                clearProductForm();
-
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally {
-                submitBtn.textContent = document.getElementById('editing-product-id').value ? "Save Changes" : "Publish Product to Storefront";
-                submitBtn.disabled = false;
+        let stockInputsHtml = '';
+        availableSizes.forEach(sz => {
+            const isChecked = variant.sizes && variant.sizes[sz] !== undefined && variant.sizes[sz] !== null;
+            if (isChecked) {
+                const stockVal = variant.sizes[sz] !== undefined ? variant.sizes[sz] : 0;
+                stockInputsHtml += `
+                    <div class="variant-stock-item">
+                        <label>Size ${sz}</label>
+                        <input type="number" value="${stockVal}" min="0" oninput="updateVariantStock(${vIdx}, '${sz}', this.value)">
+                    </div>
+                `;
             }
         });
+
+        if (!stockInputsHtml) {
+            stockInputsHtml = `<div style="font-size:12px; color:#888; font-style:italic; grid-column:1/-1;">Check size boxes above to enter stock.</div>`;
+        }
+
+        html += `
+            <div class="variant-card" id="variant-card-${vIdx}">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:12px; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:14px; font-weight:800; color:#0f172a; font-family:monospace; background:#f1f5f9; padding:4px 10px; border-radius:6px;">COLOR VARIANT ${vIdx + 1}</span>
+                    </div>
+                    ${colorVariantsData.length > 1 ? `<button type="button" onclick="removeColorVariant(${vIdx})" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">[ Remove Variant ]</button>` : ''}
+                </div>
+
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:16px;">
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Color Name *</label>
+                        <input type="text" class="admin-input" placeholder="e.g. Black, White, Navy Blue" value="${variant.colorName || ''}" oninput="updateVariantColorName(${vIdx}, this.value)" required style="font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Color Code</label>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="color" value="${variant.colorCode || '#000000'}" onchange="updateVariantColorCode(${vIdx}, this.value)" style="height:42px; width:54px; padding:2px; border-radius:8px; border:1px solid #cbd5e1; cursor:pointer;">
+                            <span style="font-family:monospace; font-size:12px; font-weight:700; color:#475569;" id="color-hex-label-${vIdx}">${variant.colorCode || '#000000'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:18px; background:#fafafa; border:1px solid #f1f5f9; padding:14px; border-radius:10px;">
+                    <label style="display:block; font-size:12px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">
+                        🖼️ Product Images (Optional)
+                    </label>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                        <div>
+                            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">Front image (Optional)</div>
+                            ${variant.frontImg ? `
+                                <div style="position:relative; width:100px; height:100px; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1;">
+                                    <img src="${variant.frontImg}" style="width:100%; height:100%; object-fit:cover;">
+                                    <button type="button" onclick="removeVariantImage(${vIdx}, 'front')" style="position:absolute; top:4px; right:4px; background:#dc2626; color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+                                </div>
+                            ` : `
+                                <label class="img-upload-box">
+                                    <input type="file" accept="image/*" style="display:none;" onchange="handleVariantImageUpload(${vIdx}, 'front', event)">
+                                    <span style="font-size:20px; margin-bottom:4px;">📷</span>
+                                    <span style="font-size:12px; font-weight:700; color:#0f172a;">+ Upload Front Image</span>
+                                </label>
+                            `}
+                        </div>
+
+                        <div>
+                            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">Back image (Optional)</div>
+                            ${variant.backImg ? `
+                                <div style="position:relative; width:100px; height:100px; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1;">
+                                    <img src="${variant.backImg}" style="width:100%; height:100%; object-fit:cover;">
+                                    <button type="button" onclick="removeVariantImage(${vIdx}, 'back')" style="position:absolute; top:4px; right:4px; background:#dc2626; color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+                                </div>
+                            ` : `
+                                <label class="img-upload-box">
+                                    <input type="file" accept="image/*" style="display:none;" onchange="handleVariantImageUpload(${vIdx}, 'back', event)">
+                                    <span style="font-size:20px; margin-bottom:4px;">📷</span>
+                                    <span style="font-size:12px; font-weight:700; color:#0f172a;">+ Upload Back Image</span>
+                                </label>
+                            `}
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px;">
+                        📦 Inventory & Sizes
+                    </label>
+                    <div style="font-size:12px; color:#64748b; margin-top:2px;">Select available sizes:</div>
+                    
+                    <div class="size-pill-group">
+                        ${sizeCheckboxesHtml}
+                    </div>
+
+                    <div class="variant-stock-grid">
+                        ${stockInputsHtml}
+                    </div>
+
+                    <div style="margin-top:12px; display:flex; align-items:center; gap:10px;">
+                        <label style="font-size:12px; font-weight:700; color:#475569;">Minimum Stock Alert Threshold:</label>
+                        <input type="number" value="${variant.minStock || 5}" min="1" style="width:80px; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; font-weight:700;" oninput="updateVariantMinStock(${vIdx}, this.value)">
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+window.updateVariantColorName = function (vIdx, val) {
+    if (colorVariantsData[vIdx]) {
+        colorVariantsData[vIdx].colorName = val;
+        updateLiveProductSummary();
     }
+};
+
+window.updateVariantColorCode = function (vIdx, val) {
+    if (colorVariantsData[vIdx]) {
+        colorVariantsData[vIdx].colorCode = val;
+        const hexLabel = document.getElementById(`color-hex-label-${vIdx}`);
+        if (hexLabel) hexLabel.textContent = val;
+    }
+};
+
+window.updateVariantMinStock = function (vIdx, val) {
+    if (colorVariantsData[vIdx]) {
+        colorVariantsData[vIdx].minStock = parseInt(val) || 5;
+    }
+};
+
+window.toggleVariantSize = function (vIdx, size, isChecked) {
+    if (!colorVariantsData[vIdx]) return;
+    if (!colorVariantsData[vIdx].sizes) colorVariantsData[vIdx].sizes = {};
+
+    if (isChecked) {
+        if (colorVariantsData[vIdx].sizes[size] === undefined) {
+            colorVariantsData[vIdx].sizes[size] = 5;
+        }
+    } else {
+        delete colorVariantsData[vIdx].sizes[size];
+    }
+
+    renderAllColorVariants();
+    updateLiveProductSummary();
+};
+
+window.updateVariantStock = function (vIdx, size, val) {
+    if (colorVariantsData[vIdx] && colorVariantsData[vIdx].sizes) {
+        colorVariantsData[vIdx].sizes[size] = parseInt(val) || 0;
+        updateLiveProductSummary();
+    }
+};
+
+window.handleVariantImageUpload = function (vIdx, type, event) {
+    const file = event.target.files[0];
+    if (!file || !colorVariantsData[vIdx]) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        if (type === 'front') colorVariantsData[vIdx].frontImg = e.target.result;
+        else if (type === 'back') colorVariantsData[vIdx].backImg = e.target.result;
+
+        renderAllColorVariants();
+    };
+    reader.readAsDataURL(file);
+};
+
+window.removeVariantImage = function (vIdx, type) {
+    if (colorVariantsData[vIdx]) {
+        if (type === 'front') colorVariantsData[vIdx].frontImg = '';
+        else if (type === 'back') colorVariantsData[vIdx].backImg = '';
+
+        renderAllColorVariants();
+    }
+};
+
+window.updateLiveProductSummary = function () {
+    const name = document.getElementById('prod-name')?.value.trim() || '—';
+    const gender = document.getElementById('prod-gender')?.value || '';
+    const cat = document.getElementById('prod-category')?.value || '';
+    const sellPrice = parseFloat(document.getElementById('prod-price')?.value) || 0;
+    const comparePrice = parseFloat(document.getElementById('prod-compare-price')?.value) || 0;
+    const status = document.querySelector('input[name="prod-status"]:checked')?.value || 'Active';
+
+    const sumNameEl = document.getElementById('summary-prod-name');
+    if (sumNameEl) sumNameEl.textContent = name;
+
+    const sumCatEl = document.getElementById('summary-prod-cat');
+    if (sumCatEl) sumCatEl.textContent = (gender && cat) ? `${gender} → ${cat}` : (gender || cat || '—');
+
+    const sumPriceEl = document.getElementById('summary-prod-price');
+    if (sumPriceEl) {
+        if (sellPrice > 0) {
+            let pStr = `₹${sellPrice}`;
+            if (comparePrice > sellPrice) {
+                const pct = Math.round(((comparePrice - sellPrice) / comparePrice) * 100);
+                pStr += ` (MRP: ₹${comparePrice} | ${pct}% OFF)`;
+            }
+            sumPriceEl.textContent = pStr;
+        } else {
+            sumPriceEl.textContent = '—';
+        }
+    }
+
+    const sumColorsEl = document.getElementById('summary-prod-colors');
+    if (sumColorsEl) sumColorsEl.textContent = colorVariantsData.length;
+
+    let allSizesSet = new Set();
+    let totalStockSum = 0;
+
+    colorVariantsData.forEach(v => {
+        if (v.sizes) {
+            Object.keys(v.sizes).forEach(sz => {
+                allSizesSet.add(sz);
+                totalStockSum += (parseInt(v.sizes[sz]) || 0);
+            });
+        }
+    });
+
+    const sumSizesEl = document.getElementById('summary-prod-sizes');
+    if (sumSizesEl) {
+        sumSizesEl.textContent = allSizesSet.size > 0 ? Array.from(allSizesSet).join(', ') : 'None';
+    }
+
+    const sumStockEl = document.getElementById('summary-prod-stock');
+    if (sumStockEl) {
+        sumStockEl.textContent = totalStockSum;
+    }
+
+    const sumStatusEl = document.getElementById('summary-prod-status');
+    if (sumStatusEl) {
+        sumStatusEl.textContent = status;
+        if (status === 'Active') sumStatusEl.style.background = '#16a34a';
+        else if (status === 'Draft') sumStatusEl.style.background = '#d97706';
+        else if (status === 'Out of Stock') sumStatusEl.style.background = '#dc2626';
+        else sumStatusEl.style.background = '#64748b';
+    }
+};
+
+window.cancelProductForm = function () {
+    clearProductForm();
+    if (typeof switchAdminView === 'function') {
+        switchAdminView('inventory');
+    }
+};
+
+window.saveProductAsDraft = function () {
+    const draftRadio = document.querySelector('input[name="prod-status"][value="Draft"]');
+    if (draftRadio) draftRadio.checked = true;
+    saveProductForm();
+};
+
+window.saveProductForm = async function (e) {
+    if (e) e.preventDefault();
+
+    const submitBtn = document.getElementById('btn-submit-product');
+    const name = document.getElementById('prod-name')?.value.trim();
+    const gender = document.getElementById('prod-gender')?.value;
+    const category = document.getElementById('prod-category')?.value;
+    const subCategory = document.getElementById('prod-subcategory')?.value || '';
+    const sku = document.getElementById('prod-sku')?.value.trim();
+    const sellPrice = parseFloat(document.getElementById('prod-price')?.value);
+    const comparePrice = parseFloat(document.getElementById('prod-compare-price')?.value) || null;
+    const desc = document.getElementById('prod-desc')?.value.trim() || '';
+    const status = document.querySelector('input[name="prod-status"]:checked')?.value || 'Active';
+    const isAvailable = document.getElementById('prod-is-available')?.checked ?? true;
+    const tax = document.getElementById('prod-tax')?.value || '5%';
+
+    if (!name || !gender || !category || !sku || isNaN(sellPrice)) {
+        alert("Please fill in required fields: Product Name, Gender, Category, SKU, and Selling Price.");
+        return;
+    }
+
+    if (colorVariantsData.length === 0) {
+        alert("Please add at least ONE Color Variant.");
+        return;
+    }
+
+    for (let i = 0; i < colorVariantsData.length; i++) {
+        const v = colorVariantsData[i];
+        if (!v.colorName || !v.colorName.trim()) {
+            alert(`Please enter Color Name for Variant ${i + 1}.`);
+            return;
+        }
+        const sizeKeys = Object.keys(v.sizes || {});
+        if (sizeKeys.length === 0) {
+            alert(`Please select at least ONE size for Variant "${v.colorName}".`);
+            return;
+        }
+    }
+
+    if (submitBtn) {
+        submitBtn.textContent = 'Saving Product...';
+        submitBtn.disabled = true;
+    }
+
+    try {
+        const editingId = document.getElementById('editing-product-id')?.value;
+
+        let totalStockSum = 0;
+        colorVariantsData.forEach(v => {
+            if (v.sizes) {
+                Object.values(v.sizes).forEach(qty => totalStockSum += (parseInt(qty) || 0));
+            }
+        });
+
+        const metadataTag = `[META:gender=${gender}|subcat=${subCategory}|tax=${tax}]`;
+        const finalDesc = `${desc} ${metadataTag}`.trim();
+
+        const prodDataObj = {
+            name: name,
+            slug: generateSlug(name),
+            description: finalDesc,
+            price: sellPrice,
+            compare_at_price: comparePrice,
+            stock_quantity: totalStockSum,
+            sku: sku,
+            is_active: status === 'Active' && isAvailable
+        };
+
+        let targetProductId = editingId;
+
+        if (editingId) {
+            await supabaseClient.from('products').update(prodDataObj).eq('id', editingId);
+        } else {
+            const { data: newProd, error: insertError } = await supabaseClient.from('products').insert([prodDataObj]).select().single();
+            if (insertError) throw insertError;
+            targetProductId = newProd.id;
+        }
+
+        if (targetProductId) {
+            await supabaseClient.from('product_variants').delete().eq('product_id', targetProductId);
+
+            const variantsToInsert = [];
+            colorVariantsData.forEach(v => {
+                Object.keys(v.sizes || {}).forEach(sz => {
+                    variantsToInsert.push({
+                        product_id: targetProductId,
+                        color: v.colorName.trim(),
+                        size: sz,
+                        stock_quantity: parseInt(v.sizes[sz]) || 0,
+                        sku: `${sku}-${v.colorName.substring(0,3).toUpperCase()}-${sz}`
+                    });
+                });
+            });
+
+            if (variantsToInsert.length > 0) {
+                await supabaseClient.from('product_variants').insert(variantsToInsert);
+            }
+
+            const imagesToInsert = [];
+
+            if (currentDefaultImageUrl) {
+                imagesToInsert.push({
+                    product_id: targetProductId,
+                    url: currentDefaultImageUrl,
+                    position: 0
+                });
+            }
+
+            colorVariantsData.forEach((v, idx) => {
+                if (v.frontImg) {
+                    imagesToInsert.push({
+                        product_id: targetProductId,
+                        url: `${v.frontImg}#${v.colorName}#front`,
+                        position: idx * 2 + 1
+                    });
+                }
+                if (v.backImg) {
+                    imagesToInsert.push({
+                        product_id: targetProductId,
+                        url: `${v.backImg}#${v.colorName}#back`,
+                        position: idx * 2 + 2
+                    });
+                }
+            });
+
+            if (imagesToInsert.length > 0) {
+                await supabaseClient.from('product_images').delete().eq('product_id', targetProductId);
+                await supabaseClient.from('product_images').insert(imagesToInsert);
+            }
+
+            try {
+                const richVariantsStore = JSON.parse(localStorage.getItem('kappa_rich_variants') || '{}');
+                richVariantsStore[String(targetProductId)] = {
+                    gender: gender,
+                    category: category,
+                    subCategory: subCategory,
+                    tax: tax,
+                    variants: colorVariantsData
+                };
+                localStorage.setItem('kappa_rich_variants', JSON.stringify(richVariantsStore));
+            } catch (_) {}
+        }
+
+        alert(editingId ? "✓ Product updated successfully" : "✓ Product added successfully");
+
+        clearProductForm();
+        if (typeof switchAdminView === 'function') switchAdminView('inventory');
+        if (typeof loadInventory === 'function') await loadInventory();
+
+    } catch (err) {
+        console.error("Error saving product:", err);
+        alert("❌ Error saving product: " + (err.message || err));
+    } finally {
+        if (submitBtn) {
+            submitBtn.textContent = document.getElementById('editing-product-id')?.value ? "Save Product Changes" : "Add Product";
+            submitBtn.disabled = false;
+        }
+    }
+};
+
+function clearProductForm() {
+    const editIdEl = document.getElementById('editing-product-id');
+    if (editIdEl) editIdEl.value = '';
+
+    const nameEl = document.getElementById('prod-name');
+    if (nameEl) nameEl.value = '';
+
+    const genderEl = document.getElementById('prod-gender');
+    if (genderEl) genderEl.value = '';
+
+    const catEl = document.getElementById('prod-category');
+    if (catEl) catEl.innerHTML = '<option value="" disabled selected>Select Gender First ▼</option>';
+
+    const subCatEl = document.getElementById('prod-subcategory');
+    if (subCatEl) subCatEl.value = '';
+
+    const skuEl = document.getElementById('prod-sku');
+    if (skuEl) skuEl.value = '';
+
+    const descEl = document.getElementById('prod-desc');
+    if (descEl) descEl.value = '';
+
+    const priceEl = document.getElementById('prod-price');
+    if (priceEl) priceEl.value = '';
+
+    const compPriceEl = document.getElementById('prod-compare-price');
+    if (compPriceEl) compPriceEl.value = '';
+
+    const discBadge = document.getElementById('prod-discount-badge');
+    if (discBadge) discBadge.textContent = '0% OFF';
+
+    removeDefaultImage();
+    colorVariantsData = [];
+    renderAllColorVariants();
+    updateLiveProductSummary();
 }
 
 // ==========================================

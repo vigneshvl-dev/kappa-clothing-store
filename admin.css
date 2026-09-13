@@ -1526,4 +1526,112 @@ textarea.admin-input {
 .refund-badge.processing { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
 .refund-badge.refunded { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
 .refund-badge.no-refund { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+/* ==========================================
+   PRODUCT MANAGEMENT & VARIANTS MODULE STYLES
+   ========================================== */
+.variant-card {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.variant-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+.size-pill-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.size-checkbox-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.18s;
+}
+
+.size-checkbox-pill:hover {
+    border-color: #0f172a;
+    background: #f1f5f9;
+}
+
+.size-checkbox-pill input[type="checkbox"]:checked + span {
+    color: #0f172a;
+}
+
+.size-checkbox-pill.checked {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
+}
+
+.variant-stock-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.variant-stock-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.variant-stock-item label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.variant-stock-item input {
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.img-upload-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.img-upload-box:hover {
+    border-color: #0f172a;
+    background: #f1f5f9;
+}
+
 
