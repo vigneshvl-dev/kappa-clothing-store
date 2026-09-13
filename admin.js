@@ -2059,6 +2059,32 @@ window.showOrderDetails = async function (orderId) {
     // ── 4. UPDATE ORDER STAGE ──────────────────────────────────────────────────
     const allStages = [...ORDER_STAGES, ...EXCEPTION_STAGES];
     let stageOptions = allStages.map(s => `<option value="${s}" ${s === orderStage ? 'selected' : ''}>${STAGE_LABELS[s] || s}</option>`).join('');
+
+    // Build rich WhatsApp message with product image & names
+    const _waItems   = (data.order_items && data.order_items.length > 0) ? data.order_items : [];
+    const _waImgUrl  = _waItems[0]?.image_url
+                    || _waItems[0]?.products?.product_images?.[0]?.url
+                    || '';
+    const _waNames   = _waItems.length > 0
+        ? _waItems.map(i => (i.products?.name || i.name || 'Product') + (i.size && i.size !== 'N/A' ? ' (' + i.size + ')' : '')).join(', ')
+        : 'Your order';
+    const _waShortId = data.id.toString().substring(0, 8).toUpperCase();
+    const _waStatus  = STAGE_LABELS[orderStage] || orderStage;
+    const _waNotifyMsg = [
+        `Hi ${cust.name || 'there'}! 👋`,
+        ``,
+        `Your *KAPPA Clothing* order has been updated! 🖤`,
+        ``,
+        `🛒 *Order ID:* #${_waShortId}`,
+        `📦 *Status:* ${_waStatus}`,
+        `🛍️ *Items:* ${_waNames}`,
+        `💰 *Total:* ₹${data.total_amount}`,
+        _waImgUrl ? `🖼️ *Product:* ${_waImgUrl}` : '',
+        ``,
+        `Thank you for shopping with KAPPA! 🖤`,
+        `For any queries, reply to this message.`
+    ].filter(l => l !== null && l !== undefined && !(l === '' && false)).join('\n');
+
     let updateStageHtml = `
         <div class="order-action-bar">
             <div style="font-size:12px; font-weight:700; color:#555; white-space:nowrap;">Update Stage:</div>
@@ -2066,7 +2092,7 @@ window.showOrderDetails = async function (orderId) {
             <button class="btn-update-stage" onclick="updateOrderStage('${data.id}', document.getElementById('stage-select-${data.id}').value)">
                 ✅ Update Status
             </button>
-            ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hi ' + (cust.name||'') + '! Your Kappa Clothing order #' + data.id.toString().substring(0,8).toUpperCase() + ' status has been updated. Current status: ' + (STAGE_LABELS[orderStage]||orderStage) + '. Total: ₹' + data.total_amount + '.')}" target="_blank" class="btn-whatsapp-notify">💬 Notify Customer</a>` : ''}
+            ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent(_waNotifyMsg)}" target="_blank" class="btn-whatsapp-notify">💬 Notify Customer</a>` : ''}
         </div>`;
 
     // ── 5. CUSTOMER + SHIPPING GRID ────────────────────────────────────────────
@@ -2079,7 +2105,7 @@ window.showOrderDetails = async function (orderId) {
                     ${cust.email ? `<a href="mailto:${cust.email}" style="color:#3498db; text-decoration:none;">${cust.email}</a>` : 'No email'}
                 </div>
                 <div style="font-size:13px; color:#555; margin-bottom:6px;">📞 ${cust.phone || 'N/A'}</div>
-                ${phoneClean ? `<a href="https://wa.me/91${phoneClean}" target="_blank" class="btn-whatsapp-notify" style="font-size:11px; padding:5px 10px; margin-top:4px;">💬 WhatsApp</a>` : ''}
+                ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent(_waNotifyMsg)}" target="_blank" class="btn-whatsapp-notify" style="font-size:11px; padding:5px 10px; margin-top:4px;">💬 WhatsApp</a>` : ''}
             </div>
             <div class="order-detail-section" style="margin-bottom:0;">
                 <div class="order-detail-section-title">📍 Delivery Address</div>
@@ -2281,7 +2307,22 @@ window.showOrderDetails = async function (orderId) {
                 ${rzpId ? `<div style="background:#f1f5f9; border-radius:8px; padding:12px 16px; margin-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;"><div><div style="font-size:10px; color:#475569; font-weight:700; text-transform:uppercase;">Razorpay Payment ID</div><div style="font-family:monospace; font-size:13px; font-weight:800; color:#0f172a; margin-top:2px;">${rzpId}</div></div><div style="display:flex; gap:8px;"><button onclick="copyRefundText('${rzpId}', this)" style="background:#475569; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-weight:600;">Copy ID</button><a href="https://dashboard.razorpay.com/app/payments/${rzpId}" target="_blank" style="background:#2563eb; color:#fff; text-decoration:none; padding:5px 12px; border-radius:4px; font-size:11px; font-weight:700;">Refund via Razorpay ↗</a></div></div>` : ''}
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1.5px solid #fee2e2; flex-wrap:wrap; gap:10px;">
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        ${phoneClean ? `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (cust.name||'') + ', regarding your refund of ₹' + data.total_amount + ' for Kappa Clothing order #' + data.id.toString().substring(0,8).toUpperCase() + '...')}" target="_blank" class="btn-whatsapp-notify">💬 WhatsApp Customer</a>` : ''}
+                        ${phoneClean ? (() => {
+                            const _refWaMsg = [
+                                `Hello ${cust.name || 'there'} 👋`,
+                                ``,
+                                `Regarding your *KAPPA Clothing* order cancellation:`,
+                                ``,
+                                `🛒 *Order ID:* #${data.id.toString().substring(0,8).toUpperCase()}`,
+                                `💰 *Refund Amount:* ₹${data.total_amount}`,
+                                _waImgUrl ? `🖼️ *Product:* ${_waImgUrl}` : '',
+                                ``,
+                                `Your refund will be processed to your provided UPI/Bank account within 2–4 working days.`,
+                                ``,
+                                `Thank you for your patience. — KAPPA Team 🖤`
+                            ].filter(l => l !== null && l !== undefined).join('\n');
+                            return `<a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent(_refWaMsg)}" target="_blank" class="btn-whatsapp-notify">💬 WhatsApp Customer</a>`;
+                        })() : ''}
                         <button onclick="openAdminEditRefundModal('${data.id}')" style="background:#fff; border:1.5px solid #cbd5e1; color:#334155; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">✏️ Edit Refund Info</button>
                     </div>
                     <div>

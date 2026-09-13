@@ -192,3 +192,128 @@ $$;
 
 -- Grant execution permissions
 GRANT EXECUTE ON FUNCTION public.get_admin_dashboard_metrics() TO authenticated, service_role, anon;
+
+
+-- ============================================================
+-- 6. ORDER TRACKING QUERIES (My Orders Timeline & Delivery)
+-- Run individually in Supabase SQL Editor
+-- ============================================================
+
+-- ── 6A. FULL ORDER TRACKING VIEW (All orders with timeline info) ──────────────
+SELECT
+    o.id                                                  AS order_id,
+    o.created_at,
+    o.status,
+    COALESCE(o.order_stage, 'incoming')                   AS order_stage,
+    o.total_amount,
+
+    -- Customer info
+    o.customer_details->>'name'                           AS customer_name,
+    o.customer_details->>'email'                          AS customer_email,
+    o.customer_details->>'phone'                          AS customer_phone,
+
+    -- Shipping address
+    o.shipping_address->>'address'                        AS address,
+    o.shipping_address->>'city'                           AS city,
+    o.shipping_address->>'state'                          AS state,
+    o.shipping_address->>'zip'                            AS pincode,
+
+    -- Delivery & tracking
+    o.delivery_details->>'partner'                        AS courier_partner,
+    o.delivery_details->>'tracking_id'                    AS tracking_id,
+    o.delivery_details->>'tracking_url'                   AS tracking_url,
+    o.delivery_details->>'eta_days'                       AS eta_message,
+    o.delivery_details->>'expected_delivery'              AS expected_delivery_date,
+    o.delivery_details->>'delivery_status'                AS delivery_status,
+
+    -- Stage history (full JSON array)
+    o.stage_history,
+
+    -- Cancellation
+    o.cancellation_reason,
+    o.refund_details->>'method'                           AS refund_method,
+    o.refund_details->>'refund_status'                    AS refund_status,
+    o.refund_details->>'upi_id'                           AS refund_upi,
+    o.refund_details->>'cancelled_at'                     AS cancelled_at
+
+FROM public.orders o
+ORDER BY o.created_at DESC;
+
+
+-- ── 6B. ORDER STAGE COUNT BREAKDOWN (How many orders in each stage) ──────────
+SELECT
+    COALESCE(order_stage, 'incoming')  AS stage,
+    COUNT(*)                           AS order_count,
+    ROUND(
+        COUNT(*) * 100.0 / NULLIF((SELECT COUNT(*) FROM public.orders), 0),
+        1
+    )                                  AS percentage
+FROM public.orders
+GROUP BY order_stage
+ORDER BY order_count DESC;
+
+
+-- ── 6C. FIND A SINGLE ORDER BY ID (replace the UUID below) ───────────────────
+-- Paste your order UUID between the single quotes and run
+SELECT
+    o.id                                           AS order_id,
+    o.created_at,
+    o.status,
+    COALESCE(o.order_stage, 'incoming')            AS order_stage,
+    o.total_amount,
+    o.customer_details->>'name'                    AS customer_name,
+    o.customer_details->>'phone'                   AS phone,
+    o.delivery_details->>'tracking_id'             AS tracking_id,
+    o.delivery_details->>'partner'                 AS courier,
+    o.delivery_details->>'eta_days'                AS eta_message,
+    o.delivery_details->>'expected_delivery'       AS expected_date,
+    o.stage_history,
+    o.cancellation_reason,
+    o.refund_details
+FROM public.orders o
+ORDER BY o.created_at DESC
+LIMIT 1;
+-- ↑ Shows the most recent order by default.
+-- To look up a specific order, replace the query above with:
+--
+-- SELECT o.id AS order_id, o.created_at, o.status,
+--        COALESCE(o.order_stage, 'incoming') AS order_stage,
+--        o.total_amount,
+--        o.customer_details->>'name' AS customer_name,
+--        o.customer_details->>'phone' AS phone,
+--        o.delivery_details->>'tracking_id' AS tracking_id,
+--        o.delivery_details->>'partner' AS courier,
+--        o.delivery_details->>'eta_days' AS eta_message,
+--        o.delivery_details->>'expected_delivery' AS expected_date,
+--        o.stage_history, o.cancellation_reason, o.refund_details
+-- FROM public.orders o
+-- WHERE o.id = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+
+
+-- ── 6D. EXPAND stage_history ARRAY (one row per stage event) ─────────────────
+SELECT
+    o.id                                  AS order_id,
+    o.customer_details->>'name'           AS customer_name,
+    o.total_amount,
+    sh.value->>'stage'                    AS stage,
+    sh.value->>'label'                    AS stage_label,
+    (sh.value->>'timestamp')::timestamptz AS stage_timestamp
+FROM public.orders o,
+     jsonb_array_elements(COALESCE(o.stage_history, '[]'::jsonb)) AS sh(value)
+ORDER BY o.created_at DESC, stage_timestamp ASC;
+
+
+-- ── 6E. ORDERS AWAITING DISPATCH (no tracking ID, not cancelled/delivered) ───
+SELECT
+    o.id                               AS order_id,
+    o.created_at,
+    COALESCE(o.order_stage, 'incoming') AS stage,
+    o.total_amount,
+    o.customer_details->>'name'        AS customer_name,
+    o.customer_details->>'phone'       AS phone,
+    o.shipping_address->>'city'        AS city
+FROM public.orders o
+WHERE (o.delivery_details->>'tracking_id' IS NULL
+       OR o.delivery_details->>'tracking_id' = '')
+  AND COALESCE(o.order_stage, 'incoming') NOT IN ('cancelled','delivered','returned','refunded')
+ORDER BY o.created_at ASC;

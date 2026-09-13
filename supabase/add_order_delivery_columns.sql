@@ -206,3 +206,68 @@ SELECT
 FROM public.orders
 WHERE order_stage = 'cancelled' OR status ILIKE '%cancel%'
 ORDER BY created_at DESC;
+
+-- ============================================================
+-- 6. QUERIES FOR ORDER TRACKING TIMELINE & ETA (NEW)
+-- Run in Supabase SQL Editor after the above script
+-- ============================================================
+
+-- Ensure delivery_details column exists (safe to re-run)
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivery_details jsonb DEFAULT '{}'::jsonb;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS stage_history    jsonb DEFAULT '[]'::jsonb;
+
+-- Query C: View all orders with tracking + delivery ETA (for debugging)
+SELECT
+    id                                             AS order_id,
+    created_at,
+    status,
+    order_stage,
+    total_amount,
+    customer_details->>'name'                      AS customer_name,
+    customer_details->>'phone'                     AS customer_phone,
+    delivery_details->>'partner'                   AS courier_partner,
+    delivery_details->>'tracking_id'               AS tracking_id,
+    delivery_details->>'tracking_url'              AS tracking_url,
+    delivery_details->>'eta_days'                  AS eta_message,
+    delivery_details->>'expected_delivery'         AS expected_date,
+    delivery_details->>'delivery_status'           AS delivery_status,
+    stage_history
+FROM public.orders
+ORDER BY created_at DESC;
+
+-- Query D: Update ETA message for a specific order
+--   Replace <ORDER_UUID> with the actual order ID
+--   Replace '2-4 working days' with the message you want shown to the customer
+/*
+UPDATE public.orders
+SET delivery_details = COALESCE(delivery_details, '{}'::jsonb)
+                       || jsonb_build_object('eta_days', '2-4 working days')
+WHERE id = '<ORDER_UUID>';
+*/
+
+-- Query E: Bulk-set default ETA for all active (non-cancelled, non-delivered) orders
+--   that don't yet have an ETA message
+/*
+UPDATE public.orders
+SET delivery_details = COALESCE(delivery_details, '{}'::jsonb)
+                       || jsonb_build_object('eta_days', '2-4 working days')
+WHERE order_stage NOT IN ('cancelled', 'delivered', 'returned', 'refunded')
+  AND (delivery_details->>'eta_days' IS NULL OR delivery_details->>'eta_days' = '');
+*/
+
+-- Query F: Add a stage_history entry manually (e.g. mark order as 'shipped' with today's date)
+--   Replace <ORDER_UUID> with the actual order ID
+/*
+UPDATE public.orders
+SET
+    order_stage   = 'shipped',
+    stage_history = COALESCE(stage_history, '[]'::jsonb)
+                    || jsonb_build_array(
+                           jsonb_build_object(
+                               'stage',     'shipped',
+                               'label',     'Shipped',
+                               'timestamp', NOW()
+                           )
+                       )
+WHERE id = '<ORDER_UUID>';
+*/
