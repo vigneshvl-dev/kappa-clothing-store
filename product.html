@@ -902,6 +902,396 @@
                 padding: 40px 20px 0 20px;
             }
         }
+
+        /* ============ PDP REVIEWS SECTION ============ */
+        .pdp-rating-snippet {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0 14px 0;
+            font-size: 13px;
+            color: #444;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .pdp-rating-snippet:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+        .pdp-rating-snippet-stars {
+            color: #FFB800;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        .pdp-reviews-section {
+            max-width: 1100px;
+            margin: 60px auto 20px;
+            padding: 0 40px;
+            font-family: 'Inter', sans-serif;
+        }
+        .pdp-reviews-box {
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 36px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+        .pdp-reviews-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 24px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .pdp-reviews-title-wrap h3 {
+            font-size: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #111;
+            margin-bottom: 6px;
+        }
+        .pdp-reviews-title-wrap p {
+            font-size: 13px;
+            color: #666;
+        }
+        .btn-write-review {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #111;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-write-review:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .pdp-reviews-summary-grid {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 36px;
+            margin-bottom: 32px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+        }
+        .pdp-rating-big-score {
+            text-align: center;
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 24px;
+            border: 1px solid #f0f0f0;
+        }
+        .pdp-rating-big-num {
+            font-size: 48px;
+            font-weight: 800;
+            color: #111;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .pdp-rating-big-stars {
+            color: #FFB800;
+            font-size: 20px;
+            letter-spacing: 3px;
+            margin-bottom: 6px;
+        }
+        .pdp-rating-count-text {
+            font-size: 12px;
+            color: #777;
+            font-weight: 500;
+        }
+        .pdp-breakdown-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .pdp-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: #555;
+            font-weight: 600;
+        }
+        .pdp-bar-label {
+            width: 45px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .pdp-bar-track {
+            flex: 1;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .pdp-bar-fill {
+            height: 100%;
+            background: #FFB800;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        .pdp-bar-count {
+            width: 35px;
+            text-align: right;
+            color: #888;
+            font-size: 11px;
+        }
+        /* Write Review Form Card */
+        .pdp-review-form-panel {
+            background: #fdfdfd;
+            border: 1.5px solid #111;
+            border-radius: 10px;
+            padding: 28px;
+            margin-bottom: 32px;
+            display: none;
+            animation: fadeInDown 0.3s ease;
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pdp-form-title {
+            font-size: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+            color: #111;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pdp-star-picker-wrap {
+            margin-bottom: 20px;
+        }
+        .pdp-star-picker-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .pdp-interactive-stars {
+            display: inline-flex;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .pdp-star-btn {
+            font-size: 28px;
+            color: #ddd;
+            transition: color 0.15s, transform 0.15s;
+            user-select: none;
+            line-height: 1;
+        }
+        .pdp-star-btn.active,
+        .pdp-star-btn.hover {
+            color: #FFB800;
+            transform: scale(1.1);
+        }
+        .pdp-rating-sentiment {
+            display: inline-block;
+            margin-left: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #111;
+            vertical-align: middle;
+        }
+        .pdp-form-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .pdp-input-group {
+            margin-bottom: 16px;
+        }
+        .pdp-input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .pdp-input-field,
+        .pdp-textarea-field {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #fff;
+        }
+        .pdp-input-field:focus,
+        .pdp-textarea-field:focus {
+            border-color: #111;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.06);
+        }
+        .pdp-textarea-field {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .pdp-form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+        .btn-cancel-review {
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .btn-submit-review {
+            background: #111;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit-review:hover {
+            background: #333;
+        }
+        /* Reviews list */
+        .pdp-reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .pdp-review-card {
+            padding: 22px;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+            background: #fafafa;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .pdp-review-card:hover {
+            background: #fff;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        }
+        .pdp-review-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .pdp-reviewer-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .pdp-reviewer-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #111;
+            color: #FFD700;
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .pdp-reviewer-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pdp-verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #059669;
+            background: #ecfdf5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .pdp-review-date {
+            font-size: 12px;
+            color: #888;
+        }
+        .pdp-review-stars {
+            color: #FFB800;
+            font-size: 15px;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .pdp-review-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 6px;
+        }
+        .pdp-review-comment {
+            font-size: 13.5px;
+            color: #444;
+            line-height: 1.6;
+        }
+        .pdp-no-reviews {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+        .pdp-no-reviews-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            color: #FFB800;
+        }
+        @media (max-width: 768px) {
+            .pdp-reviews-section {
+                padding: 0 20px;
+                margin-top: 40px;
+            }
+            .pdp-reviews-box {
+                padding: 20px;
+            }
+            .pdp-reviews-summary-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .pdp-form-row-2 {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -1037,6 +1427,13 @@
         <!-- Right: Textual Specification Column -->
         <div class="hero-right">
             <h1 class="hero-title" id="pdp-title">Loading...</h1>
+
+            <!-- Rating Snippet -->
+            <div class="pdp-rating-snippet" id="pdp-rating-snippet" onclick="scrollToReviews()" style="display:none;">
+                <span class="pdp-rating-snippet-stars" id="pdp-snippet-stars">★★★★★</span>
+                <span id="pdp-snippet-text" style="font-weight:600;">0.0 (0 reviews)</span>
+                <span style="color:#777; font-size:12px; margin-left:4px;">• Write a review</span>
+            </div>
 
             <!-- Urgency / Stock Alert Badge -->
             <div id="pdp-stock-alert" class="pdp-stock-alert" style="display:none;">
@@ -1203,6 +1600,115 @@
             </div>
         </div>
     </main>
+
+    <!-- 3.5. CUSTOMER REVIEWS & RATINGS SECTION -->
+    <section class="pdp-reviews-section" id="reviews-section">
+        <div class="pdp-reviews-box">
+            <div class="pdp-reviews-topbar">
+                <div class="pdp-reviews-title-wrap">
+                    <h3>Customer Reviews</h3>
+                    <p>Verified ratings &amp; real customer feedback</p>
+                </div>
+                <button type="button" class="btn-write-review" id="btnToggleReviewForm" onclick="toggleReviewForm()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>Write a Review</span>
+                </button>
+            </div>
+
+            <!-- Summary rating breakdown -->
+            <div class="pdp-reviews-summary-grid">
+                <div class="pdp-rating-big-score">
+                    <div class="pdp-rating-big-num" id="pdp-summary-score">0.0</div>
+                    <div class="pdp-rating-big-stars" id="pdp-summary-stars">★★★★★</div>
+                    <div class="pdp-rating-count-text" id="pdp-summary-count">Based on 0 reviews</div>
+                </div>
+
+                <div class="pdp-breakdown-bars">
+                    <div class="pdp-bar-row">
+                        <div class="pdp-bar-label">5 ★</div>
+                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-5" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-count" id="count-5">0</div>
+                    </div>
+                    <div class="pdp-bar-row">
+                        <div class="pdp-bar-label">4 ★</div>
+                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-4" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-count" id="count-4">0</div>
+                    </div>
+                    <div class="pdp-bar-row">
+                        <div class="pdp-bar-label">3 ★</div>
+                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-3" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-count" id="count-3">0</div>
+                    </div>
+                    <div class="pdp-bar-row">
+                        <div class="pdp-bar-label">2 ★</div>
+                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-2" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-count" id="count-2">0</div>
+                    </div>
+                    <div class="pdp-bar-row">
+                        <div class="pdp-bar-label">1 ★</div>
+                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-1" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-count" id="count-1">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Write Review Form Panel -->
+            <div class="pdp-review-form-panel" id="pdpReviewFormPanel">
+                <div class="pdp-form-title">
+                    <span>Write Your Review</span>
+                    <button type="button" onclick="toggleReviewForm(false)" style="background:none; border:none; font-size:18px; cursor:pointer; color:#888;">✕</button>
+                </div>
+                
+                <form id="pdpReviewForm" onsubmit="event.preventDefault(); submitProductReview();">
+                    <!-- Interactive Star Rating -->
+                    <div class="pdp-star-picker-wrap">
+                        <label class="pdp-star-picker-label">Rating <span style="color:#e00;">*</span></label>
+                        <div class="pdp-interactive-stars" id="pdpStarPicker">
+                            <span class="pdp-star-btn active" data-val="1" onclick="setReviewRating(1)">★</span>
+                            <span class="pdp-star-btn active" data-val="2" onclick="setReviewRating(2)">★</span>
+                            <span class="pdp-star-btn active" data-val="3" onclick="setReviewRating(3)">★</span>
+                            <span class="pdp-star-btn active" data-val="4" onclick="setReviewRating(4)">★</span>
+                            <span class="pdp-star-btn active" data-val="5" onclick="setReviewRating(5)">★</span>
+                        </div>
+                        <span class="pdp-rating-sentiment" id="pdpRatingSentiment">5 - Excellent</span>
+                        <input type="hidden" id="pdpFormRating" value="5">
+                    </div>
+
+                    <div class="pdp-form-row-2">
+                        <div class="pdp-input-group">
+                            <label for="reviewAuthorName">Your Name <span style="color:#e00;">*</span></label>
+                            <input type="text" id="reviewAuthorName" class="pdp-input-field" placeholder="e.g. Alex Johnson" required>
+                        </div>
+                        <div class="pdp-input-group">
+                            <label for="reviewHeadline">Review Headline</label>
+                            <input type="text" id="reviewHeadline" class="pdp-input-field" placeholder="e.g. Perfect fit, ultra comfortable!">
+                        </div>
+                    </div>
+
+                    <div class="pdp-input-group">
+                        <label for="reviewComments">Your Review <span style="color:#e00;">*</span></label>
+                        <textarea id="reviewComments" class="pdp-textarea-field" placeholder="What did you like or dislike about this product? How does the material, fit, and style feel?" required></textarea>
+                    </div>
+
+                    <div class="pdp-form-actions">
+                        <button type="button" class="btn-cancel-review" onclick="toggleReviewForm(false)">Cancel</button>
+                        <button type="submit" class="btn-submit-review" id="btnSubmitReview">Submit Review</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Reviews Feed -->
+            <div class="pdp-reviews-list" id="pdpReviewsList">
+                <div class="pdp-no-reviews">
+                    <div class="pdp-no-reviews-icon">★</div>
+                    <p style="font-weight:700; color:#222; margin-bottom:4px;">No reviews yet</p>
+                    <p style="font-size:13px; color:#888;">Be the first to share your thoughts on this product!</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- 4. MATCH WITH Layer (Parent-Category strictly filtered) -->
     <section class="section-wrapper" id="match-with-section" style="display: none;">
@@ -2276,6 +2782,7 @@
                 renderSingleProduct(product);
 
                 loadZaraGrids(product.category_id, product.id);
+                if (typeof loadProductReviews === 'function') loadProductReviews(product.id);
 
             } catch (err) {
                 console.error("🔥 Error loading product:", err);
@@ -2646,6 +3153,322 @@ window.handleAddToCart = function handleAddToCart() {
         showProductToast(`✅ Added ${qty} item(s) to cart! Remaining stock: ${newStock}`);
     }
 }
+
+/* ============ PDP REVIEWS SYSTEM ============ */
+window.currentProductReviews = [];
+
+window.scrollToReviews = function() {
+    const sec = document.getElementById('reviews-section');
+    if (sec) {
+        sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+window.toggleReviewForm = function(forceState) {
+    const panel = document.getElementById('pdpReviewFormPanel');
+    const btn = document.getElementById('btnToggleReviewForm');
+    if (!panel) return;
+    
+    const isVisible = panel.style.display === 'block';
+    const shouldShow = (typeof forceState === 'boolean') ? forceState : !isVisible;
+    
+    panel.style.display = shouldShow ? 'block' : 'none';
+    if (btn) {
+        btn.innerHTML = shouldShow 
+            ? `✕ <span>Close Form</span>`
+            : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg><span>Write a Review</span>`;
+    }
+    
+    if (shouldShow) {
+        // Pre-fill user name if logged in
+        try {
+            const client = getPDPClient();
+            if (client && client.auth) {
+                client.auth.getUser().then(({ data }) => {
+                    if (data && data.user) {
+                        const nameInput = document.getElementById('reviewAuthorName');
+                        if (nameInput && !nameInput.value) {
+                            nameInput.value = data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split('@')[0] || '';
+                        }
+                    }
+                });
+            }
+        } catch (_) {}
+    }
+};
+
+window.setReviewRating = function(rating) {
+    const ratingInput = document.getElementById('pdpFormRating');
+    if (ratingInput) ratingInput.value = rating;
+    
+    const stars = document.querySelectorAll('#pdpStarPicker .pdp-star-btn');
+    stars.forEach(s => {
+        const val = parseInt(s.getAttribute('data-val') || '0', 10);
+        s.classList.toggle('active', val <= rating);
+    });
+    
+    const sentiments = {
+        1: '1 - Terrible',
+        2: '2 - Poor',
+        3: '3 - Average',
+        4: '4 - Good',
+        5: '5 - Excellent'
+    };
+    const sentEl = document.getElementById('pdpRatingSentiment');
+    if (sentEl) sentEl.textContent = sentiments[rating] || `${rating} Stars`;
+};
+
+// Hover effects for star picker
+document.addEventListener('DOMContentLoaded', () => {
+    const starPicker = document.getElementById('pdpStarPicker');
+    if (starPicker) {
+        const starBtns = starPicker.querySelectorAll('.pdp-star-btn');
+        starBtns.forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                const val = parseInt(btn.getAttribute('data-val') || '0', 10);
+                starBtns.forEach(s => {
+                    const sVal = parseInt(s.getAttribute('data-val') || '0', 10);
+                    s.classList.toggle('hover', sVal <= val);
+                });
+            });
+            btn.addEventListener('mouseleave', () => {
+                starBtns.forEach(s => s.classList.remove('hover'));
+            });
+        });
+    }
+});
+
+window.loadProductReviews = async function(productId) {
+    if (!productId) return;
+    try {
+        const client = getPDPClient();
+        if (!client) return;
+        
+        let reviews = [];
+        let res = await client
+            .from('product_reviews')
+            .select('*')
+            .eq('product_id', productId)
+            .order('created_at', { ascending: false });
+            
+        if (res.error || !res.data) {
+            const resFallback = await client
+                .from('reviews')
+                .select('*')
+                .eq('product_id', productId)
+                .order('created_at', { ascending: false });
+            if (!resFallback.error && resFallback.data) {
+                reviews = resFallback.data;
+            }
+        } else {
+            reviews = res.data;
+        }
+
+        const approved = (reviews || []).filter(r => r.is_approved !== false);
+        window.currentProductReviews = approved;
+        renderReviewsUI(approved);
+    } catch (err) {
+        console.error('Error fetching product reviews:', err);
+    }
+};
+
+function renderReviewsUI(reviews) {
+    const count = reviews.length;
+    let avg = 0;
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+    if (count > 0) {
+        const sum = reviews.reduce((acc, r) => {
+            const star = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
+            distribution[star] = (distribution[star] || 0) + 1;
+            return acc + star;
+        }, 0);
+        avg = (sum / count).toFixed(1);
+    }
+
+    // 1. Update Hero Snippet
+    const snippet = document.getElementById('pdp-rating-snippet');
+    const snippetStars = document.getElementById('pdp-snippet-stars');
+    const snippetText = document.getElementById('pdp-snippet-text');
+    if (snippet) {
+        if (count > 0) {
+            snippet.style.display = 'inline-flex';
+            if (snippetStars) snippetStars.innerHTML = '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg));
+            if (snippetText) snippetText.innerText = `${avg} (${count} ${count === 1 ? 'review' : 'reviews'})`;
+        } else {
+            snippet.style.display = 'inline-flex';
+            if (snippetStars) snippetStars.innerHTML = '★★★★★';
+            if (snippetText) snippetText.innerText = `0.0 (0 reviews)`;
+        }
+    }
+
+    // 2. Update Big Summary Box
+    const bigScore = document.getElementById('pdp-summary-score');
+    const bigStars = document.getElementById('pdp-summary-stars');
+    const bigCount = document.getElementById('pdp-summary-count');
+    if (bigScore) bigScore.innerText = count > 0 ? avg : '0.0';
+    if (bigStars) bigStars.innerHTML = count > 0 
+        ? '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg))
+        : '★★★★★';
+    if (bigCount) bigCount.innerText = `Based on ${count} ${count === 1 ? 'review' : 'reviews'}`;
+
+    // 3. Update Distribution Bars
+    for (let i = 1; i <= 5; i++) {
+        const barFill = document.getElementById(`bar-${i}`);
+        const barCount = document.getElementById(`count-${i}`);
+        const c = distribution[i] || 0;
+        const pct = count > 0 ? Math.round((c / count) * 100) : 0;
+        if (barFill) barFill.style.width = `${pct}%`;
+        if (barCount) barCount.innerText = c;
+    }
+
+    // 4. Update Reviews List
+    const listEl = document.getElementById('pdpReviewsList');
+    if (!listEl) return;
+
+    if (count === 0) {
+        listEl.innerHTML = `
+            <div class="pdp-no-reviews">
+                <div class="pdp-no-reviews-icon">★</div>
+                <p style="font-weight:700; color:#222; margin-bottom:4px;">No reviews yet</p>
+                <p style="font-size:13px; color:#888; margin-bottom:16px;">Be the first to share your thoughts on this product!</p>
+                <button type="button" class="btn-write-review" onclick="toggleReviewForm(true)" style="margin:0 auto; padding:10px 20px; font-size:12px;">Write the First Review</button>
+            </div>
+        `;
+        return;
+    }
+
+    const html = reviews.map(r => {
+        const reviewerName = r.customer_name || r.reviewer_name || 'Verified Customer';
+        const initial = reviewerName.charAt(0).toUpperCase() || 'K';
+        const rating = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
+        const starStr = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        const title = r.review_title ? `<div class="pdp-review-title">${escapePdpHtml(r.review_title)}</div>` : '';
+        const comment = r.review_text || r.comment || '';
+        const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently';
+
+        return `
+            <div class="pdp-review-card">
+                <div class="pdp-review-card-head">
+                    <div class="pdp-reviewer-profile">
+                        <div class="pdp-reviewer-avatar">${initial}</div>
+                        <div>
+                            <div class="pdp-reviewer-name">
+                                ${escapePdpHtml(reviewerName)}
+                                <span class="pdp-verified-badge">✓ Verified Buyer</span>
+                            </div>
+                            <div class="pdp-review-date">${dateStr}</div>
+                        </div>
+                    </div>
+                    <div class="pdp-review-stars" style="margin:0;">${starStr}</div>
+                </div>
+                ${title}
+                <div class="pdp-review-comment">${escapePdpHtml(comment)}</div>
+            </div>
+        `;
+    }).join('');
+
+    listEl.innerHTML = html;
+}
+
+function escapePdpHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+window.submitProductReview = async function() {
+    const pd = window.currentProductData;
+    if (!pd || !pd.id) {
+        showProductToast('Product data not found. Please refresh.');
+        return;
+    }
+
+    const ratingVal = parseInt(document.getElementById('pdpFormRating')?.value || '5', 10);
+    const authorName = document.getElementById('reviewAuthorName')?.value?.trim();
+    const title = document.getElementById('reviewHeadline')?.value?.trim() || '';
+    const comment = document.getElementById('reviewComments')?.value?.trim();
+    const submitBtn = document.getElementById('btnSubmitReview');
+
+    if (!authorName) {
+        showProductToast('Please enter your name.');
+        return;
+    }
+    if (!comment) {
+        showProductToast('Please enter your review text.');
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Submitting...';
+    }
+
+    try {
+        const client = getPDPClient();
+        let user = null;
+        if (client && client.auth) {
+            const { data } = await client.auth.getUser();
+            user = data?.user || null;
+        }
+
+        const reviewPayload = {
+            product_id: pd.id,
+            user_id: user ? user.id : null,
+            rating: ratingVal,
+            customer_name: authorName,
+            customer_email: user?.email || null,
+            reviewer_name: authorName,
+            review_title: title,
+            review_text: comment,
+            comment: comment,
+            is_approved: true,
+            created_at: new Date().toISOString()
+        };
+
+        if (client) {
+            const { error: prErr } = await client.from('product_reviews').insert([reviewPayload]);
+            if (prErr) {
+                console.warn('product_reviews insert note:', prErr);
+                await client.from('reviews').insert([{
+                    product_id: pd.id,
+                    user_id: user ? user.id : null,
+                    rating: ratingVal,
+                    comment: comment,
+                    reviewer_name: authorName,
+                    is_approved: true
+                }]);
+            }
+        }
+
+        // Local UI update
+        const newReviewObj = {
+            id: 'temp_' + Date.now(),
+            ...reviewPayload
+        };
+        window.currentProductReviews.unshift(newReviewObj);
+        renderReviewsUI(window.currentProductReviews);
+
+        // Reset form and hide
+        document.getElementById('pdpReviewForm')?.reset();
+        window.setReviewRating(5);
+        window.toggleReviewForm(false);
+
+        showProductToast('⭐ Thank you! Your review has been submitted successfully.');
+    } catch (err) {
+        console.error('Submit review error:', err);
+        showProductToast('Failed to submit review. Please try again.');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Submit Review';
+        }
+    }
+};
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadSingleProduct);

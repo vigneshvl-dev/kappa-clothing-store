@@ -1116,29 +1116,221 @@ window.deleteOrder = async function (orderId) {
     }
 };
 
-async function loadReviews() {
-    const container = document.querySelector('#view-reviews .card');
-    const { data } = await supabaseClient.from('reviews').select(`id, rating, comment, products(name)`);
-    let html = `<h2>Customer Reviews</h2>`;
-    if (!data || data.length === 0) { html += `<p>No reviews yet.</p>`; }
-    else {
-        data.forEach(r => html += `
-            <div class="review-card" style="padding:15px; border: 1px solid #eee; margin-bottom: 10px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <strong>${r.products?.name || 'Product'}</strong> <span>${r.rating} Stars</span>
-                </div>
-                <p style="font-style: italic;">"${r.comment}"</p>
-                <button class="btn-delete" onclick="deleteReview('${r.id}')" style="margin-top:10px;">Delete</button>
-            </div>`);
-    }
-    container.innerHTML = html;
-}
+/* ============ ADMIN REVIEWS SYSTEM ============ */
+window.allAdminReviewsData = [];
 
-window.deleteReview = async function (reviewId) {
-    if (!confirm("Are you sure you want to delete this review?")) return;
-    const { error } = await supabaseClient.from('reviews').delete().eq('id', reviewId);
-    if (error) alert("Error deleting review: " + error.message);
-    else { alert("Review deleted successfully!"); loadReviews(); }
+window.loadReviews = async function() {
+    const listContainer = document.getElementById('admin-reviews-list-container');
+    if (listContainer) {
+        listContainer.innerHTML = '<p style="color:#666; text-align:center; padding:30px 0;">Loading customer reviews...</p>';
+    }
+
+    try {
+        let reviews = [];
+        // Fetch from product_reviews joined with product info
+        const { data: prData, error: prErr } = await supabaseClient
+            .from('product_reviews')
+            .select('*, products(id, name, slug, product_images(url))')
+            .order('created_at', { ascending: false });
+
+        if (!prErr && prData) {
+            reviews = prData;
+        } else {
+            // Fallback to reviews table
+            const { data: revData } = await supabaseClient
+                .from('reviews')
+                .select('*, products(id, name, slug, product_images(url))')
+                .order('created_at', { ascending: false });
+            if (revData) reviews = revData;
+        }
+
+        window.allAdminReviewsData = reviews || [];
+
+        // Compute Metrics
+        const total = window.allAdminReviewsData.length;
+        let avg = 0;
+        let fiveStarCount = 0;
+        let approvedCount = 0;
+
+        if (total > 0) {
+            const sum = window.allAdminReviewsData.reduce((acc, r) => {
+                const star = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
+                if (star === 5) fiveStarCount++;
+                if (r.is_approved !== false) approvedCount++;
+                return acc + star;
+            }, 0);
+            avg = (sum / total).toFixed(1);
+        }
+
+        // Update stats elements
+        const totalEl = document.getElementById('admin-reviews-total');
+        const avgEl = document.getElementById('admin-reviews-avg');
+        const starsSub = document.getElementById('admin-reviews-stars-sub');
+        const fiveStarEl = document.getElementById('admin-reviews-five-star');
+        const approvedEl = document.getElementById('admin-reviews-approved-count');
+
+        if (totalEl) totalEl.innerText = total;
+        if (avgEl) avgEl.innerHTML = `${avg} <span style="font-size:18px; color:#FFD700;">★</span>`;
+        if (starsSub) starsSub.innerText = total > 0 ? ('★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg))) : '★★★★★';
+        if (fiveStarEl) fiveStarEl.innerText = fiveStarCount;
+        if (approvedEl) approvedEl.innerText = `${approvedCount} / ${total}`;
+
+        filterAdminReviews();
+    } catch (err) {
+        console.error('Error loading admin reviews:', err);
+        if (listContainer) {
+            listContainer.innerHTML = '<p style="color:#e53e3e; text-align:center; padding:30px 0;">Failed to load reviews.</p>';
+        }
+    }
+};
+
+window.filterAdminReviews = function() {
+    const searchVal = document.getElementById('admin-reviews-search')?.value?.trim().toLowerCase() || '';
+    const starVal = document.getElementById('admin-reviews-star-filter')?.value || 'all';
+
+    let filtered = window.allAdminReviewsData || [];
+
+    if (starVal !== 'all') {
+        const targetStar = parseInt(starVal, 10);
+        filtered = filtered.filter(r => parseInt(r.rating || 5, 10) === targetStar);
+    }
+
+    if (searchVal) {
+        filtered = filtered.filter(r => {
+            const prodName = (r.products?.name || '').toLowerCase();
+            const custName = (r.customer_name || r.reviewer_name || '').toLowerCase();
+            const custEmail = (r.customer_email || '').toLowerCase();
+            const text = (r.review_text || r.comment || '').toLowerCase();
+            const title = (r.review_title || '').toLowerCase();
+            return prodName.includes(searchVal) || custName.includes(searchVal) || custEmail.includes(searchVal) || text.includes(searchVal) || title.includes(searchVal);
+        });
+    }
+
+    renderAdminReviewsList(filtered);
+};
+
+window.renderAdminReviewsList = function(reviews) {
+    const container = document.getElementById('admin-reviews-list-container');
+    if (!container) return;
+
+    if (!reviews || reviews.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:40px 20px; color:#888;">
+                <div style="font-size:32px; color:#FFD700; margin-bottom:8px;">★</div>
+                <h3 style="font-size:16px; color:#333; margin-bottom:4px;">No reviews found</h3>
+                <p style="font-size:13px;">No customer reviews match your search or filter criteria.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const html = `
+        <div style="display:flex; flex-direction:column; gap:14px;">
+            ${reviews.map(r => {
+                const prodName = r.products?.name || 'Storefront Product';
+                const prodSlug = r.products?.slug || '';
+                const prodLink = prodSlug ? `product.html?slug=${prodSlug}` : '#';
+                const imgs = r.products?.product_images || [];
+                const imgUrl = imgs.length > 0 ? imgs[0].url : 'assets/Frame 1.jpg';
+                const reviewer = r.customer_name || r.reviewer_name || 'Customer';
+                const email = r.customer_email || 'No email provided';
+                const initial = reviewer.charAt(0).toUpperCase() || 'C';
+                const rating = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
+                const starStr = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+                const isApproved = r.is_approved !== false;
+                const title = r.review_title ? `<div style="font-weight:700; font-size:14px; color:#111; margin-bottom:4px;">${escapeHtmlAdmin(r.review_title)}</div>` : '';
+                const comment = r.review_text || r.comment || '';
+                const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+
+                return `
+                    <div style="border:1px solid #eee; border-radius:10px; padding:18px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.02); display:flex; flex-direction:column; gap:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                            <!-- Reviewer and Product Info -->
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                <div style="width:40px; height:40px; border-radius:50%; background:#111; color:#FFD700; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0;">
+                                    ${initial}
+                                </div>
+                                <div>
+                                    <div style="font-weight:700; font-size:14px; color:#111;">${escapeHtmlAdmin(reviewer)}</div>
+                                    <div style="font-size:12px; color:#888;">${escapeHtmlAdmin(email)} • <span style="color:#555;">${dateStr}</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Rating & Moderation Status -->
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <span style="color:#FFB800; font-size:18px; letter-spacing:1px;">${starStr}</span>
+                                <span style="display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; ${isApproved ? 'background:#e8f5e9; color:#2e7d32;' : 'background:#fff3e0; color:#e65100;'}">
+                                    ${isApproved ? 'Approved' : 'Hidden'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Product Link Pill -->
+                        <div style="display:flex; align-items:center; gap:10px; background:#f9f9f9; padding:8px 12px; border-radius:8px; border:1px solid #f0f0f0;">
+                            <img src="${imgUrl}" alt="${prodName}" style="width:32px; height:36px; border-radius:4px; object-fit:cover;" onerror="this.src='assets/Frame 1.jpg'">
+                            <div style="font-size:12px; color:#555;">
+                                Product: <a href="${prodLink}" target="_blank" style="font-weight:700; color:#111; text-decoration:underline;">${escapeHtmlAdmin(prodName)}</a>
+                            </div>
+                        </div>
+
+                        <!-- Review Text -->
+                        <div>
+                            ${title}
+                            <p style="font-size:13.5px; color:#333; line-height:1.6; margin:0;">"${escapeHtmlAdmin(comment)}"</p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #f5f5f5; padding-top:10px; margin-top:2px;">
+                            <button type="button" class="btn-secondary" onclick="toggleAdminReviewApproval('${r.id}', ${isApproved})" style="padding:6px 12px; font-size:12px; border-radius:6px; cursor:pointer;">
+                                ${isApproved ? 'Hide Review' : '✓ Approve Review'}
+                            </button>
+                            <button type="button" class="btn-delete" onclick="deleteAdminReview('${r.id}')" style="padding:6px 14px; font-size:12px; border-radius:6px; cursor:pointer;">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+
+    container.innerHTML = html;
+};
+
+window.toggleAdminReviewApproval = async function(reviewId, currentStatus) {
+    const newStatus = !currentStatus;
+    try {
+        const { error: e1 } = await supabaseClient.from('product_reviews').update({ is_approved: newStatus }).eq('id', reviewId);
+        if (e1) {
+            await supabaseClient.from('reviews').update({ is_approved: newStatus }).eq('id', reviewId);
+        }
+        loadReviews();
+    } catch (err) {
+        console.error('Error toggling approval:', err);
+        alert('Failed to update status');
+    }
+};
+
+window.deleteAdminReview = async function(reviewId) {
+    if (!confirm('Are you sure you want to permanently delete this review?')) return;
+    try {
+        const { error: e1 } = await supabaseClient.from('product_reviews').delete().eq('id', reviewId);
+        if (e1) {
+            await supabaseClient.from('reviews').delete().eq('id', reviewId);
+        }
+        alert('Review deleted successfully');
+        loadReviews();
+    } catch (err) {
+        console.error('Error deleting review:', err);
+        alert('Failed to delete review: ' + err.message);
+    }
+};
+
+window.deleteReview = window.deleteAdminReview;
+
+function escapeHtmlAdmin(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 async function loadCustomers() {
@@ -3532,43 +3724,6 @@ async function loadCustomers() {
     } catch (e) {
         console.error('Error loading customers:', e);
         card.innerHTML = '<p style="color:red;">Error loading customer list.</p>';
-    }
-}
-
-async function loadReviews() {
-    const container = document.getElementById('view-reviews');
-    if (!container) return;
-    const card = container.querySelector('.card') || container;
-    card.innerHTML = '<p style="color:#666;">Loading customer reviews...</p>';
-    try {
-        const { data: reviews, error } = await supabaseClient.from('product_reviews').select('*, products(name)').order('created_at', { ascending: false });
-        if (error || !reviews || reviews.length === 0) {
-            card.innerHTML = '<h2 class="card-title">Customer Reviews</h2><p style="color:#888;">No product reviews submitted yet.</p>';
-            return;
-        }
-        let html = `
-        <h2 class="card-title" style="margin-bottom:20px;">Customer Reviews (${reviews.length})</h2>
-        <div style="display:flex; flex-direction:column; gap:16px;">`;
-        reviews.forEach(r => {
-            const stars = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
-            html += `
-            <div style="border:1px solid #eee; border-radius:10px; padding:16px; background:#fff;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <div>
-                        <strong style="font-size:15px;">${r.customer_name || 'Anonymous Customer'}</strong>
-                        <span style="color:#FFD700; margin-left:8px; font-size:16px;">${stars}</span>
-                    </div>
-                    <span style="font-size:12px; color:#999;">${new Date(r.created_at).toLocaleDateString()}</span>
-                </div>
-                <p style="font-size:13px; color:#555; margin-bottom:6px;">Product: <strong>${r.products?.name || 'Storefront Item'}</strong></p>
-                <p style="font-size:14px; color:#222; margin:0;">"${r.comment || r.review_text || ''}"</p>
-            </div>`;
-        });
-        html += `</div>`;
-        card.innerHTML = html;
-    } catch (e) {
-        console.error('Error loading reviews:', e);
-        card.innerHTML = '<h2 class="card-title">Customer Reviews</h2><p style="color:#888;">No reviews yet.</p>';
     }
 }
 
