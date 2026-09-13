@@ -2130,11 +2130,24 @@ window.showOrderDetails = async function (orderId) {
             <div class="delivery-form-grid">
                 <div>
                     <label class="delivery-form-label">Delivery Partner</label>
-                    <input class="delivery-form-input" id="del-partner-${data.id}" type="text" placeholder="e.g. Delhivery, DTDC, Ekart..." value="${deliveryDetails.partner || ''}">
+                    <input list="del-partners-list-${data.id}" class="delivery-form-input" id="del-partner-${data.id}" type="text" placeholder="e.g. India Post, Delhivery, DTDC..." value="${deliveryDetails.partner || ''}">
+                    <datalist id="del-partners-list-${data.id}">
+                        <option value="India Post">India Post (Speed Post / Parcel)</option>
+                        <option value="India Post (Speed Post)">India Post (Speed Post)</option>
+                        <option value="Delhivery">Delhivery</option>
+                        <option value="DTDC">DTDC</option>
+                        <option value="Bluedart">Bluedart</option>
+                        <option value="Ekart Logistics">Ekart Logistics</option>
+                        <option value="Shadowfax">Shadowfax</option>
+                        <option value="Xpressbees">Xpressbees</option>
+                        <option value="Professional Couriers">The Professional Couriers</option>
+                        <option value="ST Courier">ST Courier</option>
+                        <option value="Amazon Shipping">Amazon Shipping</option>
+                    </datalist>
                 </div>
                 <div>
-                    <label class="delivery-form-label">Tracking ID / AWB</label>
-                    <input class="delivery-form-input" id="del-tracking-${data.id}" type="text" placeholder="e.g. 1234567890" value="${deliveryDetails.tracking_id || ''}">
+                    <label class="delivery-form-label">Tracking ID / AWB / Consignment No.</label>
+                    <input class="delivery-form-input" id="del-tracking-${data.id}" type="text" placeholder="e.g. EM123456789IN or 1234567890" value="${deliveryDetails.tracking_id || ''}">
                 </div>
                 <div>
                     <label class="delivery-form-label">Expected Delivery Date</label>
@@ -2567,13 +2580,29 @@ window.saveDeliveryDetails = async function (orderId) {
     const charge    = document.getElementById(`del-charge-${orderId}`)?.value || '';
     const trackUrl  = document.getElementById(`del-track-url-${orderId}`)?.value.trim() || '';
 
+    let finalTrackUrl = trackUrl;
+    if (!finalTrackUrl && tracking) {
+        const pLow = partner.toLowerCase();
+        if (pLow.includes('india post') || pLow.includes('indpost') || pLow.includes('speed post')) {
+            finalTrackUrl = 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx';
+        } else if (pLow.includes('delhivery')) {
+            finalTrackUrl = `https://www.delhivery.com/track/package/${tracking}`;
+        } else if (pLow.includes('dtdc')) {
+            finalTrackUrl = 'https://www.dtdc.in/tracking/shipment-tracking.asp';
+        } else if (pLow.includes('bluedart')) {
+            finalTrackUrl = 'https://www.bluedart.com/tracking';
+        } else if (pLow.includes('xpressbees')) {
+            finalTrackUrl = 'https://www.xpressbees.com/shipment/tracking';
+        }
+    }
+
     const deliveryDetails = {
         partner,
         tracking_id: tracking,
         expected_delivery: etaDate,
         eta_days: etaDays,
         shipping_charge: charge ? parseFloat(charge) : null,
-        tracking_url: trackUrl,
+        tracking_url: finalTrackUrl,
         delivery_status: tracking ? 'shipped' : 'not_shipped',
         updated_at: new Date().toISOString()
     };
