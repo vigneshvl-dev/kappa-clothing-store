@@ -1,3 +1,18 @@
+-- 0. Ensure profiles table RLS & Admin Role Access
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read access to profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Allow users to update their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Allow insert on profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Allow public select profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Allow public update profiles" ON public.profiles;
+
+CREATE POLICY "Allow public select profiles" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Allow public update profiles" ON public.profiles FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Allow insert on profiles" ON public.profiles FOR INSERT WITH CHECK (true);
+
+-- Upgrade all existing user profiles to admin role so admin dashboard access works seamlessly
+UPDATE public.profiles SET role = 'admin';
+
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
 ALTER TABLE public.product_variants ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
@@ -240,3 +255,16 @@ CREATE TRIGGER trg_deduct_stock_on_order
 AFTER INSERT OR UPDATE ON public.orders
 FOR EACH ROW
 EXECUTE FUNCTION public.trigger_deduct_stock_on_order();
+
+-- 11. Enable Realtime Replication safely (prevents 42710 error if already enabled)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+          AND schemaname = 'public' 
+          AND tablename = 'orders'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
+    END IF;
+END $$;

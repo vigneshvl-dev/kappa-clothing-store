@@ -197,6 +197,51 @@ function clearProductForm() {
     pendingImageFiles = [];
 }
 
+window.loadDashboard = async function () {
+    try {
+        const { data: orders } = await supabaseClient
+            .from('orders')
+            .select('id, total_amount, status, order_stage');
+
+        let totalRev = 0;
+        let totalOrdersCount = 0;
+        if (orders) {
+            totalOrdersCount = orders.length;
+            orders.forEach(o => {
+                const st = (o.status || '').toLowerCase();
+                const stage = (o.order_stage || '').toLowerCase();
+                if (!st.includes('cancel') && !st.includes('refund') && stage !== 'cancelled') {
+                    totalRev += (parseFloat(o.total_amount) || 0);
+                }
+            });
+        }
+
+        const { count: prodCount } = await supabaseClient
+            .from('products')
+            .select('id', { count: 'exact', head: true });
+
+        const { count: custCount } = await supabaseClient
+            .from('profiles')
+            .select('id', { count: 'exact', head: true });
+
+        const revEl = document.getElementById('dash-revenue');
+        const ordersEl = document.getElementById('dash-orders');
+        const prodEl = document.getElementById('dash-products');
+        const custEl = document.getElementById('dash-customers');
+
+        if (revEl) revEl.textContent = `₹${totalRev.toLocaleString('en-IN')}`;
+        if (ordersEl) ordersEl.textContent = totalOrdersCount;
+        if (prodEl) prodEl.textContent = prodCount || 0;
+        if (custEl) custEl.textContent = custCount || 0;
+
+        if (typeof updateMobileNotificationUI === 'function') {
+            updateMobileNotificationUI();
+        }
+    } catch (e) {
+        console.warn('Error loading dashboard stats:', e);
+    }
+};
+
 // ==========================================
 // 4. TRUE DATABASE SECURITY BOUNCER
 // ==========================================
@@ -222,7 +267,9 @@ async function verifyAdmin() {
     if (adminAvatar && profile.full_name) adminAvatar.textContent = profile.full_name.charAt(0).toUpperCase();
 
     // Load dashboard stats on verify success
-    await loadDashboard();
+    if (typeof loadDashboard === 'function') {
+        await loadDashboard();
+    }
     updateSidebarOrderBadges();
     setInterval(updateSidebarOrderBadges, 15000);
 
