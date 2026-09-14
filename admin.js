@@ -4050,8 +4050,23 @@ async function loadCustomers() {
             card.innerHTML = '<h2 class="card-title">Customers</h2><p style="color:#888;">No registered customers found yet.</p>';
             return;
         }
+
+        // Auto-correct any profiles in DB that mistakenly have role 'admin' when not kappatvm@gmail.com
+        const wrongAdmins = profiles.filter(p => (p.email || '').toLowerCase() !== AUTHORIZED_ADMIN_EMAIL.toLowerCase() && p.role === 'admin');
+        if (wrongAdmins.length > 0) {
+            const wrongIds = wrongAdmins.map(p => p.id);
+            supabaseClient.from('profiles').update({ role: 'customer' }).in('id', wrongIds).then(() => {
+                console.log('Sanitized non-authorized admin roles back to customer.');
+            }).catch(e => console.warn('Role sanitize warning:', e));
+        }
+
         let html = `
-        <h2 class="card-title" style="margin-bottom:20px;">Customer Accounts (${profiles.length})</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h2 class="card-title" style="margin:0;">Customer Accounts (${profiles.length})</h2>
+                <p style="font-size:12px; color:#888; margin-top:2px;">Store user profiles and registered accounts</p>
+            </div>
+        </div>
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
                 <thead>
@@ -4064,12 +4079,18 @@ async function loadCustomers() {
                 </thead>
                 <tbody>`;
         profiles.forEach(p => {
+            const isOfficialAdmin = (p.email || '').toLowerCase() === AUTHORIZED_ADMIN_EMAIL.toLowerCase();
+            const displayRole = isOfficialAdmin ? 'ADMIN' : 'CUSTOMER';
+            const roleBadgeStyle = isOfficialAdmin
+                ? 'background:#FFD700; color:#111; font-weight:800; border:1px solid #eab308;'
+                : 'background:#f1f5f9; color:#475569; font-weight:600; border:1px solid #e2e8f0;';
+
             html += `
                 <tr style="border-bottom:1px solid #eee;">
-                    <td style="padding:12px; font-weight:600;">${p.full_name || 'Guest User'}</td>
-                    <td style="padding:12px;">${p.email || 'N/A'}</td>
-                    <td style="padding:12px;">${p.phone || 'N/A'}</td>
-                    <td style="padding:12px;"><span style="padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; background:${p.role === 'admin' ? '#FFD700' : '#e5e7eb'}; color:#111;">${(p.role || 'customer').toUpperCase()}</span></td>
+                    <td style="padding:12px; font-weight:600; color:#111;">${p.full_name || 'Guest User'}</td>
+                    <td style="padding:12px; color:#555;">${p.email || 'N/A'}</td>
+                    <td style="padding:12px; color:#555;">${p.phone || 'N/A'}</td>
+                    <td style="padding:12px;"><span style="padding:4px 10px; border-radius:20px; font-size:11px; letter-spacing:0.5px; ${roleBadgeStyle}">${displayRole}</span></td>
                 </tr>`;
         });
         html += `</tbody></table></div>`;
