@@ -1805,7 +1805,7 @@
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
                          style="position: relative; cursor: pointer;"
-                         onclick="window.location.href='product.html?slug=${product.slug || product.id}'">
+                         onclick="window.location.href='product.html?slug=${encodeURIComponent(String(product.slug || product.id || '').substring(0, 100))}'">
                         ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">${badgeText}</span>`}
                         
                         <div style="position: relative; overflow: hidden; border-radius: 8px;">
@@ -1874,7 +1874,7 @@
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
                          style="position: relative; cursor: pointer;"
-                         onclick="window.location.href='product.html?slug=${product.slug || product.id}'">
+                         onclick="window.location.href='product.html?slug=${encodeURIComponent(String(product.slug || product.id || '').substring(0, 100))}'">
                         ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">${badgeText}</span>`}
                         <div style="position: relative; overflow: hidden; border-radius: 8px;">
                             <img class="boys-card-img" src="${imageUrl}" alt="${product.name || 'Product'}">
