@@ -896,6 +896,7 @@ window.loadCancelledOrders = async function () {
     const cancelled = all.filter(o => {
         const st = (o.status || '').toLowerCase();
         const stage = (o.order_stage || '').toLowerCase();
+        if (stage === 'recycled' || st === 'recycled') return false;
         return st.includes('cancel') || stage === 'cancelled' || st.includes('refund');
     });
 
@@ -946,7 +947,7 @@ async function loadOrders() {
         }
     }
 
-    const allOrders = (data || []);
+    const allOrders = (data || []).filter(o => o.order_stage !== 'recycled' && o.status !== 'recycled');
     _allFetchedOrders = allOrders;
 
     if (typeof markOrdersAsSeen === 'function') {
@@ -1207,13 +1208,24 @@ function saveRecycledOrders(list) {
     }
 }
 
-window.updateSidebarOrderBadges = function () {
+window.updateSidebarOrderBadges = async function () {
     try {
-        const recycledList = getRecycledOrders();
         const recBadge = document.getElementById('nav-badge-recyclebin');
         if (recBadge) {
-            if (recycledList.length > 0) {
-                recBadge.textContent = recycledList.length;
+            let dbCount = 0;
+            try {
+                const { count } = await supabaseClient
+                    .from('orders')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('order_stage', 'recycled');
+                dbCount = count || 0;
+            } catch (_) {}
+
+            const localCount = getRecycledOrders().length;
+            const totalRecycled = Math.max(dbCount, localCount);
+
+            if (totalRecycled > 0) {
+                recBadge.textContent = totalRecycled;
                 recBadge.style.display = 'inline-block';
             } else {
                 recBadge.textContent = '0';
@@ -1223,11 +1235,45 @@ window.updateSidebarOrderBadges = function () {
     } catch (_) {}
 };
 
-window.renderRecycleBinView = function (targetContainer) {
+window.renderRecycleBinView = async function (targetContainer) {
     const container = targetContainer || document.querySelector('#view-recyclebin .card') || document.querySelector('#view-orders .card') || document.getElementById('view-recyclebin') || document.getElementById('view-orders');
     if (!container) return;
 
-    const recycled = getRecycledOrders();
+    container.innerHTML = '<div style="text-align:center; padding:40px; color:#666;">Loading Recycle Bin...</div>';
+
+    // Fetch recycled orders from Supabase DB
+    let dbRecycled = [];
+    try {
+        const { data } = await supabaseClient
+            .from('orders')
+            .select(`
+                *,
+                order_items (
+                    quantity,
+                    price_at_purchase,
+                    size,
+                    color,
+                    image_url,
+                    products ( name, product_images ( url ) )
+                )
+            `)
+            .eq('order_stage', 'recycled')
+            .order('updated_at', { ascending: false });
+
+        if (data) dbRecycled = data;
+    } catch (_) {}
+
+    // Merge with localStorage recycled orders (unique by ID)
+    const localRecycled = getRecycledOrders();
+    const map = new Map();
+
+    dbRecycled.forEach(o => map.set(String(o.id), o));
+    localRecycled.forEach(o => {
+        if (!map.has(String(o.id))) map.set(String(o.id), o);
+    });
+
+    const recycled = Array.from(map.values());
+    saveRecycledOrders(recycled); // Sync local cache
 
     let html = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
@@ -1280,7 +1326,9 @@ window.renderRecycleBinView = function (targetContainer) {
             <tbody>`;
 
     recycled.forEach(order => {
-        const deletedDate = order.deletedAt ? new Date(order.deletedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const deletedDate = order.deletedAt || order.updated_at
+            ? new Date(order.deletedAt || order.updated_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : 'N/A';
         const itemsCount = Array.isArray(order.items) ? order.items.length : (Array.isArray(order.order_items) ? order.order_items.length : 1);
         const customerName = order.customer_details?.name || order.customer_details?.full_name || order.shipping_address?.full_name || (order.user_id ? "Registered Customer" : "Guest");
         const customerPhone = order.customer_details?.phone || '';
@@ -1314,86 +1362,113 @@ window.renderRecycleBinView = function (targetContainer) {
 };
 
 window.restoreOrder = async function (orderId) {
-    const recycled = getRecycledOrders();
-    const target = recycled.find(o => String(o.id) === String(orderId));
-    if (!target) return alert("Order not found in Recycle Bin.");
-
-    const shortId = (target.id || '').toString().substring(0, 8).toUpperCase();
+    const shortId = String(orderId).substring(0, 8).toUpperCase();
     if (!confirm(`♻️ Restore order #${shortId} back to active orders?`)) return;
 
     try {
-        const orderPayload = {
-            id: target.id,
-            user_id: target.user_id || null,
-            status: target.status || 'pending',
-            total_amount: target.total_amount || 0,
-            customer_details: target.customer_details || null,
-            shipping_address: target.shipping_address || null,
-            payment_status: target.payment_status || 'pending',
-            razorpay_payment_id: target.razorpay_payment_id || null,
-            items: target.items || null,
-            delivery_details: target.delivery_details || null,
-            order_stage: target.order_stage || 'incoming',
-            created_at: target.created_at || new Date().toISOString()
-        };
+        // Update in Supabase back to 'incoming'
+        const { error } = await supabaseClient
+            .from('orders')
+            .update({ order_stage: 'incoming', updated_at: new Date().toISOString() })
+            .eq('id', orderId);
 
-        const { error: orderError } = await supabaseClient.from('orders').upsert([orderPayload]);
-        if (orderError) throw new Error("Orders restore error: " + orderError.message);
+        if (error) throw error;
 
-        if (target.order_items && target.order_items.length > 0) {
-            const itemsPayload = target.order_items.map(item => ({
-                order_id: target.id,
-                product_id: item.product_id || null,
-                quantity: item.quantity || 1,
-                price_at_purchase: item.price_at_purchase || 0,
-                size: item.size || null,
-                color: item.color || null,
-                image_url: item.image_url || null
-            }));
-            await supabaseClient.from('order_items').upsert(itemsPayload).catch(() => {});
-        }
-
-        const updatedBin = recycled.filter(o => String(o.id) !== String(orderId));
+        // Remove from local storage
+        const localRecycled = getRecycledOrders();
+        const updatedBin = localRecycled.filter(o => String(o.id) !== String(orderId));
         saveRecycledOrders(updatedBin);
 
         alert(`✅ Order #${shortId} restored successfully!`);
-        renderRecycleBinView();
+        await renderRecycleBinView();
         if (typeof loadOrders === 'function') await loadOrders();
     } catch (err) {
         console.error("Restore failed:", err);
-        alert("❌ Failed to restore order: " + err.message);
+        alert("❌ Failed to restore order: " + (err.message || err));
     }
 };
 
-window.permanentlyDeleteRecycledOrder = function (orderId) {
-    if (!confirm("⚠️ Permanently remove this order from Recycle Bin? This cannot be undone.")) return;
-    const recycled = getRecycledOrders();
-    const updated = recycled.filter(o => String(o.id) !== String(orderId));
-    saveRecycledOrders(updated);
-    renderRecycleBinView();
+window.permanentlyDeleteRecycledOrder = async function (orderId) {
+    const shortId = String(orderId).substring(0, 8).toUpperCase();
+    if (!confirm(`⚠️ Permanently remove order #${shortId} from Recycle Bin? This CANNOT be undone.`)) return;
+
+    try {
+        // Delete order items child rows
+        await supabaseClient.from('order_items').delete().eq('order_id', orderId);
+
+        // Delete order row from Supabase
+        const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
+        if (error) {
+            // Try backend API fallback
+            const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000' ? 'http://localhost:3000' : '';
+            await fetch(`${apiOrigin}/api/delete-order`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId })
+            });
+        }
+
+        // Remove from local storage
+        const localRecycled = getRecycledOrders();
+        const updatedBin = localRecycled.filter(o => String(o.id) !== String(orderId));
+        saveRecycledOrders(updatedBin);
+
+        alert(`🗑️ Order #${shortId} permanently deleted.`);
+        await renderRecycleBinView();
+    } catch (err) {
+        console.error("Permanent delete failed:", err);
+        alert("❌ Failed to permanently delete order: " + (err.message || err));
+    }
 };
 
-window.emptyRecycleBin = function () {
+window.emptyRecycleBin = async function () {
     if (!confirm("⚠️ Are you sure you want to empty the Recycle Bin? All deleted orders will be permanently removed.")) return;
-    saveRecycledOrders([]);
-    renderRecycleBinView();
+
+    try {
+        // Fetch all recycled orders from DB
+        const { data } = await supabaseClient.from('orders').select('id').eq('order_stage', 'recycled');
+        if (data && data.length > 0) {
+            for (const o of data) {
+                await supabaseClient.from('order_items').delete().eq('order_id', o.id);
+                await supabaseClient.from('orders').delete().eq('id', o.id);
+            }
+        }
+        saveRecycledOrders([]);
+        alert("🧹 Recycle Bin emptied successfully!");
+        await renderRecycleBinView();
+    } catch (err) {
+        console.error("Error emptying recycle bin:", err);
+        alert("❌ Error emptying recycle bin: " + (err.message || err));
+    }
 };
 
 window.deleteOrder = async function (orderId) {
-    const shortId = orderId.toString().substring(0, 8).toUpperCase();
+    const shortId = String(orderId).substring(0, 8).toUpperCase();
     if (!confirm(`⚠️ Move order #${shortId} to Recycle Bin? You can view or restore it anytime in the 🗑️ Recycle Bin tab.`)) return;
 
     try {
-        // 1. Get full order data immediately to guarantee it's stored in Recycle Bin
+        // Close modal if open
+        const modal = document.getElementById('orderDetailsOverlay');
+        if (modal) modal.style.display = 'none';
+
+        // 1. Soft delete in Supabase by setting order_stage = 'recycled'
+        const { error: updateErr } = await supabaseClient
+            .from('orders')
+            .update({ order_stage: 'recycled', updated_at: new Date().toISOString() })
+            .eq('id', orderId);
+
+        if (updateErr) {
+            console.warn("Supabase update error during soft delete:", updateErr);
+        }
+
+        // Also fallback backup in localStorage
         let orderToRecycle = null;
         if (Array.isArray(_allFetchedOrders)) {
             orderToRecycle = _allFetchedOrders.find(o => String(o.id) === String(orderId));
         }
-
         if (!orderToRecycle && typeof cachedCancelledOrdersList !== 'undefined' && Array.isArray(cachedCancelledOrdersList)) {
             orderToRecycle = cachedCancelledOrdersList.find(o => String(o.id) === String(orderId));
         }
-
         if (!orderToRecycle) {
             const { data: fetched } = await supabaseClient
                 .from('orders')
@@ -1403,76 +1478,30 @@ window.deleteOrder = async function (orderId) {
             orderToRecycle = fetched;
         }
 
-        if (!orderToRecycle) {
-            const { data: fetchedBasic } = await supabaseClient
-                .from('orders')
-                .select('*')
-                .eq('id', orderId)
-                .maybeSingle();
-            orderToRecycle = fetchedBasic;
-        }
-
         if (orderToRecycle) {
             const recycled = getRecycledOrders();
             const cloned = JSON.parse(JSON.stringify(orderToRecycle));
+            cloned.order_stage = 'recycled';
             cloned.deletedAt = new Date().toISOString();
             const filtered = recycled.filter(o => String(o.id) !== String(orderId));
             filtered.unshift(cloned);
             saveRecycledOrders(filtered);
-            console.log("Order saved to Recycle Bin:", cloned);
         }
 
-        // Close order details modal if open
-        const modal = document.getElementById('orderDetailsOverlay');
-        if (modal) modal.style.display = 'none';
+        alert(`🗑️ Order #${shortId} moved to Recycle Bin!\nYou can view or restore it anytime from the 🗑️ Recycle Bin menu.`);
 
-        // 2. Delete order items first (foreign key child)
-        try {
-            await supabaseClient.from('order_items').delete().eq('order_id', orderId);
-        } catch (_) {}
-
-        // 3. Delete order from Supabase
-        const { error: orderError } = await supabaseClient
-            .from('orders')
-            .delete()
-            .eq('id', orderId);
-
-        if (!orderError) {
-            alert(`🗑️ Order #${shortId} moved to Recycle Bin!\nYou can view or restore it anytime from the 🗑️ Recycle Bin menu.`);
-            if (document.getElementById('view-cancelled')?.classList.contains('active-view')) {
-                await loadCancelledOrders();
-            } else {
-                await loadOrders();
-            }
-            return;
-        }
-
-        // Fallback to backend server API delete
-        console.log("Client-side delete restricted. Retrying via backend API...");
-        const apiOrigin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '3000'
-            ? 'http://localhost:3000'
-            : '';
-
-        const res = await fetch(`${apiOrigin}/api/delete-order`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId })
-        });
-
-        if (!res.ok) {
-            const result = await res.json().catch(() => ({}));
-            alert("❌ Error deleting order from DB: " + (result.error || "Permission Denied"));
+        if (document.getElementById('view-cancelled')?.classList.contains('active-view')) {
+            await loadCancelledOrders();
+        } else if (document.getElementById('view-recyclebin')?.classList.contains('active-view')) {
+            await renderRecycleBinView();
         } else {
-            alert(`🗑️ Order #${shortId} moved to Recycle Bin!`);
-            if (document.getElementById('view-cancelled')?.classList.contains('active-view')) {
-                await loadCancelledOrders();
-            } else {
-                await loadOrders();
-            }
+            await loadOrders();
         }
+        if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges();
+
     } catch (err) {
         console.error("Failed to delete order:", err);
-        alert("❌ Failed to delete order: " + err.message);
+        alert("❌ Failed to delete order: " + (err.message || err));
     }
 };
 
