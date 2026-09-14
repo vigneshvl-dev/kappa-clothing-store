@@ -3056,7 +3056,7 @@ async function initStorefront() {
                      style="max-width: 280px; width: 100%; position: relative;">
                     ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
                     
-                    <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block; position: relative;">
+                    <a href="product.html?slug=${encodeURIComponent(String(product.slug || product.id || '').substring(0, 100))}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                         <div class="boys-card-img-wrap" style="overflow:hidden; border-radius:8px;">
                             <img class="boys-card-img" src="${imageUrl}" alt="${product.name || 'Product'}">
                             ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
