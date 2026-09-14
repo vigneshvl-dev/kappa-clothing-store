@@ -3056,7 +3056,7 @@ async function initStorefront() {
                      style="max-width: 280px; width: 100%; position: relative;">
                     ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
                     
-                    <a href="product.html?slug=${encodeURIComponent(String(product.slug || product.id || '').substring(0, 100))}" style="text-decoration: none; color: inherit; display: block; position: relative;">
+                    <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                         <div class="boys-card-img-wrap" style="overflow:hidden; border-radius:8px;">
                             <img class="boys-card-img" src="${imageUrl}" alt="${product.name || 'Product'}">
                             ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
@@ -3108,12 +3108,11 @@ window.changeCardColor = function (thumbElement, colorName, imageUrl) {
         }, 180);
     }
 
-    // Ensure product link stays clean without unnecessary query parameters
-    const link = card.querySelector('a[href*="product.html"]');
+    // Update the product link to carry the selected image as the active image
+    const link = card.querySelector('a[href^="product.html"]');
     if (link) {
-        const rawHref = link.getAttribute('href') || '';
-        const cleanHref = rawHref.split('&img=')[0];
-        link.setAttribute('href', cleanHref);
+        const base = link.href.split('&img=')[0];
+        link.href = base + '&img=' + encodeURIComponent(imageUrl);
     }
 
     // Remove active styling from all sibling thumbnails, add to clicked one
