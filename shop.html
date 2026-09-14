@@ -559,15 +559,28 @@
 
 
 
-            <!-- 1. PRICE FILTER ACCORDION -->
+            <!-- 1. CATEGORY FILTER ACCORDION -->
+            <div class="filter-accordion-block"
+                style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
+                <div class="accordion-header" onclick="toggleAccordion(this)"
+                    style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 14px;">
+                    <span style="font-size: 14px; font-weight: 600; color: #111;">Category</span>
+                    <span class="accordion-arrow" style="font-size: 12px; color: #555;">▼</span>
+                </div>
+                <div class="accordion-content" style="display: none;">
+                    <div id="dynamic-categories"></div>
+                </div>
+            </div>
+
+            <!-- 2. PRICE FILTER ACCORDION -->
             <div class="filter-accordion-block"
                 style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
                 <div class="accordion-header" onclick="toggleAccordion(this)"
                     style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 14px;">
                     <span style="font-size: 14px; font-weight: 600; color: #111;">Price</span>
-                    <span class="accordion-arrow" style="font-size: 12px; color: #555;">▲</span>
+                    <span class="accordion-arrow" style="font-size: 12px; color: #555;">▼</span>
                 </div>
-                <div class="accordion-content" style="display: block;">
+                <div class="accordion-content" style="display: none;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
                         <div
                             style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 6px; padding: 6px 10px; background: #fff; flex: 1;">
@@ -591,15 +604,15 @@
                 </div>
             </div>
 
-            <!-- 2. SIZE FILTER ACCORDION -->
+            <!-- 3. SIZE FILTER ACCORDION -->
             <div class="filter-accordion-block"
                 style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
                 <div class="accordion-header" onclick="toggleAccordion(this)"
                     style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 14px;">
                     <span style="font-size: 14px; font-weight: 600; color: #111;">Size</span>
-                    <span class="accordion-arrow" style="font-size: 12px; color: #555;">▲</span>
+                    <span class="accordion-arrow" style="font-size: 12px; color: #555;">▼</span>
                 </div>
-                <div class="accordion-content" style="display: block;">
+                <div class="accordion-content" style="display: none;">
                     <div class="size-checkboxes-list" style="display: flex; flex-direction: column; gap: 8px;">
                         <label
                             style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer;">
@@ -1411,36 +1424,59 @@
             if (error || !data) return;
             allCategoriesData = data;
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const filterParam = urlParams.get('filter');
+            renderSidebarCategories();
+        }
 
-            const roots = data.filter(c => !c.parent_id);
-            const children = data.filter(c => c.parent_id);
+        function renderSidebarCategories(genderFilterOverride) {
+            if (!allCategoriesData || allCategoriesData.length === 0) return;
             const container = document.getElementById('dynamic-categories');
             if (!container) return;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterParam = (genderFilterOverride !== undefined ? genderFilterOverride : (urlParams.get('filter') || urlParams.get('gender') || '')).toLowerCase();
+
+            const roots = allCategoriesData.filter(c => !c.parent_id);
+            const children = allCategoriesData.filter(c => c.parent_id);
+
             let html = '';
+
+            const isFilterMen = filterParam === 'men' || (filterParam.includes('men') && !filterParam.includes('women'));
+            const isFilterWomen = filterParam === 'women' || filterParam.includes('women');
 
             roots.forEach(root => {
                 const rootName = (root.name || '').toLowerCase();
                 const isMensRoot = rootName === 'men' || rootName === "men's" || rootName === 'boys' || (rootName.includes('men') && !rootName.includes('women'));
                 const isWomensRoot = rootName === 'women' || rootName === "women's" || rootName === 'girls' || rootName.includes('women');
 
-                if (filterParam === 'men' && !isMensRoot) return;
-                if (filterParam === 'women' && !isWomensRoot) return;
-
-                html += `
-                    <div class="filter-group">
-                        <div class="cat-parent" onclick="loadShopProducts('${root.id}', '${root.name}', this)">${root.name}</div>
-                        <ul class="cat-children">
-                `;
+                if (isFilterMen && !isMensRoot) return;
+                if (isFilterWomen && !isWomensRoot) return;
 
                 const myChildren = children.filter(c => c.parent_id === root.id);
-                myChildren.forEach(child => {
-                    html += `<li class="cat-child" onclick="loadShopProducts('${child.id}', '${child.name}', this)">${child.name}</li>`;
-                });
 
-                html += `</ul></div>`;
+                html += `
+                    <div class="filter-category-group" style="margin-bottom: 10px;">
+                        <div class="cat-parent" onclick="loadShopProducts('${root.id}', '${root.name}', this)" style="font-size: 13px; font-weight: 600; text-transform: uppercase; cursor: pointer; color: #111; margin-bottom: 6px;">${root.name}</div>
+                `;
+
+                if (myChildren.length > 0) {
+                    html += `<ul class="cat-children" style="padding-left: 10px; border-left: 2px solid #eee; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px; list-style: none;">`;
+                    myChildren.forEach(child => {
+                        html += `<li class="cat-child" onclick="loadShopProducts('${child.id}', '${child.name}', this)" style="font-size: 12px; color: #555; cursor: pointer; text-transform: uppercase;">${child.name}</li>`;
+                    });
+                    html += `</ul>`;
+                }
+
+                html += `</div>`;
             });
+
+            if (!html) {
+                allCategoriesData.forEach(cat => {
+                    const cName = (cat.name || '').toLowerCase();
+                    if (isFilterMen && (cName.includes('women') || cName.includes('girl'))) return;
+                    if (isFilterWomen && (cName.includes('men') || cName.includes('boy')) && !cName.includes('women')) return;
+                    html += `<div class="cat-parent" onclick="loadShopProducts('${cat.id}', '${cat.name}', this)" style="font-size: 12px; color: #333; cursor: pointer; text-transform: uppercase; margin-bottom: 6px;">${cat.name}</div>`;
+                });
+            }
 
             container.innerHTML = html;
         }
@@ -1477,6 +1513,7 @@
             if (categoryId) {
                 currentCategoryIds = getDescendantCatIds(categoryId);
             } else if (catNameUpper === 'MEN' || (catNameUpper.includes('MEN') && !catNameUpper.includes('WOMEN')) || catNameUpper.includes('BOY')) {
+                renderSidebarCategories('men');
                 const menRoots = (allCategoriesData || []).filter(c => {
                     const n = (c.name || '').toLowerCase();
                     return !c.parent_id && (n === 'men' || n === "men's" || n === 'boys' || (n.includes('men') && !n.includes('women')));
@@ -1486,6 +1523,7 @@
                 });
                 currentCategoryIds = Array.from(new Set(currentCategoryIds));
             } else if (catNameUpper === 'WOMEN' || catNameUpper.includes('WOMEN') || catNameUpper.includes('GIRL')) {
+                renderSidebarCategories('women');
                 const womenRoots = (allCategoriesData || []).filter(c => {
                     const n = (c.name || '').toLowerCase();
                     return !c.parent_id && (n === 'women' || n === "women's" || n === 'girls' || n.includes('women'));
@@ -1494,6 +1532,8 @@
                     currentCategoryIds = currentCategoryIds.concat(getDescendantCatIds(r.id));
                 });
                 currentCategoryIds = Array.from(new Set(currentCategoryIds));
+            } else if (catNameUpper === 'ALL PRODUCTS') {
+                renderSidebarCategories('');
             }
 
             let query = shopSupabaseClient
@@ -1564,7 +1604,7 @@
             const content = block.querySelector('.accordion-content');
             const arrow = block.querySelector('.accordion-arrow');
             if (!content) return;
-            const isHidden = content.style.display === 'none';
+            const isHidden = window.getComputedStyle(content).display === 'none';
             content.style.display = isHidden ? 'block' : 'none';
             if (arrow) arrow.textContent = isHidden ? '▲' : '▼';
         };

@@ -98,6 +98,10 @@ CREATE POLICY "Allow delete product_images" ON public.product_images FOR DELETE 
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow public read access to categories" ON public.categories;
 DROP POLICY IF EXISTS "Allow admin full access to categories" ON public.categories;
+DROP POLICY IF EXISTS "Allow public select categories" ON public.categories;
+DROP POLICY IF EXISTS "Allow insert categories" ON public.categories;
+DROP POLICY IF EXISTS "Allow update categories" ON public.categories;
+DROP POLICY IF EXISTS "Allow delete categories" ON public.categories;
 
 CREATE POLICY "Allow public select categories" ON public.categories FOR SELECT USING (true);
 CREATE POLICY "Allow insert categories" ON public.categories FOR INSERT WITH CHECK (true);
