@@ -2387,28 +2387,12 @@ window.saveProductForm = async function (e) {
                 });
             }
 
-            // Save default hover image (back side for the generic product view)
-            if (currentDefaultHoverImageUrl) {
-                imagesToInsert.push({
-                    product_id: targetProductId,
-                    url: `${currentDefaultHoverImageUrl}#default#back`,
-                    position: -1
-                });
-            }
-
             colorVariantsData.forEach((v, idx) => {
                 if (v.frontImg) {
                     imagesToInsert.push({
                         product_id: targetProductId,
-                        url: `${v.frontImg}#${v.colorName}#front`,
-                        position: idx * 2 + 1
-                    });
-                }
-                if (v.backImg) {
-                    imagesToInsert.push({
-                        product_id: targetProductId,
-                        url: `${v.backImg}#${v.colorName}#back`,
-                        position: idx * 2 + 2
+                        url: `${v.frontImg}#${v.colorName}`,
+                        position: idx + 1
                     });
                 }
             });
@@ -2480,7 +2464,6 @@ function clearProductForm() {
     if (discBadge) discBadge.textContent = '0% OFF';
 
     removeDefaultImage();
-    removeDefaultHoverImage();
     colorVariantsData = [];
     renderAllColorVariants();
     updateLiveProductSummary();
