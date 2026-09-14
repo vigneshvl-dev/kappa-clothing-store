@@ -651,10 +651,46 @@ function getEtaHtml(deliveryDetails, createdAt) {
 let _allFetchedOrders = [];
 let _activeOrderFilter = 'all';
 
+let cachedCancelledOrdersList = [];
+
+window.loadCancelledOrders = async function () {
+    const container = document.querySelector('#view-cancelled .card');
+    if (container) container.innerHTML = '<div style="text-align:center; padding:30px; color:#666;">Loading cancelled orders...</div>';
+
+    let { data, error } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    const all = data || [];
+    const cancelled = all.filter(o => {
+        const st = (o.status || '').toLowerCase();
+        const stage = (o.order_stage || '').toLowerCase();
+        return st.includes('cancel') || stage === 'cancelled' || st.includes('refund');
+    });
+
+    cachedCancelledOrdersList = cancelled;
+
+    if (cancelled.length === 0) {
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:50px 20px; color:#888;">
+                    <div style="font-size:40px; margin-bottom:12px;">⚠️</div>
+                    <h3 style="font-size:16px; color:#333; margin-bottom:4px;">No Cancelled Orders</h3>
+                    <p style="font-size:13px;">There are currently no cancelled or refunded orders.</p>
+                </div>`;
+        }
+        return;
+    }
+
+    renderOrdersView(cancelled, getRecycledOrders(), 'cancelled', '', container);
+};
+
 async function loadOrders() {
     const container = document.querySelector('#view-orders .card');
+    if (container) container.innerHTML = '<div style="text-align:center; padding:30px; color:#666;">Loading orders...</div>';
 
-    const { data, error } = await supabaseClient
+    let { data, error } = await supabaseClient
         .from('orders')
         .select(`
             *,
@@ -669,18 +705,29 @@ async function loadOrders() {
         `)
         .order('created_at', { ascending: false });
 
-    const allOrders = (data || []);
+    // Fallback if relational join query fails
+    if (error || !data || data.length === 0) {
+        const fallback = await supabaseClient
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (fallback.data) {
+            data = fallback.data;
+        }
+    }
 
+    const allOrders = (data || []);
     _allFetchedOrders = allOrders;
+
     if (typeof markOrdersAsSeen === 'function') {
         markOrdersAsSeen(allOrders.map(o => o.id));
     }
     const recycled = getRecycledOrders();
-    renderOrdersView(allOrders, recycled, _activeOrderFilter, '');
+    renderOrdersView(allOrders, recycled, _activeOrderFilter || 'all', '');
 }
 
-function renderOrdersView(orders, recycled, filterStage, searchQuery) {
-    const container = document.querySelector('#view-orders .card');
+function renderOrdersView(orders, recycled, filterStage, searchQuery, targetContainer) {
+    const container = targetContainer || document.querySelector('#view-orders .card');
     if (!container) return;
 
     // Compute stat counts
@@ -790,9 +837,10 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery) {
         return;
     }
 
-    // Build table
+    // Build Mobile Cards + Desktop Table
+    let mobileCardsHtml = `<div class="mobile-orders-cards-list">`;
     let tableHtml = `
-        <div style="overflow-x:auto;">
+        <div style="overflow-x:auto;" class="desktop-table-wrap">
         <table class="stock-table" style="min-width:900px;">
             <thead>
                 <tr>
@@ -820,12 +868,46 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery) {
         const refundInfo = order.refund_details || order.customer_details?.refund_details || null;
         const isSettled = refundInfo?.refund_status === 'refunded' || currentStatus === 'refunded';
         const cust = order.customer_details || {};
-        const customerName = cust.name || cust.full_name || (order.user_id ? 'Registered' : 'Guest');
+        const customerName = cust.name || cust.full_name || (order.user_id ? 'Registered Customer' : 'Guest');
         const deliveryDetails = order.delivery_details || {};
         const orderStage = order.order_stage || (isCancelled ? 'cancelled' : 'incoming');
         const isRepayPending = isCancelled && !isSettled;
+        const shortId = '#' + order.id.toString().substring(0, 8).toUpperCase();
+        const itemsList = Array.isArray(order.items) ? order.items : [];
 
-        // Payment badge
+        // Mobile Card HTML
+        mobileCardsHtml += `
+            <div class="mobile-order-card ${isCancelled ? 'card-cancelled' : ''}" onclick="showOrderDetails('${order.id}')">
+                <div class="mobile-order-header">
+                    <div>
+                        <strong class="mobile-order-id">${shortId}</strong>
+                        <span class="mobile-order-date">${formattedDate}</span>
+                    </div>
+                    <div>${getStageBadgeHtml(orderStage)}</div>
+                </div>
+
+                <div class="mobile-order-customer">
+                    <div class="cust-name">👤 ${customerName}</div>
+                    ${cust.phone ? `<div class="cust-phone">📞 ${cust.phone}</div>` : ''}
+                </div>
+
+                ${itemsList.length > 0 ? `
+                <div class="mobile-order-items-summary">
+                    📦 ${itemsList.length} Item${itemsList.length === 1 ? '' : 's'} (${itemsList.map(i => i.name || 'Product').join(', ')})
+                </div>` : ''}
+
+                <div class="mobile-order-footer">
+                    <div class="mobile-order-price">₹${Number(order.total_amount || 0).toLocaleString('en-IN')}</div>
+                    <div class="mobile-order-actions">
+                        <button type="button" class="btn-mobile-order-view" onclick="event.stopPropagation(); showOrderDetails('${order.id}')">
+                            ${isRepayPending ? '⚠️ View & Repay' : 'View Details →'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Desktop Payment badge
         let payBadge = '';
         if (isCancelled) {
             payBadge = isSettled
@@ -840,7 +922,7 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery) {
 
         tableHtml += `<tr>
             <td style="white-space:nowrap; font-size:12px;"><small>${formattedDate}</small></td>
-            <td><strong style="font-family:monospace; font-size:13px;">#${order.id.toString().substring(0, 8).toUpperCase()}</strong></td>
+            <td><strong style="font-family:monospace; font-size:13px;">${shortId}</strong></td>
             <td>
                 <div style="font-weight:600; font-size:13px; color:#111;">${customerName}</div>
                 ${cust.phone ? `<div style="font-size:11px; color:#888;">${cust.phone}</div>` : ''}
@@ -867,8 +949,9 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery) {
         </tr>`;
     });
 
+    mobileCardsHtml += `</div>`;
     tableHtml += `</tbody></table></div>`;
-    container.innerHTML = statsHtml + headerHtml + tabsHtml + searchHtml + tableHtml;
+    container.innerHTML = statsHtml + headerHtml + tabsHtml + searchHtml + mobileCardsHtml + tableHtml;
 }
 
 // Filter tabs handler
@@ -2741,7 +2824,7 @@ window.showOrderDetails = async function (orderId) {
         <div>Loading order details...</div>
     </div>`;
 
-    const { data, error } = await supabaseClient
+    let { data, error } = await supabaseClient
         .from('orders')
         .select(`
             *,
@@ -2755,10 +2838,22 @@ window.showOrderDetails = async function (orderId) {
             )
         `)
         .eq('id', orderId)
-        .single();
+        .maybeSingle();
 
     if (error || !data) {
-        content.innerHTML = '<p style="color:red; padding:20px;">Error loading order details.</p>';
+        const fallback = await supabaseClient
+            .from('orders')
+            .select('*')
+            .eq('id', orderId)
+            .maybeSingle();
+        if (fallback.data) {
+            data = fallback.data;
+            error = null;
+        }
+    }
+
+    if (!data) {
+        content.innerHTML = '<p style="color:red; padding:20px;">Error loading order details. Order not found.</p>';
         return;
     }
 
@@ -6063,8 +6158,8 @@ window.handleNotificationItemClick = function (notifId, orderId, isCancelled) {
         switchAdminView('orders');
     }
 
-    if (typeof openOrderModal === 'function' && orderId) {
-        openOrderModal(orderId);
+    if (typeof showOrderDetails === 'function' && orderId) {
+        showOrderDetails(orderId);
     }
 };
 
