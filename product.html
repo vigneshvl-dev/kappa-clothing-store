@@ -2552,16 +2552,22 @@
                 if (specBlock) specBlock.style.display = 'none';
             }
 
-            let images = product.product_images || [];
-            images.sort((a, b) => (a.position || 0) - (b.position || 0));
-            window.currentMainImageUrl = images.length > 0 ? images[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
+            let rawImages = (product.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+            // Exclude Main Product Cover Image (position 0) on product detail page if other images exist
+            let images = rawImages.filter(img => img.position !== 0);
+            if (images.length === 0 && rawImages.length > 0) {
+                images = rawImages;
+            }
+
+            window.currentMainImageUrl = images.length > 0 ? images[0].url.split('#')[0] : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
             const mainImg = document.getElementById('main-product-image');
             if (mainImg) mainImg.src = window.currentMainImageUrl;
 
             let thumbnailsHTML = '';
             images.forEach((img, index) => {
+                const cleanUrl = img.url.split('#')[0];
                 const activeClass = index === 0 ? 'active' : '';
-                thumbnailsHTML += `<img src="${img.url}" class="thumb-img ${activeClass}" onclick="swapImage('${img.url}', this)" alt="Thumb">`;
+                thumbnailsHTML += `<img src="${cleanUrl}" class="thumb-img ${activeClass}" onclick="swapImage('${cleanUrl}', this)" alt="Thumb">`;
             });
             const thumbsContainer = document.getElementById('pdp-thumbnails');
             if (thumbsContainer) {
@@ -2662,7 +2668,7 @@
             const colorSec = document.getElementById('color-section');
             if (colors.length > 0) {
                 const colorImageMap = {};
-                const sortedImages = (product.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+                const sortedImages = images.slice();
                 sortedImages.forEach(img => {
                     const parts = img.url.split('#');
                     const cleanUrl = parts[0];
