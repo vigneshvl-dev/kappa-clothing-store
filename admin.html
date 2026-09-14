@@ -50,13 +50,73 @@
             <header class="top-header">
                 <h1 class="page-title" id="dynamic-page-title">Dashboard</h1>
                 <div class="user-profile">
-                    <div class="avatar" id="admin-avatar">A</div>
-                    <span id="admin-name">Admin User</span>
+                    <button type="button" class="mobile-notif-bell-btn" id="mobile-notif-bell-btn" onclick="switchAdminView('notifications')" aria-label="Notifications">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <span class="mobile-notif-badge" id="mobile-header-notif-badge" style="display:none;">0</span>
+                    </button>
+                    <div class="avatar mobile-k-avatar" id="admin-avatar">K</div>
+                    <span id="admin-name" class="desktop-admin-name">Admin User</span>
                 </div>
             </header>
 
             <!-- VIEW: DASHBOARD -->
             <div id="view-dashboard" class="view-section active-view">
+
+                <!-- MOBILE DEDICATED NOTIFICATIONS SECTION (Shown only on Mobile <=768px) -->
+                <div id="mobile-dash-notifications-section" class="mobile-dash-notifications-section">
+                    <div class="mobile-dash-section-header">
+                        <h2>Notifications</h2>
+                        <span class="mobile-notif-subtitle">Store updates requiring your attention</span>
+                    </div>
+
+                    <div class="mobile-notif-cards-grid">
+                        <!-- CARD 1: NEW ORDERS -->
+                        <div class="mobile-notif-card card-new-orders" id="mobile-card-new-orders" onclick="switchAdminView('orders')">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-indicator indicator-gold">●</span>
+                                    <span class="notif-card-icon">🛍️</span>
+                                    <span class="notif-card-label label-gold">NEW ORDERS</span>
+                                </div>
+                                <span class="notif-card-count count-gold" id="mobile-new-orders-count">0</span>
+                            </div>
+                            <div class="notif-card-body">
+                                <h3 id="mobile-new-orders-title">0 New Orders</h3>
+                                <p>A new order has been received and is waiting for processing.</p>
+                            </div>
+                            <div class="notif-card-footer">
+                                <span class="notif-card-time" id="mobile-new-orders-time">Just now</span>
+                                <span class="notif-card-cta cta-gold">View Orders →</span>
+                            </div>
+                        </div>
+
+                        <!-- CARD 2: CANCELLED ORDERS -->
+                        <div class="mobile-notif-card card-cancelled-orders" id="mobile-card-cancelled-orders" onclick="switchAdminView('cancelled')">
+                            <div class="notif-card-header">
+                                <div class="notif-card-title-group">
+                                    <span class="notif-indicator indicator-red">●</span>
+                                    <span class="notif-card-icon">⚠️</span>
+                                    <span class="notif-card-label label-red">CANCELLED ORDERS</span>
+                                </div>
+                                <span class="notif-card-count count-red" id="mobile-cancelled-orders-count">0</span>
+                            </div>
+                            <div class="notif-card-body">
+                                <h3 id="mobile-cancelled-orders-title">0 Orders Cancelled</h3>
+                                <p>Cancelled orders require your attention.</p>
+                            </div>
+                            <div class="notif-card-footer">
+                                <span class="notif-card-time" id="mobile-cancelled-orders-time">Recently</span>
+                                <span class="notif-card-cta cta-red">View Cancelled →</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DESKTOP DASHBOARD WIDGETS (Hidden on Mobile) -->
+                <div class="desktop-only-dash-widgets">
                 <!-- 1. Top Summary Cards (4 Large Cards) -->
                 <div class="dash-summary-grid">
                     <div class="dash-summary-card">
@@ -222,6 +282,32 @@
                         <button class="dash-action-btn btn-green" onclick="switchAdminOrdersFilter('delivered')">
                             View Payments <span>→</span>
                         </button>
+                    </div>
+                </div> <!-- End .desktop-only-dash-widgets -->
+            </div>
+
+            <!-- VIEW: NOTIFICATIONS (Mobile & Desktop Notification Center) -->
+            <div id="view-notifications" class="view-section">
+                <div class="card notif-center-card">
+                    <div class="notif-center-header">
+                        <div>
+                            <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0;">Notifications</h2>
+                            <p style="font-size: 13px; color: #64748b; margin: 2px 0 0 0;">Real-time order alerts & store updates</p>
+                        </div>
+                        <button type="button" class="btn-mark-all-read" onclick="markAllNotificationsAsRead()">
+                            Mark all as read
+                        </button>
+                    </div>
+
+                    <div id="notif-center-list-container">
+                        <!-- Grouped notification items dynamically rendered here -->
+                    </div>
+
+                    <!-- EMPTY STATE -->
+                    <div id="notif-center-empty-state" class="notif-empty-state" style="display: none;">
+                        <div class="empty-icon-wrap">🔔</div>
+                        <h3>No new notifications</h3>
+                        <p>You’re all caught up.</p>
                     </div>
                 </div>
             </div>
@@ -1218,6 +1304,57 @@
             }, 'image/png', 1.0);
         }
     </script>
+
+    <!-- FIXED MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="mobile-bottom-nav">
+        <button type="button" class="mobile-nav-item active" data-target="dashboard" onclick="switchAdminView('dashboard')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Dashboard</span>
+        </button>
+        <button type="button" class="mobile-nav-item" data-target="orders" onclick="switchAdminView('orders')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                <path d="m3.3 7 8.7 5 8.7-5"></path>
+                <path d="M12 22V12"></path>
+            </svg>
+            <span>Orders</span>
+        </button>
+        <button type="button" class="mobile-nav-item" data-target="notifications" onclick="switchAdminView('notifications')">
+            <div class="mobile-nav-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span class="mobile-bottom-badge" id="mobile-bottom-nav-badge" style="display: none;">0</span>
+            </div>
+            <span>Notifications</span>
+        </button>
+        <button type="button" class="mobile-nav-item" data-target="settings" onclick="switchAdminView('settings')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- REAL-TIME MOBILE IN-APP PUSH NOTIFICATION TOAST -->
+    <div id="mobile-push-toast" class="mobile-push-toast">
+        <div class="push-toast-icon" id="push-toast-icon">🔔</div>
+        <div class="push-toast-content">
+            <div class="push-toast-header">
+                <strong id="push-toast-title">New Order Received</strong>
+                <span id="push-toast-time" class="push-toast-time">Just now</span>
+            </div>
+            <div id="push-toast-msg" class="push-toast-msg">Order #KAP1042 has been placed.</div>
+            <div id="push-toast-meta" class="push-toast-meta">₹1,299 • 2 Items</div>
+            <div class="push-toast-tap">Tap to view details →</div>
+        </div>
+        <button type="button" class="push-toast-close" onclick="closeMobilePushToast(event)">×</button>
+    </div>
 
 </body>
 

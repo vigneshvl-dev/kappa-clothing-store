@@ -74,6 +74,7 @@ function runAdminInit() {
     try { initProductForm(); } catch (e) { console.error('initProductForm error:', e); }
     try { loadParentCategories(); } catch (e) { console.error('loadParentCategories error:', e); }
     try { initImagePreview(); } catch (e) { console.error('initImagePreview error:', e); }
+    try { initRealtimeOrdersAndNotifications(); } catch (e) { console.error('initRealtimeOrdersAndNotifications error:', e); }
 }
 
 if (document.readyState === 'loading') {
@@ -83,16 +84,22 @@ if (document.readyState === 'loading') {
 }
 
 // ==========================================
-// 3. SPA ROUTER: Sidebar Logic
+// 3. SPA ROUTER: Sidebar & Mobile Nav Logic
 // ==========================================
 window.switchAdminView = async function (targetName) {
     const sidebarItems = document.querySelectorAll('.sidebar-menu li');
+    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
     const viewSections = document.querySelectorAll('.view-section');
     const pageTitle = document.getElementById('dynamic-page-title');
 
     sidebarItems.forEach(nav => {
         if (nav.getAttribute('data-target') === targetName) nav.classList.add('active');
         else nav.classList.remove('active');
+    });
+
+    mobileNavItems.forEach(btn => {
+        if (btn.getAttribute('data-target') === targetName) btn.classList.add('active');
+        else btn.classList.remove('active');
     });
 
     viewSections.forEach(view => view.classList.remove('active-view'));
@@ -103,6 +110,7 @@ window.switchAdminView = async function (targetName) {
         if (pageTitle) {
             const titleMap = {
                 dashboard: 'Dashboard',
+                notifications: 'Notifications',
                 orders: 'Orders',
                 cancelled: 'Cancelled Orders',
                 inventory: 'Inventory',
@@ -121,10 +129,17 @@ window.switchAdminView = async function (targetName) {
         // Scroll main content pane to top on view change
         const mainContent = document.querySelector('.main-content');
         if (mainContent) mainContent.scrollTop = 0;
+        window.scrollTo(0, 0);
 
         try {
             switch (targetName) {
-                case 'dashboard': if (typeof loadDashboard === 'function') await loadDashboard(); break;
+                case 'dashboard':
+                    if (typeof loadDashboard === 'function') await loadDashboard();
+                    if (typeof updateMobileNotificationUI === 'function') updateMobileNotificationUI();
+                    break;
+                case 'notifications':
+                    if (typeof updateMobileNotificationUI === 'function') updateMobileNotificationUI();
+                    break;
                 case 'orders':
                     if (typeof markOrdersAsSeen === 'function' && Array.isArray(_allFetchedOrders) && _allFetchedOrders.length > 0) {
                         markOrdersAsSeen(_allFetchedOrders.map(o => o.id));
@@ -5853,3 +5868,393 @@ window.sendAdminNotifyWhatsApp = function () {
     const waUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(text)}`;
     window.open(waUrl, '_blank');
 };
+
+// ==========================================
+// REAL-TIME MOBILE ADMIN NOTIFICATIONS SYSTEM
+// ==========================================
+
+const MOBILE_NOTIF_STORAGE_KEY = 'kappa_mobile_admin_notifications';
+
+function getMobileAdminNotifications() {
+    try {
+        const stored = localStorage.getItem(MOBILE_NOTIF_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveMobileAdminNotifications(list) {
+    try {
+        localStorage.setItem(MOBILE_NOTIF_STORAGE_KEY, JSON.stringify(list));
+    } catch (e) { }
+    updateMobileNotificationUI();
+}
+
+function formatNotifTime(isoString) {
+    if (!isoString) return 'Just now';
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffSec = Math.floor((now - date) / 1000);
+
+    if (diffSec < 60) return 'Just now';
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)} min ago`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hr ago`;
+
+    const isToday = date.toDateString() === now.toDateString();
+    const yesterdayDate = new Date(now);
+    yesterdayDate.setDate(now.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterdayDate.toDateString();
+
+    const timeStr = date.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+    if (isToday) return `Today, ${timeStr}`;
+    if (isYesterday) return `Yesterday, ${timeStr}`;
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + `, ${timeStr}`;
+}
+
+window.addMobileAdminNotification = function (notifObj) {
+    const list = getMobileAdminNotifications();
+    
+    // Prevent duplicate notifications for the exact same order event
+    const exists = list.some(n => n.order_id === notifObj.order_id && n.type === notifObj.type);
+    if (exists) return;
+
+    const notif = {
+        id: notifObj.id || ('notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
+        order_id: notifObj.order_id,
+        order_number: notifObj.order_number || ('#' + String(notifObj.order_id).substring(0, 8).toUpperCase()),
+        type: notifObj.type || 'new_order', // 'new_order' or 'cancelled_order'
+        title: notifObj.title || (notifObj.type === 'cancelled_order' ? 'Order Cancelled' : 'New Order Received'),
+        message: notifObj.message || (notifObj.type === 'cancelled_order' ? 'Cancelled orders require your attention.' : 'A new order has been received and is waiting for processing.'),
+        amount: notifObj.amount || 0,
+        itemsCount: notifObj.itemsCount || 1,
+        timestamp: notifObj.timestamp || new Date().toISOString(),
+        read: false
+    };
+
+    list.unshift(notif);
+    // Keep max 50 recent notifications
+    if (list.length > 50) list.pop();
+
+    saveMobileAdminNotifications(list);
+
+    // Trigger In-App Push Banner Toast & Browser Push Notification
+    showMobilePushToast(notif);
+    triggerWebPushNotification(notif);
+    playNotificationChime(notif.type);
+};
+
+window.updateMobileNotificationUI = function () {
+    const list = getMobileAdminNotifications();
+
+    const newOrders = list.filter(n => n.type === 'new_order');
+    const cancelledOrders = list.filter(n => n.type === 'cancelled_order');
+    const unreadCount = list.filter(n => !n.read).length;
+
+    // Update Notification Card 1 (NEW ORDERS)
+    const elNewCount = document.getElementById('mobile-new-orders-count');
+    if (elNewCount) elNewCount.textContent = newOrders.length;
+    const elNewTitle = document.getElementById('mobile-new-orders-title');
+    if (elNewTitle) elNewTitle.textContent = `${newOrders.length} New Order${newOrders.length === 1 ? '' : 's'}`;
+    const elNewTime = document.getElementById('mobile-new-orders-time');
+    if (elNewTime) elNewTime.textContent = newOrders.length > 0 ? formatNotifTime(newOrders[0].timestamp) : 'Just now';
+
+    // Update Notification Card 2 (CANCELLED ORDERS)
+    const elCancCount = document.getElementById('mobile-cancelled-orders-count');
+    if (elCancCount) elCancCount.textContent = cancelledOrders.length;
+    const elCancTitle = document.getElementById('mobile-cancelled-orders-title');
+    if (elCancTitle) elCancTitle.textContent = `${cancelledOrders.length} Order${cancelledOrders.length === 1 ? '' : 's'} Cancelled`;
+    const elCancTime = document.getElementById('mobile-cancelled-orders-time');
+    if (elCancTime) elCancTime.textContent = cancelledOrders.length > 0 ? formatNotifTime(cancelledOrders[0].timestamp) : 'Recently';
+
+    // Update Badges
+    const headerBadge = document.getElementById('mobile-header-notif-badge');
+    if (headerBadge) {
+        headerBadge.textContent = unreadCount;
+        headerBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+
+    const bottomBadge = document.getElementById('mobile-bottom-nav-badge');
+    if (bottomBadge) {
+        bottomBadge.textContent = unreadCount;
+        bottomBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+
+    // Render Notifications Center View
+    renderNotificationCenterList(list);
+};
+
+function renderNotificationCenterList(list) {
+    const container = document.getElementById('notif-center-list-container');
+    const emptyState = document.getElementById('notif-center-empty-state');
+    if (!container) return;
+
+    if (!list || list.length === 0) {
+        container.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+
+    const today = new Date().toDateString();
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterday = yesterdayDate.toDateString();
+
+    const groups = {
+        TODAY: [],
+        YESTERDAY: [],
+        EARLIER: []
+    };
+
+    list.forEach(n => {
+        const d = new Date(n.timestamp).toDateString();
+        if (d === today) groups.TODAY.push(n);
+        else if (d === yesterday) groups.YESTERDAY.push(n);
+        else groups.EARLIER.push(n);
+    });
+
+    let html = '';
+    ['TODAY', 'YESTERDAY', 'EARLIER'].forEach(groupKey => {
+        const items = groups[groupKey];
+        if (items.length > 0) {
+            html += `<div class="notif-group-title">${groupKey}</div>`;
+            items.forEach(n => {
+                const isCancelled = n.type === 'cancelled_order';
+                const dotIcon = isCancelled ? '🔴' : '🟡';
+                const orderNum = n.order_number || ('#' + String(n.order_id || '').substring(0, 8));
+                const actionLabel = isCancelled ? 'cancelled' : 'received';
+                const titleText = `Order ${orderNum} ${actionLabel}`;
+                const amountText = n.amount > 0 ? `₹${Number(n.amount).toLocaleString('en-IN')} • ${n.itemsCount || 1} Item${(n.itemsCount || 1) === 1 ? '' : 's'}` : '';
+
+                html += `
+                    <div class="notif-item ${!n.read ? 'unread' : ''} ${isCancelled ? 'notif-type-cancelled' : ''}" onclick="handleNotificationItemClick('${n.id}', '${n.order_id}', ${isCancelled})">
+                        <div class="notif-item-dot">${dotIcon}</div>
+                        <div class="notif-item-content">
+                            <div class="notif-item-title">${titleText}</div>
+                            ${amountText ? `<div class="notif-item-details">${amountText}</div>` : ''}
+                            <div class="notif-item-time">${formatNotifTime(n.timestamp)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    });
+
+    container.innerHTML = html;
+}
+
+window.markAllNotificationsAsRead = function () {
+    const list = getMobileAdminNotifications();
+    list.forEach(n => n.read = true);
+    saveMobileAdminNotifications(list);
+};
+
+window.handleNotificationItemClick = function (notifId, orderId, isCancelled) {
+    const list = getMobileAdminNotifications();
+    const item = list.find(n => n.id === notifId);
+    if (item) item.read = true;
+    saveMobileAdminNotifications(list);
+
+    if (isCancelled) {
+        switchAdminView('cancelled');
+    } else {
+        switchAdminView('orders');
+    }
+
+    if (typeof openOrderModal === 'function' && orderId) {
+        openOrderModal(orderId);
+    }
+};
+
+let _pushToastTimeout = null;
+function showMobilePushToast(notif) {
+    const toast = document.getElementById('mobile-push-toast');
+    if (!toast) return;
+
+    const iconEl = document.getElementById('push-toast-icon');
+    const titleEl = document.getElementById('push-toast-title');
+    const timeEl = document.getElementById('push-toast-time');
+    const msgEl = document.getElementById('push-toast-msg');
+    const metaEl = document.getElementById('push-toast-meta');
+
+    const isCancelled = notif.type === 'cancelled_order';
+    if (iconEl) iconEl.textContent = isCancelled ? '⚠️' : '🔔';
+    if (titleEl) titleEl.textContent = isCancelled ? 'Order Cancelled' : 'New Order Received';
+    if (timeEl) timeEl.textContent = formatNotifTime(notif.timestamp);
+    if (msgEl) msgEl.textContent = `Order ${notif.order_number || '#'+notif.order_id} has been ${isCancelled ? 'cancelled' : 'placed'}.`;
+    if (metaEl) metaEl.textContent = notif.amount > 0 ? `₹${Number(notif.amount).toLocaleString('en-IN')} • ${notif.itemsCount || 1} Item${(notif.itemsCount || 1) === 1 ? '' : 's'}` : '';
+
+    toast.onclick = function (e) {
+        if (e.target.classList.contains('push-toast-close')) return;
+        closeMobilePushToast();
+        handleNotificationItemClick(notif.id, notif.order_id, isCancelled);
+    };
+
+    toast.classList.add('show');
+
+    if (_pushToastTimeout) clearTimeout(_pushToastTimeout);
+    _pushToastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 6000);
+}
+
+window.closeMobilePushToast = function (e) {
+    if (e) e.stopPropagation();
+    const toast = document.getElementById('mobile-push-toast');
+    if (toast) toast.classList.remove('show');
+};
+
+function triggerWebPushNotification(notif) {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "granted") {
+        const isCancelled = notif.type === 'cancelled_order';
+        const title = isCancelled ? '⚠️ Order Cancelled' : '🔔 New Order Received';
+        const body = `Order ${notif.order_number || '#'+notif.order_id} has been ${isCancelled ? 'cancelled' : 'placed'}.\n₹${Number(notif.amount || 0).toLocaleString('en-IN')} • ${notif.itemsCount || 1} Items\nTap to view details.`;
+        try {
+            new Notification(title, { body: body, icon: 'assets/kappalogo_favion.png' });
+        } catch (e) { }
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission();
+    }
+}
+
+function playNotificationChime(type) {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'cancelled_order') {
+            osc.frequency.setValueAtTime(350, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.3);
+        } else {
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.25);
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.3);
+        }
+    } catch (e) { }
+}
+
+let _realtimeOrdersChannel = null;
+function initRealtimeOrdersAndNotifications() {
+    updateMobileNotificationUI();
+    syncExistingOrdersToNotifications();
+
+    if (!supabaseClient) return;
+
+    try {
+        _realtimeOrdersChannel = supabaseClient
+            .channel('admin-mobile-notifications-channel')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+                const newRow = payload.new;
+                if (!newRow) return;
+
+                const st = (newRow.status || '').toLowerCase().trim();
+                const stage = (newRow.order_stage || '').toLowerCase().trim();
+                const isCancelled = stage === 'cancelled' || st.includes('cancel');
+
+                if (isCancelled) {
+                    addMobileAdminNotification({
+                        order_id: newRow.id,
+                        order_number: '#' + String(newRow.id).substring(0, 8).toUpperCase(),
+                        type: 'cancelled_order',
+                        title: 'Order Cancelled',
+                        message: 'Cancelled orders require your attention.',
+                        amount: Number(newRow.total_amount || 0),
+                        itemsCount: Array.isArray(newRow.items) ? newRow.items.length : 1,
+                        timestamp: newRow.updated_at || newRow.created_at || new Date().toISOString()
+                    });
+                } else if (st === 'paid' || stage === 'incoming' || payload.eventType === 'INSERT') {
+                    addMobileAdminNotification({
+                        order_id: newRow.id,
+                        order_number: '#' + String(newRow.id).substring(0, 8).toUpperCase(),
+                        type: 'new_order',
+                        title: 'New Order Received',
+                        message: 'A new order has been received and is waiting for processing.',
+                        amount: Number(newRow.total_amount || 0),
+                        itemsCount: Array.isArray(newRow.items) ? newRow.items.length : 1,
+                        timestamp: newRow.created_at || new Date().toISOString()
+                    });
+                }
+            })
+            .subscribe();
+    } catch (e) {
+        console.error('Error setting up Supabase Realtime for orders:', e);
+    }
+
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+}
+
+async function syncExistingOrdersToNotifications() {
+    const currentNotifs = getMobileAdminNotifications();
+
+    try {
+        const { data: orders } = await supabaseClient
+            .from('orders')
+            .select('id, total_amount, status, order_stage, created_at, items')
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+        if (Array.isArray(orders) && orders.length > 0) {
+            orders.forEach(o => {
+                const st = (o.status || '').toLowerCase().trim();
+                const stage = (o.order_stage || '').toLowerCase().trim();
+                const isCancelled = stage === 'cancelled' || st.includes('cancel');
+                const orderNum = '#' + String(o.id).substring(0, 8).toUpperCase();
+                const itemsCount = Array.isArray(o.items) ? o.items.length : 1;
+
+                if (isCancelled) {
+                    const exists = currentNotifs.some(n => n.order_id === o.id && n.type === 'cancelled_order');
+                    if (!exists) {
+                        currentNotifs.push({
+                            id: 'notif_canc_' + o.id,
+                            order_id: o.id,
+                            order_number: orderNum,
+                            type: 'cancelled_order',
+                            title: 'Order Cancelled',
+                            message: 'Cancelled orders require your attention.',
+                            amount: Number(o.total_amount || 0),
+                            itemsCount: itemsCount,
+                            timestamp: o.created_at || new Date().toISOString(),
+                            read: false
+                        });
+                    }
+                } else {
+                    const exists = currentNotifs.some(n => n.order_id === o.id && n.type === 'new_order');
+                    if (!exists) {
+                        currentNotifs.push({
+                            id: 'notif_new_' + o.id,
+                            order_id: o.id,
+                            order_number: orderNum,
+                            type: 'new_order',
+                            title: 'New Order Received',
+                            message: 'A new order has been received and is waiting for processing.',
+                            amount: Number(o.total_amount || 0),
+                            itemsCount: itemsCount,
+                            timestamp: o.created_at || new Date().toISOString(),
+                            read: false
+                        });
+                    }
+                }
+            });
+
+            currentNotifs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            saveMobileAdminNotifications(currentNotifs);
+        }
+    } catch (e) {
+        console.error('Error syncing existing orders to notifications:', e);
+    }
+}
