@@ -75,6 +75,7 @@ function runAdminInit() {
     try { loadParentCategories(); } catch (e) { console.error('loadParentCategories error:', e); }
     try { initImagePreview(); } catch (e) { console.error('initImagePreview error:', e); }
     try { initRealtimeOrdersAndNotifications(); } catch (e) { console.error('initRealtimeOrdersAndNotifications error:', e); }
+    try { if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges(); } catch (e) {}
 }
 
 if (document.readyState === 'loading') {
@@ -113,6 +114,7 @@ window.switchAdminView = async function (targetName) {
                 notifications: 'Notifications',
                 orders: 'Orders',
                 cancelled: 'Cancelled Orders',
+                recyclebin: 'Recycle Bin',
                 inventory: 'Inventory',
                 products: 'Add Product',
                 customers: 'Customers',
@@ -157,6 +159,9 @@ window.switchAdminView = async function (targetName) {
                         if (cb) { cb.textContent = '0'; cb.style.display = 'none'; }
                     }
                     if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
+                    break;
+                case 'recyclebin':
+                    if (typeof renderRecycleBinView === 'function') renderRecycleBinView();
                     break;
                 case 'inventory': if (typeof loadInventory === 'function') await loadInventory(); break;
                 case 'categories': if (typeof loadCategoriesList === 'function') await loadCategoriesList(); break;
@@ -1010,7 +1015,7 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery, targetCont
                 <button class="btn-secondary" onclick="loadOrders()" style="padding:8px 16px; font-weight:700; background:#000; color:#fff; border-radius:8px; cursor:pointer;">
                     📦 Active Orders (${orders.length})
                 </button>
-                <button class="btn-secondary" onclick="renderRecycleBinView()" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
+                <button class="btn-secondary" onclick="switchAdminView('recyclebin')" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
                     🗑️ Recycle Bin (${recycled.length})
                 </button>
             </div>
@@ -1197,10 +1202,29 @@ function saveRecycledOrders(list) {
     try {
         localStorage.setItem(RECYCLE_BIN_KEY, JSON.stringify(list));
     } catch (_) { }
+    if (typeof updateSidebarOrderBadges === 'function') {
+        updateSidebarOrderBadges();
+    }
 }
 
-window.renderRecycleBinView = function () {
-    const container = document.querySelector('#view-orders .card') || document.getElementById('view-orders');
+window.updateSidebarOrderBadges = function () {
+    try {
+        const recycledList = getRecycledOrders();
+        const recBadge = document.getElementById('nav-badge-recyclebin');
+        if (recBadge) {
+            if (recycledList.length > 0) {
+                recBadge.textContent = recycledList.length;
+                recBadge.style.display = 'inline-block';
+            } else {
+                recBadge.textContent = '0';
+                recBadge.style.display = 'none';
+            }
+        }
+    } catch (_) {}
+};
+
+window.renderRecycleBinView = function (targetContainer) {
+    const container = targetContainer || document.querySelector('#view-recyclebin .card') || document.querySelector('#view-orders .card') || document.getElementById('view-recyclebin') || document.getElementById('view-orders');
     if (!container) return;
 
     const recycled = getRecycledOrders();
@@ -1208,15 +1232,15 @@ window.renderRecycleBinView = function () {
     let html = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
             <div>
-                <h2 style="margin:0; font-size:20px; font-weight:800;">Recycle Bin</h2>
-                <p style="font-size:12px; color:#888; margin-top:2px;">Temporarily stored deleted orders — restore anytime or delete permanently</p>
+                <h2 style="margin:0; font-size:20px; font-weight:800;">🗑️ Recycle Bin</h2>
+                <p style="font-size:12px; color:#888; margin-top:2px;">Temporarily stored deleted orders — restore back to active orders anytime or remove permanently.</p>
             </div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <button class="btn-secondary" onclick="loadOrders()" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <button class="btn-secondary" onclick="switchAdminView('orders')" style="padding:8px 16px; font-weight:700; background:#f0f0f0; color:#333; border:1px solid #ddd; border-radius:8px; cursor:pointer;">
                     📦 Back to Active Orders
                 </button>
                 <button class="btn-secondary" onclick="renderRecycleBinView()" style="padding:8px 16px; font-weight:700; background:#000; color:#fff; border-radius:8px; cursor:pointer;">
-                    🗑️ Recycle Bin (${recycled.length})
+                    🔄 Refresh Bin (${recycled.length})
                 </button>
                 ${recycled.length > 0 ? `
                     <button class="btn-delete" onclick="emptyRecycleBin()" style="padding:8px 14px; font-weight:700; border-radius:8px; cursor:pointer; background:#dc2626; color:#fff; border:none;">
@@ -1228,10 +1252,13 @@ window.renderRecycleBinView = function () {
 
     if (recycled.length === 0) {
         html += `
-            <div style="text-align:center; padding:50px 20px; color:#888;">
-                <div style="font-size:48px; margin-bottom:12px;">🗑️</div>
-                <h3 style="color:#333; margin-bottom:6px;">Recycle Bin is Empty</h3>
-                <p style="font-size:13px;">When you delete an order, it will appear here so you can restore it if needed.</p>
+            <div style="text-align:center; padding:60px 20px; color:#888;">
+                <div style="font-size:52px; margin-bottom:12px;">🗑️</div>
+                <h3 style="color:#333; margin-bottom:6px; font-size:18px;">Recycle Bin is Empty</h3>
+                <p style="font-size:13px; max-width:400px; margin:0 auto 18px; color:#666;">When you delete an order from the Orders list, it gets safely moved here so you can restore it anytime.</p>
+                <button class="btn-secondary" onclick="switchAdminView('orders')" style="padding:9px 18px; font-weight:700; background:#000; color:#fff; border-radius:8px; cursor:pointer;">
+                    View Active Orders
+                </button>
             </div>`;
         container.innerHTML = html;
         return;
@@ -1239,7 +1266,7 @@ window.renderRecycleBinView = function () {
 
     html += `
         <div style="overflow-x:auto;">
-        <table class="stock-table" style="width:100%; border-collapse:collapse; min-width:800px;">
+        <table class="stock-table" style="width:100%; border-collapse:collapse; min-width:850px;">
             <thead>
                 <tr style="background:#fafafa; border-bottom:2px solid #eee;">
                     <th style="padding:12px;">Deleted Date</th>
@@ -1247,21 +1274,22 @@ window.renderRecycleBinView = function () {
                     <th style="padding:12px;">Customer</th>
                     <th style="padding:12px;">Items</th>
                     <th style="padding:12px;">Total</th>
-                    <th style="padding:12px; text-align:right;">Action</th>
+                    <th style="padding:12px; text-align:right;">Actions</th>
                 </tr>
             </thead>
             <tbody>`;
 
     recycled.forEach(order => {
-        const deletedDate = order.deletedAt ? new Date(order.deletedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const deletedDate = order.deletedAt ? new Date(order.deletedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
         const itemsCount = Array.isArray(order.items) ? order.items.length : (Array.isArray(order.order_items) ? order.order_items.length : 1);
         const customerName = order.customer_details?.name || order.customer_details?.full_name || order.shipping_address?.full_name || (order.user_id ? "Registered Customer" : "Guest");
         const customerPhone = order.customer_details?.phone || '';
+        const shortId = (order.id || '').toString().substring(0, 8).toUpperCase();
 
         html += `
             <tr style="border-bottom:1px solid #eee;">
                 <td style="white-space:nowrap; padding:12px; font-size:12px;"><small style="color:#64748b;">${deletedDate}</small></td>
-                <td style="padding:12px;"><strong style="font-family:monospace; font-size:13px;">#${(order.id || '').toString().substring(0, 8).toUpperCase()}</strong></td>
+                <td style="padding:12px;"><strong style="font-family:monospace; font-size:13px;">#${shortId}</strong></td>
                 <td style="padding:12px;">
                     <div style="font-weight:600; color:#111;">${customerName}</div>
                     ${customerPhone ? `<div style="font-size:11px; color:#888;">${customerPhone}</div>` : ''}
@@ -1270,10 +1298,10 @@ window.renderRecycleBinView = function () {
                 <td style="padding:12px;"><strong style="font-size:14px; color:#111;">₹${Number(order.total_amount || 0).toLocaleString('en-IN')}</strong></td>
                 <td style="padding:12px; text-align:right;">
                     <div style="display:inline-flex; gap:8px;">
-                        <button class="btn-secondary" onclick="restoreOrder('${order.id}')" style="background:#16a34a; color:#fff; border:none; padding:6px 14px; font-weight:700; border-radius:6px; cursor:pointer; font-size:12px;">
+                        <button class="btn-secondary" onclick="restoreOrder('${order.id}')" style="background:#16a34a; color:#fff; border:none; padding:7px 14px; font-weight:700; border-radius:6px; cursor:pointer; font-size:12px; display:inline-flex; align-items:center; gap:4px;">
                             ♻️ Restore
                         </button>
-                        <button class="btn-delete" onclick="permanentlyDeleteRecycledOrder('${order.id}')" style="padding:6px 12px; font-size:12px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:6px; font-weight:700; cursor:pointer;">
+                        <button class="btn-delete" onclick="permanentlyDeleteRecycledOrder('${order.id}')" style="padding:7px 12px; font-size:12px; background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:6px; font-weight:700; cursor:pointer;">
                             ❌ Delete Permanently
                         </button>
                     </div>
@@ -1290,7 +1318,8 @@ window.restoreOrder = async function (orderId) {
     const target = recycled.find(o => String(o.id) === String(orderId));
     if (!target) return alert("Order not found in Recycle Bin.");
 
-    if (!confirm(`♻️ Restore order #${(target.id || '').toString().substring(0, 8).toUpperCase()} back to active orders?`)) return;
+    const shortId = (target.id || '').toString().substring(0, 8).toUpperCase();
+    if (!confirm(`♻️ Restore order #${shortId} back to active orders?`)) return;
 
     try {
         const orderPayload = {
@@ -1327,8 +1356,9 @@ window.restoreOrder = async function (orderId) {
         const updatedBin = recycled.filter(o => String(o.id) !== String(orderId));
         saveRecycledOrders(updatedBin);
 
-        alert(`✅ Order #${(target.id || '').toString().substring(0, 8).toUpperCase()} restored successfully!`);
-        await loadOrders();
+        alert(`✅ Order #${shortId} restored successfully!`);
+        renderRecycleBinView();
+        if (typeof loadOrders === 'function') await loadOrders();
     } catch (err) {
         console.error("Restore failed:", err);
         alert("❌ Failed to restore order: " + err.message);
@@ -1350,7 +1380,8 @@ window.emptyRecycleBin = function () {
 };
 
 window.deleteOrder = async function (orderId) {
-    if (!confirm(`⚠️ Move order #${orderId.toString().substring(0, 8).toUpperCase()} to Recycle Bin? You can restore it anytime.`)) return;
+    const shortId = orderId.toString().substring(0, 8).toUpperCase();
+    if (!confirm(`⚠️ Move order #${shortId} to Recycle Bin? You can view or restore it anytime in the 🗑️ Recycle Bin tab.`)) return;
 
     try {
         // 1. Get full order data immediately to guarantee it's stored in Recycle Bin
@@ -1359,13 +1390,26 @@ window.deleteOrder = async function (orderId) {
             orderToRecycle = _allFetchedOrders.find(o => String(o.id) === String(orderId));
         }
 
+        if (!orderToRecycle && typeof cachedCancelledOrdersList !== 'undefined' && Array.isArray(cachedCancelledOrdersList)) {
+            orderToRecycle = cachedCancelledOrdersList.find(o => String(o.id) === String(orderId));
+        }
+
         if (!orderToRecycle) {
             const { data: fetched } = await supabaseClient
+                .from('orders')
+                .select('*, order_items(*)')
+                .eq('id', orderId)
+                .maybeSingle();
+            orderToRecycle = fetched;
+        }
+
+        if (!orderToRecycle) {
+            const { data: fetchedBasic } = await supabaseClient
                 .from('orders')
                 .select('*')
                 .eq('id', orderId)
                 .maybeSingle();
-            orderToRecycle = fetched;
+            orderToRecycle = fetchedBasic;
         }
 
         if (orderToRecycle) {
@@ -1377,6 +1421,10 @@ window.deleteOrder = async function (orderId) {
             saveRecycledOrders(filtered);
             console.log("Order saved to Recycle Bin:", cloned);
         }
+
+        // Close order details modal if open
+        const modal = document.getElementById('orderDetailsOverlay');
+        if (modal) modal.style.display = 'none';
 
         // 2. Delete order items first (foreign key child)
         try {
@@ -1390,8 +1438,12 @@ window.deleteOrder = async function (orderId) {
             .eq('id', orderId);
 
         if (!orderError) {
-            alert('🗑️ Order moved to Recycle Bin! You can view or restore it by clicking the "🗑️ Recycle Bin" button.');
-            await loadOrders();
+            alert(`🗑️ Order #${shortId} moved to Recycle Bin!\nYou can view or restore it anytime from the 🗑️ Recycle Bin menu.`);
+            if (document.getElementById('view-cancelled')?.classList.contains('active-view')) {
+                await loadCancelledOrders();
+            } else {
+                await loadOrders();
+            }
             return;
         }
 
@@ -1411,8 +1463,12 @@ window.deleteOrder = async function (orderId) {
             const result = await res.json().catch(() => ({}));
             alert("❌ Error deleting order from DB: " + (result.error || "Permission Denied"));
         } else {
-            alert('🗑️ Order moved to Recycle Bin!');
-            await loadOrders();
+            alert(`🗑️ Order #${shortId} moved to Recycle Bin!`);
+            if (document.getElementById('view-cancelled')?.classList.contains('active-view')) {
+                await loadCancelledOrders();
+            } else {
+                await loadOrders();
+            }
         }
     } catch (err) {
         console.error("Failed to delete order:", err);
