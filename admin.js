@@ -391,9 +391,21 @@ function renderDonutChart(orders) {
 // ==========================================
 // 4. TRUE DATABASE SECURITY BOUNCER
 // ==========================================
+const AUTHORIZED_ADMIN_EMAIL = 'kappatvm@gmail.com';
+
 async function verifyAdmin() {
     const session = await ensureFreshSession();
-    if (!session) { window.location.replace('index.html'); return; }
+    if (!session || !session.user) { 
+        window.location.replace('index.html'); 
+        return; 
+    }
+
+    const userEmail = (session.user.email || '').trim().toLowerCase();
+    if (userEmail !== AUTHORIZED_ADMIN_EMAIL.toLowerCase()) {
+        alert(`Access Denied: Only ${AUTHORIZED_ADMIN_EMAIL} is authorized to access the Admin Panel.`);
+        window.location.replace('index.html');
+        return;
+    }
 
     let profile = null;
     try {
