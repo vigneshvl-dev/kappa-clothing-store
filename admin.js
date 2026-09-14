@@ -1949,6 +1949,93 @@ window.calculateDiscountAndSummary = function () {
     updateLiveProductSummary();
 };
 
+window.updateAdminInteractivePreview = function () {
+    const frontEl = document.getElementById('admin-preview-front-img');
+    const hoverEl = document.getElementById('admin-preview-hover-img');
+    const tagEl = document.getElementById('admin-preview-tag');
+    if (!frontEl) return;
+
+    let cover = currentDefaultImageUrl;
+    let hover = currentDefaultHoverImageUrl;
+
+    // Fallback from first color variant if default is not set
+    if (!cover && typeof colorVariantsData !== 'undefined' && colorVariantsData.length > 0 && colorVariantsData[0].frontImg) {
+        cover = colorVariantsData[0].frontImg;
+    }
+    if (!hover && typeof colorVariantsData !== 'undefined' && colorVariantsData.length > 0 && colorVariantsData[0].backImg) {
+        hover = colorVariantsData[0].backImg;
+    }
+
+    if (cover) {
+        frontEl.src = cover;
+        frontEl.style.opacity = '1';
+    } else {
+        frontEl.src = 'assets/sleeping sis.png';
+        frontEl.style.opacity = '1';
+    }
+
+    if (hover) {
+        if (hoverEl) {
+            hoverEl.src = hover;
+            hoverEl.style.display = 'block';
+            hoverEl.style.opacity = '0';
+        }
+        if (tagEl) {
+            tagEl.textContent = '📸 Cover View (Move cursor over to test)';
+            tagEl.style.background = 'rgba(15, 23, 42, 0.85)';
+        }
+    } else {
+        if (hoverEl) hoverEl.style.display = 'none';
+        if (tagEl) {
+            tagEl.textContent = cover ? '📸 Cover View (No Hover Image)' : 'No Image Uploaded';
+            tagEl.style.background = 'rgba(15, 23, 42, 0.85)';
+        }
+    }
+};
+
+window.handleAdminPreviewHover = function (isHovering) {
+    const frontEl = document.getElementById('admin-preview-front-img');
+    const hoverEl = document.getElementById('admin-preview-hover-img');
+    const tagEl = document.getElementById('admin-preview-tag');
+    const cardEl = document.getElementById('admin-hover-preview-card');
+
+    let hover = currentDefaultHoverImageUrl;
+    if (!hover && typeof colorVariantsData !== 'undefined' && colorVariantsData.length > 0 && colorVariantsData[0].backImg) {
+        hover = colorVariantsData[0].backImg;
+    }
+
+    if (cardEl) {
+        cardEl.style.transform = isHovering ? 'scale(1.03)' : 'scale(1)';
+        cardEl.style.boxShadow = isHovering ? '0 10px 25px rgba(0,0,0,0.18)' : '0 4px 12px rgba(0,0,0,0.06)';
+        cardEl.style.borderColor = isHovering ? '#0f172a' : '#e2e8f0';
+    }
+
+    if (!hover) {
+        if (frontEl) frontEl.style.opacity = '1';
+        if (tagEl) tagEl.textContent = '📸 Cover View (No Hover Image)';
+        return;
+    }
+
+    if (isHovering) {
+        if (frontEl) frontEl.style.opacity = '0';
+        if (hoverEl) {
+            hoverEl.style.display = 'block';
+            hoverEl.style.opacity = '1';
+        }
+        if (tagEl) {
+            tagEl.textContent = '🔄 Hover / Back View (Cursor Over)';
+            tagEl.style.background = 'rgba(2, 132, 199, 0.9)';
+        }
+    } else {
+        if (frontEl) frontEl.style.opacity = '1';
+        if (hoverEl) hoverEl.style.opacity = '0';
+        if (tagEl) {
+            tagEl.textContent = '📸 Cover / Front View (Original)';
+            tagEl.style.background = 'rgba(15, 23, 42, 0.85)';
+        }
+    }
+};
+
 window.handleDefaultImageUpload = function (e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -1964,6 +2051,8 @@ window.handleDefaultImageUpload = function (e) {
         if (previewImg) previewImg.src = currentDefaultImageUrl;
         if (previewName) previewName.textContent = file.name;
         if (container) container.style.display = 'flex';
+
+        updateAdminInteractivePreview();
     };
     reader.readAsDataURL(file);
 };
@@ -1975,6 +2064,8 @@ window.removeDefaultImage = function () {
     const input = document.getElementById('prod-default-image-input');
     if (container) container.style.display = 'none';
     if (input) input.value = '';
+
+    updateAdminInteractivePreview();
 };
 
 window.handleDefaultHoverImageUpload = function (e) {
@@ -1992,6 +2083,8 @@ window.handleDefaultHoverImageUpload = function (e) {
         if (previewImg) previewImg.src = currentDefaultHoverImageUrl;
         if (previewName) previewName.textContent = file.name;
         if (container) container.style.display = 'flex';
+
+        updateAdminInteractivePreview();
     };
     reader.readAsDataURL(file);
 };
@@ -2003,6 +2096,8 @@ window.removeDefaultHoverImage = function () {
     const input = document.getElementById('prod-hover-image-input');
     if (container) container.style.display = 'none';
     if (input) input.value = '';
+
+    updateAdminInteractivePreview();
 };
 
 
@@ -2227,6 +2322,7 @@ window.handleVariantImageUpload = function (vIdx, type, event) {
         else if (type === 'back') colorVariantsData[vIdx].backImg = e.target.result;
 
         renderAllColorVariants();
+        updateAdminInteractivePreview();
     };
     reader.readAsDataURL(file);
 };
@@ -2237,6 +2333,7 @@ window.removeVariantImage = function (vIdx, type) {
         else if (type === 'back') colorVariantsData[vIdx].backImg = '';
 
         renderAllColorVariants();
+        updateAdminInteractivePreview();
     }
 };
 
