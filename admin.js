@@ -1050,8 +1050,7 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery, targetCont
         return;
     }
 
-    // Build Mobile Cards + Desktop Table
-    let mobileCardsHtml = `<div class="mobile-orders-cards-list">`;
+    // Build Desktop Table
     let tableHtml = `
         <div style="overflow-x:auto;" class="desktop-table-wrap">
         <table class="stock-table" style="min-width:900px;">
@@ -1086,39 +1085,6 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery, targetCont
         const orderStage = order.order_stage || (isCancelled ? 'cancelled' : 'incoming');
         const isRepayPending = isCancelled && !isSettled;
         const shortId = '#' + order.id.toString().substring(0, 8).toUpperCase();
-        const itemsList = Array.isArray(order.items) ? order.items : [];
-
-        // Mobile Card HTML
-        mobileCardsHtml += `
-            <div class="mobile-order-card ${isCancelled ? 'card-cancelled' : ''}" onclick="showOrderDetails('${order.id}')">
-                <div class="mobile-order-header">
-                    <div>
-                        <strong class="mobile-order-id">${shortId}</strong>
-                        <span class="mobile-order-date">${formattedDate}</span>
-                    </div>
-                    <div>${getStageBadgeHtml(orderStage)}</div>
-                </div>
-
-                <div class="mobile-order-customer">
-                    <div class="cust-name">👤 ${customerName}</div>
-                    ${cust.phone ? `<div class="cust-phone">📞 ${cust.phone}</div>` : ''}
-                </div>
-
-                ${itemsList.length > 0 ? `
-                <div class="mobile-order-items-summary">
-                    📦 ${itemsList.length} Item${itemsList.length === 1 ? '' : 's'} (${itemsList.map(i => i.name || 'Product').join(', ')})
-                </div>` : ''}
-
-                <div class="mobile-order-footer">
-                    <div class="mobile-order-price">₹${Number(order.total_amount || 0).toLocaleString('en-IN')}</div>
-                    <div class="mobile-order-actions">
-                        <button type="button" class="btn-mobile-order-view" onclick="event.stopPropagation(); showOrderDetails('${order.id}')">
-                            ${isRepayPending ? '⚠️ View & Repay' : 'View Details →'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
 
         // Desktop Payment badge
         let payBadge = '';
@@ -1162,9 +1128,8 @@ function renderOrdersView(orders, recycled, filterStage, searchQuery, targetCont
         </tr>`;
     });
 
-    mobileCardsHtml += `</div>`;
     tableHtml += `</tbody></table></div>`;
-    container.innerHTML = statsHtml + headerHtml + tabsHtml + searchHtml + mobileCardsHtml + tableHtml;
+    container.innerHTML = statsHtml + headerHtml + tabsHtml + searchHtml + tableHtml;
 }
 
 // Filter tabs handler
