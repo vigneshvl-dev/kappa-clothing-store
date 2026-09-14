@@ -1208,31 +1208,132 @@ function saveRecycledOrders(list) {
     }
 }
 
+// ==========================================
+// SEEN ORDERS & BADGES SYSTEM
+// ==========================================
+const SEEN_ORDERS_KEY = 'kappa_seen_order_ids_v1';
+const SEEN_CANCELLED_KEY = 'kappa_seen_cancelled_order_ids_v1';
+
+function getSeenOrderIds() {
+    try { return JSON.parse(localStorage.getItem(SEEN_ORDERS_KEY) || '[]'); } catch (_) { return []; }
+}
+function saveSeenOrderIds(list) {
+    try { localStorage.setItem(SEEN_ORDERS_KEY, JSON.stringify(list)); } catch (_) { }
+}
+
+function getSeenCancelledOrderIds() {
+    try { return JSON.parse(localStorage.getItem(SEEN_CANCELLED_KEY) || '[]'); } catch (_) { return []; }
+}
+function saveSeenCancelledOrderIds(list) {
+    try { localStorage.setItem(SEEN_CANCELLED_KEY, JSON.stringify(list)); } catch (_) { }
+}
+
+window.markOrdersAsSeen = function (orderIds) {
+    if (!Array.isArray(orderIds) || orderIds.length === 0) return;
+    const seen = new Set(getSeenOrderIds());
+    orderIds.forEach(id => seen.add(String(id)));
+    saveSeenOrderIds(Array.from(seen));
+
+    const badge = document.getElementById('nav-badge-orders');
+    if (badge) {
+        badge.textContent = '0';
+        badge.style.display = 'none';
+    }
+};
+
+window.markCancelledOrdersAsSeen = function (orderIds) {
+    if (!Array.isArray(orderIds) || orderIds.length === 0) return;
+    const seen = new Set(getSeenCancelledOrderIds());
+    orderIds.forEach(id => seen.add(String(id)));
+    saveSeenCancelledOrderIds(Array.from(seen));
+
+    const badge = document.getElementById('nav-badge-cancelled');
+    if (badge) {
+        badge.textContent = '0';
+        badge.style.display = 'none';
+    }
+};
+
 window.updateSidebarOrderBadges = async function () {
     try {
-        const recBadge = document.getElementById('nav-badge-recyclebin');
-        if (recBadge) {
-            let dbCount = 0;
-            try {
-                const { count } = await supabaseClient
-                    .from('orders')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('order_stage', 'recycled');
-                dbCount = count || 0;
-            } catch (_) {}
+        const { data: orders } = await supabaseClient
+            .from('orders')
+            .select('id, status, order_stage');
 
-            const localCount = getRecycledOrders().length;
-            const totalRecycled = Math.max(dbCount, localCount);
+        if (orders) {
+            const seenOrders = new Set(getSeenOrderIds());
+            const seenCancelled = new Set(getSeenCancelledOrderIds());
 
-            if (totalRecycled > 0) {
-                recBadge.textContent = totalRecycled;
-                recBadge.style.display = 'inline-block';
-            } else {
-                recBadge.textContent = '0';
-                recBadge.style.display = 'none';
+            // Active (new/processing) orders unseen count
+            const activeUnseen = orders.filter(o => {
+                const st = (o.status || '').toLowerCase();
+                const stage = (o.order_stage || '').toLowerCase();
+                if (stage === 'recycled' || st === 'recycled') return false;
+                if (stage === 'cancelled' || st.includes('cancel') || st.includes('refund')) return false;
+                return !seenOrders.has(String(o.id));
+            });
+
+            // Cancelled orders unseen count
+            const cancelledUnseen = orders.filter(o => {
+                const st = (o.status || '').toLowerCase();
+                const stage = (o.order_stage || '').toLowerCase();
+                if (stage === 'recycled' || st === 'recycled') return false;
+                if (stage === 'cancelled' || st.includes('cancel') || st.includes('refund')) {
+                    return !seenCancelled.has(String(o.id));
+                }
+                return false;
+            });
+
+            // Recycled count
+            const dbRecycledCount = orders.filter(o => o.order_stage === 'recycled' || o.status === 'recycled').length;
+            const localRecycledCount = getRecycledOrders().length;
+            const totalRecycled = Math.max(dbRecycledCount, localRecycledCount);
+
+            // Update Orders Badge
+            const ob = document.getElementById('nav-badge-orders');
+            if (ob) {
+                if (document.getElementById('view-orders')?.classList.contains('active-view')) {
+                    ob.textContent = '0';
+                    ob.style.display = 'none';
+                } else if (activeUnseen.length > 0) {
+                    ob.textContent = activeUnseen.length;
+                    ob.style.display = 'inline-block';
+                } else {
+                    ob.textContent = '0';
+                    ob.style.display = 'none';
+                }
+            }
+
+            // Update Cancelled Orders Badge
+            const cb = document.getElementById('nav-badge-cancelled');
+            if (cb) {
+                if (document.getElementById('view-cancelled')?.classList.contains('active-view')) {
+                    cb.textContent = '0';
+                    cb.style.display = 'none';
+                } else if (cancelledUnseen.length > 0) {
+                    cb.textContent = cancelledUnseen.length;
+                    cb.style.display = 'inline-block';
+                } else {
+                    cb.textContent = '0';
+                    cb.style.display = 'none';
+                }
+            }
+
+            // Update Recycle Bin Badge
+            const rb = document.getElementById('nav-badge-recyclebin');
+            if (rb) {
+                if (totalRecycled > 0) {
+                    rb.textContent = totalRecycled;
+                    rb.style.display = 'inline-block';
+                } else {
+                    rb.textContent = '0';
+                    rb.style.display = 'none';
+                }
             }
         }
-    } catch (_) {}
+    } catch (e) {
+        console.warn('updateSidebarOrderBadges error:', e);
+    }
 };
 
 window.renderRecycleBinView = async function (targetContainer) {
@@ -6517,6 +6618,11 @@ function initRealtimeOrdersAndNotifications() {
                         timestamp: newRow.created_at || new Date().toISOString()
                     });
                 }
+
+                // Update badges and view lists dynamically!
+                if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges();
+                if (document.getElementById('view-orders')?.classList.contains('active-view') && typeof loadOrders === 'function') loadOrders();
+                if (document.getElementById('view-cancelled')?.classList.contains('active-view') && typeof loadCancelledOrders === 'function') loadCancelledOrders();
             })
             .subscribe();
     } catch (e) {
