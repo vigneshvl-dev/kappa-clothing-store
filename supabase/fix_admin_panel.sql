@@ -275,23 +275,29 @@ END $$;
 -- -----------------------------------------------------------------------------
 -- 8. STORAGE BUCKET: Ensure product-images bucket has public read/write
 -- -----------------------------------------------------------------------------
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('product-images', 'product-images', true)
-ON CONFLICT (id) DO UPDATE SET public = true;
+DO $$
+BEGIN
+    INSERT INTO storage.buckets (id, name, public)
+    VALUES ('product-images', 'product-images', true)
+    ON CONFLICT (id) DO UPDATE SET public = true;
 
-DROP POLICY IF EXISTS "Allow public storage select product-images" ON storage.objects;
-DROP POLICY IF EXISTS "Allow public storage insert product-images" ON storage.objects;
-DROP POLICY IF EXISTS "Allow public storage update product-images" ON storage.objects;
-DROP POLICY IF EXISTS "Allow public storage delete product-images" ON storage.objects;
+    DROP POLICY IF EXISTS storage_public_select_images ON storage.objects;
+    DROP POLICY IF EXISTS storage_public_insert_images ON storage.objects;
+    DROP POLICY IF EXISTS storage_public_update_images ON storage.objects;
+    DROP POLICY IF EXISTS storage_public_delete_images ON storage.objects;
 
-CREATE POLICY "Allow public storage select product-images" ON storage.objects
-    FOR SELECT USING (bucket_id = 'product-images');
-CREATE POLICY "Allow public storage insert product-images" ON storage.objects
-    FOR INSERT WITH CHECK (bucket_id = 'product-images');
-CREATE POLICY "Allow public storage update product-images" ON storage.objects
-    FOR UPDATE USING (bucket_id = 'product-images');
-CREATE POLICY "Allow public storage delete product-images" ON storage.objects
-    FOR DELETE USING (bucket_id = 'product-images');
+    CREATE POLICY storage_public_select_images ON storage.objects
+        FOR SELECT USING (bucket_id = 'product-images');
+    CREATE POLICY storage_public_insert_images ON storage.objects
+        FOR INSERT WITH CHECK (bucket_id = 'product-images');
+    CREATE POLICY storage_public_update_images ON storage.objects
+        FOR UPDATE USING (bucket_id = 'product-images');
+    CREATE POLICY storage_public_delete_images ON storage.objects
+        FOR DELETE USING (bucket_id = 'product-images');
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Storage setup skipped: %', SQLERRM;
+END $$;
 
 -- -----------------------------------------------------------------------------
 -- 9. REALTIME: Enable replication on orders
