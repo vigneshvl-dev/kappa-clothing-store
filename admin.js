@@ -3065,31 +3065,53 @@ window.editProduct = async function (id) {
         colorVariantsData = Object.values(colorMap);
     }
 
-    // --- Handle default fallback image ---
+    // --- Handle default fallback image & hover image ---
     currentDefaultImageFile = null;
     currentDefaultImageUrl = '';
+    currentDefaultHoverImageFile = null;
+    currentDefaultHoverImageUrl = '';
+
     const defaultImgContainer = document.getElementById('default-image-preview-container');
     const defaultImgPreview = document.getElementById('default-image-preview');
     const defaultImgName = document.getElementById('default-image-name');
 
+    const defaultHoverContainer = document.getElementById('default-hover-image-preview-container');
+    const defaultHoverPreview = document.getElementById('default-hover-image-preview');
+    const defaultHoverName = document.getElementById('default-hover-image-name');
+
     if (data.product_images && data.product_images.length > 0) {
-        // Position 0 = default/fallback image
-        const fallbackImg = data.product_images.find(img => (img.position || 0) === 0 && !img.url.includes('#'));
+        // Position 0 = default cover image
+        const fallbackImg = data.product_images.find(img => (img.position || 0) === 0 && !img.url.includes('#'))
+            || data.product_images.find(img => !img.url.includes('#'));
         if (fallbackImg) {
             currentDefaultImageUrl = fallbackImg.url;
             if (defaultImgPreview) defaultImgPreview.src = fallbackImg.url;
-            if (defaultImgName) defaultImgName.textContent = 'Default product image';
+            if (defaultImgName) defaultImgName.textContent = 'Cover Image';
             if (defaultImgContainer) defaultImgContainer.style.display = 'flex';
         } else if (defaultImgContainer) {
             defaultImgContainer.style.display = 'none';
         }
-    } else if (defaultImgContainer) {
-        defaultImgContainer.style.display = 'none';
+
+        // Default hover image (position -1 or #default#back or #back)
+        const hoverImg = data.product_images.find(img => img.url.includes('#default#back') || (img.position === -1))
+            || data.product_images.find(img => img.url.includes('#back'));
+        if (hoverImg) {
+            currentDefaultHoverImageUrl = hoverImg.url.split('#')[0];
+            if (defaultHoverPreview) defaultHoverPreview.src = currentDefaultHoverImageUrl;
+            if (defaultHoverName) defaultHoverName.textContent = 'Hover Image';
+            if (defaultHoverContainer) defaultHoverContainer.style.display = 'flex';
+        } else if (defaultHoverContainer) {
+            defaultHoverContainer.style.display = 'none';
+        }
+    } else {
+        if (defaultImgContainer) defaultImgContainer.style.display = 'none';
+        if (defaultHoverContainer) defaultHoverContainer.style.display = 'none';
     }
 
-    // --- Render variant cards and summary ---
+    // --- Render variant cards, summary & interactive hover test ---
     renderAllColorVariants();
     updateLiveProductSummary();
+    updateAdminInteractivePreview();
 
     // Update submit button text
     const submitBtn = document.getElementById('btn-submit-product');
