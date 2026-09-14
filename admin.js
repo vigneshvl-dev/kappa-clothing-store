@@ -4621,41 +4621,7 @@ window.renderOrderDonutChart = function (counts, total) {
 };
 
 
-// ── DELETE ORDER PERMANENTLY ──
-window.deleteOrder = async function (orderId) {
-    if (!confirm("Are you sure you want to PERMANENTLY delete this order? This action cannot be undone.")) return;
-    try {
-        // 1. Delete associated order_items
-        await supabaseClient.from('order_items').delete().eq('order_id', orderId);
-
-        // 2. Delete order row
-        const { error } = await supabaseClient.from('orders').delete().eq('id', orderId);
-        if (error) throw error;
-
-        // 3. Remove from local storage cache if cached
-        try {
-            let cachedOrders = JSON.parse(localStorage.getItem('kappa_orders') || '[]');
-            cachedOrders = cachedOrders.filter(o => String(o.id) !== String(orderId));
-            localStorage.setItem('kappa_orders', JSON.stringify(cachedOrders));
-        } catch (_) { }
-
-        alert("✅ Order deleted successfully!");
-
-        // Refresh views
-        if (typeof loadOrders === 'function') await loadOrders();
-        if (typeof loadCancelledOrders === 'function') await loadCancelledOrders();
-        if (typeof loadDashboard === 'function') await loadDashboard();
-        if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges();
-
-        // Close details overlay if open for this order
-        const overlay = document.getElementById('orderDetailsOverlay');
-        if (overlay) overlay.style.display = 'none';
-
-    } catch (err) {
-        console.error("Error deleting order:", err);
-        alert("❌ Failed to delete order: " + (err.message || err));
-    }
-};
+// (Legacy duplicate deleteOrder removed — unified deleteOrder handles Recycle Bin)
 
 // ==========================================
 // CANCELLED ORDERS & REFUND MANAGEMENT MODULE
