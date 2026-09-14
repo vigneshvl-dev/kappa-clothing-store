@@ -1525,6 +1525,8 @@ const CATEGORY_SIZES = {
 
 let currentDefaultImageFile = null;
 let currentDefaultImageUrl = '';
+let currentDefaultHoverImageFile = null;
+let currentDefaultHoverImageUrl = '';
 let colorVariantsData = [];
 
 function initProductForm() {
@@ -1687,6 +1689,35 @@ window.removeDefaultImage = function () {
     if (input) input.value = '';
 };
 
+window.handleDefaultHoverImageUpload = function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    currentDefaultHoverImageFile = file;
+
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+        currentDefaultHoverImageUrl = evt.target.result;
+        const previewImg = document.getElementById('default-hover-image-preview');
+        const previewName = document.getElementById('default-hover-image-name');
+        const container = document.getElementById('default-hover-image-preview-container');
+
+        if (previewImg) previewImg.src = currentDefaultHoverImageUrl;
+        if (previewName) previewName.textContent = file.name;
+        if (container) container.style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+};
+
+window.removeDefaultHoverImage = function () {
+    currentDefaultHoverImageFile = null;
+    currentDefaultHoverImageUrl = '';
+    const container = document.getElementById('default-hover-image-preview-container');
+    const input = document.getElementById('prod-hover-image-input');
+    if (container) container.style.display = 'none';
+    if (input) input.value = '';
+};
+
+
 window.addColorVariant = function (initialData = null) {
     const defaultSizesObj = getActiveSizeSystem().reduce((acc, sz) => { acc[sz] = 5; return acc; }, {});
     const newVariant = initialData || {
@@ -1787,14 +1818,15 @@ function renderAllColorVariants() {
                 </div>
 
                 <div style="margin-bottom:18px; background:#fafafa; border:1px solid #f1f5f9; padding:14px; border-radius:10px;">
-                    <label style="display:block; font-size:12px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">
-                        🖼️ Product Images (Optional)
+                    <label style="display:block; font-size:12px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+                        🖼️ Variant Images
                     </label>
+                    <p style="font-size:11px; color:#64748b; margin:0 0 10px;">First image = cover shown on shop card. Second (optional) = shown when customer hovers over the card.</p>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
                         <div>
-                            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">Front image (Optional)</div>
+                            <div style="font-size:11px; font-weight:700; color:#0f172a; margin-bottom:6px;">Cover Image <span style="color:#dc2626;">*</span></div>
                             ${variant.frontImg ? `
-                                <div style="position:relative; width:100px; height:100px; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1;">
+                                <div style="position:relative; width:100px; height:100px; border-radius:8px; overflow:hidden; border:2px solid #0f172a;">
                                     <img src="${variant.frontImg}" style="width:100%; height:100%; object-fit:cover;">
                                     <button type="button" onclick="removeVariantImage(${vIdx}, 'front')" style="position:absolute; top:4px; right:4px; background:#dc2626; color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
                                 </div>
@@ -1802,23 +1834,25 @@ function renderAllColorVariants() {
                                 <label class="img-upload-box">
                                     <input type="file" accept="image/*" style="display:none;" onchange="handleVariantImageUpload(${vIdx}, 'front', event)">
                                     <span style="font-size:20px; margin-bottom:4px;">📷</span>
-                                    <span style="font-size:12px; font-weight:700; color:#0f172a;">+ Upload Front Image</span>
+                                    <span style="font-size:12px; font-weight:700; color:#0f172a;">+ Upload Cover Image</span>
                                 </label>
                             `}
                         </div>
 
                         <div>
-                            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">Back image (Optional)</div>
+                            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px;">Hover Image <span style="font-size:10px; font-weight:400;">(optional — back side)</span></div>
                             ${variant.backImg ? `
-                                <div style="position:relative; width:100px; height:100px; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1;">
+                                <div style="position:relative; width:100px; height:100px; border-radius:8px; overflow:hidden; border:1px dashed #94a3b8;">
                                     <img src="${variant.backImg}" style="width:100%; height:100%; object-fit:cover;">
+                                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;font-weight:700;text-align:center;padding:2px;">HOVER</div>
                                     <button type="button" onclick="removeVariantImage(${vIdx}, 'back')" style="position:absolute; top:4px; right:4px; background:#dc2626; color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
                                 </div>
                             ` : `
-                                <label class="img-upload-box">
+                                <label class="img-upload-box" style="border-style:dashed; background:#f8fafc;">
                                     <input type="file" accept="image/*" style="display:none;" onchange="handleVariantImageUpload(${vIdx}, 'back', event)">
-                                    <span style="font-size:20px; margin-bottom:4px;">📷</span>
-                                    <span style="font-size:12px; font-weight:700; color:#0f172a;">+ Upload Back Image</span>
+                                    <span style="font-size:20px; margin-bottom:4px;">🔄</span>
+                                    <span style="font-size:12px; font-weight:700; color:#64748b;">+ Add Hover Image</span>
+                                    <span style="font-size:10px; color:#94a3b8;">Shows on cursor hover</span>
                                 </label>
                             `}
                         </div>
@@ -2112,6 +2146,15 @@ window.saveProductForm = async function (e) {
                 });
             }
 
+            // Save default hover image (back side for the generic product view)
+            if (currentDefaultHoverImageUrl) {
+                imagesToInsert.push({
+                    product_id: targetProductId,
+                    url: `${currentDefaultHoverImageUrl}#default#back`,
+                    position: -1
+                });
+            }
+
             colorVariantsData.forEach((v, idx) => {
                 if (v.frontImg) {
                     imagesToInsert.push({
@@ -2196,6 +2239,7 @@ function clearProductForm() {
     if (discBadge) discBadge.textContent = '0% OFF';
 
     removeDefaultImage();
+    removeDefaultHoverImage();
     colorVariantsData = [];
     renderAllColorVariants();
     updateLiveProductSummary();

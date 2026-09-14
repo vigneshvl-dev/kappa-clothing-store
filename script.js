@@ -136,11 +136,26 @@ testDatabaseConnection();
                             if (v.color) colorsSet.add(v.color);
                         });
                     }
+
+                    // Resolve main cover image: prefer position=0 (default), else first image without # tag
+                    const imgs = p.product_images || [];
+                    const sortedImgs = [...imgs].sort((a, b) => (a.position || 0) - (b.position || 0));
+                    const defaultImg = sortedImgs.find(i => (i.position === 0) && !i.url.includes('#'))
+                        || sortedImgs.find(i => !i.url.includes('#'));
+                    const coverImg = defaultImg ? defaultImg.url : (imgs[0] ? imgs[0].url : 'assets/sleeping sis.png');
+
+                    // Resolve hover image: prefer the default hover (position -1, #default#back), then first color variant's #back
+                    const defaultHoverEntry = imgs.find(i => i.url && i.url.includes('#default#back'));
+                    const variantHoverEntry = !defaultHoverEntry && imgs.find(i => i.url && i.url.includes('#') && i.url.split('#')[2] === 'back');
+                    const hoverEntry = defaultHoverEntry || variantHoverEntry;
+                    const hoverImg = hoverEntry ? hoverEntry.url.split('#')[0] : '';
+
                     return {
                         ...p,
                         sizes: Array.from(sizesSet),
                         colors: Array.from(colorsSet),
-                        img: (p.product_images && p.product_images.length > 0) ? p.product_images[0].url : 'assets/sleeping sis.png'
+                        img: coverImg,
+                        hoverImg: hoverImg
                     };
                 });
                 window.PRODUCTS = PRODUCTS;
@@ -587,11 +602,17 @@ testDatabaseConnection();
         const discountPct = p.old ? Math.round((1 - p.price / p.old) * 100) : null;
         const isOut = p.stock_quantity === 0 || p.isOutOfStock || p.stock === 0;
         const badgeLabel = resolveTag(p);
+        const hasHover = !isOut && p.hoverImg && p.hoverImg !== p.img;
         return `
   <div class="product-card ${small ? 'trend-card' : ''} ${isOut ? 'is-out-of-stock' : ''}" data-id="${p.id}">
     <div class="pc-media" style="position:relative;">
       ${isOut ? `<span class="pc-tag out-of-stock-badge" style="background:#d32f2f !important; color:#ffffff !important; font-weight:800 !important; box-shadow: 0 2px 8px rgba(211, 47, 47, 0.4);">OUT OF STOCK</span>` : `<span class="pc-tag ${badgeLabel === 'SALE' ? 'sale' : ''}">${badgeLabel}</span>`}
-      <img src="${p.img}" alt="${p.name}" loading="lazy">
+      ${hasHover ? `
+        <div class="pc-img-wrap" style="position:relative; width:100%; height:100%;">
+          <img class="pc-img-front" src="${p.img}" alt="${p.name}" loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transition:opacity 0.4s ease;opacity:1;">
+          <img class="pc-img-hover" src="${p.hoverImg}" alt="${p.name} back" loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transition:opacity 0.4s ease;opacity:0;">
+        </div>
+      ` : `<img src="${p.img}" alt="${p.name}" loading="lazy">`}
       ${isOut ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
       ${!small && !isOut ? `
       <div class="pc-quick">
@@ -614,20 +635,42 @@ testDatabaseConnection();
   </div>`;
     }
 
+    // Attach hover swap events for cards with hover images (event delegation)
+    function attachProductCardHoverEvents(container) {
+        if (!container) return;
+        container.addEventListener('mouseenter', e => {
+            const card = e.target.closest('.product-card');
+            if (!card) return;
+            const front = card.querySelector('.pc-img-front');
+            const back  = card.querySelector('.pc-img-hover');
+            if (front && back) { front.style.opacity = '0'; back.style.opacity = '1'; }
+        }, true);
+        container.addEventListener('mouseleave', e => {
+            const card = e.target.closest('.product-card');
+            if (!card) return;
+            const front = card.querySelector('.pc-img-front');
+            const back  = card.querySelector('.pc-img-hover');
+            if (front && back) { front.style.opacity = '1'; back.style.opacity = '0'; }
+        }, true);
+    }
+
     function renderStorefrontGrids() {
         const arrivalsGrid = document.getElementById("arrivalsGrid");
         if (arrivalsGrid && Array.isArray(PRODUCTS)) {
             arrivalsGrid.innerHTML = PRODUCTS.map(p => productCard(p, false)).join('');
+            attachProductCardHoverEvents(arrivalsGrid);
         }
 
         const trendTrack = document.getElementById("trendTrack");
         if (trendTrack && Array.isArray(PRODUCTS)) {
             const trendItems = [...PRODUCTS, ...PRODUCTS];
             trendTrack.innerHTML = trendItems.map(p => productCard(p, true)).join('');
+            attachProductCardHoverEvents(trendTrack);
         }
     }
     window.renderStorefrontGrids = renderStorefrontGrids;
     renderStorefrontGrids();
+
 
     /* ---------- RENDER: CATEGORIES ---------- */
     const catGrid = document.getElementById("catGrid");

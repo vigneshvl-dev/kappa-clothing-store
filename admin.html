@@ -313,25 +313,57 @@
 
                     <!-- 2. PRODUCT IMAGES (DEFAULT FALLBACK) -->
                     <section class="card">
-                        <h2 class="card-title">2. Product Images</h2>
-                        <p style="font-size:13px; color:#64748b; margin-bottom:14px; line-height:1.4;">Add a default product image. This image is used as the fallback image when a color variant does not have its own image.</p>
-                        
-                        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-                            <label for="prod-default-image-input" style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; background:#0f172a; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-weight:700; font-size:13px;">
-                                📸 + Upload Product Image
-                            </label>
-                            <input type="file" id="prod-default-image-input" accept="image/*" style="display:none;" onchange="handleDefaultImageUpload(event)">
-                            
-                            <div id="default-image-preview-container" style="display:none; align-items:center; gap:12px; background:#f8fafc; border:1px solid #e2e8f0; padding:8px 14px; border-radius:10px;">
-                                <img id="default-image-preview" src="" alt="Default Image" style="width:52px; height:52px; object-fit:cover; border-radius:6px; border:1px solid #cbd5e1;">
-                                <div>
-                                    <div style="font-size:12px; font-weight:700; color:#0f172a;" id="default-image-name">default_image.jpg</div>
-                                    <div style="font-size:11px; color:#64748b;">Default Fallback Image</div>
+                        <h2 class="card-title">2. Default Product Image</h2>
+                        <p style="font-size:13px; color:#64748b; margin-bottom:14px; line-height:1.5;">
+                            The <strong>Cover Image</strong> is the main image shown for this product. The optional <strong>Hover Image</strong> appears when a customer moves their cursor over the product card in the shop — great for showing the back side.
+                        </p>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;">
+                            <!-- Cover Image -->
+                            <div>
+                                <div style="font-size:12px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">📸 Cover Image</div>
+                                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                                    <label for="prod-default-image-input" style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; background:#0f172a; color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px;">
+                                        📷 Upload Cover Image
+                                    </label>
+                                    <input type="file" id="prod-default-image-input" accept="image/*" style="display:none;" onchange="handleDefaultImageUpload(event)">
+
+                                    <div id="default-image-preview-container" style="display:none; align-items:center; gap:12px; background:#f8fafc; border:2px solid #0f172a; padding:8px 14px; border-radius:10px;">
+                                        <img id="default-image-preview" src="" alt="Default Image" style="width:52px; height:52px; object-fit:cover; border-radius:6px; border:1px solid #cbd5e1;">
+                                        <div>
+                                            <div style="font-size:12px; font-weight:700; color:#0f172a;" id="default-image-name">cover_image.jpg</div>
+                                            <div style="font-size:11px; color:#64748b;">Cover (shown on shop card)</div>
+                                        </div>
+                                        <button type="button" onclick="removeDefaultImage()" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; margin-left:8px;">✕ Remove</button>
+                                    </div>
                                 </div>
-                                <button type="button" onclick="removeDefaultImage()" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; margin-left:8px;">✕ Remove</button>
+                            </div>
+
+                            <!-- Hover Image -->
+                            <div>
+                                <div style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">🔄 Hover Image <span style="font-size:10px; font-weight:400; text-transform:none;">(optional — back side)</span></div>
+                                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                                    <label for="prod-hover-image-input" style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; background:#f1f5f9; color:#334155; border:1.5px dashed #94a3b8; padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px;">
+                                        🔄 Upload Hover Image
+                                    </label>
+                                    <input type="file" id="prod-hover-image-input" accept="image/*" style="display:none;" onchange="handleDefaultHoverImageUpload(event)">
+
+                                    <div id="default-hover-image-preview-container" style="display:none; align-items:center; gap:12px; background:#f8fafc; border:1.5px dashed #94a3b8; padding:8px 14px; border-radius:10px;">
+                                        <div style="position:relative; width:52px; height:52px;">
+                                            <img id="default-hover-image-preview" src="" alt="Hover Image" style="width:52px; height:52px; object-fit:cover; border-radius:6px; border:1px dashed #94a3b8;">
+                                            <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);color:#fff;font-size:8px;font-weight:700;text-align:center;border-radius:0 0 4px 4px;">HOVER</div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size:12px; font-weight:700; color:#334155;" id="default-hover-image-name">hover_image.jpg</div>
+                                            <div style="font-size:11px; color:#94a3b8;">Shown on cursor hover</div>
+                                        </div>
+                                        <button type="button" onclick="removeDefaultHoverImage()" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; margin-left:8px;">✕ Remove</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
+
 
                     <!-- 3. PRICING -->
                     <section class="card">
