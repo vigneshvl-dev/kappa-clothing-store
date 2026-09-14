@@ -3108,11 +3108,18 @@ window.changeCardColor = function (thumbElement, colorName, imageUrl) {
         }, 180);
     }
 
-    // Update the product link to carry the selected image as the active image
+    // Update the product link to carry the selected image as the active image safely
     const link = card.querySelector('a[href^="product.html"]');
     if (link) {
         const base = link.href.split('&img=')[0];
-        link.href = base + '&img=' + encodeURIComponent(imageUrl);
+        if (imageUrl && !imageUrl.startsWith('data:') && imageUrl.length < 150) {
+            link.href = base + '&img=' + encodeURIComponent(imageUrl);
+        } else {
+            link.href = base;
+        }
+    }
+    if (imageUrl) {
+        try { sessionStorage.setItem('kappa_pdp_selected_img', imageUrl); } catch (_) {}
     }
 
     // Remove active styling from all sibling thumbnails, add to clicked one

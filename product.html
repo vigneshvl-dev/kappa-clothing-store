@@ -2559,7 +2559,24 @@
                 images = rawImages;
             }
 
-            window.currentMainImageUrl = images.length > 0 ? images[0].url.split('#')[0] : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
+            // Safely check for user-selected image from card click (prevents URI_TOO_LONG errors)
+            let initialImg = null;
+            try {
+                initialImg = sessionStorage.getItem('kappa_pdp_selected_img');
+                if (initialImg) sessionStorage.removeItem('kappa_pdp_selected_img');
+            } catch (_) {}
+
+            if (!initialImg) {
+                const urlParams = new URLSearchParams(window.location.search);
+                initialImg = urlParams.get('img');
+            }
+
+            if (initialImg) {
+                window.currentMainImageUrl = initialImg.split('#')[0];
+            } else {
+                window.currentMainImageUrl = images.length > 0 ? images[0].url.split('#')[0] : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
+            }
+
             const mainImg = document.getElementById('main-product-image');
             if (mainImg) mainImg.src = window.currentMainImageUrl;
 
