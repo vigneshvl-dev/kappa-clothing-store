@@ -3108,14 +3108,12 @@ window.changeCardColor = function (thumbElement, colorName, imageUrl) {
         }, 180);
     }
 
-    // Update the product link safely without causing URI_TOO_LONG errors
-    const link = card.querySelector('a[href^="product.html"]');
+    // Ensure product link stays clean without unnecessary query parameters
+    const link = card.querySelector('a[href*="product.html"]');
     if (link) {
-        let cleanHref = link.href.split('&img=')[0];
-        if (imageUrl && !imageUrl.startsWith('data:') && imageUrl.length < 250) {
-            cleanHref += '&img=' + encodeURIComponent(imageUrl);
-        }
-        link.href = cleanHref;
+        const rawHref = link.getAttribute('href') || '';
+        const cleanHref = rawHref.split('&img=')[0];
+        link.setAttribute('href', cleanHref);
     }
 
     // Remove active styling from all sibling thumbnails, add to clicked one
