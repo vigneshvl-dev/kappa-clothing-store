@@ -1764,17 +1764,6 @@
                 let imageUrl = 'assets/sleeping sis.png';
                 if (allImages.length > 0) imageUrl = allImages[0].url;
 
-                // Resolve hover image (if provided)
-                let hoverImageUrl = '';
-                const defaultHoverEntry = (product.product_images || []).find(i => i.url && i.url.includes('#default#back'));
-                const variantHoverEntry = !defaultHoverEntry && (product.product_images || []).find(i => i.url && i.url.includes('#') && i.url.split('#')[2] === 'back');
-                const hoverEntry = defaultHoverEntry || variantHoverEntry;
-                if (hoverEntry) {
-                    hoverImageUrl = hoverEntry.url.split('#')[0];
-                } else if (allImages.length > 1 && allImages[1].url !== imageUrl) {
-                    hoverImageUrl = allImages[1].url;
-                }
-
                 // Build thumbnail strip from ALL images
                 const maxThumbs = 5;
                 let thumbsHTML = '';
@@ -1816,14 +1805,11 @@
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
                          style="position: relative; cursor: pointer;"
-                         onclick="window.location.href='product.html?slug=${product.slug || product.id}'"
-                         onmouseenter="const f=this.querySelector('.boys-card-img-front'),h=this.querySelector('.boys-card-img-hover'); if(f&&h){f.style.opacity='0';h.style.opacity='1';}"
-                         onmouseleave="const f=this.querySelector('.boys-card-img-front'),h=this.querySelector('.boys-card-img-hover'); if(f&&h){f.style.opacity='1';h.style.opacity='0';}">
+                         onclick="window.location.href='product.html?slug=${product.slug || product.id}'">
                         ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">${badgeText}</span>`}
                         
-                        <div style="position: relative; overflow: hidden; border-radius: 8px; width: 100%; aspect-ratio: 3/4;">
-                            <img class="boys-card-img boys-card-img-front" src="${imageUrl}" alt="${product.name || 'Product'}" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; transition:opacity 0.35s ease; opacity:1;">
-                            ${hoverImageUrl ? `<img class="boys-card-img boys-card-img-hover" src="${hoverImageUrl}" alt="${product.name || 'Product'} Hover" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; transition:opacity 0.35s ease; opacity:0;">` : ''}
+                        <div style="position: relative; overflow: hidden; border-radius: 8px;">
+                            <img class="boys-card-img" src="${imageUrl}" alt="${product.name || 'Product'}">
                             ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
                         </div>
 
