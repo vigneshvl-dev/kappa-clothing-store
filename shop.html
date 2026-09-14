@@ -1784,6 +1784,22 @@
                     thumbsHTML += `<span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">+${allImages.length - maxThumbs}</span>`;
                 }
 
+                function getCleanProductSlug(p) {
+                    if (!p) return '1';
+                    let slug = String(p.slug || '').trim();
+                    if (!slug || slug.startsWith('data:') || slug.includes('base64') || slug.length > 80) {
+                        let idStr = String(p.id || '').trim();
+                        if (idStr && !idStr.startsWith('data:') && !idStr.includes('base64') && idStr.length <= 80) {
+                            return idStr;
+                        }
+                        if (p.name) {
+                            return String(p.name).toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').slice(0, 50) || 'product';
+                        }
+                        return 'product';
+                    }
+                    return slug;
+                }
+
                 function resolveProductBadge(p) {
                     if (!p) return 'NEW';
                     if (p.tag && p.tag !== 'NEW') return p.tag.toUpperCase();
@@ -1802,10 +1818,12 @@
                     ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>`
                     : '';
 
+                const safeSlug = getCleanProductSlug(product);
+
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
                          style="position: relative; cursor: pointer;"
-                         onclick="window.location.href='product.html?slug=${product.slug || product.id}'">
+                         onclick="window.location.href='product.html?slug=${safeSlug}'">
                         ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">${badgeText}</span>`}
                         
                         <div style="position: relative; overflow: hidden; border-radius: 8px;">
@@ -1844,6 +1862,10 @@
                 }, 180);
             }
 
+            if (imageUrl) {
+                try { sessionStorage.setItem('kappa_pdp_selected_img', imageUrl); } catch (_) {}
+            }
+
             const thumbs = card.querySelectorAll('.boys-card-thumb');
             thumbs.forEach(t => {
                 t.style.border = '1px solid #ddd';
@@ -1871,10 +1893,12 @@
                     ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>`
                     : '';
 
+                const safeSlug = getCleanProductSlug(product);
+
                 return `
                     <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
                          style="position: relative; cursor: pointer;"
-                         onclick="window.location.href='product.html?slug=${product.slug || product.id}'">
+                         onclick="window.location.href='product.html?slug=${safeSlug}'">
                         ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">${badgeText}</span>`}
                         <div style="position: relative; overflow: hidden; border-radius: 8px;">
                             <img class="boys-card-img" src="${imageUrl}" alt="${product.name || 'Product'}">

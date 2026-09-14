@@ -2709,6 +2709,9 @@
             console.log("🔍 loadSingleProduct() called!");
             const urlParams = new URLSearchParams(window.location.search);
             let slug = urlParams.get('slug') || urlParams.get('id');
+            if (slug && (slug.startsWith('data:') || slug.includes('base64') || slug.length > 100)) {
+                slug = null;
+            }
             console.log("📌 Target slug/id:", slug);
 
             // Render instantly from local storage cache if available
@@ -2993,8 +2996,10 @@ async function loadZaraGrids(categoryId, currentProductId) {
                     let imgs = item.product_images || [];
                     imgs.sort((a, b) => a.position - b.position);
                     const imgUrl = imgs.length > 0 ? imgs[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
+                    const targetSlug = String(item.slug || item.id || '').trim();
+                    const cleanSlug = (targetSlug && !targetSlug.startsWith('data:') && targetSlug.length <= 80) ? targetSlug : (item.id || '1');
                     return `
-                        <div class="zara-card" onclick="window.location.href='product.html?slug=${item.slug}'">
+                        <div class="zara-card" onclick="window.location.href='product.html?slug=${cleanSlug}'">
                             <img src="${imgUrl}" alt="${item.name}">
                             <div class="zara-card-info">
                                 <span class="zara-card-name">${item.name}</span>

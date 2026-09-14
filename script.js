@@ -1404,14 +1404,18 @@ testDatabaseConnection();
         const q = searchInput.value.trim().toLowerCase();
         if (!q) { searchResults.innerHTML = ''; return; }
         const matches = PRODUCTS.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q));
-        searchResults.innerHTML = matches.length ? matches.map(p => `
-    <div class="sr-item" data-slug="${p.slug || p.id}">
+        searchResults.innerHTML = matches.length ? matches.map(p => {
+            const sSlug = String(p.slug || p.id || '').trim();
+            const safeSlug = (sSlug && !sSlug.startsWith('data:') && sSlug.length <= 80) ? sSlug : (p.id || '1');
+            return `
+    <div class="sr-item" data-slug="${safeSlug}">
       <img src="${p.img}" alt="${p.name}">
       <div>
         <div class="sr-name">${p.name}</div>
         <div class="sr-price">${p.cat} · ${fmt(p.price)}</div>
       </div>
-    </div>`).join('') : `<div class="sr-empty">No results for "${q}"</div>`;
+    </div>`;
+        }).join('') : `<div class="sr-empty">No results for "${q}"</div>`;
     });
     searchResults.addEventListener("click", e => {
         const item = e.target.closest(".sr-item");
@@ -3047,6 +3051,9 @@ async function initStorefront() {
             const safeName = (product.name || 'Untitled').replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const comparePriceHTML = product.compare_at_price ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>` : '';
 
+            const sSlug = String(product.slug || product.id || '').trim();
+            const cardSlug = (sSlug && !sSlug.startsWith('data:') && sSlug.length <= 80) ? sSlug : (product.id || '1');
+
             // Build the card with Out of Stock overlay & badge
             const cardHTML = `
                 <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
@@ -3056,7 +3063,7 @@ async function initStorefront() {
                      style="max-width: 280px; width: 100%; position: relative;">
                     ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
                     
-                    <a href="product.html?slug=${product.slug || product.id}" style="text-decoration: none; color: inherit; display: block; position: relative;">
+                    <a href="product.html?slug=${cardSlug}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                         <div class="boys-card-img-wrap" style="overflow:hidden; border-radius:8px;">
                             <img class="boys-card-img" src="${imageUrl}" alt="${product.name || 'Product'}">
                             ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
