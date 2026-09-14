@@ -3108,11 +3108,14 @@ window.changeCardColor = function (thumbElement, colorName, imageUrl) {
         }, 180);
     }
 
-    // Update the product link to carry the selected image as the active image
+    // Update the product link safely without causing URI_TOO_LONG errors
     const link = card.querySelector('a[href^="product.html"]');
     if (link) {
-        const base = link.href.split('&img=')[0];
-        link.href = base + '&img=' + encodeURIComponent(imageUrl);
+        let cleanHref = link.href.split('&img=')[0];
+        if (imageUrl && !imageUrl.startsWith('data:') && imageUrl.length < 250) {
+            cleanHref += '&img=' + encodeURIComponent(imageUrl);
+        }
+        link.href = cleanHref;
     }
 
     // Remove active styling from all sibling thumbnails, add to clicked one
