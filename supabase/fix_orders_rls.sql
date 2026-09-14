@@ -148,3 +148,156 @@ CREATE POLICY "Anyone can insert order items" ON public.order_items FOR INSERT W
 CREATE POLICY "Allow viewing order items" ON public.order_items FOR SELECT USING (true);
 CREATE POLICY "Allow updating order items" ON public.order_items FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Allow deleting order items" ON public.order_items FOR DELETE USING (true);
+
+-- ── 6. FIX STOCK DEDUCTION: Only deduct the exact color+size variant purchased ──
+-- BUG: old code fell back to ALL variants matching size (ignoring color) if exact match not found
+-- FIX: remove the dangerous fallback; only deduct exact color+size match
+
+CREATE OR REPLACE FUNCTION public.deduct_product_stock(p_items jsonb)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    item jsonb;
+    v_raw_id text;
+    v_prod_id uuid;
+    v_qty integer;
+    v_size text;
+    v_color text;
+    v_updated_count integer := 0;
+BEGIN
+    IF p_items IS NULL OR jsonb_array_length(p_items) = 0 THEN
+        RETURN jsonb_build_object('success', false, 'message', 'No items provided');
+    END IF;
+
+    FOR item IN SELECT * FROM jsonb_array_elements(p_items) LOOP
+        v_raw_id := COALESCE(NULLIF(item->>'id', ''), NULLIF(item->>'product_id', ''), '');
+        v_qty    := COALESCE(NULLIF(item->>'qty', ''), NULLIF(item->>'quantity', ''), '1')::integer;
+        v_size   := NULLIF(TRIM(COALESCE(item->>'size', '')), '');
+        v_color  := NULLIF(TRIM(COALESCE(item->>'color', '')), '');
+        v_prod_id := NULL;
+
+        IF v_raw_id = '' THEN CONTINUE; END IF;
+
+        IF v_raw_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+            v_prod_id := v_raw_id::uuid;
+        ELSE
+            SELECT id INTO v_prod_id FROM public.products WHERE slug = v_raw_id LIMIT 1;
+        END IF;
+
+        IF v_prod_id IS NULL THEN CONTINUE; END IF;
+
+        -- Normalise sentinel values
+        IF v_size IN ('Default', 'N/A') THEN v_size := NULL; END IF;
+        IF v_color IN ('Default', 'N/A') THEN v_color := NULL; END IF;
+
+        -- ✅ Deduct the EXACT color+size variant only (no cross-color fallback)
+        IF v_size IS NOT NULL AND v_color IS NOT NULL THEN
+            -- Case 1: Both size and color specified → match exactly
+            UPDATE public.product_variants
+            SET stock_quantity = GREATEST(0, COALESCE(stock_quantity, 0) - v_qty)
+            WHERE product_id = v_prod_id
+              AND LOWER(TRIM(size))  = LOWER(v_size)
+              AND LOWER(TRIM(color)) = LOWER(v_color);
+
+        ELSIF v_size IS NOT NULL THEN
+            -- Case 2: Size only (no color variant) → match by size alone
+            UPDATE public.product_variants
+            SET stock_quantity = GREATEST(0, COALESCE(stock_quantity, 0) - v_qty)
+            WHERE product_id = v_prod_id
+              AND LOWER(TRIM(size)) = LOWER(v_size)
+              AND (color IS NULL OR TRIM(color) = '' OR LOWER(TRIM(color)) IN ('default', 'n/a'));
+
+        ELSIF v_color IS NOT NULL THEN
+            -- Case 3: Color only (no size variant) → match by color alone
+            UPDATE public.product_variants
+            SET stock_quantity = GREATEST(0, COALESCE(stock_quantity, 0) - v_qty)
+            WHERE product_id = v_prod_id
+              AND LOWER(TRIM(color)) = LOWER(v_color)
+              AND (size IS NULL OR TRIM(size) = '' OR LOWER(TRIM(size)) IN ('default', 'n/a'));
+        END IF;
+
+        -- Always deduct the master product stock total
+        UPDATE public.products
+        SET stock_quantity = GREATEST(0, COALESCE(stock_quantity, 0) - v_qty)
+        WHERE id = v_prod_id;
+
+        v_updated_count := v_updated_count + 1;
+    END LOOP;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'updated_items', v_updated_count,
+        'message', 'Stock deducted successfully'
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN jsonb_build_object('success', false, 'error', SQLERRM);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.deduct_product_stock(jsonb) TO anon, authenticated, service_role;
+
+-- ── 7. FIX STOCK TRIGGER: Same exact-match logic for the ORDER trigger ──────────
+CREATE OR REPLACE FUNCTION public.trigger_deduct_stock_on_order()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_item record;
+BEGIN
+    IF (TG_OP = 'INSERT' AND LOWER(NEW.status) = 'paid') OR
+       (TG_OP = 'UPDATE' AND LOWER(NEW.status) = 'paid' AND OLD.status IS DISTINCT FROM NEW.status) THEN
+
+        FOR v_item IN
+            SELECT product_id, quantity, size, color
+            FROM public.order_items
+            WHERE order_id = NEW.id
+        LOOP
+            -- ✅ Deduct only the EXACT variant (color + size) — no cross-color fallback
+            IF v_item.size IS NOT NULL AND v_item.size NOT IN ('Default', 'N/A', '')
+               AND v_item.color IS NOT NULL AND v_item.color NOT IN ('Default', 'N/A', '') THEN
+                -- Both size and color → exact match
+                UPDATE public.product_variants
+                SET stock_quantity = GREATEST(0, COALESCE(stock_quantity, 0) - COALESCE(v_item.quantity, 1))
+                WHERE product_id = v_item.product_id
+                  AND LOWER(TRIM(size))  = LOWER(TRIM(v_item.size))
+                  AND LOWER(TRIM(color)) = LOWER(TRIM(v_item.color));
+
+            ELSIF v_item.size IS NOT NULL AND v_item.size NOT IN ('Default', 'N/A', '') THEN
+                -- Size only → match size where color is null/default
+                UPDATE public.product_variants
+                SET stock_quantity = GREATEST(0, COALESCE(stock_quantity, 0) - COALESCE(v_item.quantity, 1))
+                WHERE product_id = v_item.product_id
+                  AND LOWER(TRIM(size)) = LOWER(TRIM(v_item.size))
+                  AND (color IS NULL OR TRIM(color) = '' OR LOWER(TRIM(color)) IN ('default', 'n/a'));
+
+            ELSIF v_item.color IS NOT NULL AND v_item.color NOT IN ('Default', 'N/A', '') THEN
+                -- Color only → match color where size is null/default
+                UPDATE public.product_variants
+                SET stock_quantity = GREATEST(0, COALESCE(stock_quantity, 0) - COALESCE(v_item.quantity, 1))
+                WHERE product_id = v_item.product_id
+                  AND LOWER(TRIM(color)) = LOWER(TRIM(v_item.color))
+                  AND (size IS NULL OR TRIM(size) = '' OR LOWER(TRIM(size)) IN ('default', 'n/a'));
+            END IF;
+
+            -- Always deduct master product stock
+            UPDATE public.products
+            SET stock_quantity = GREATEST(0, COALESCE(stock_quantity, 0) - COALESCE(v_item.quantity, 1))
+            WHERE id = v_item.product_id;
+        END LOOP;
+
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_deduct_stock_on_order ON public.orders;
+CREATE TRIGGER trg_deduct_stock_on_order
+AFTER INSERT OR UPDATE ON public.orders
+FOR EACH ROW
+EXECUTE FUNCTION public.trigger_deduct_stock_on_order();
