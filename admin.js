@@ -201,7 +201,7 @@ window.loadDashboard = async function () {
     try {
         const { data: orders } = await supabaseClient
             .from('orders')
-            .select('id, total_amount, status, order_stage');
+            .select('id, total_amount, status, order_stage, payment_status, razorpay_payment_id, created_at');
 
         let totalRev = 0;
         let totalOrdersCount = 0;
@@ -234,6 +234,32 @@ window.loadDashboard = async function () {
         if (prodEl) prodEl.textContent = prodCount || 0;
         if (custEl) custEl.textContent = custCount || 0;
 
+        // Populate bottom action cards
+        if (orders) {
+            const pendingCount = orders.filter(o => !o.order_stage || o.order_stage === 'incoming').length;
+            const cancelledCount = orders.filter(o => {
+                const st = (o.status || '').toLowerCase();
+                return st.includes('cancel') || o.order_stage === 'cancelled';
+            }).length;
+            const paidRev = orders.reduce((sum, o) => {
+                const st = (o.status || '').toLowerCase();
+                return (st === 'paid' || o.payment_status === 'paid' || o.razorpay_payment_id)
+                    ? sum + (parseFloat(o.total_amount) || 0) : sum;
+            }, 0);
+
+            const pendEl = document.getElementById('dash-bottom-pending');
+            const cancEl = document.getElementById('dash-bottom-cancelled');
+            const prodBotEl = document.getElementById('dash-bottom-products');
+            const payEl = document.getElementById('dash-bottom-payments');
+            if (pendEl) pendEl.textContent = pendingCount;
+            if (cancEl) cancEl.textContent = cancelledCount;
+            if (prodBotEl) prodBotEl.textContent = prodCount || 0;
+            if (payEl) payEl.textContent = `₹${paidRev.toLocaleString('en-IN')}`;
+
+            renderDonutChart(orders);
+            renderSalesChart(orders, '6months');
+        }
+
         if (typeof updateMobileNotificationUI === 'function') {
             updateMobileNotificationUI();
         }
@@ -241,6 +267,126 @@ window.loadDashboard = async function () {
         console.warn('Error loading dashboard stats:', e);
     }
 };
+
+// ==========================================
+// SIDEBAR ORDER BADGES (was missing — caused verifyAdmin crash)
+// ==========================================
+async function updateSidebarOrderBadges() {
+    try {
+        const { data: orders } = await supabaseClient
+            .from('orders')
+            .select('id, status, order_stage')
+            .order('created_at', { ascending: false })
+            .limit(200);
+        if (!orders) return;
+
+        const newOrders = orders.filter(o => {
+            const stage = (o.order_stage || '').toLowerCase();
+            return stage === 'incoming' || !stage;
+        });
+        const cancelledOrders = orders.filter(o => {
+            const st = (o.status || '').toLowerCase();
+            const stage = (o.order_stage || '').toLowerCase();
+            return st.includes('cancel') || stage === 'cancelled';
+        });
+
+        const ob = document.getElementById('nav-badge-orders');
+        const cb = document.getElementById('nav-badge-cancelled');
+        const mhb = document.getElementById('mobile-header-notif-badge');
+        if (ob) { ob.textContent = newOrders.length; ob.style.display = newOrders.length > 0 ? '' : 'none'; }
+        if (cb) { cb.textContent = cancelledOrders.length; cb.style.display = cancelledOrders.length > 0 ? '' : 'none'; }
+        const total = newOrders.length + cancelledOrders.length;
+        if (mhb) { mhb.textContent = total; mhb.style.display = total > 0 ? '' : 'none'; }
+    } catch (e) { console.warn('updateSidebarOrderBadges error:', e); }
+}
+
+// ==========================================
+// SALES CHART & ORDER STATUS DONUT
+// ==========================================
+let _dashAllOrders = [];
+
+window.changeSalesTimeframe = function (timeframe, btnEl) {
+    document.querySelectorAll('#salesTimeFilters .dash-filter-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    renderSalesChart(_dashAllOrders, timeframe);
+};
+
+window.switchAdminOrdersFilter = function (stage) {
+    switchAdminView('orders');
+    setTimeout(() => { if (typeof filterOrders === 'function') filterOrders(stage); }, 600);
+};
+
+function renderSalesChart(orders, timeframe) {
+    _dashAllOrders = orders || [];
+    const container = document.getElementById('salesChartContainer');
+    if (!container) return;
+    const now = new Date();
+    let labels = [], buckets = [];
+    const clean = orders.filter(o => {
+        const st = (o.status || '').toLowerCase(), stage = (o.order_stage || '').toLowerCase();
+        return !st.includes('cancel') && !st.includes('refund') && stage !== 'cancelled';
+    });
+    if (timeframe === 'today') {
+        for (let h = 0; h < 24; h++) { labels.push(h===0?'12am':h<12?h+'am':h===12?'12pm':(h-12)+'pm'); buckets.push(0); }
+        clean.forEach(o => { const d=new Date(o.created_at); if(d.toDateString()===now.toDateString()) buckets[d.getHours()]+=parseFloat(o.total_amount)||0; });
+    } else if (timeframe === '7days') {
+        for (let i=6;i>=0;i--) { const d=new Date(now); d.setDate(d.getDate()-i); labels.push(d.toLocaleDateString('en-IN',{weekday:'short'})); buckets.push(0); }
+        clean.forEach(o => { const d=new Date(o.created_at),diff=Math.floor((now-d)/86400000); if(diff>=0&&diff<7) buckets[6-diff]+=parseFloat(o.total_amount)||0; });
+    } else if (timeframe === '30days') {
+        for (let i=29;i>=0;i--) { const d=new Date(now); d.setDate(d.getDate()-i); labels.push(i%5===0?d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}):''); buckets.push(0); }
+        clean.forEach(o => { const d=new Date(o.created_at),diff=Math.floor((now-d)/86400000); if(diff>=0&&diff<30) buckets[29-diff]+=parseFloat(o.total_amount)||0; });
+    } else if (timeframe === 'thisyear') {
+        ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].forEach(m => { labels.push(m); buckets.push(0); });
+        clean.forEach(o => { const d=new Date(o.created_at); if(d.getFullYear()===now.getFullYear()) buckets[d.getMonth()]+=parseFloat(o.total_amount)||0; });
+    } else {
+        const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); labels.push(mn[d.getMonth()]); buckets.push(0); }
+        clean.forEach(o => { const d=new Date(o.created_at); for(let i=5;i>=0;i--){const ref=new Date(now.getFullYear(),now.getMonth()-i,1);if(d.getFullYear()===ref.getFullYear()&&d.getMonth()===ref.getMonth()){buckets[5-i]+=parseFloat(o.total_amount)||0;break;}} });
+    }
+    const tot=buckets.reduce((s,v)=>s+v,0), peakI=buckets.indexOf(Math.max(...buckets));
+    const peak=buckets[peakI]>0?(labels[peakI]||'—'):'—';
+    const pOrds=clean.filter(o=>{ const d=new Date(o.created_at);
+        if(timeframe==='today') return d.toDateString()===now.toDateString();
+        if(timeframe==='7days') return (now-d)/86400000<7;
+        if(timeframe==='30days') return (now-d)/86400000<30;
+        if(timeframe==='thisyear') return d.getFullYear()===now.getFullYear();
+        return d>=new Date(now.getFullYear(),now.getMonth()-5,1);
+    }).length;
+    const avg=pOrds>0?Math.round(tot/pOrds):0;
+    const ptEl=document.getElementById('sales-period-total'); if(ptEl) ptEl.textContent=`₹${tot.toLocaleString('en-IN')}`;
+    const pmEl=document.getElementById('sales-peak-month'); if(pmEl) pmEl.textContent=peak;
+    const aoEl=document.getElementById('sales-avg-order'); if(aoEl) aoEl.textContent=`₹${avg.toLocaleString('en-IN')}`;
+    const poEl=document.getElementById('sales-period-orders'); if(poEl) poEl.textContent=pOrds;
+    const maxV=Math.max(...buckets,1),W=600,H=160,PL=48,PB=32,PT=10,PR=10,cW=W-PL-PR,cH=H-PB-PT,n=buckets.length,bW=Math.max(4,Math.floor((cW/n)*0.6)),gap=cW/n;
+    let grid='',yL='',bars='',xL='';
+    for(let i=0;i<=4;i++){const y=PT+cH-(i/4)*cH,v=Math.round((i/4)*maxV),lt=v>=1000?`₹${(v/1000).toFixed(0)}k`:`₹${v}`;
+        grid+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#f0f0f0" stroke-width="1"/>`;
+        yL+=`<text x="${PL-4}" y="${y+4}" text-anchor="end" font-size="9" fill="#aaa">${lt}</text>`;}
+    buckets.forEach((v,i)=>{const x=PL+i*gap+gap/2-bW/2,bH=v>0?Math.max(3,(v/maxV)*cH):0,y=PT+cH-bH,isMx=v===Math.max(...buckets)&&v>0;
+        bars+=`<rect x="${x}" y="${y}" width="${bW}" height="${bH}" rx="3" fill="${isMx?'#FFD700':'#111'}" opacity="${v>0?'0.85':'0.1'}"><title>₹${v.toLocaleString('en-IN')}</title></rect>`;
+        if(labels[i]) xL+=`<text x="${PL+i*gap+gap/2}" y="${H-4}" text-anchor="middle" font-size="9" fill="#888">${labels[i]}</text>`;});
+    container.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">${grid}${yL}${bars}${xL}<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="#eee" stroke-width="1"/></svg>`;
+}
+
+function renderDonutChart(orders) {
+    const wrap=document.getElementById('donutChartWrap'), legend=document.getElementById('donutLegendContainer');
+    if(!wrap||!legend) return;
+    const counts={}, colors={incoming:'#FFD700',confirmed:'#3B82F6',processing:'#8B5CF6',packed:'#F97316',shipped:'#06B6D4',out_for_delivery:'#EC4899',delivered:'#16A34A',cancelled:'#EF4444',return_requested:'#F59E0B',returned:'#6B7280',refunded:'#9CA3AF'};
+    orders.forEach(o=>{const s=o.order_stage||((o.status||'').toLowerCase().includes('cancel')?'cancelled':'incoming'); counts[s]=(counts[s]||0)+1;});
+    const total=Object.values(counts).reduce((s,v)=>s+v,0);
+    if(!total){wrap.innerHTML='<div style="text-align:center;padding:30px;color:#aaa;font-size:13px;">No orders yet</div>';legend.innerHTML='';return;}
+    const R=54,r=34,cx=70,cy=70; let sa=-Math.PI/2, paths='';
+    const ents=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    ents.forEach(([stage,count])=>{const ang=(count/total)*2*Math.PI,ea=sa+ang;
+        const x1=cx+R*Math.cos(sa),y1=cy+R*Math.sin(sa),x2=cx+R*Math.cos(ea),y2=cy+R*Math.sin(ea);
+        const ix1=cx+r*Math.cos(sa),iy1=cy+r*Math.sin(sa),ix2=cx+r*Math.cos(ea),iy2=cy+r*Math.sin(ea);
+        const lg=ang>Math.PI?1:0,col=colors[stage]||'#ccc';
+        paths+=`<path d="M${x1},${y1} A${R},${R} 0 ${lg},1 ${x2},${y2} L${ix2},${iy2} A${r},${r} 0 ${lg},0 ${ix1},${iy1} Z" fill="${col}" opacity="0.9"><title>${stage}: ${count}</title></path>`;
+        sa=ea;});
+    wrap.innerHTML=`<svg viewBox="0 0 140 140" style="width:140px;height:140px;" xmlns="http://www.w3.org/2000/svg">${paths}<text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="18" font-weight="700" fill="#111">${total}</text><text x="${cx}" y="${cy+10}" text-anchor="middle" font-size="9" fill="#888">Orders</text></svg>`;
+    legend.innerHTML=ents.map(([stage,count])=>{const col=colors[stage]||'#ccc',lbl=stage.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),pct=Math.round((count/total)*100);
+        return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0;"></span><span style="font-size:12px;color:#555;flex:1;">${lbl}</span><span style="font-size:12px;font-weight:700;color:#111;">${count}</span><span style="font-size:11px;color:#aaa;">(${pct}%)</span></div>`;}).join('');
+}
 
 // ==========================================
 // 4. TRUE DATABASE SECURITY BOUNCER
