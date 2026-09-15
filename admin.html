@@ -421,10 +421,34 @@
                             </div>
                         </div>
 
+                        <div class="form-group row">
+                            <div style="flex: 1;">
+                                <label for="prod-badge-select">Product Badge / Tag</label>
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <select id="prod-badge-select" class="admin-input" style="flex:1;" onchange="handleBadgeSelectChange()">
+                                        <option value="NEW" selected>NEW (Default)</option>
+                                        <option value="HOT">HOT</option>
+                                        <option value="SALE">SALE</option>
+                                        <option value="BESTSELLER">BESTSELLER</option>
+                                        <option value="TRENDING">TRENDING</option>
+                                        <option value="LIMITED">LIMITED</option>
+                                        <option value="EXCLUSIVE">EXCLUSIVE</option>
+                                        <option value="NONE">No Badge</option>
+                                        <option value="CUSTOM">Custom Tag...</option>
+                                    </select>
+                                    <input type="text" id="prod-badge-custom" class="admin-input" placeholder="Custom text" style="display:none; width:120px;" oninput="updateBadgePreview()">
+                                    <div id="badge-live-preview" style="background:#111; color:#fff; font-size:11px; font-weight:800; padding:6px 12px; border-radius:4px; letter-spacing:0.5px; white-space:nowrap; display:inline-flex; align-items:center;">
+                                        NEW
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label for="prod-desc">Description</label>
                             <textarea id="prod-desc" class="admin-input" placeholder="Write product description..."
-                                style="height:90px; resize:vertical;"></textarea>
+                                style="height:110px; resize:vertical; line-height:1.5; font-family:inherit;"></textarea>
+                            <span style="font-size:11px; color:#64748b; margin-top:4px; display:block;">Enter product description lines. First line will be displayed in bold on the product details page.</span>
                         </div>
                     </section>
 
@@ -526,9 +550,64 @@
                         </div>
                     </section>
 
-                    <!-- 5. PRODUCT STATUS -->
+                    <!-- 5. SHIPPING POLICY & LEGAL METROLOGY (PRODUCT PAGE ACCORDIONS) -->
                     <section class="card">
-                        <h2 class="card-title">5. Product Status</h2>
+                        <h2 class="card-title" style="margin-bottom:6px;">5. Shipping Policy & Legal Metrology</h2>
+                        <p style="font-size:13px; color:#64748b; margin-bottom:16px;">
+                            Configure the policy and legal compliance details shown in collapsible accordions on the product page.
+                        </p>
+
+                        <!-- Shipping Policy -->
+                        <div style="margin-bottom:20px; padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                                <label for="prod-shipping-policy" style="font-weight:700; color:#1e293b; font-size:14px; margin:0;">
+                                    🚚 Shipping Policy
+                                </label>
+                                <button type="button" onclick="resetShippingPolicyToDefault()" style="background:#e2e8f0; color:#334155; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+                                    ↺ Reset to Default
+                                </button>
+                            </div>
+                            <textarea id="prod-shipping-policy" class="admin-input" rows="4" style="font-family:inherit; font-size:13px; line-height:1.6; resize:vertical;"></textarea>
+                            <span style="font-size:11px; color:#64748b; margin-top:4px; display:block;">Each bullet line will appear in the Shipping policy accordion.</span>
+                        </div>
+
+                        <!-- Legal Metrology -->
+                        <div style="padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                                <label style="font-weight:700; color:#1e293b; font-size:14px; margin:0;">
+                                    ⚖️ Legal Metrology
+                                </label>
+                                <button type="button" onclick="resetLegalMetrologyToDefault()" style="background:#e2e8f0; color:#334155; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+                                    ↺ Reset to Default
+                                </button>
+                            </div>
+                            
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:12px;">
+                                <div>
+                                    <label for="prod-origin" style="font-size:12px; font-weight:600; color:#475569; display:block; margin-bottom:4px;">Country of Origin</label>
+                                    <input type="text" id="prod-origin" class="admin-input" value="India" placeholder="e.g. India">
+                                </div>
+                                <div>
+                                    <label for="prod-net-qty" style="font-size:12px; font-weight:600; color:#475569; display:block; margin-bottom:4px;">Net Quantity</label>
+                                    <input type="text" id="prod-net-qty" class="admin-input" value="1 Unit. All prices inclusive of all taxes." placeholder="e.g. 1 Unit. All prices inclusive of all taxes.">
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:12px;">
+                                <label for="prod-marketed-by" style="font-size:12px; font-weight:600; color:#475569; display:block; margin-bottom:4px;">Marketed & Packed By</label>
+                                <input type="text" id="prod-marketed-by" class="admin-input" value="KAPPA Clothing Store, Mahatma Gandhi Rd, Pazhavangadi, Thiruvananthapuram, Kerala 695023." placeholder="Company name and address">
+                            </div>
+
+                            <div>
+                                <label for="prod-customer-support" style="font-size:12px; font-weight:600; color:#475569; display:block; margin-bottom:4px;">Customer Support</label>
+                                <input type="text" id="prod-customer-support" class="admin-input" value="kappatvm@gmail.com | +91 62386 16662" placeholder="Email & Phone">
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 6. PRODUCT STATUS -->
+                    <section class="card">
+                        <h2 class="card-title">6. Product Status</h2>
                         <div style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:16px;">
                             <label
                                 style="display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; cursor:pointer;">

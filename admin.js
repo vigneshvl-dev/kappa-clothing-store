@@ -2012,11 +2012,91 @@ const CATEGORY_SIZES = {
     'Default': ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 };
 
+const DEFAULT_SHIPPING_POLICY = `• Free Shipping on orders above ₹4000.
+• Standard dispatch within 24-48 business hours.
+• Delivery within 2-5 business days across India via Shiprocket courier partners.
+• Real-time SMS and WhatsApp tracking updates.`;
+
+const DEFAULT_LEGAL_METROLOGY = {
+    origin: 'India',
+    marketedBy: 'KAPPA Clothing Store, Mahatma Gandhi Rd, Pazhavangadi, Thiruvananthapuram, Kerala 695023.',
+    support: 'kappatvm@gmail.com | +91 62386 16662',
+    netQty: '1 Unit. All prices inclusive of all taxes.'
+};
+
 let currentDefaultImageFile = null;
 let currentDefaultImageUrl = '';
 let currentDefaultHoverImageFile = null;
 let currentDefaultHoverImageUrl = '';
 let colorVariantsData = [];
+
+window.handleBadgeSelectChange = function () {
+    const sel = document.getElementById('prod-badge-select');
+    const customInput = document.getElementById('prod-badge-custom');
+    if (!sel) return;
+    if (sel.value === 'CUSTOM') {
+        if (customInput) customInput.style.display = 'inline-block';
+    } else {
+        if (customInput) customInput.style.display = 'none';
+    }
+    updateBadgePreview();
+};
+
+window.updateBadgePreview = function () {
+    const sel = document.getElementById('prod-badge-select');
+    const customInput = document.getElementById('prod-badge-custom');
+    const preview = document.getElementById('badge-live-preview');
+    if (!preview) return;
+
+    let badgeText = 'NEW';
+    if (sel) {
+        if (sel.value === 'CUSTOM') {
+            badgeText = (customInput?.value || '').trim() || 'CUSTOM';
+        } else if (sel.value === 'NONE') {
+            badgeText = '';
+        } else {
+            badgeText = sel.value;
+        }
+    }
+
+    if (!badgeText) {
+        preview.textContent = 'NO BADGE';
+        preview.style.background = '#e2e8f0';
+        preview.style.color = '#64748b';
+    } else {
+        preview.textContent = badgeText.toUpperCase();
+        preview.style.background = '#111';
+        preview.style.color = '#fff';
+    }
+};
+
+window.resetShippingPolicyToDefault = function () {
+    const el = document.getElementById('prod-shipping-policy');
+    if (el) el.value = DEFAULT_SHIPPING_POLICY;
+};
+
+window.resetLegalMetrologyToDefault = function () {
+    const originEl = document.getElementById('prod-origin');
+    const marketedEl = document.getElementById('prod-marketed-by');
+    const supportEl = document.getElementById('prod-customer-support');
+    const netQtyEl = document.getElementById('prod-net-qty');
+
+    if (originEl) originEl.value = DEFAULT_LEGAL_METROLOGY.origin;
+    if (marketedEl) marketedEl.value = DEFAULT_LEGAL_METROLOGY.marketedBy;
+    if (supportEl) supportEl.value = DEFAULT_LEGAL_METROLOGY.support;
+    if (netQtyEl) netQtyEl.value = DEFAULT_LEGAL_METROLOGY.netQty;
+};
+
+function getSelectedProductBadge() {
+    const sel = document.getElementById('prod-badge-select');
+    const customInput = document.getElementById('prod-badge-custom');
+    if (!sel) return 'NEW';
+    if (sel.value === 'CUSTOM') {
+        return (customInput?.value || '').trim() || 'NEW';
+    }
+    if (sel.value === 'NONE') return '';
+    return sel.value || 'NEW';
+}
 
 function initProductForm() {
     colorVariantsData = [];
@@ -2028,6 +2108,9 @@ function initProductForm() {
         sizes: { 'S': 5, 'M': 10, 'L': 12, 'XL': 8, 'XXL': 3 },
         minStock: 5
     });
+    resetShippingPolicyToDefault();
+    resetLegalMetrologyToDefault();
+    updateBadgePreview();
     populateProductCategoryDropdown();
 }
 
