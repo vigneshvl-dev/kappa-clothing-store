@@ -458,10 +458,10 @@ async function saveHomepageSettings() {
         const slideRows = document.querySelectorAll('.hero-slide-row');
         const heroSlides = [];
         for (const row of slideRows) {
-            let desktop = row.querySelector('.slide-desktop-url').value.trim();
+            let desktop = row.querySelector('.slide-desktop-url')?.value?.trim() || '';
             const desktopFileInput = row.querySelector('.slide-desktop-file');
-            const desktopFile = desktopFileInput.files[0];
-            const desktopCropped = desktopFileInput.croppedBlob;
+            const desktopFile = desktopFileInput?.files?.[0];
+            const desktopCropped = desktopFileInput?.croppedBlob;
 
             if (desktopCropped) {
                 const fileToUpload = new File([desktopCropped], desktopFile ? desktopFile.name : "desktop_slide.png", { type: desktopCropped.type || "image/png" });
@@ -470,10 +470,10 @@ async function saveHomepageSettings() {
                 desktop = await uploadHomepageFile(desktopFile, 'hero_desktop');
             }
 
-            let mobile = row.querySelector('.slide-mobile-url').value.trim();
+            let mobile = row.querySelector('.slide-mobile-url')?.value?.trim() || '';
             const mobileFileInput = row.querySelector('.slide-mobile-file');
-            const mobileFile = mobileFileInput.files[0];
-            const mobileCropped = mobileFileInput.croppedBlob;
+            const mobileFile = mobileFileInput?.files?.[0];
+            const mobileCropped = mobileFileInput?.croppedBlob;
 
             if (mobileCropped) {
                 const fileToUpload = new File([mobileCropped], mobileFile ? mobileFile.name : "mobile_slide.png", { type: mobileCropped.type || "image/png" });
@@ -482,8 +482,9 @@ async function saveHomepageSettings() {
                 mobile = await uploadHomepageFile(mobileFile, 'hero_mobile');
             }
 
-            let video = row.querySelector('.slide-video-url').value.trim();
-            const videoFile = row.querySelector('.slide-video-file').files[0];
+            let video = row.querySelector('.slide-video-url')?.value?.trim() || '';
+            const videoFileInput = row.querySelector('.slide-video-file');
+            const videoFile = videoFileInput?.files?.[0];
             if (videoFile) {
                 video = await uploadHomepageFile(videoFile, 'hero_video');
             }
@@ -497,14 +498,16 @@ async function saveHomepageSettings() {
         const reelCards = document.querySelectorAll('.reel-card');
         const reels = [];
         for (const card of reelCards) {
-            let video = card.querySelector('.reel-video-url').value.trim();
-            const videoFile = card.querySelector('.reel-video-file').files[0];
+            let video = card.querySelector('.reel-video-url')?.value?.trim() || '';
+            const videoFileInput = card.querySelector('.reel-video-file');
+            const videoFile = videoFileInput?.files?.[0];
             if (videoFile) {
                 video = await uploadHomepageFile(videoFile, 'reel_video');
             }
 
-            let poster = card.querySelector('.reel-poster-url').value.trim();
-            const posterFile = card.querySelector('.reel-poster-file').files[0];
+            let poster = card.querySelector('.reel-poster-url')?.value?.trim() || '';
+            const posterFileInput = card.querySelector('.reel-poster-file');
+            const posterFile = posterFileInput?.files?.[0];
             if (posterFile) {
                 poster = await uploadHomepageFile(posterFile, 'reel_poster');
             }
@@ -513,8 +516,9 @@ async function saveHomepageSettings() {
         }
 
         // 3. Gather Promo Video
-        let storePromoVideo = document.getElementById('store-promo-video-url').value.trim();
-        const promoFile = document.getElementById('store-promo-video-file').files[0];
+        let storePromoVideo = document.getElementById('store-promo-video-url')?.value?.trim() || '';
+        const promoFileInput = document.getElementById('store-promo-video-file');
+        const promoFile = promoFileInput?.files?.[0];
         if (promoFile) {
             storePromoVideo = await uploadHomepageFile(promoFile, 'store_promo');
         }
@@ -523,10 +527,10 @@ async function saveHomepageSettings() {
         const menRows = document.querySelectorAll('#editorial-men-images-container .editorial-image-row');
         const menImages = [];
         for (const row of menRows) {
-            let imgUrl = row.querySelector('.editorial-image-url').value.trim();
+            let imgUrl = row.querySelector('.editorial-image-url')?.value?.trim() || '';
             const imgFileInput = row.querySelector('.editorial-image-file');
-            const imgFile = imgFileInput.files[0];
-            const imgCropped = imgFileInput.croppedBlob;
+            const imgFile = imgFileInput?.files?.[0];
+            const imgCropped = imgFileInput?.croppedBlob;
 
             if (imgCropped) {
                 const fileToUpload = new File([imgCropped], imgFile ? imgFile.name : "men_editorial.png", { type: imgCropped.type || "image/png" });
@@ -537,8 +541,9 @@ async function saveHomepageSettings() {
             if (imgUrl) menImages.push(imgUrl);
         }
 
-        let editorialMenVideo = document.getElementById('editorial-men-video-url').value.trim();
-        const menVideoFile = document.getElementById('editorial-men-video-file').files[0];
+        let editorialMenVideo = document.getElementById('editorial-men-video-url')?.value?.trim() || '';
+        const menVideoInput = document.getElementById('editorial-men-video-file');
+        const menVideoFile = menVideoInput?.files?.[0];
         if (menVideoFile) {
             editorialMenVideo = await uploadHomepageFile(menVideoFile, 'editorial_men_video');
         }
@@ -547,10 +552,10 @@ async function saveHomepageSettings() {
         const womenRows = document.querySelectorAll('#editorial-women-images-container .editorial-image-row');
         const womenImages = [];
         for (const row of womenRows) {
-            let imgUrl = row.querySelector('.editorial-image-url').value.trim();
+            let imgUrl = row.querySelector('.editorial-image-url')?.value?.trim() || '';
             const imgFileInput = row.querySelector('.editorial-image-file');
-            const imgFile = imgFileInput.files[0];
-            const imgCropped = imgFileInput.croppedBlob;
+            const imgFile = imgFileInput?.files?.[0];
+            const imgCropped = imgFileInput?.croppedBlob;
 
             if (imgCropped) {
                 const fileToUpload = new File([imgCropped], imgFile ? imgFile.name : "women_editorial.png", { type: imgCropped.type || "image/png" });
@@ -561,8 +566,9 @@ async function saveHomepageSettings() {
             if (imgUrl) womenImages.push(imgUrl);
         }
 
-        let editorialWomenVideo = document.getElementById('editorial-women-video-url').value.trim();
-        const womenVideoFile = document.getElementById('editorial-women-video-file').files[0];
+        let editorialWomenVideo = document.getElementById('editorial-women-video-url')?.value?.trim() || '';
+        const womenVideoInput = document.getElementById('editorial-women-video-file');
+        const womenVideoFile = womenVideoInput?.files?.[0];
         if (womenVideoFile) {
             editorialWomenVideo = await uploadHomepageFile(womenVideoFile, 'editorial_women_video');
         }
