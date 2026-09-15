@@ -259,3 +259,7 @@ CREATE POLICY "Allow public insert homepage_settings" ON public.homepage_setting
 CREATE POLICY "Allow public update homepage_settings" ON public.homepage_settings FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public delete homepage_settings" ON public.homepage_settings FOR DELETE USING (true);
 
+-- Grant Admin Access SQL Query for Admin Accounts
+UPDATE public.profiles
+SET role = 'admin'
+WHERE LOWER(email) IN ('vigneshvelappan73051@gmail.com', 'kappatvm@gmail.com');
