@@ -2569,6 +2569,16 @@ window.saveProductForm = async function (e) {
     const isAvailable = document.getElementById('prod-is-available')?.checked ?? true;
     const tax = document.getElementById('prod-tax')?.value || '5%';
 
+    const badge = getSelectedProductBadge();
+    const shippingPolicy = document.getElementById('prod-shipping-policy')?.value.trim() || DEFAULT_SHIPPING_POLICY;
+    const origin = document.getElementById('prod-origin')?.value.trim() || DEFAULT_LEGAL_METROLOGY.origin;
+    const netQty = document.getElementById('prod-net-qty')?.value.trim() || DEFAULT_LEGAL_METROLOGY.netQty;
+    const marketedBy = document.getElementById('prod-marketed-by')?.value.trim() || DEFAULT_LEGAL_METROLOGY.marketedBy;
+    const support = document.getElementById('prod-customer-support')?.value.trim() || DEFAULT_LEGAL_METROLOGY.support;
+
+    const legalMetrologyObj = { origin, netQty, marketedBy, support };
+    const legalMetrologyJson = JSON.stringify(legalMetrologyObj);
+
     if (!name || !gender || !category || !sku || isNaN(sellPrice)) {
         alert("Please fill in required fields: Product Name, Gender, Category, SKU, and Selling Price.");
         return;
@@ -2607,7 +2617,14 @@ window.saveProductForm = async function (e) {
             }
         });
 
-        const metadataTag = `[META:gender=${gender}|subcat=${subCategory}|tax=${tax}]`;
+        const encShipping = encodeURIComponent(shippingPolicy);
+        const encOrigin = encodeURIComponent(origin);
+        const encNetQty = encodeURIComponent(netQty);
+        const encMarketed = encodeURIComponent(marketedBy);
+        const encSupport = encodeURIComponent(support);
+        const encTag = encodeURIComponent(badge);
+
+        const metadataTag = `[META:gender=${gender}|subcat=${subCategory}|tax=${tax}|tag=${encTag}|shipping=${encShipping}|origin=${encOrigin}|netqty=${encNetQty}|marketed=${encMarketed}|support=${encSupport}]`;
         const finalDesc = `${desc} ${metadataTag}`.trim();
 
         const catSelect = document.getElementById('prod-category');
@@ -2628,17 +2645,31 @@ window.saveProductForm = async function (e) {
             category_id: resolvedCatId,
             stock_quantity: totalStockSum,
             sku: sku,
-            is_active: status === 'Active' && isAvailable
+            is_active: status === 'Active' && isAvailable,
+            tag: badge,
+            shipping_policy: shippingPolicy,
+            legal_metrology: legalMetrologyJson
         };
 
         let targetProductId = editingId;
 
         if (editingId) {
-            await supabaseClient.from('products').update(prodDataObj).eq('id', editingId);
+            const { error: updateErr } = await supabaseClient.from('products').update(prodDataObj).eq('id', editingId);
+            if (updateErr) {
+                // If column doesn't exist in Supabase yet, retry without tag/shipping/metrology columns
+                const { tag, shipping_policy, legal_metrology, ...fallbackObj } = prodDataObj;
+                const { error: fbErr } = await supabaseClient.from('products').update(fallbackObj).eq('id', editingId);
+                if (fbErr) throw fbErr;
+            }
         } else {
-            const { data: newProd, error: insertError } = await supabaseClient.from('products').insert([prodDataObj]).select().single();
-            if (insertError) throw insertError;
-            targetProductId = newProd.id;
+            let res = await supabaseClient.from('products').insert([prodDataObj]).select().single();
+            if (res.error) {
+                // Fallback insert if columns don't exist
+                const { tag, shipping_policy, legal_metrology, ...fallbackObj } = prodDataObj;
+                res = await supabaseClient.from('products').insert([fallbackObj]).select().single();
+                if (res.error) throw res.error;
+            }
+            targetProductId = res.data.id;
         }
 
         if (targetProductId) {
@@ -2693,9 +2724,16 @@ window.saveProductForm = async function (e) {
                     category: category,
                     subCategory: subCategory,
                     tax: tax,
+                    tag: badge,
+                    shipping_policy: shippingPolicy,
+                    legal_metrology: legalMetrologyObj,
                     variants: colorVariantsData
                 };
                 localStorage.setItem('kappa_rich_variants', JSON.stringify(richVariantsStore));
+
+                const tagsStore = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}');
+                tagsStore[String(targetProductId)] = badge;
+                localStorage.setItem('kappa_product_tags', JSON.stringify(tagsStore));
             } catch (_) { }
         }
 
@@ -2746,6 +2784,15 @@ function clearProductForm() {
 
     const discBadge = document.getElementById('prod-discount-badge');
     if (discBadge) discBadge.textContent = '0% OFF';
+
+    const badgeSelect = document.getElementById('prod-badge-select');
+    if (badgeSelect) badgeSelect.value = 'NEW';
+    const badgeCustom = document.getElementById('prod-badge-custom');
+    if (badgeCustom) { badgeCustom.value = ''; badgeCustom.style.display = 'none'; }
+    updateBadgePreview();
+
+    resetShippingPolicyToDefault();
+    resetLegalMetrologyToDefault();
 
     removeDefaultImage();
     colorVariantsData = [];
@@ -3073,6 +3120,13 @@ window.editProduct = async function (id) {
     let metaGender = '';
     let metaSubCat = '';
     let metaTax = '5%';
+    let metaTag = '';
+    let metaShipping = '';
+    let metaOrigin = '';
+    let metaNetQty = '';
+    let metaMarketed = '';
+    let metaSupport = '';
+
     const metaMatch = rawDesc.match(/\[META:([^\]]+)\]/i);
     if (metaMatch && metaMatch[1]) {
         const parts = metaMatch[1].split('|');
@@ -3081,8 +3135,20 @@ window.editProduct = async function (id) {
             if (key === 'gender') metaGender = val || '';
             else if (key === 'subcat') metaSubCat = val || '';
             else if (key === 'tax') metaTax = val || '5%';
+            else if (key === 'tag') metaTag = decodeURIComponent(val || '');
+            else if (key === 'shipping') metaShipping = decodeURIComponent(val || '');
+            else if (key === 'origin') metaOrigin = decodeURIComponent(val || '');
+            else if (key === 'netqty') metaNetQty = decodeURIComponent(val || '');
+            else if (key === 'marketed') metaMarketed = decodeURIComponent(val || '');
+            else if (key === 'support') metaSupport = decodeURIComponent(val || '');
         });
         rawDesc = rawDesc.replace(/\s*\[META:[^\]]+\]/gi, '').trim();
+    }
+
+    const tagMatch = rawDesc.match(/\[TAG:([^\]]+)\]/i);
+    if (tagMatch && tagMatch[1] && !metaTag) {
+        metaTag = tagMatch[1].trim();
+        rawDesc = rawDesc.replace(/\s*\[TAG:[^\]]+\]/gi, '').trim();
     }
 
     // --- Try rich variants from localStorage ---
@@ -3120,8 +3186,56 @@ window.editProduct = async function (id) {
     const skuEl = document.getElementById('prod-sku');
     if (skuEl) skuEl.value = data.sku || '';
 
+    // --- Fill Badge / Tag ---
+    const activeTag = data.tag || metaTag || richData?.tag || 'NEW';
+    const badgeSelect = document.getElementById('prod-badge-select');
+    const badgeCustom = document.getElementById('prod-badge-custom');
+    if (badgeSelect) {
+        const knownValues = ['NEW', 'HOT', 'SALE', 'BESTSELLER', 'TRENDING', 'LIMITED', 'EXCLUSIVE', 'NONE'];
+        if (!activeTag) {
+            badgeSelect.value = 'NONE';
+            if (badgeCustom) { badgeCustom.value = ''; badgeCustom.style.display = 'none'; }
+        } else if (knownValues.includes(activeTag.toUpperCase())) {
+            badgeSelect.value = activeTag.toUpperCase();
+            if (badgeCustom) { badgeCustom.value = ''; badgeCustom.style.display = 'none'; }
+        } else {
+            badgeSelect.value = 'CUSTOM';
+            if (badgeCustom) { badgeCustom.value = activeTag; badgeCustom.style.display = 'inline-block'; }
+        }
+        updateBadgePreview();
+    }
+
     const descEl = document.getElementById('prod-desc');
     if (descEl) descEl.value = rawDesc;
+
+    // --- Fill Shipping Policy & Legal Metrology ---
+    const shippingPolicyEl = document.getElementById('prod-shipping-policy');
+    const loadedShipping = data.shipping_policy || metaShipping || richData?.shipping_policy;
+    if (shippingPolicyEl) {
+        shippingPolicyEl.value = loadedShipping || DEFAULT_SHIPPING_POLICY;
+    }
+
+    let loadedMetrology = null;
+    if (data.legal_metrology) {
+        try {
+            loadedMetrology = typeof data.legal_metrology === 'string' ? JSON.parse(data.legal_metrology) : data.legal_metrology;
+        } catch (_) { }
+    }
+    if (!loadedMetrology && richData?.legal_metrology) {
+        loadedMetrology = richData.legal_metrology;
+    }
+
+    const originEl = document.getElementById('prod-origin');
+    if (originEl) originEl.value = loadedMetrology?.origin || metaOrigin || DEFAULT_LEGAL_METROLOGY.origin;
+
+    const netQtyEl = document.getElementById('prod-net-qty');
+    if (netQtyEl) netQtyEl.value = loadedMetrology?.netQty || metaNetQty || DEFAULT_LEGAL_METROLOGY.netQty;
+
+    const marketedEl = document.getElementById('prod-marketed-by');
+    if (marketedEl) marketedEl.value = loadedMetrology?.marketedBy || metaMarketed || DEFAULT_LEGAL_METROLOGY.marketedBy;
+
+    const supportEl = document.getElementById('prod-customer-support');
+    if (supportEl) supportEl.value = loadedMetrology?.support || metaSupport || DEFAULT_LEGAL_METROLOGY.support;
 
     // --- Fill Pricing ---
     const priceEl = document.getElementById('prod-price');
