@@ -6891,3 +6891,391 @@ async function syncExistingOrdersToNotifications() {
         console.error('Error syncing existing orders to notifications:', e);
     }
 }
+
+// ============================================================
+// HOMEPAGE MEDIA MANAGER
+// ============================================================
+
+const HOMEPAGE_SETTINGS_KEY = 'kappa_homepage_settings';
+
+/** Default hero slides matching what's hard-coded in index.html */
+const DEFAULT_HERO_SLIDES = [
+    { desktop: 'assets/Frame%204.webp', mobile: 'assets/Frame%204%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%201.webp', mobile: 'assets/Frame%201%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%2012.webp', mobile: 'assets/Frame%202%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%203.webp', mobile: 'assets/Frame%203%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%206.webp', mobile: 'assets/Frame%206%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%207.webp', mobile: 'assets/Frame%207%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%208.webp', mobile: 'assets/Frame%208%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%209.webp', mobile: 'assets/Frame%209%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%2010.webp', mobile: 'assets/Frame%2010%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%2011.webp', mobile: 'assets/Frame%2011%20-%20Mobile.webp' },
+    { desktop: 'assets/Frame%2013.webp', mobile: 'assets/Frame%205%20-%20Mobile.webp' },
+];
+
+const DEFAULT_MARQUEE_ITEMS = [
+    'NEW SEASON ARRIVALS', 'LIMITED EDITION', 'PREMIUM STREETWEAR', 'SHOP THE DROP',
+    'EXCLUSIVE COLLECTION', 'FAST SELLING NOW', 'ELEVATE YOUR STYLE', 'TRENDING THIS SEASON',
+    'MADE FOR THE BOLD', 'SIGNATURE FITS', 'URBAN FASHION ESSENTIALS', 'FRESH STYLES JUST LANDED',
+    'PREMIUM QUALITY ONLY', 'STYLE WITHOUT LIMITS', 'WEAR THE DIFFERENCE', 'OWN THE LOOK',
+    'NEW DROP LIVE NOW', 'BESTSELLERS RESTOCKED', 'DESIGNED TO STAND OUT', 'LIMITED STOCK AVAILABLE'
+];
+
+function getHomepageSettings() {
+    try {
+        const raw = localStorage.getItem(HOMEPAGE_SETTINGS_KEY);
+        if (raw) return JSON.parse(raw);
+    } catch (e) { }
+    return {
+        hero_slides: DEFAULT_HERO_SLIDES,
+        editorial: {
+            men: { image: 'assets/duplicate.png', link: 'shop.html?filter=men' },
+            women: { image: 'assets/WOMENFASHION.png', link: 'shop.html?filter=women' }
+        },
+        marquee_items: DEFAULT_MARQUEE_ITEMS,
+        reels: [],
+        store_promo_video: ''
+    };
+}
+
+async function loadHomepageSettings() {
+    const settings = getHomepageSettings();
+
+    // --- Try loading from Supabase ---
+    try {
+        const { data, error } = await supabaseClient
+            .from('homepage_settings')
+            .select('*')
+            .eq('id', 1)
+            .maybeSingle();
+        if (!error && data && data.settings_json) {
+            const remote = typeof data.settings_json === 'string'
+                ? JSON.parse(data.settings_json)
+                : data.settings_json;
+            Object.assign(settings, remote);
+            localStorage.setItem(HOMEPAGE_SETTINGS_KEY, JSON.stringify(settings));
+        }
+    } catch (e) { /* table may not exist yet, use localStorage fallback */ }
+
+    // --- Populate Hero Slides ---
+    renderHeroSlidesEditor(settings.hero_slides || DEFAULT_HERO_SLIDES);
+
+    // --- Populate Editorial Banners ---
+    const men = (settings.editorial && settings.editorial.men) || {};
+    const women = (settings.editorial && settings.editorial.women) || {};
+
+    const menUrlEl = document.getElementById('editorial-men-url');
+    const menLinkEl = document.getElementById('editorial-men-link');
+    const womenUrlEl = document.getElementById('editorial-women-url');
+    const womenLinkEl = document.getElementById('editorial-women-link');
+
+    if (menUrlEl) menUrlEl.value = men.image || 'assets/duplicate.png';
+    if (menLinkEl) menLinkEl.value = men.link || 'shop.html?filter=men';
+    if (womenUrlEl) womenUrlEl.value = women.image || 'assets/WOMENFASHION.png';
+    if (womenLinkEl) womenLinkEl.value = women.link || 'shop.html?filter=women';
+
+    previewEditorialBanner('men');
+    previewEditorialBanner('women');
+
+    // --- Populate Marquee Text ---
+    const marqueeEl = document.getElementById('marquee-text-editor');
+    if (marqueeEl) {
+        const items = settings.marquee_items || DEFAULT_MARQUEE_ITEMS;
+        marqueeEl.value = items.join('\n');
+    }
+
+    // --- Populate Reels ---
+    renderReelsEditor(settings.reels || []);
+
+    // --- Populate Store Promo Video ---
+    const promoUrl = settings.store_promo_video || '';
+    const promoHidden = document.getElementById('store-promo-video-url');
+    const promoVideo = document.getElementById('store-promo-video-preview');
+    const promoPlaceholder = document.getElementById('store-promo-video-placeholder');
+    if (promoHidden) promoHidden.value = promoUrl;
+    if (promoUrl && promoVideo && promoPlaceholder) {
+        promoVideo.src = promoUrl;
+        promoVideo.style.display = 'block';
+        promoPlaceholder.style.display = 'none';
+    }
+}
+
+async function saveHomepageSettings() {
+    // Collect hero slides
+    const slideRows = document.querySelectorAll('#hero-slides-editor-container .hero-slide-row');
+    const hero_slides = [];
+    slideRows.forEach(row => {
+        const desktopEl = row.querySelector('.slide-desktop-url');
+        const mobileEl = row.querySelector('.slide-mobile-url');
+        if (desktopEl && desktopEl.value.trim()) {
+            hero_slides.push({
+                desktop: desktopEl.value.trim(),
+                mobile: (mobileEl && mobileEl.value.trim()) ? mobileEl.value.trim() : desktopEl.value.trim()
+            });
+        }
+    });
+
+    // Collect editorial banners
+    const menImage = (document.getElementById('editorial-men-url') || {}).value || 'assets/duplicate.png';
+    const menLink = (document.getElementById('editorial-men-link') || {}).value || 'shop.html?filter=men';
+    const womenImage = (document.getElementById('editorial-women-url') || {}).value || 'assets/WOMENFASHION.png';
+    const womenLink = (document.getElementById('editorial-women-link') || {}).value || 'shop.html?filter=women';
+
+    // Collect marquee text
+    const marqueeRaw = (document.getElementById('marquee-text-editor') || {}).value || '';
+    const marquee_items = marqueeRaw.split('\n').map(s => s.trim()).filter(Boolean);
+
+    // Collect reels
+    const reelCards = document.querySelectorAll('#reels-editor-container .reel-card-row');
+    const reels = [];
+    reelCards.forEach(card => {
+        const videoEl = card.querySelector('.reel-video-url');
+        const posterEl = card.querySelector('.reel-poster-url');
+        const labelEl = card.querySelector('.reel-label');
+        if (videoEl && videoEl.value.trim()) {
+            reels.push({
+                video: videoEl.value.trim(),
+                poster: (posterEl && posterEl.value.trim()) ? posterEl.value.trim() : '',
+                label: (labelEl && labelEl.value.trim()) ? labelEl.value.trim() : ''
+            });
+        }
+    });
+
+    // Store promo video
+    const store_promo_video = (document.getElementById('store-promo-video-url') || {}).value || '';
+
+    const settings = {
+        hero_slides: hero_slides.length ? hero_slides : DEFAULT_HERO_SLIDES,
+        editorial: {
+            men: { image: menImage, link: menLink },
+            women: { image: womenImage, link: womenLink }
+        },
+        marquee_items: marquee_items.length ? marquee_items : DEFAULT_MARQUEE_ITEMS,
+        reels,
+        store_promo_video
+    };
+
+    // Save to localStorage
+    localStorage.setItem(HOMEPAGE_SETTINGS_KEY, JSON.stringify(settings));
+
+    // Try to save to Supabase
+    try {
+        const { error } = await supabaseClient
+            .from('homepage_settings')
+            .upsert({ id: 1, settings_json: settings, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+        if (error) console.warn('Supabase save skipped:', error.message);
+    } catch (e) { console.warn('Supabase save error:', e); }
+
+    showAdminToast('✅ Homepage settings saved successfully!', 'success');
+}
+
+// ---------- Hero Slides ----------
+
+function renderHeroSlidesEditor(slides) {
+    const container = document.getElementById('hero-slides-editor-container');
+    if (!container) return;
+    container.innerHTML = '';
+    (slides || []).forEach((slide, idx) => addHeroSlideRow(slide, idx));
+}
+
+window.addHeroSlideRow = function (slide, idx) {
+    const container = document.getElementById('hero-slides-editor-container');
+    if (!container) return;
+
+    const s = slide || { desktop: '', mobile: '' };
+    const rowIdx = idx !== undefined ? idx : container.children.length;
+
+    const row = document.createElement('div');
+    row.className = 'hero-slide-row';
+    row.style.cssText = 'display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:end; background:#f9f9f9; border:1px solid #eee; border-radius:8px; padding:14px;';
+    row.innerHTML = `
+        <div>
+            <label style="display:block; font-size:11px; font-weight:700; color:#555; margin-bottom:4px;">Desktop Image URL</label>
+            <input type="text" class="admin-input slide-desktop-url" value="${s.desktop || ''}" placeholder="assets/Frame 1.webp" oninput="previewHeroSlide(this)">
+            <input type="file" class="admin-input" accept="image/*" style="margin-top:6px; font-size:11px;" onchange="uploadHeroSlideFile(this, 'desktop', ${rowIdx})">
+            <img class="slide-desktop-preview" src="${s.desktop || ''}" style="margin-top:6px; max-height:50px; border-radius:4px; display:${s.desktop ? 'block' : 'none'}; object-fit:cover; width:100%;">
+        </div>
+        <div>
+            <label style="display:block; font-size:11px; font-weight:700; color:#555; margin-bottom:4px;">Mobile Image URL</label>
+            <input type="text" class="admin-input slide-mobile-url" value="${s.mobile || ''}" placeholder="assets/Frame 1 - Mobile.webp" oninput="previewHeroSlide(this)">
+            <input type="file" class="admin-input" accept="image/*" style="margin-top:6px; font-size:11px;" onchange="uploadHeroSlideFile(this, 'mobile', ${rowIdx})">
+            <img class="slide-mobile-preview" src="${s.mobile || ''}" style="margin-top:6px; max-height:50px; border-radius:4px; display:${s.mobile ? 'block' : 'none'}; object-fit:cover; width:100%;">
+        </div>
+        <div style="text-align:center;">
+            <span style="font-size:11px; color:#888; display:block; margin-bottom:4px;">Slide ${rowIdx + 1}</span>
+            <button type="button" onclick="removeHeroSlideRow(this)"
+                style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:700;">✕ Remove</button>
+        </div>
+    `;
+    container.appendChild(row);
+};
+
+window.removeHeroSlideRow = function (btn) {
+    const row = btn.closest('.hero-slide-row');
+    if (row) row.remove();
+};
+
+window.previewHeroSlide = function (input) {
+    const row = input.closest('.hero-slide-row');
+    if (!row) return;
+    const isDesktop = input.classList.contains('slide-desktop-url');
+    const preview = row.querySelector(isDesktop ? '.slide-desktop-preview' : '.slide-mobile-preview');
+    if (preview) {
+        preview.src = input.value;
+        preview.style.display = input.value ? 'block' : 'none';
+    }
+};
+
+window.uploadHeroSlideFile = async function (input, type, idx) {
+    const file = input.files[0];
+    if (!file) return;
+    const row = input.closest('.hero-slide-row');
+    if (!row) return;
+    try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `hero_${type}_${idx}_${Date.now()}.${fileExt}`;
+        const { data, error } = await supabaseClient.storage
+            .from('product-images')
+            .upload(`homepage/${fileName}`, file, { upsert: true });
+        if (error) throw error;
+        const { data: urlData } = supabaseClient.storage.from('product-images').getPublicUrl(`homepage/${fileName}`);
+        const publicUrl = urlData.publicUrl;
+        const urlInput = row.querySelector(type === 'desktop' ? '.slide-desktop-url' : '.slide-mobile-url');
+        const preview = row.querySelector(type === 'desktop' ? '.slide-desktop-preview' : '.slide-mobile-preview');
+        if (urlInput) urlInput.value = publicUrl;
+        if (preview) { preview.src = publicUrl; preview.style.display = 'block'; }
+        showAdminToast('✅ Slide image uploaded!', 'success');
+    } catch (e) {
+        showAdminToast('❌ Upload failed: ' + e.message, 'error');
+    }
+};
+
+// ---------- Editorial Banners ----------
+
+window.previewEditorialBanner = function (gender) {
+    const urlInput = document.getElementById(`editorial-${gender}-url`);
+    const preview = document.getElementById(`editorial-${gender}-preview`);
+    const placeholder = document.getElementById(`editorial-${gender}-placeholder`);
+    if (!urlInput || !preview || !placeholder) return;
+    const url = urlInput.value.trim();
+    if (url) {
+        preview.src = url;
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+    } else {
+        preview.style.display = 'none';
+        placeholder.style.display = 'block';
+    }
+};
+
+window.uploadEditorialBannerFile = async function (gender, input) {
+    const file = input.files[0];
+    if (!file) return;
+    try {
+        const ext = file.name.split('.').pop();
+        const fileName = `editorial_${gender}_${Date.now()}.${ext}`;
+        const { data, error } = await supabaseClient.storage
+            .from('product-images')
+            .upload(`homepage/${fileName}`, file, { upsert: true });
+        if (error) throw error;
+        const { data: urlData } = supabaseClient.storage.from('product-images').getPublicUrl(`homepage/${fileName}`);
+        const urlInput = document.getElementById(`editorial-${gender}-url`);
+        if (urlInput) { urlInput.value = urlData.publicUrl; previewEditorialBanner(gender); }
+        showAdminToast(`✅ ${gender.toUpperCase()} banner uploaded!`, 'success');
+    } catch (e) {
+        showAdminToast('❌ Upload failed: ' + e.message, 'error');
+    }
+};
+
+// ---------- Reels ----------
+
+function renderReelsEditor(reels) {
+    const container = document.getElementById('reels-editor-container');
+    if (!container) return;
+    container.innerHTML = '';
+    (reels || []).forEach((reel, idx) => addReelCard(reel, idx));
+}
+
+window.addReelCard = function (reel, idx) {
+    const container = document.getElementById('reels-editor-container');
+    if (!container) return;
+    const r = reel || { video: '', poster: '', label: '' };
+    const card = document.createElement('div');
+    card.className = 'reel-card-row';
+    card.style.cssText = 'background:#f9f9f9; border:1px solid #eee; border-radius:10px; padding:14px;';
+    card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong style="font-size:13px;">Reel ${(idx !== undefined ? idx : container.children.length) + 1}</strong>
+            <button type="button" onclick="this.closest('.reel-card-row').remove()"
+                style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px;">✕</button>
+        </div>
+        <div style="margin-bottom:8px;">
+            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:4px;">Reel Label / Title</label>
+            <input type="text" class="admin-input reel-label" value="${r.label || ''}" placeholder="e.g. Summer Collection">
+        </div>
+        <div style="margin-bottom:8px;">
+            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:4px;">Video URL (.mp4)</label>
+            <input type="text" class="admin-input reel-video-url" value="${r.video || ''}" placeholder="URL or upload below">
+            <input type="file" class="admin-input" accept="video/mp4" style="margin-top:4px; font-size:11px;" onchange="uploadReelFile(this, 'video', this.closest('.reel-card-row'))">
+        </div>
+        <div>
+            <label style="font-size:11px; font-weight:700; color:#555; display:block; margin-bottom:4px;">Poster Image URL</label>
+            <input type="text" class="admin-input reel-poster-url" value="${r.poster || ''}" placeholder="URL or upload below">
+            <input type="file" class="admin-input" accept="image/*" style="margin-top:4px; font-size:11px;" onchange="uploadReelFile(this, 'poster', this.closest('.reel-card-row'))">
+            ${r.poster ? `<img src="${r.poster}" style="margin-top:6px; max-height:60px; border-radius:4px; object-fit:cover; width:100%;">` : ''}
+        </div>
+    `;
+    container.appendChild(card);
+};
+
+window.uploadReelFile = async function (input, type, cardEl) {
+    const file = input.files[0];
+    if (!file) return;
+    try {
+        const ext = file.name.split('.').pop();
+        const storageFolder = type === 'video' ? 'reels' : 'reel-posters';
+        const fileName = `reel_${type}_${Date.now()}.${ext}`;
+        const { data, error } = await supabaseClient.storage
+            .from('product-images')
+            .upload(`homepage/${storageFolder}/${fileName}`, file, { upsert: true });
+        if (error) throw error;
+        const { data: urlData } = supabaseClient.storage.from('product-images').getPublicUrl(`homepage/${storageFolder}/${fileName}`);
+        const urlInput = cardEl.querySelector(type === 'video' ? '.reel-video-url' : '.reel-poster-url');
+        if (urlInput) urlInput.value = urlData.publicUrl;
+        showAdminToast(`✅ Reel ${type} uploaded!`, 'success');
+    } catch (e) {
+        showAdminToast('❌ Upload failed: ' + e.message, 'error');
+    }
+};
+
+// ---------- Store Promo Video ----------
+
+window.previewStorePromoVideo = function (input) {
+    const file = input.files[0];
+    if (!file) return;
+    const video = document.getElementById('store-promo-video-preview');
+    const placeholder = document.getElementById('store-promo-video-placeholder');
+    const hiddenUrl = document.getElementById('store-promo-video-url');
+
+    // Show local preview immediately
+    const objectUrl = URL.createObjectURL(file);
+    if (video) { video.src = objectUrl; video.style.display = 'block'; }
+    if (placeholder) placeholder.style.display = 'none';
+
+    // Upload to Supabase storage
+    (async () => {
+        try {
+            const ext = file.name.split('.').pop();
+            const fileName = `store_promo_${Date.now()}.${ext}`;
+            const { data, error } = await supabaseClient.storage
+                .from('product-images')
+                .upload(`homepage/${fileName}`, file, { upsert: true });
+            if (error) throw error;
+            const { data: urlData } = supabaseClient.storage.from('product-images').getPublicUrl(`homepage/${fileName}`);
+            if (hiddenUrl) hiddenUrl.value = urlData.publicUrl;
+            showAdminToast('✅ Promo video uploaded!', 'success');
+        } catch (e) {
+            showAdminToast('❌ Upload failed: ' + e.message, 'error');
+        }
+    })();
+};

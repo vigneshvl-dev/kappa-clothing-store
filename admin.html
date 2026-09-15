@@ -831,18 +831,90 @@
             <!-- VIEW: HOMEPAGE MEDIA -->
             <div id="view-homepage" class="view-section">
                 <form id="homepage-media-form" onsubmit="event.preventDefault(); saveHomepageSettings();">
+
                     <!-- HERO SLIDES SECTION -->
                     <section class="card">
                         <h2 class="card-title">Hero Carousel Slides</h2>
-                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Upload slide images
-                            for Desktop and Mobile view.</p>
-
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Manage the full-screen
+                            hero slideshow images (desktop &amp; mobile versions).</p>
                         <div id="hero-slides-editor-container"
                             style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;">
                             <!-- Injected dynamically by admin.js -->
                         </div>
                         <button type="button" class="btn-secondary" onclick="addHeroSlideRow()"
                             style="margin-bottom:10px;">+ Add New Slide</button>
+                    </section>
+
+                    <!-- EDITORIAL BANNERS (MEN / WOMEN) SECTION -->
+                    <section class="card">
+                        <h2 class="card-title">Editorial Banners (MEN &amp; WOMEN)</h2>
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Update the images
+                            displayed in the MEN and WOMEN editorial cards on the homepage.</p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+
+                            <!-- MEN BANNER -->
+                            <div style="background:#f9f9f9; border:1px solid #eee; border-radius:10px; padding:16px;">
+                                <h3 style="font-size:14px; font-weight:700; margin:0 0 12px;">MEN Banner</h3>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Image URL</label>
+                                    <input type="text" id="editorial-men-url" class="admin-input"
+                                        placeholder="e.g. assets/duplicate.png"
+                                        oninput="previewEditorialBanner('men')">
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Upload Image</label>
+                                    <input type="file" id="editorial-men-file" class="admin-input" accept="image/*"
+                                        onchange="uploadEditorialBannerFile('men', this)">
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Link URL (where SHOP NOW goes)</label>
+                                    <input type="text" id="editorial-men-link" class="admin-input"
+                                        placeholder="shop.html?filter=men" value="shop.html?filter=men">
+                                </div>
+                                <div style="border:1px dashed #ccc; border-radius:6px; height:160px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff;">
+                                    <img id="editorial-men-preview" src="" alt="MEN Preview"
+                                        style="max-width:100%; max-height:100%; object-fit:cover; display:none;">
+                                    <span id="editorial-men-placeholder" style="color:#bbb; font-size:12px;">No image</span>
+                                </div>
+                            </div>
+
+                            <!-- WOMEN BANNER -->
+                            <div style="background:#f9f9f9; border:1px solid #eee; border-radius:10px; padding:16px;">
+                                <h3 style="font-size:14px; font-weight:700; margin:0 0 12px;">WOMEN Banner</h3>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Image URL</label>
+                                    <input type="text" id="editorial-women-url" class="admin-input"
+                                        placeholder="e.g. assets/WOMENFASHION.png"
+                                        oninput="previewEditorialBanner('women')">
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Upload Image</label>
+                                    <input type="file" id="editorial-women-file" class="admin-input" accept="image/*"
+                                        onchange="uploadEditorialBannerFile('women', this)">
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Link URL (where SHOP NOW goes)</label>
+                                    <input type="text" id="editorial-women-link" class="admin-input"
+                                        placeholder="shop.html?filter=women" value="shop.html?filter=women">
+                                </div>
+                                <div style="border:1px dashed #ccc; border-radius:6px; height:160px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff;">
+                                    <img id="editorial-women-preview" src="" alt="WOMEN Preview"
+                                        style="max-width:100%; max-height:100%; object-fit:cover; display:none;">
+                                    <span id="editorial-women-placeholder" style="color:#bbb; font-size:12px;">No image</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <!-- MARQUEE TEXT SECTION -->
+                    <section class="card">
+                        <h2 class="card-title">Racing Marquee Text</h2>
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:16px;">Edit the scrolling
+                            promotional text items shown below the hero. One item per line.</p>
+                        <textarea id="marquee-text-editor" class="admin-input"
+                            style="width:100%; min-height:160px; font-family:monospace; font-size:13px; resize:vertical;"
+                            placeholder="NEW SEASON ARRIVALS&#10;LIMITED EDITION&#10;PREMIUM STREETWEAR"></textarea>
                     </section>
 
                     <!-- REEL VIDEOS SECTION -->
@@ -877,7 +949,6 @@
                             </div>
                         </div>
                     </section>
-
 
                     <button type="submit" class="submit-btn"
                         style="background:#FFD700; color:#111; font-weight:800; border:none; margin-bottom:40px;">Save
