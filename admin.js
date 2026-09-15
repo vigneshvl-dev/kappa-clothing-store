@@ -4416,8 +4416,8 @@ async function loadCustomers() {
             return;
         }
 
-        // Auto-correct any profiles in DB that mistakenly have role 'admin' when not kappatvm@gmail.com
-        const wrongAdmins = profiles.filter(p => (p.email || '').toLowerCase() !== AUTHORIZED_ADMIN_EMAIL.toLowerCase() && p.role === 'admin');
+        // Auto-correct any profiles in DB that mistakenly have role 'admin' when not an authorized admin email
+        const wrongAdmins = profiles.filter(p => !isAuthorizedAdminEmail(p.email) && p.role === 'admin');
         if (wrongAdmins.length > 0) {
             const wrongIds = wrongAdmins.map(p => p.id);
             supabaseClient.from('profiles').update({ role: 'customer' }).in('id', wrongIds).then(() => {
@@ -4444,7 +4444,7 @@ async function loadCustomers() {
                 </thead>
                 <tbody>`;
         profiles.forEach(p => {
-            const isOfficialAdmin = (p.email || '').toLowerCase() === AUTHORIZED_ADMIN_EMAIL.toLowerCase();
+            const isOfficialAdmin = isAuthorizedAdminEmail(p.email);
             const displayRole = isOfficialAdmin ? 'ADMIN' : 'CUSTOMER';
             const roleBadgeStyle = isOfficialAdmin
                 ? 'background:#FFD700; color:#111; font-weight:800; border:1px solid #eab308;'
