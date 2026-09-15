@@ -6941,7 +6941,7 @@ function getHomepageSettings() {
 async function loadHomepageSettings() {
     const settings = getHomepageSettings();
 
-    // --- Try loading from Supabase ---
+    // --- Try loading from Supabase DB ---
     try {
         const { data, error } = await supabaseClient
             .from('homepage_settings')
@@ -6957,22 +6957,40 @@ async function loadHomepageSettings() {
         }
     } catch (e) { /* table may not exist yet, use localStorage fallback */ }
 
+    // --- Try loading from Supabase Storage JSON fallback ---
+    try {
+        if (!settings.editorial || !settings.editorial.men) {
+            const res = await fetch('https://ugphxapfbzcrauchwlef.supabase.co/storage/v1/object/public/product-images/homepage_settings.json?t=' + Date.now());
+            if (res.ok) {
+                const storageConfig = await res.json();
+                if (storageConfig) {
+                    Object.assign(settings, storageConfig);
+                }
+            }
+        }
+    } catch (e) {}
+
     // --- Populate Hero Slides ---
-    renderHeroSlidesEditor(settings.hero_slides || DEFAULT_HERO_SLIDES);
+    renderHeroSlidesEditor(settings.hero_slides || settings.heroSlides || DEFAULT_HERO_SLIDES);
 
     // --- Populate Editorial Banners ---
     const men = (settings.editorial && settings.editorial.men) || {};
     const women = (settings.editorial && settings.editorial.women) || {};
+
+    const menImageVal = typeof men === 'string' ? men : (men.image || (Array.isArray(men.images) ? men.images[0] : '') || 'assets/duplicate.png');
+    const menLinkVal = (typeof men === 'object' && men.link) ? men.link : 'shop.html?filter=men';
+    const womenImageVal = typeof women === 'string' ? women : (women.image || (Array.isArray(women.images) ? women.images[0] : '') || 'assets/WOMENFASHION.png');
+    const womenLinkVal = (typeof women === 'object' && women.link) ? women.link : 'shop.html?filter=women';
 
     const menUrlEl = document.getElementById('editorial-men-url');
     const menLinkEl = document.getElementById('editorial-men-link');
     const womenUrlEl = document.getElementById('editorial-women-url');
     const womenLinkEl = document.getElementById('editorial-women-link');
 
-    if (menUrlEl) menUrlEl.value = men.image || 'assets/duplicate.png';
-    if (menLinkEl) menLinkEl.value = men.link || 'shop.html?filter=men';
-    if (womenUrlEl) womenUrlEl.value = women.image || 'assets/WOMENFASHION.png';
-    if (womenLinkEl) womenLinkEl.value = women.link || 'shop.html?filter=women';
+    if (menUrlEl) menUrlEl.value = menImageVal;
+    if (menLinkEl) menLinkEl.value = menLinkVal;
+    if (womenUrlEl) womenUrlEl.value = womenImageVal;
+    if (womenLinkEl) womenLinkEl.value = womenLinkVal;
 
     previewEditorialBanner('men');
     previewEditorialBanner('women');
@@ -7044,27 +7062,42 @@ async function saveHomepageSettings() {
     // Store promo video
     const store_promo_video = (document.getElementById('store-promo-video-url') || {}).value || '';
 
+    const activeHeroSlides = hero_slides.length ? hero_slides : DEFAULT_HERO_SLIDES;
+    const activeMarqueeItems = marquee_items.length ? marquee_items : DEFAULT_MARQUEE_ITEMS;
+
     const settings = {
-        hero_slides: hero_slides.length ? hero_slides : DEFAULT_HERO_SLIDES,
+        hero_slides: activeHeroSlides,
+        heroSlides: activeHeroSlides,
         editorial: {
-            men: { image: menImage, link: menLink },
-            women: { image: womenImage, link: womenLink }
+            men: { image: menImage, images: [menImage], link: menLink },
+            women: { image: womenImage, images: [womenImage], link: womenLink }
         },
-        marquee_items: marquee_items.length ? marquee_items : DEFAULT_MARQUEE_ITEMS,
+        marquee_items: activeMarqueeItems,
+        marqueeItems: activeMarqueeItems,
         reels,
-        store_promo_video
+        store_promo_video: store_promo_video,
+        storePromoVideo: store_promo_video
     };
 
-    // Save to localStorage
+    // 1. Save to localStorage
     localStorage.setItem(HOMEPAGE_SETTINGS_KEY, JSON.stringify(settings));
 
-    // Try to save to Supabase
+    // 2. Try to save to Supabase Database
     try {
         const { error } = await supabaseClient
             .from('homepage_settings')
             .upsert({ id: 1, settings_json: settings, updated_at: new Date().toISOString() }, { onConflict: 'id' });
-        if (error) console.warn('Supabase save skipped:', error.message);
-    } catch (e) { console.warn('Supabase save error:', e); }
+        if (error) console.warn('Supabase DB save skipped:', error.message);
+    } catch (e) { console.warn('Supabase DB save error:', e); }
+
+    // 3. Save to Supabase Storage Bucket for public storefront access
+    try {
+        const configBlob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+        const { error: storageErr } = await supabaseClient.storage
+            .from('product-images')
+            .upload('homepage_settings.json', configBlob, { upsert: true, cacheControl: '0' });
+        if (storageErr) console.warn('Supabase Storage save skipped:', storageErr.message);
+    } catch (e) { console.warn('Supabase Storage save error:', e); }
 
     showAdminToast('✅ Homepage settings saved successfully!', 'success');
 }

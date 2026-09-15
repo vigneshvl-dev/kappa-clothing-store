@@ -241,3 +241,21 @@ BEGIN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
     END IF;
 END $$;
+
+-- Homepage Settings table & RLS policies
+CREATE TABLE IF NOT EXISTS public.homepage_settings (
+    id INT PRIMARY KEY DEFAULT 1,
+    settings_json JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.homepage_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public select homepage_settings" ON public.homepage_settings;
+DROP POLICY IF EXISTS "Allow public insert homepage_settings" ON public.homepage_settings;
+DROP POLICY IF EXISTS "Allow public update homepage_settings" ON public.homepage_settings;
+DROP POLICY IF EXISTS "Allow public delete homepage_settings" ON public.homepage_settings;
+CREATE POLICY "Allow public select homepage_settings" ON public.homepage_settings FOR SELECT USING (true);
+CREATE POLICY "Allow public insert homepage_settings" ON public.homepage_settings FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update homepage_settings" ON public.homepage_settings FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public delete homepage_settings" ON public.homepage_settings FOR DELETE USING (true);
+

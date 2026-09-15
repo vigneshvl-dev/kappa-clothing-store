@@ -179,17 +179,25 @@ testDatabaseConnection();
         if (typeof mediaConfig === 'string') {
             images = [mediaConfig];
         } else if (mediaConfig && typeof mediaConfig === 'object') {
-            images = mediaConfig.images || [];
+            if (Array.isArray(mediaConfig.images) && mediaConfig.images.length > 0) {
+                images = mediaConfig.images;
+            } else if (mediaConfig.image) {
+                images = [mediaConfig.image];
+            }
             videoUrl = mediaConfig.video || '';
+
+            if (mediaConfig.link) {
+                card.setAttribute('onclick', `location.href='${mediaConfig.link}'`);
+                const shopLink = card.querySelector('.editorial-shop-link');
+                if (shopLink) shopLink.href = mediaConfig.link;
+            }
         }
 
         const existingImg = card.querySelector('img');
         const existingVideo = card.querySelector('video');
         const existingWrapper = card.querySelector('.editorial-media-wrapper');
 
-        if (existingImg) {
-            existingImg.remove();
-        }
+        if (existingImg) existingImg.remove();
         if (existingVideo) existingVideo.remove();
         if (existingWrapper) existingWrapper.remove();
 
@@ -237,10 +245,11 @@ testDatabaseConnection();
             if (!config) return;
 
             // 1. Update Hero Slides
-            if (config.heroSlides && config.heroSlides.length > 0) {
+            const heroSlidesList = config.heroSlides || config.hero_slides;
+            if (heroSlidesList && heroSlidesList.length > 0) {
                 const slidesContainer = document.querySelector('.hero-slides');
                 if (slidesContainer) {
-                    slidesContainer.innerHTML = config.heroSlides.map((slide, index) => {
+                    slidesContainer.innerHTML = heroSlidesList.map((slide, index) => {
                         const activeClass = index === 0 ? 'active' : '';
                         if (slide.video) {
                             return `<div class="hero-slide ${activeClass}" style="background:#000;"><video class="hero-slide-video" src="${slide.video}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover;"></video></div>`;
@@ -296,13 +305,13 @@ testDatabaseConnection();
             }
 
             // 3. Update Store Promo Video
-            if (config.storePromoVideo) {
+            const promoUrl = config.storePromoVideo || config.store_promo_video;
+            if (promoUrl) {
                 const promoVideo = document.querySelector('.visit-store-img');
-                if (promoVideo) promoVideo.src = config.storePromoVideo;
+                if (promoVideo) promoVideo.src = promoUrl;
             }
 
-            // 4. Update Editorial Images
-            // 4. Update Editorial Category Media
+            // 4. Update Editorial Images (MEN & WOMEN)
             if (config.editorial) {
                 const menCard = document.querySelector('.editorial-card[onclick*="filter=men"]');
                 if (menCard && config.editorial.men) {
@@ -312,6 +321,15 @@ testDatabaseConnection();
                 const womenCard = document.querySelector('.editorial-card[onclick*="filter=women"]');
                 if (womenCard && config.editorial.women) {
                     updateEditorialCardMedia(womenCard, config.editorial.women);
+                }
+            }
+
+            // 5. Update Racing Marquee Text
+            const marqueeList = config.marqueeItems || config.marquee_items;
+            if (Array.isArray(marqueeList) && marqueeList.length > 0) {
+                const marqueeTrack = document.querySelector('.racing-marquee-track');
+                if (marqueeTrack) {
+                    marqueeTrack.innerHTML = marqueeList.map(item => `<span>${item}</span>`).join('');
                 }
             }
 
