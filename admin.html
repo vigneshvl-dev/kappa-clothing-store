@@ -835,99 +835,66 @@
                     <!-- HERO SLIDES SECTION -->
                     <section class="card">
                         <h2 class="card-title">Hero Carousel Slides</h2>
-                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Manage the full-screen
-                            hero slideshow images (desktop &amp; mobile versions).</p>
-                        <div id="hero-slides-editor-container"
-                            style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;">
-                            <!-- Injected dynamically by admin.js -->
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Manage the full-screen hero slideshow images (desktop &amp; mobile versions).</p>
+                        <div id="hero-slides-editor-container" style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;">
+                            <!-- Injected dynamically by media.js -->
                         </div>
-                        <button type="button" class="btn-secondary" onclick="addHeroSlideRow()"
-                            style="margin-bottom:10px;">+ Add New Slide</button>
+                        <button type="button" class="btn-secondary" onclick="addHeroSlideRow()" style="margin-bottom:10px;">+ Add New Slide</button>
                     </section>
 
-                    <!-- EDITORIAL BANNERS (MEN / WOMEN) SECTION -->
+                    <!-- EDITORIAL BANNERS (MEN & WOMEN) SECTION -->
                     <section class="card">
-                        <h2 class="card-title">Editorial Banners (MEN &amp; WOMEN)</h2>
-                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Update the images
-                            displayed in the MEN and WOMEN editorial cards on the homepage.</p>
+                        <h2 class="card-title">Editorial Category Banners (MEN &amp; WOMEN)</h2>
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Update images and videos for MEN and WOMEN category sections on the homepage.</p>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
 
-                            <!-- MEN BANNER -->
+                            <!-- MEN SECTION -->
                             <div style="background:#f9f9f9; border:1px solid #eee; border-radius:10px; padding:16px;">
-                                <h3 style="font-size:14px; font-weight:700; margin:0 0 12px;">MEN Banner</h3>
-                                <div style="margin-bottom:10px;">
-                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Image URL</label>
-                                    <input type="text" id="editorial-men-url" class="admin-input"
-                                        placeholder="e.g. assets/duplicate.png"
-                                        oninput="previewEditorialBanner('men')">
+                                <h3 style="font-size:14px; font-weight:700; margin:0 0 12px;">MEN Section Media</h3>
+                                <div style="margin-bottom:14px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:6px;">Slideshow Images</label>
+                                    <div id="editorial-men-images-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">
+                                        <!-- Injected dynamically by media.js -->
+                                    </div>
+                                    <button type="button" class="btn-secondary" onclick="addEditorialImageRow('men')" style="font-size:12px;">+ Add Image</button>
                                 </div>
-                                <div style="margin-bottom:10px;">
-                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Upload Image</label>
-                                    <input type="file" id="editorial-men-file" class="admin-input" accept="image/*"
-                                        onchange="uploadEditorialBannerFile('men', this)">
-                                </div>
-                                <div style="margin-bottom:10px;">
-                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Link URL (where SHOP NOW goes)</label>
-                                    <input type="text" id="editorial-men-link" class="admin-input"
-                                        placeholder="shop.html?filter=men" value="shop.html?filter=men">
-                                </div>
-                                <div style="border:1px dashed #ccc; border-radius:6px; height:160px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff;">
-                                    <img id="editorial-men-preview" src="" alt="MEN Preview"
-                                        style="max-width:100%; max-height:100%; object-fit:cover; display:none;">
-                                    <span id="editorial-men-placeholder" style="color:#bbb; font-size:12px;">No image</span>
+                                <div style="margin-top:16px; border-top:1px solid #eee; padding-top:14px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Background Video (.mp4)</label>
+                                    <input type="text" id="editorial-men-video-url" class="admin-input" placeholder="Video URL" style="margin-bottom:6px;">
+                                    <input type="file" id="editorial-men-file" class="admin-input" accept="video/mp4" style="font-size:11px;" onchange="previewEditorialVideo(this, 'men')">
+                                    <video id="editorial-men-video-preview" style="max-height:100px; max-width:100%; display:none; margin-top:8px;" muted controls></video>
                                 </div>
                             </div>
 
-                            <!-- WOMEN BANNER -->
+                            <!-- WOMEN SECTION -->
                             <div style="background:#f9f9f9; border:1px solid #eee; border-radius:10px; padding:16px;">
-                                <h3 style="font-size:14px; font-weight:700; margin:0 0 12px;">WOMEN Banner</h3>
-                                <div style="margin-bottom:10px;">
-                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Image URL</label>
-                                    <input type="text" id="editorial-women-url" class="admin-input"
-                                        placeholder="e.g. assets/WOMENFASHION.png"
-                                        oninput="previewEditorialBanner('women')">
+                                <h3 style="font-size:14px; font-weight:700; margin:0 0 12px;">WOMEN Section Media</h3>
+                                <div style="margin-bottom:14px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:6px;">Slideshow Images</label>
+                                    <div id="editorial-women-images-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">
+                                        <!-- Injected dynamically by media.js -->
+                                    </div>
+                                    <button type="button" class="btn-secondary" onclick="addEditorialImageRow('women')" style="font-size:12px;">+ Add Image</button>
                                 </div>
-                                <div style="margin-bottom:10px;">
-                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Upload Image</label>
-                                    <input type="file" id="editorial-women-file" class="admin-input" accept="image/*"
-                                        onchange="uploadEditorialBannerFile('women', this)">
-                                </div>
-                                <div style="margin-bottom:10px;">
-                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Link URL (where SHOP NOW goes)</label>
-                                    <input type="text" id="editorial-women-link" class="admin-input"
-                                        placeholder="shop.html?filter=women" value="shop.html?filter=women">
-                                </div>
-                                <div style="border:1px dashed #ccc; border-radius:6px; height:160px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff;">
-                                    <img id="editorial-women-preview" src="" alt="WOMEN Preview"
-                                        style="max-width:100%; max-height:100%; object-fit:cover; display:none;">
-                                    <span id="editorial-women-placeholder" style="color:#bbb; font-size:12px;">No image</span>
+                                <div style="margin-top:16px; border-top:1px solid #eee; padding-top:14px;">
+                                    <label style="font-size:12px; font-weight:600; color:#555; display:block; margin-bottom:4px;">Background Video (.mp4)</label>
+                                    <input type="text" id="editorial-women-video-url" class="admin-input" placeholder="Video URL" style="margin-bottom:6px;">
+                                    <input type="file" id="editorial-women-file" class="admin-input" accept="video/mp4" style="font-size:11px;" onchange="previewEditorialVideo(this, 'women')">
+                                    <video id="editorial-women-video-preview" style="max-height:100px; max-width:100%; display:none; margin-top:8px;" muted controls></video>
                                 </div>
                             </div>
 
                         </div>
-                    </section>
-
-                    <!-- MARQUEE TEXT SECTION -->
-                    <section class="card">
-                        <h2 class="card-title">Racing Marquee Text</h2>
-                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:16px;">Edit the scrolling
-                            promotional text items shown below the hero. One item per line.</p>
-                        <textarea id="marquee-text-editor" class="admin-input"
-                            style="width:100%; min-height:160px; font-family:monospace; font-size:13px; resize:vertical;"
-                            placeholder="NEW SEASON ARRIVALS&#10;LIMITED EDITION&#10;PREMIUM STREETWEAR"></textarea>
                     </section>
 
                     <!-- REEL VIDEOS SECTION -->
                     <section class="card">
                         <h2 class="card-title">Homepage Reel Videos</h2>
-                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Upload video (.mp4)
-                            and poster image for each reel card.</p>
-                        <div id="reels-editor-container"
-                            style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:20px; margin-bottom:20px;">
-                            <!-- Injected dynamically by admin.js -->
+                        <p style="font-size:12px; color:#888; margin-top:-10px; margin-bottom:20px;">Upload video (.mp4) and poster image for each reel card.</p>
+                        <div id="reels-editor-container" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:20px; margin-bottom:20px;">
+                            <!-- Injected dynamically by media.js -->
                         </div>
-                        <button type="button" class="btn-secondary" onclick="addReelCard()"
-                            style="margin-bottom:10px;">+ Add New Reel</button>
+                        <button type="button" class="btn-secondary" onclick="addReelCard()" style="margin-bottom:10px;">+ Add New Reel</button>
                     </section>
 
                     <!-- VISIT STORE promo video -->
@@ -936,23 +903,17 @@
                         <div class="form-group row" style="display:grid; grid-template-columns:1.5fr 1fr; gap:20px;">
                             <div>
                                 <label for="store-promo-video-file">Upload Store Promo Video (.mp4)</label>
-                                <input type="file" id="store-promo-video-file" class="admin-input" accept="video/mp4"
-                                    onchange="previewStorePromoVideo(this)">
+                                <input type="file" id="store-promo-video-file" class="admin-input" accept="video/mp4" onchange="previewStorePromoVideo(this)">
                                 <input type="hidden" id="store-promo-video-url">
                             </div>
-                            <div
-                                style="display:flex; flex-direction:column; justify-content:center; align-items:center; border:1px dashed #ccc; border-radius:6px; height:120px; overflow:hidden;">
-                                <video id="store-promo-video-preview"
-                                    style="max-height:100%; max-width:100%; display:none;" muted controls></video>
-                                <span id="store-promo-video-placeholder" style="color:#aaa; font-size:12px;">No video
-                                    loaded</span>
+                            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; border:1px dashed #ccc; border-radius:6px; height:120px; overflow:hidden;">
+                                <video id="store-promo-video-preview" style="max-height:100%; max-width:100%; display:none;" muted controls></video>
+                                <span id="store-promo-video-placeholder" style="color:#aaa; font-size:12px;">No video loaded</span>
                             </div>
                         </div>
                     </section>
 
-                    <button type="submit" class="submit-btn"
-                        style="background:#FFD700; color:#111; font-weight:800; border:none; margin-bottom:40px;">Save
-                        Homepage Layout Settings</button>
+                    <button type="submit" class="submit-btn" style="background:#FFD700; color:#111; font-weight:800; border:none; margin-bottom:40px;">Save Homepage Layout Settings</button>
                 </form>
             </div>
 
