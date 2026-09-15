@@ -86,6 +86,9 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS updated_at timestamp with t
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_featured boolean DEFAULT false;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS stock_quantity integer DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS tag text DEFAULT 'NEW';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS shipping_policy text;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS legal_metrology text;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow public read access to active products" ON public.products;
 DROP POLICY IF EXISTS "Allow admin full access to products" ON public.products;
