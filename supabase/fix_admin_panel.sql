@@ -259,7 +259,18 @@ CREATE POLICY "Allow public insert homepage_settings" ON public.homepage_setting
 CREATE POLICY "Allow public update homepage_settings" ON public.homepage_settings FOR UPDATE USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public delete homepage_settings" ON public.homepage_settings FOR DELETE USING (true);
 
--- Grant Admin Access SQL Query for Admin Accounts
-UPDATE public.profiles
+-- 1. Ensure email column exists on public.profiles table
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
+
+-- 2. Sync email addresses from auth.users into public.profiles
+UPDATE public.profiles p
+SET email = u.email
+FROM auth.users u
+WHERE p.id = u.id;
+
+-- 3. Grant Admin Role to Authorized Admin Accounts
+UPDATE public.profiles p
 SET role = 'admin'
-WHERE LOWER(email) IN ('vigneshvelappan73051@gmail.com', 'kappatvm@gmail.com');
+FROM auth.users u
+WHERE p.id = u.id
+  AND LOWER(u.email) IN ('vigneshvelappan73051@gmail.com', 'kappatvm@gmail.com');
