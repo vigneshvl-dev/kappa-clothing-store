@@ -1757,17 +1757,21 @@
                     .sort((a, b) => (a.position || 0) - (b.position || 0))
                     .map(img => ({
                         url: img.url.split('#')[0],
-                        label: img.url.split('#')[1] || ''
+                        label: img.url.split('#')[1] || '',
+                        position: img.position
                     }));
 
                 // Cover image = first image
                 let imageUrl = 'assets/sleeping sis.png';
                 if (allImages.length > 0) imageUrl = allImages[0].url;
 
-                // Build thumbnail strip from ALL images
+                // Exclude Main Product Cover Image (position 0) from the thumbnail strip
+                const galleryImages = allImages.filter(img => img.position !== 0);
+
+                // Build thumbnail strip from gallery images only (no cover)
                 const maxThumbs = 5;
                 let thumbsHTML = '';
-                allImages.slice(0, maxThumbs).forEach((item, idx) => {
+                galleryImages.slice(0, maxThumbs).forEach((item, idx) => {
                     const isActive = idx === 0;
                     const safeUrl = item.url.replace(/'/g, "\\'");
                     const safeLabel = item.label.replace(/'/g, "\\'");
@@ -1780,8 +1784,8 @@
                     `;
                 });
 
-                if (allImages.length > maxThumbs) {
-                    thumbsHTML += `<span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">+${allImages.length - maxThumbs}</span>`;
+                if (galleryImages.length > maxThumbs) {
+                    thumbsHTML += `<span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">+${galleryImages.length - maxThumbs}</span>`;
                 }
 
                 function getCleanProductSlug(p) {
@@ -1834,7 +1838,7 @@
                         <h3>${product.name || 'Untitled Product'}</h3>
 
                         <!-- All Image Thumbnails — click to switch main image -->
-                        ${allImages.length > 1 ? `
+                        ${galleryImages.length > 0 ? `
                         <div class="boys-card-thumbs">
                             ${thumbsHTML}
                         </div>

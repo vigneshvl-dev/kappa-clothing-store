@@ -3014,19 +3014,22 @@ async function initStorefront() {
                 const parts = img.url.split('#');
                 const cleanUrl = parts[0];
                 const colorLabel = parts[1] || '';
-                return { url: cleanUrl, label: colorLabel };
+                return { url: cleanUrl, label: colorLabel, position: img.position };
             });
 
-            // Handle cover image safely
+            // Handle cover image safely — use position-0 image as the main card image
             let imageUrl = 'assets/sleeping sis.png';
             if (thumbImages.length > 0) {
                 imageUrl = thumbImages[0].url;
             }
 
-            // Create thumbnails HTML from ALL product images
+            // Exclude Main Product Cover Image (position 0) from the thumbnail strip
+            const galleryThumbs = thumbImages.filter(img => img.position !== 0);
+
+            // Create thumbnails HTML from gallery images only (no cover)
             const maxThumbs = 5;
             let thumbsHTML = '';
-            thumbImages.slice(0, maxThumbs).forEach((item, idx) => {
+            galleryThumbs.slice(0, maxThumbs).forEach((item, idx) => {
                 const isActive = idx === 0;
                 const safeUrl = item.url.replace(/'/g, "\\'");
                 const safeLabel = item.label.replace(/'/g, "\\'");
@@ -3039,10 +3042,10 @@ async function initStorefront() {
                 `;
             });
 
-            if (thumbImages.length > maxThumbs) {
+            if (galleryThumbs.length > maxThumbs) {
                 thumbsHTML += `
                     <span style="font-size: 11px; color: #666; align-self: center; font-weight: bold; margin-left: 2px;">
-                        +${thumbImages.length - maxThumbs}
+                        +${galleryThumbs.length - maxThumbs}
                     </span>
                 `;
             }
@@ -3072,7 +3075,7 @@ async function initStorefront() {
                     </a>
 
                     <!-- All Image Thumbnails — click to switch main image -->
-                    ${thumbImages.length > 1 ? `
+                    ${galleryThumbs.length > 0 ? `
                     <div class="boys-card-thumbs">
                         ${thumbsHTML}
                     </div>
