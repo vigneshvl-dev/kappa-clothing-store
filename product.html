@@ -1570,7 +1570,7 @@
                         <span>Shipping policy</span>
                         <span class="acc-icon" style="font-size: 18px; font-weight: 300; color: #555;">+</span>
                     </button>
-                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;">
+                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;" id="pdp-shipping-policy">
                         • Free Shipping on orders above ₹4000.<br>
                         • Standard dispatch within 24-48 business hours.<br>
                         • Delivery within 2-5 business days across India via Shiprocket courier partners.<br>
@@ -1584,7 +1584,7 @@
                         <span>Legal Metrology</span>
                         <span class="acc-icon" style="font-size: 18px; font-weight: 300; color: #555;">+</span>
                     </button>
-                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;">
+                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;" id="pdp-legal-metrology">
                         • <strong>Country of Origin:</strong> India<br>
                         • <strong>Marketed & Packed By:</strong> KAPPA Clothing Store, Mahatma Gandhi Rd, Pazhavangadi, Thiruvananthapuram, Kerala 695023.<br>
                         • <strong>Customer Support:</strong> kappatvm@gmail.com | +91 62386 16662<br>
@@ -2487,9 +2487,37 @@
                 shareWhatsapp.href = `https://api.whatsapp.com/send?text=${shareText}`;
             }
 
+            // Extract metadata if embedded
+            let rawDesc = product.description || 'Details unavailable.';
+            let shippingPolicy = product.shipping_policy || '';
+            let legalMetrology = product.legal_metrology || null;
+            let metaOrigin = '';
+            let metaNetQty = '';
+            let metaMarketed = '';
+            let metaSupport = '';
+
+            const metaMatch = rawDesc.match(/\[META:([^\]]+)\]/i);
+            if (metaMatch && metaMatch[1]) {
+                const parts = metaMatch[1].split('|');
+                parts.forEach(part => {
+                    const [key, val] = part.split('=');
+                    if (key === 'shipping' && !shippingPolicy) shippingPolicy = decodeURIComponent(val || '');
+                    else if (key === 'origin') metaOrigin = decodeURIComponent(val || '');
+                    else if (key === 'netqty') metaNetQty = decodeURIComponent(val || '');
+                    else if (key === 'marketed') metaMarketed = decodeURIComponent(val || '');
+                    else if (key === 'support') metaSupport = decodeURIComponent(val || '');
+                });
+            }
+
+            // Clean metadata tags from displayed description so buyer never sees raw tags
+            const cleanDesc = rawDesc
+                .replace(/\s*\[META:[^\]]+\]/gi, '')
+                .replace(/\s*\[TAG:[^\]]+\]/gi, '')
+                .trim();
+
             const descEl = document.getElementById('pdp-description');
             if (descEl) {
-                const desc = product.description || 'Details unavailable.';
+                const desc = cleanDesc || 'Details unavailable.';
                 const lines = desc.split('\n');
                 if (lines.length > 0 && lines[0].trim() !== '') {
                     const heading = lines[0].trim();
@@ -2498,6 +2526,45 @@
                 } else {
                     descEl.innerText = desc;
                 }
+            }
+
+            // Populate Shipping Policy
+            const shipEl = document.getElementById('pdp-shipping-policy');
+            if (shipEl) {
+                if (shippingPolicy) {
+                    // Format lines nicely
+                    const formatted = shippingPolicy.split('\n').filter(l => l.trim()).map(line => {
+                        const trimmed = line.trim();
+                        return trimmed.startsWith('•') || trimmed.startsWith('-') ? trimmed : `• ${trimmed}`;
+                    }).join('<br>');
+                    shipEl.innerHTML = formatted || shippingPolicy;
+                } else {
+                    shipEl.innerHTML = `• Free Shipping on orders above ₹4000.<br>
+• Standard dispatch within 24-48 business hours.<br>
+• Delivery within 2-5 business days across India via Shiprocket courier partners.<br>
+• Real-time SMS and WhatsApp tracking updates.`;
+                }
+            }
+
+            // Populate Legal Metrology
+            const lmEl = document.getElementById('pdp-legal-metrology');
+            if (lmEl) {
+                let lmObj = null;
+                if (legalMetrology) {
+                    try {
+                        lmObj = typeof legalMetrology === 'string' ? JSON.parse(legalMetrology) : legalMetrology;
+                    } catch (_) { }
+                }
+
+                const origin = lmObj?.origin || metaOrigin || 'India';
+                const marketedBy = lmObj?.marketedBy || metaMarketed || 'KAPPA Clothing Store, Mahatma Gandhi Rd, Pazhavangadi, Thiruvananthapuram, Kerala 695023.';
+                const support = lmObj?.support || metaSupport || 'kappatvm@gmail.com | +91 62386 16662';
+                const netQty = lmObj?.netQty || metaNetQty || '1 Unit. All prices inclusive of all taxes.';
+
+                lmEl.innerHTML = `• <strong>Country of Origin:</strong> ${origin}<br>
+• <strong>Marketed &amp; Packed By:</strong> ${marketedBy}<br>
+• <strong>Customer Support:</strong> ${support}<br>
+• <strong>Net Quantity:</strong> ${netQty}`;
             }
 
             const priceEl = document.getElementById('pdp-price');
