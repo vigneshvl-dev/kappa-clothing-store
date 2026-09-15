@@ -3057,6 +3057,26 @@ async function initStorefront() {
             const sSlug = String(product.slug || product.id || '').trim();
             const cardSlug = (sSlug && !sSlug.startsWith('data:') && sSlug.length <= 80) ? sSlug : (product.id || '1');
 
+            function resolveProductBadgeHome(p) {
+                if (!p) return 'NEW';
+                if (p.tag && p.tag !== 'NEW') return p.tag.toUpperCase();
+                if (p.description) {
+                    const tm = p.description.match(/\[TAG:([^\]]+)\]/i);
+                    if (tm && tm[1]) return tm[1].trim().toUpperCase();
+                    const mm = p.description.match(/\[META:[^\]]*tag=([^\|\]]+)/i);
+                    if (mm && mm[1]) return decodeURIComponent(mm[1]).trim().toUpperCase();
+                }
+                let tagMap = {};
+                try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) { }
+                if (p.id && tagMap[String(p.id)]) return tagMap[String(p.id)].toUpperCase();
+                return p.tag || 'NEW';
+            }
+
+            const badgeText = resolveProductBadgeHome(product);
+            const badgeSpan = isOutOfStock
+                ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>`
+                : (badgeText ? `<span class="boys-badge">${badgeText}</span>` : '');
+
             // Build the card with Out of Stock overlay & badge
             const cardHTML = `
                 <div class="boys-card ${isOutOfStock ? 'is-out-of-stock' : ''}" 
@@ -3064,7 +3084,7 @@ async function initStorefront() {
                      data-product-name="${safeName}" 
                      data-product-price="${product.price || 0}" 
                      style="max-width: 280px; width: 100%; position: relative;">
-                    ${isOutOfStock ? `<span class="boys-badge out-of-stock-badge">OUT OF STOCK</span>` : `<span class="boys-badge">NEW</span>`}
+                    ${badgeSpan}
                     
                     <a href="product.html?slug=${cardSlug}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                         <div class="boys-card-img-wrap" style="overflow:hidden; border-radius:8px;">
