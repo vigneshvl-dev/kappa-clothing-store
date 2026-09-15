@@ -273,4 +273,4 @@ UPDATE public.profiles p
 SET role = 'admin'
 FROM auth.users u
 WHERE p.id = u.id
-  AND LOWER(u.email) IN ('vigneshvelappan73051@gmail.com', 'kappatvm@gmail.com');
+  AND LOWER(u.email) IN ('kappatvm@gmail.com');

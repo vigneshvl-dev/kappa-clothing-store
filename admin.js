@@ -396,8 +396,8 @@ function renderDonutChart(orders) {
 // ==========================================
 // 4. TRUE DATABASE SECURITY BOUNCER
 // ==========================================
+const AUTHORIZED_ADMIN_EMAIL = 'kappatvm@gmail.com';
 const AUTHORIZED_ADMIN_EMAILS = [
-    'vigneshvelappan73051@gmail.com',
     'kappatvm@gmail.com'
 ];
 
@@ -416,7 +416,7 @@ async function verifyAdmin() {
 
     const userEmail = (session.user.email || '').trim().toLowerCase();
     if (!isAuthorizedAdminEmail(userEmail)) {
-        alert(`Access Denied: Only authorized admin accounts (${AUTHORIZED_ADMIN_EMAILS.join(', ')}) are allowed to access the Admin Panel.`);
+        alert(`Access Denied: Only ${AUTHORIZED_ADMIN_EMAIL} is authorized to access the Admin Panel.`);
         window.location.replace('index.html');
         return;
     }
