@@ -15,7 +15,12 @@ app.use((req, res, next) => {
     next();
 });
 
+app.get(["/home", "/home/"], (req, res) => {
+    res.sendFile(require("path").join(__dirname, "index.html"));
+});
+
 app.use(express.static(__dirname)); // serves checkout.html, index.html, etc.
+
 
 const createOrder = require("./api/create-order");
 app.post("/api/create-order", createOrder);

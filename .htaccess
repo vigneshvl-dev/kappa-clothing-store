@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /
+
+# Redirect /index.html to /home
+RewriteCond %{THE_REQUEST} \s/index\.html [NC]
+RewriteRule ^index\.html$ /home [R=301,L]
+
+# Map /home to /index.html internally
+RewriteRule ^home/?$ index.html [L]
