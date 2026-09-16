@@ -254,11 +254,11 @@
             <span></span><span></span><span></span>
         </button>
         <nav class="nav-links">
-            <a href="index.html#home" class="nav-link">Home</a>
+            <a href="home" class="nav-link">Home</a>
             <a href="about.html" class="nav-link">About</a>
             <a href="contact.html" class="nav-link">Contact</a>
         </nav>
-        <a href="index.html#home" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store"></a>
+        <a href="home" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store"></a>
         <div class="nav-actions">
             <div class="search-box" id="searchBtn">
                 <input type="text" placeholder="Search for products..." />
@@ -748,7 +748,7 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const hasTrackingParam = urlParams.get('orderId') || urlParams.get('tracking');
                 if (!hasTrackingParam) {
-                    window.location.href = 'index.html';
+                    window.location.href = 'home';
                     return;
                 }
                 const userName = document.getElementById('sidebarUserName');
@@ -759,7 +759,7 @@
                 profileBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (currentUser) profilePopup.classList.toggle('open');
-                    else window.location.href = 'index.html';
+                    else window.location.href = 'home';
                 });
             }
 
@@ -789,14 +789,14 @@
             e.preventDefault();
             const { error } = await supabaseClient.auth.signOut();
             if (error) showToast('Logout failed: ' + error.message);
-            else { showToast('Logged out successfully'); setTimeout(() => window.location.href = 'index.html', 1000); }
+            else { showToast('Logged out successfully'); setTimeout(() => window.location.href = 'home', 1000); }
         });
 
         document.getElementById('sidebarLogout').addEventListener('click', async (e) => {
             e.preventDefault();
             const { error } = await supabaseClient.auth.signOut();
             if (error) showToast('Logout failed: ' + error.message);
-            else { showToast('Logged out successfully'); setTimeout(() => window.location.href = 'index.html', 1000); }
+            else { showToast('Logged out successfully'); setTimeout(() => window.location.href = 'home', 1000); }
         });
 
         const navbar = document.getElementById('navbar');
@@ -806,7 +806,7 @@
         if (heroHamburger) {
             heroHamburger.addEventListener('click', () => {
                 heroHamburger.classList.toggle('open');
-                window.location.href = 'index.html';
+                window.location.href = 'home';
             });
         }
     </script>
