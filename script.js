@@ -118,7 +118,9 @@ testDatabaseConnection();
 
     applyLanguage(currentLang);
 
-    if (!window.location.pathname.includes('checkout.html')) {
+    // Remove buy_now_item on every page EXCEPT the checkout (supports both /checkout.html and clean /checkout URL)
+    const _pathname = window.location.pathname;
+    if (!_pathname.includes('checkout.html') && !_pathname.includes('/checkout')) {
         localStorage.removeItem('kappa_buy_now_item');
     }
 
@@ -128,6 +130,7 @@ testDatabaseConnection();
         const uid = currentUserSession && currentUserSession.user && currentUserSession.user.id;
         return uid ? `kappa_cart_${uid}` : 'kappa_cart_guest';
     }
+    // Load cart from guest key initially; will be replaced with user key on auth state change
     let cart = JSON.parse(localStorage.getItem('kappa_cart_guest') || "[]");  // {id, size, qty}
     let wishlist = []; // [id]
     let discount = 0;
@@ -1220,7 +1223,15 @@ testDatabaseConnection();
     window.getCartKey = getCartKey;  // Expose so product.html can use the same user-aware key
 
     function renderCart() {
-        localStorage.setItem(getCartKey(), JSON.stringify(cart));
+        // Sync: if in-memory cart is empty but localStorage has data, reload it (prevents accidental wipe)
+        const _ck = getCartKey();
+        if (cart.length === 0) {
+            const _stored = JSON.parse(localStorage.getItem(_ck) || '[]');
+            if (_stored.length > 0) {
+                cart = _stored;
+            }
+        }
+        localStorage.setItem(_ck, JSON.stringify(cart));
         const wrap = document.getElementById("cartItems");
         const cartTotal = cart.reduce((a, c) => a + c.qty, 0);
         const cartCountEl = document.getElementById("cartCount");
@@ -3117,7 +3128,7 @@ async function initStorefront() {
                      style="max-width: 280px; width: 100%; position: relative;">
                     ${badgeSpan}
                     
-                    <a href="product.html?slug=${cardSlug}" style="text-decoration: none; color: inherit; display: block; position: relative;">
+                    <a href="product.html?slug=${cardSlug}" onclick="try { sessionStorage.setItem('kappa_pdp_selected_img', '${imageUrl}'); } catch(e) {}" style="text-decoration: none; color: inherit; display: block; position: relative;">
                         <div class="boys-card-img-wrap" style="overflow:hidden; border-radius:8px;">
                             <img class="boys-card-img" src="${imageUrl}" alt="${product.name || 'Product'}">
                             ${isOutOfStock ? `<div class="out-of-stock-overlay">OUT OF STOCK</div>` : ''}
