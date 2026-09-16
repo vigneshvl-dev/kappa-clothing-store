@@ -482,7 +482,7 @@
         let currentUser = null;
 
         supabaseClient.auth.getSession().then(({ data: { session } }) => {
-            if (!session) { window.location.href = 'index.html'; return; }
+            if (!session) { window.location.href = '/'; return; }
             currentUser = session.user;
             const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
             const initial = name.charAt(0).toUpperCase();
@@ -495,7 +495,7 @@
                 profileBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (currentUser) profilePopup.classList.toggle('open');
-                    else window.location.href = 'index.html';
+                    else window.location.href = '/';
                 });
             }
 
@@ -509,7 +509,7 @@
         async function doLogout() {
             const { error } = await supabaseClient.auth.signOut();
             if (error) showToast('Logout failed: ' + error.message);
-            else { showToast('Logged out successfully'); setTimeout(() => window.location.href = 'index.html', 1000); }
+            else { showToast('Logged out successfully'); setTimeout(() => window.location.href = '/', 1000); }
         }
 
         document.getElementById('popupLogout').addEventListener('click', (e) => { e.preventDefault(); doLogout(); });
@@ -522,7 +522,7 @@
         if (heroHamburger) {
             heroHamburger.addEventListener('click', () => {
                 heroHamburger.classList.toggle('open');
-                window.location.href = 'index.html';
+                window.location.href = '/';
             });
         }
     </script>
