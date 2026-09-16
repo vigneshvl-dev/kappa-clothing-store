@@ -1304,6 +1304,23 @@
             document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading collection...</div>';
             currentCategoryIds = [];
 
+            // --- OPTIMISTIC RENDER FROM CACHE ---
+            let cached = [];
+            try { cached = JSON.parse(localStorage.getItem("kappa_cached_products") || "[]"); } catch (e) { }
+            if (cached.length > 0) {
+                let initialProducts = cached.filter(p => {
+                    if (collectionId === 'sale' || collectionId === 'clearance') {
+                        return p.compare_at_price && Number(p.compare_at_price) > Number(p.price);
+                    }
+                    return true;
+                });
+                if (initialProducts.length > 0) {
+                    currentProductsLoaded = initialProducts;
+                    filterCurrentProducts();
+                }
+            }
+            // ------------------------------------
+
             let query = shopSupabaseClient
                 .from('products')
                 .select('*, product_images(url, position), product_variants(size, stock_quantity)')
@@ -1348,6 +1365,18 @@
                 return;
             }
 
+            // --- OPTIMISTIC RENDER FROM CACHE ---
+            let cached = [];
+            try { cached = JSON.parse(localStorage.getItem("kappa_cached_products") || "[]"); } catch (e) { }
+            if (cached.length > 0) {
+                let initialProducts = cached.filter(p => pIds.includes(p.id));
+                if (initialProducts.length > 0) {
+                    currentProductsLoaded = initialProducts;
+                    filterCurrentProducts();
+                }
+            }
+            // ------------------------------------
+
             const { data: products, error } = await shopSupabaseClient
                 .from('products')
                 .select('*, product_images(url, position), product_variants(size, stock_quantity)')
@@ -1367,6 +1396,18 @@
             document.getElementById('current-category-title').innerText = displayTitle ? displayTitle.toUpperCase() : 'ON SALE';
             document.getElementById('shop-product-grid').innerHTML = '<div class="empty-state">Loading sale items...</div>';
             currentCategoryIds = [];
+
+            // --- OPTIMISTIC RENDER FROM CACHE ---
+            let cached = [];
+            try { cached = JSON.parse(localStorage.getItem("kappa_cached_products") || "[]"); } catch (e) { }
+            if (cached.length > 0) {
+                let initialProducts = cached.filter(p => p.compare_at_price && Number(p.compare_at_price) > Number(p.price));
+                if (initialProducts.length > 0) {
+                    currentProductsLoaded = initialProducts;
+                    filterCurrentProducts();
+                }
+            }
+            // ------------------------------------
 
             const { data: products, error } = await shopSupabaseClient
                 .from('products')
@@ -1535,6 +1576,22 @@
             } else if (catNameUpper === 'ALL PRODUCTS') {
                 renderSidebarCategories('');
             }
+
+            // --- OPTIMISTIC RENDER FROM CACHE ---
+            let cached = [];
+            try { cached = JSON.parse(localStorage.getItem("kappa_cached_products") || "[]"); } catch (e) { }
+            
+            if (cached.length > 0) {
+                let initialProducts = cached;
+                if (currentCategoryIds.length > 0) {
+                    initialProducts = cached.filter(p => currentCategoryIds.includes(p.category_id));
+                }
+                if (initialProducts.length > 0) {
+                    currentProductsLoaded = initialProducts;
+                    filterCurrentProducts();
+                }
+            }
+            // ------------------------------------
 
             let query = shopSupabaseClient
                 .from('products')
