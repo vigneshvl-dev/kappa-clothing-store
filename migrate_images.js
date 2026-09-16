@@ -10,15 +10,19 @@ const key = urlMatch[2];
 const headers = { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' };
 
 async function migrateImages() {
-  const resp = await fetch(url + '/rest/v1/product_images?image_url=like.data:image*&select=id,image_url', { headers });
+  const resp = await fetch(url + '/rest/v1/product_images?url=like.data:image%25&select=id,url', { headers });
   const images = await resp.json();
+  if (images.error || !Array.isArray(images)) {
+    console.error('Error fetching images:', images);
+    return;
+  }
   console.log('Found ' + images.length + ' base64 images to migrate.');
   
   for (const img of images) {
-    if (!img.image_url.startsWith('data:image')) continue;
+    if (!img.url.startsWith('data:image')) continue;
     
     // Parse base64
-    const match = img.image_url.match(/^data:(image\/\w+);base64,(.+)$/);
+    const match = img.url.match(/^data:(image\/\w+);base64,(.+)$/);
     if (!match) continue;
     
     const mimeType = match[1];
@@ -45,7 +49,7 @@ async function migrateImages() {
       const updateResp = await fetch(url + '/rest/v1/product_images?id=eq.' + img.id, {
         method: 'PATCH',
         headers: headers,
-        body: JSON.stringify({ image_url: publicUrl })
+        body: JSON.stringify({ url: publicUrl })
       });
       if (updateResp.ok) {
         console.log('Database updated for ' + img.id);
