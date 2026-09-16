@@ -2272,7 +2272,7 @@ testDatabaseConnection();
                 const { error } = await supabaseClient.auth.signOut();
                 if (error) showToast('Logout failed: ' + error.message);
                 else showToast('Logged out successfully');
-                window.location.href = '/home';
+                window.location.href = '/';
             });
         }
 
@@ -2785,7 +2785,7 @@ testDatabaseConnection();
             if (isPendingCheckout) {
                 window.location.href = 'checkout.html';
             } else if (!isHomePage) {
-                window.location.href = '/home';
+                window.location.href = '/';
             } else {
                 closeAccountOverlay();
                 showToast('Welcome back, ' + displayName + '! 🎉');
@@ -2926,7 +2926,7 @@ testDatabaseConnection();
             const isHomePage = pathname.endsWith('index.html') || pathname.endsWith('/home') || pathname.endsWith('/') || pathname === '';
 
             if (!isHomePage) {
-                window.location.href = '/home';
+                window.location.href = '/';
             } else {
                 closeAccountOverlay();
                 checkAndShowCongratsPopup();
