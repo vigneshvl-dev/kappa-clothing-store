@@ -1223,14 +1223,7 @@ testDatabaseConnection();
     window.getCartKey = getCartKey;  // Expose so product.html can use the same user-aware key
 
     function renderCart() {
-        // Sync: if in-memory cart is empty but localStorage has data, reload it (prevents accidental wipe)
         const _ck = getCartKey();
-        if (cart.length === 0) {
-            const _stored = JSON.parse(localStorage.getItem(_ck) || '[]');
-            if (_stored.length > 0) {
-                cart = _stored;
-            }
-        }
         localStorage.setItem(_ck, JSON.stringify(cart));
         const wrap = document.getElementById("cartItems");
         const cartTotal = cart.reduce((a, c) => a + c.qty, 0);
