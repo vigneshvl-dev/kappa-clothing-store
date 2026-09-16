@@ -158,7 +158,7 @@ testDatabaseConnection();
                     const sortedImgs = [...imgs].sort((a, b) => (a.position || 0) - (b.position || 0));
                     const defaultImg = sortedImgs.find(i => (i.position === 0) && !i.url.includes('#'))
                         || sortedImgs.find(i => !i.url.includes('#'));
-                    const coverImg = defaultImg ? defaultImg.url : (imgs[0] ? imgs[0].url : 'assets/sleeping sis.png');
+                    const coverImg = defaultImg ? defaultImg.url : (imgs[0] ? imgs[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image');
 
                     // Resolve hover image: prefer the default hover (position -1, #default#back), then first color variant's #back
                     const defaultHoverEntry = imgs.find(i => i.url && i.url.includes('#default#back'));
@@ -1049,7 +1049,7 @@ testDatabaseConnection();
                     size: c.size,
                     color: c.color || 'N/A', // ADD THIS LINE RIGHT HERE
                     qty: c.qty,
-                    img: c.customImg || (p ? p.img : 'assets/sleeping sis.png')
+                    img: c.customImg || (p ? p.img : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image')
                 };
             });
             const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
@@ -1185,7 +1185,7 @@ testDatabaseConnection();
                 id: id,
                 name: actualName || 'Product',
                 price: actualPrice || 0,
-                img: actualImg || 'assets/sleeping sis.png',
+                img: actualImg || 'https://placehold.co/400x500/eaeaea/000000?text=No+Image',
                 sizes: ['Default'],
                 colors: ['N/A']
             };
@@ -1254,7 +1254,7 @@ testDatabaseConnection();
             wrap.innerHTML = cart.map((c, idx) => {
                 const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
                 const name = (p ? p.name : null) || c.name || 'Product';
-                const img = c.customImg || (p ? p.img : null) || 'assets/sleeping sis.png';
+                const img = c.customImg || (p ? p.img : null) || 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
                 const price = (p ? p.price : null) ?? c.price ?? 0;
                 return `
       <div class="cart-item">
@@ -3060,7 +3060,7 @@ async function initStorefront() {
             });
 
             // Handle cover image safely — use position-0 image as the main card image
-            let imageUrl = 'assets/sleeping sis.png';
+            let imageUrl = 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
             if (thumbImages.length > 0) {
                 imageUrl = thumbImages[0].url;
             }

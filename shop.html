@@ -1819,7 +1819,7 @@
                     }));
 
                 // Cover image = first image
-                let imageUrl = 'assets/sleeping sis.png';
+                let imageUrl = 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
                 if (allImages.length > 0) imageUrl = allImages[0].url;
 
                 // Exclude Main Product Cover Image (position 0) from the thumbnail strip
@@ -1949,7 +1949,7 @@
                     .sort((a, b) => (a.position || 0) - (b.position || 0))
                     .map(img => ({ url: img.url.split('#')[0], label: img.url.split('#')[1] || '' }));
                 const badgeText = resolveProductBadge(product);
-                const imageUrl = allImages.length > 0 ? allImages[0].url : 'assets/sleeping sis.png';
+                const imageUrl = allImages.length > 0 ? allImages[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
                 const comparePriceHTML = (product.compare_at_price && Number(product.compare_at_price) > Number(product.price))
                     ? `<span style="text-decoration:line-through; font-size:12px; color:#888; margin-left:8px;">₹${product.compare_at_price}</span>`
                     : '';

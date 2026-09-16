@@ -2147,7 +2147,7 @@
                 if (summary) summary.style.display = '';
                 wrap.innerHTML = cart.map((c, idx) => {
                     const name = c.name || 'Product';
-                    const img = c.customImg || c.img || 'assets/sleeping sis.png';
+                    const img = c.customImg || c.img || 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
                     const price = c.price || 0;
                     return `
                         <div class="cart-item">
@@ -2219,7 +2219,7 @@
                     size: c.size || 'Default',
                     color: c.color || 'N/A',
                     qty: c.qty || 1,
-                    img: c.customImg || c.img || 'assets/sleeping sis.png'
+                    img: c.customImg || c.img || 'https://placehold.co/400x500/eaeaea/000000?text=No+Image'
                 }));
                 const shipCost = Number(document.getElementById('shipSelect')?.value || 0);
                 const appliedPromo = discount > 0 ? (document.getElementById("promoInput")?.value || "") : "";
