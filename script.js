@@ -49,6 +49,19 @@ testDatabaseConnection();
 (() => {
     "use strict";
 
+    // Clean URL Rewrite: Changes index.html#home, index.html, or / to /home in browser address bar
+    try {
+        const loc = window.location;
+        const path = loc.pathname;
+        const hash = loc.hash;
+        if (path.endsWith('index.html') || path === '/' || hash === '#home') {
+            let cleanUrl = '/home';
+            if (hash && hash !== '#home') cleanUrl += hash;
+            if (loc.search) cleanUrl += loc.search;
+            window.history.replaceState(null, '', cleanUrl);
+        }
+    } catch (e) {}
+
 
 
     const INSTA = [
@@ -509,7 +522,7 @@ testDatabaseConnection();
     const mobileMenu = document.getElementById("mobileMenu");
 
     const mobileMenuLinks = {
-        "Home": "index.html#home",
+        "Home": "home",
         "About": "about.html",
         "Contact": "contact.html",
         "Shop": "shop.html",
@@ -704,7 +717,7 @@ testDatabaseConnection();
                 if (arrivals) {
                     arrivals.scrollIntoView({ behavior: "smooth" });
                 } else {
-                    window.location.href = "index.html#arrivals";
+                    window.location.href = "home#arrivals";
                 }
             });
         });
@@ -2248,7 +2261,7 @@ testDatabaseConnection();
                 const { error } = await supabaseClient.auth.signOut();
                 if (error) showToast('Logout failed: ' + error.message);
                 else showToast('Logged out successfully');
-                window.location.href = 'index.html';
+                window.location.href = 'home';
             });
         }
 
@@ -2755,13 +2768,13 @@ testDatabaseConnection();
 
             // Handle Navigation after Login
             const pathname = window.location.pathname;
-            const isHomePage = pathname.endsWith('index.html') || pathname.endsWith('/') || pathname === '';
+            const isHomePage = pathname.endsWith('index.html') || pathname.endsWith('/home') || pathname.endsWith('/') || pathname === '';
             const isPendingCheckout = localStorage.getItem('kappa_pending_checkout') === '1';
 
             if (isPendingCheckout) {
                 window.location.href = 'checkout.html';
             } else if (!isHomePage) {
-                window.location.href = 'index.html';
+                window.location.href = 'home';
             } else {
                 closeAccountOverlay();
                 showToast('Welcome back, ' + displayName + '! 🎉');
@@ -2899,10 +2912,10 @@ testDatabaseConnection();
 
             // DIRECTLY NAVIGATE TO HOME PAGE & POPUP CONGRATULATIONS
             const pathname = window.location.pathname;
-            const isHomePage = pathname.endsWith('index.html') || pathname.endsWith('/') || pathname === '';
+            const isHomePage = pathname.endsWith('index.html') || pathname.endsWith('/home') || pathname.endsWith('/') || pathname === '';
 
             if (!isHomePage) {
-                window.location.href = 'index.html';
+                window.location.href = 'home';
             } else {
                 closeAccountOverlay();
                 checkAndShowCongratsPopup();
