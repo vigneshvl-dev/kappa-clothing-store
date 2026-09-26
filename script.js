@@ -1036,35 +1036,46 @@ testDatabaseConnection();
         if (e.key === "Escape") [cartOverlay, wishOverlay, searchOverlay, qvOverlay, accountOverlay].forEach(o => { if (o) closeOverlay(o); });
     });
 
-    const checkoutBtn = cartOverlay ? cartOverlay.querySelector(".btn.btn-primary.full.magnetic") : null;
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener("click", () => {
+    // Global delegated click listener for the cart checkout button
+    document.addEventListener("click", e => {
+        const checkoutBtn = e.target.closest(".btn.btn-primary.full.magnetic");
+        // Verify this button is actually inside the cart overlay
+        if (checkoutBtn && cartOverlay && cartOverlay.contains(checkoutBtn)) {
             if (cart.length === 0) {
                 showToast("Your cart is empty!");
                 return;
             }
-            const cartDetails = cart.map(c => {
-                const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
-                return {
-                    id: c.id,
-                    name: p ? p.name : (c.name || 'Product'),
-                    price: p ? p.price : (c.price || 0),
-                    size: c.size,
-                    color: c.color || 'N/A', // ADD THIS LINE RIGHT HERE
-                    qty: c.qty,
-                    img: c.customImg || (p ? p.img : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image')
-                };
-            });
-            const shipCost = Number(document.getElementById("shipSelect")?.value || 0);
-            const discPercent = discount || 0;
-            const appliedPromo = discount > 0 ? (document.getElementById("promoInput")?.value || "") : "";
-            localStorage.setItem("kappa_checkout_cart", JSON.stringify(cartDetails));
-            localStorage.setItem("kappa_checkout_shipping", shipCost);
-            localStorage.setItem("kappa_checkout_discount", discPercent);
-            localStorage.setItem("kappa_checkout_promo_code", appliedPromo.trim().toUpperCase());
-            window.location.href = "checkout.html";
-        });
-    }
+            try {
+                const cartDetails = cart.map(c => {
+                    const p = PRODUCTS.find(x => x.id === c.id || String(x.id) === String(c.id));
+                    return {
+                        id: c.id,
+                        name: p ? p.name : (c.name || 'Product'),
+                        price: p ? p.price : (c.price || 0),
+                        size: c.size,
+                        color: c.color || 'N/A',
+                        qty: c.qty,
+                        img: c.customImg || (p ? p.img : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image')
+                    };
+                });
+                const shipSelect = document.getElementById("shipSelect");
+                const shipCost = Number(shipSelect ? shipSelect.value : 0);
+                const discPercent = discount || 0;
+                const promoInput = document.getElementById("promoInput");
+                const appliedPromo = discount > 0 ? (promoInput ? promoInput.value : "") : "";
+                
+                localStorage.setItem("kappa_checkout_cart", JSON.stringify(cartDetails));
+                localStorage.setItem("kappa_checkout_shipping", shipCost.toString());
+                localStorage.setItem("kappa_checkout_discount", discPercent.toString());
+                localStorage.setItem("kappa_checkout_promo_code", appliedPromo.trim().toUpperCase());
+                
+                window.location.href = "checkout.html";
+            } catch (err) {
+                console.error("Checkout navigation error:", err);
+                window.location.href = "checkout.html";
+            }
+        }
+    });
 
     /* ---------- ACCOUNT FORM PANELS & INTERACTIVITY ---------- */
     if (accountOverlay) {

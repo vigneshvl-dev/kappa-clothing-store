@@ -2370,76 +2370,77 @@
         }
 
         function handleBuyNow() {
-            const pd = window.currentProductData;
-            if (!pd) {
-                console.warn('handleBuyNow: no product data loaded');
-                if (typeof showProductToast === 'function') showProductToast('Product data is still loading. Please try again.');
-                return;
+            try {
+                const pd = window.currentProductData;
+                if (!pd) {
+                    console.warn('handleBuyNow: no product data loaded');
+                    if (typeof showProductToast === 'function') showProductToast('Product data is still loading. Please try again.');
+                    return;
+                }
+
+                let hasSizes = false, hasColors = false;
+                if (pd.product_variants && pd.product_variants.length > 0) {
+                    pd.product_variants.forEach(v => {
+                        if (v.size) hasSizes = true;
+                        if (v.color) hasColors = true;
+                    });
+                }
+
+                if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
+
+                const sSize = window.selectedSize || 'Default';
+                const qty = window.currentQty || 1;
+
+                const currentStock = (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
+                    ? window.sizeStockMap[sSize]
+                    : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999);
+
+                if (currentStock <= 0 || qty > currentStock) {
+                    if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} does not have enough stock.`);
+                    return;
+                }
+
+                const sColor = window.selectedColor || 'N/A';
+
+                let img = '';
+                if (window.currentMainImageUrl) {
+                    img = window.currentMainImageUrl;
+                } else if (pd.product_images && pd.product_images.length > 0) {
+                    img = pd.product_images[0].url;
+                }
+
+                const newStock = Math.max(0, currentStock - qty);
+                if (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) {
+                    window.sizeStockMap[sSize] = newStock;
+                }
+                window.currentAvailableStock = newStock;
+
+                if (typeof window.modifyStockOnCartAction === 'function') {
+                    window.modifyStockOnCartAction(pd.id, sSize, sColor, qty);
+                }
+                if (typeof refreshProductSizeStockUI === 'function') {
+                    refreshProductSizeStockUI(sSize, newStock);
+                }
+
+                const newItem = {
+                    id: pd.id,
+                    name: pd.name,
+                    price: pd.price,
+                    size: sSize,
+                    color: sColor,
+                    qty: qty,
+                    img: img,
+                    customImg: img,
+                    stockDeducted: true
+                };
+
+                localStorage.setItem('kappa_buy_now_item', JSON.stringify(newItem));
+                console.log('✅ Buy Now: saved to kappa_buy_now_item', newItem);
+                window.location.href = 'checkout.html';
+            } catch (err) {
+                console.error("Buy Now error:", err);
+                window.location.href = 'checkout.html';
             }
-
-            let hasSizes = false, hasColors = false;
-            if (pd.product_variants && pd.product_variants.length > 0) {
-                pd.product_variants.forEach(v => {
-                    if (v.size) hasSizes = true;
-                    if (v.color) hasColors = true;
-                });
-            }
-
-            if (showSelectionError(hasSizes, hasColors)) return;
-
-            const sSize = window.selectedSize || 'Default';
-            const qty = window.currentQty || 1;
-
-            // Out of stock guard check
-            const currentStock = (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
-                ? window.sizeStockMap[sSize]
-                : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999);
-
-            if (currentStock <= 0 || qty > currentStock) {
-                if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} does not have enough stock.`);
-                return;
-            }
-
-            const sColor = window.selectedColor || 'N/A';
-
-            let img = '';
-            if (window.currentMainImageUrl) {
-                img = window.currentMainImageUrl;
-            } else if (pd.product_images && pd.product_images.length > 0) {
-                img = pd.product_images[0].url;
-            }
-
-            // Immediately reduce stock on Buy Now
-            const newStock = Math.max(0, currentStock - qty);
-            if (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) {
-                window.sizeStockMap[sSize] = newStock;
-            }
-            window.currentAvailableStock = newStock;
-
-            if (typeof window.modifyStockOnCartAction === 'function') {
-                window.modifyStockOnCartAction(pd.id, sSize, sColor, qty);
-            }
-            refreshProductSizeStockUI(sSize, newStock);
-
-            // Build the new cart item
-            const newItem = {
-                id: pd.id,
-                name: pd.name,
-                price: pd.price,
-                size: sSize,
-                color: sColor,
-                qty: qty,
-                img: img,
-                customImg: img,
-                stockDeducted: true
-            };
-
-            // Save to the temporary Buy Now storage key
-            localStorage.setItem('kappa_buy_now_item', JSON.stringify(newItem));
-            console.log('✅ Buy Now: saved to kappa_buy_now_item', newItem);
-
-            // Navigate to checkout directly
-            window.location.href = 'checkout.html';
         }
 
         window.handleBuyNow = window.handleBuyNow || handleBuyNow;
