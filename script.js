@@ -1256,16 +1256,23 @@ testDatabaseConnection();
       <div class="cart-item">
         <img src="${img}" alt="${name}">
         <div class="ci-info">
-          <div class="ci-name">${name}</div>
-          <div class="ci-meta">Size: ${c.size || 'Default'} | Color: ${c.color || 'N/A'}</div>
-          <div class="ci-qty">
-            <button data-dec="${idx}">−</button>
-            <span>${c.qty}</span>
-            <button data-inc="${idx}">+</button>
+          <div class="ci-head">
+            <div class="ci-name">${name}</div>
+            <div class="ci-price">${fmt(price * c.qty)}</div>
           </div>
-          <span class="ci-remove" data-remove="${idx}">Remove</span>
+          <div class="ci-meta">Size: ${c.size || 'Default'} | Color: ${c.color || 'N/A'}</div>
+          <div class="ci-actions">
+            <div class="ci-qty">
+              <button type="button" data-dec="${idx}" aria-label="Decrease quantity">−</button>
+              <span>${c.qty}</span>
+              <button type="button" data-inc="${idx}" aria-label="Increase quantity">+</button>
+            </div>
+            <button type="button" class="ci-remove" data-remove="${idx}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span>Remove</span>
+            </button>
+          </div>
         </div>
-        <div class="ci-price">${fmt(price * c.qty)}</div>
       </div>`;
             }).join('');
         }
@@ -1273,7 +1280,9 @@ testDatabaseConnection();
     }
 
     document.getElementById("cartItems").addEventListener("click", e => {
-        const inc = e.target.dataset.inc, dec = e.target.dataset.dec, rem = e.target.dataset.remove;
+        const targetBtn = e.target.closest('[data-inc], [data-dec], [data-remove]');
+        if (!targetBtn) return;
+        const inc = targetBtn.dataset.inc, dec = targetBtn.dataset.dec, rem = targetBtn.dataset.remove;
         if (inc !== undefined && cart[inc]) {
             const item = cart[inc];
             item.qty++;

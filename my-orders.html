@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <!-- Lenis Smooth Scroll CSS -->
     <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.18/dist/lenis.css">
     <style>
@@ -2153,16 +2153,23 @@
                         <div class="cart-item">
                             <img src="${img}" alt="${name}">
                             <div class="ci-info">
-                                <div class="ci-name">${name}</div>
-                                <div class="ci-meta">Size: ${c.size || 'Default'} | Color: ${c.color || 'N/A'}</div>
-                                <div class="ci-qty">
-                                    <button data-dec="${idx}">−</button>
-                                    <span>${c.qty || 1}</span>
-                                    <button data-inc="${idx}">+</button>
+                                <div class="ci-head">
+                                    <div class="ci-name">${name}</div>
+                                    <div class="ci-price">${fmt(price * (c.qty || 1))}</div>
                                 </div>
-                                <span class="ci-remove" data-remove="${idx}">Remove</span>
+                                <div class="ci-meta">Size: ${c.size || 'Default'} | Color: ${c.color || 'N/A'}</div>
+                                <div class="ci-actions">
+                                    <div class="ci-qty">
+                                        <button type="button" data-dec="${idx}" aria-label="Decrease quantity">−</button>
+                                        <span>${c.qty || 1}</span>
+                                        <button type="button" data-inc="${idx}" aria-label="Increase quantity">+</button>
+                                    </div>
+                                    <button type="button" class="ci-remove" data-remove="${idx}">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        <span>Remove</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="ci-price">${fmt(price * (c.qty || 1))}</div>
                         </div>`;
                 }).join('');
             }
@@ -2171,12 +2178,14 @@
 
         // Cart item interactions
         document.addEventListener('click', function(e) {
-            const inc = e.target.dataset.inc;
-            const dec = e.target.dataset.dec;
-            const rem = e.target.dataset.remove;
-            if (inc !== undefined) { cart[inc].qty = (cart[inc].qty || 1) + 1; localStorage.setItem(getLocalCartKey(), JSON.stringify(cart)); renderCart(); }
-            if (dec !== undefined) { cart[dec].qty = (cart[dec].qty || 1) - 1; if (cart[dec].qty <= 0) cart.splice(dec, 1); localStorage.setItem(getLocalCartKey(), JSON.stringify(cart)); renderCart(); }
-            if (rem !== undefined) { cart.splice(rem, 1); localStorage.setItem(getLocalCartKey(), JSON.stringify(cart)); renderCart(); }
+            const targetBtn = e.target.closest('[data-inc], [data-dec], [data-remove]');
+            if (!targetBtn) return;
+            const inc = targetBtn.dataset.inc;
+            const dec = targetBtn.dataset.dec;
+            const rem = targetBtn.dataset.remove;
+            if (inc !== undefined && cart[inc]) { cart[inc].qty = (cart[inc].qty || 1) + 1; localStorage.setItem(getLocalCartKey(), JSON.stringify(cart)); renderCart(); }
+            if (dec !== undefined && cart[dec]) { cart[dec].qty = (cart[dec].qty || 1) - 1; if (cart[dec].qty <= 0) cart.splice(dec, 1); localStorage.setItem(getLocalCartKey(), JSON.stringify(cart)); renderCart(); }
+            if (rem !== undefined && cart[rem]) { cart.splice(rem, 1); localStorage.setItem(getLocalCartKey(), JSON.stringify(cart)); renderCart(); }
         });
 
         // Promo code
