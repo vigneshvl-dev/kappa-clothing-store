@@ -2,9 +2,12 @@
   "cleanUrls": true,
   "redirects": [
     { "source": "/home", "destination": "/", "permanent": true },
-    { "source": "/home/:path*", "destination": "/:path*", "permanent": true }
+    { "source": "/home/", "destination": "/", "permanent": true },
+    { "source": "/home/(.*)", "destination": "/", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/home", "destination": "/" }
+    { "source": "/home", "destination": "/" },
+    { "source": "/home/", "destination": "/" },
+    { "source": "/home/(.*)", "destination": "/" }
   ]
 }
