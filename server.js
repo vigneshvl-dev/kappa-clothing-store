@@ -16,7 +16,7 @@ app.use((req, res, next) => {
 });
 
 app.get(["/home", "/home/"], (req, res) => {
-    res.sendFile(require("path").join(__dirname, "index.html"));
+    res.redirect(301, "/");
 });
 
 app.use(express.static(__dirname)); // serves checkout.html, index.html, etc.

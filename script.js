@@ -49,15 +49,18 @@ testDatabaseConnection();
 (() => {
     "use strict";
 
-    // Clean URL Rewrite: Changes index.html#home, index.html, or / to /home in browser address bar
+    // Clean URL Rewrite: Normalizes index.html, /home, or #home to clean root '/'
     try {
         const loc = window.location;
         const path = loc.pathname;
         const hash = loc.hash;
-        if (path.endsWith('index.html') || path === '/' || hash === '#home') {
-            let cleanUrl = '/home';
-            if (hash && hash !== '#home') cleanUrl += hash;
+        if (path.endsWith('index.html') || path === '/home' || path === '/home/') {
+            let cleanUrl = '/';
+            if (hash && hash !== '#home' && hash !== '#') cleanUrl += hash;
             if (loc.search) cleanUrl += loc.search;
+            window.history.replaceState(null, '', cleanUrl);
+        } else if (hash === '#home' || hash === '#') {
+            const cleanUrl = (path === '/' ? '/' : path) + (loc.search || '');
             window.history.replaceState(null, '', cleanUrl);
         }
     } catch (e) {}
@@ -525,7 +528,7 @@ testDatabaseConnection();
     const mobileMenu = document.getElementById("mobileMenu");
 
     const mobileMenuLinks = {
-        "Home": "home",
+        "Home": "/",
         "About": "about.html",
         "Contact": "contact.html",
         "Shop": "shop.html",
@@ -720,7 +723,7 @@ testDatabaseConnection();
                 if (arrivals) {
                     arrivals.scrollIntoView({ behavior: "smooth" });
                 } else {
-                    window.location.href = "home#arrivals";
+                    window.location.href = "/#arrivals";
                 }
             });
         });

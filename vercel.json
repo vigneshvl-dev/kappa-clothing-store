@@ -1,6 +1,10 @@
 {
-  "rewrites": [
-    { "source": "/home", "destination": "/index.html" }
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/home", "destination": "/", "permanent": true },
+    { "source": "/home/:path*", "destination": "/:path*", "permanent": true }
   ],
-  "cleanUrls": true
+  "rewrites": [
+    { "source": "/home", "destination": "/" }
+  ]
 }
