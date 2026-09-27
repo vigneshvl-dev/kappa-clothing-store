@@ -2654,38 +2654,11 @@
             let availableSizes = new Set();
             let availableColors = new Set();
 
-            // Check for real-time local stock overrides from purchases
-            let overrides = {};
-            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { overrides = {}; }
-            const prodOverride = overrides[String(product.id)] || null;
-
-            let totalProductStock = (product.stock_quantity !== undefined && product.stock_quantity !== null) ? Number(product.stock_quantity) : null;
-            if (prodOverride && prodOverride.totalDeducted && totalProductStock !== null) {
-                totalProductStock = Math.max(0, totalProductStock - prodOverride.totalDeducted);
-            }
-
             if (product.product_variants && product.product_variants.length > 0) {
-                let variantStockSum = 0;
-                let hasVariantStockData = false;
                 product.product_variants.forEach(variant => {
-                    if (variant.size) {
-                        const sz = variant.size.trim();
-                        availableSizes.add(sz);
-                        let sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
-                        if (sq !== null) {
-                            if (prodOverride && prodOverride.variants && prodOverride.variants[sz]) {
-                                sq = Math.max(0, sq - prodOverride.variants[sz]);
-                            }
-                            window.sizeStockMap[sz] = (window.sizeStockMap[sz] !== undefined ? window.sizeStockMap[sz] : 0) + sq;
-                            variantStockSum += sq;
-                            hasVariantStockData = true;
-                        }
-                    }
+                    if (variant.size) availableSizes.add(variant.size.trim());
                     if (variant.color) availableColors.add(variant.color.trim());
                 });
-                if (hasVariantStockData) {
-                    totalProductStock = variantStockSum;
-                }
             }
 
             // Extract additional color tags from product images
@@ -2702,46 +2675,171 @@
                 });
             }
 
-            if (totalProductStock !== null) {
-                updateStockAlert(totalProductStock);
-            }
+            window.productAllSizes = Array.from(availableSizes);
+            window.productAllColors = Array.from(availableColors);
 
-            const sizes = Array.from(availableSizes);
-            const colors = Array.from(availableColors);
+            // Robust stock lookup for any (size, color) variant combination
+            window.getProductVariantStock = function(size, color) {
+                const pd = window.currentProductData;
+                if (!pd) return 0;
+                const pid = String(pd.id || pd.slug || '');
 
-            const sizeSec = document.getElementById('size-section');
-            if (sizes.length > 0) {
-                const pdpSizes = document.getElementById('pdp-sizes');
-                if (pdpSizes) {
-                    pdpSizes.innerHTML = sizes.map(size => {
-                        const st = window.sizeStockMap ? window.sizeStockMap[size] : null;
-                        let stockBadge = '';
-                        let outClass = '';
-                        if (st !== null && st !== undefined) {
-                            if (st === 0) {
-                                stockBadge = `<span class="size-stock-tag out">Out</span>`;
-                                outClass = ' out-of-stock-box';
-                            } else if (st <= 3) {
-                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
-                            } else if (st <= 10) {
-                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
-                            } else {
-                                stockBadge = `<span class="size-stock-tag plenty">In Stock</span>`;
+                let overrides = {};
+                try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { overrides = {}; }
+                const prodOverride = overrides[pid] || overrides[String(pd.id)] || null;
+
+                const normSize = (size && size !== 'Default' && size !== 'N/A') ? String(size).trim().toUpperCase() : null;
+                const normColor = (color && color !== 'Default' && color !== 'N/A') ? String(color).trim().toLowerCase() : null;
+
+                if (pd.product_variants && pd.product_variants.length > 0) {
+                    // 1. Both color and size specified: exact variant match
+                    if (normColor && normSize) {
+                        const variant = pd.product_variants.find(v => 
+                            String(v.size || '').trim().toUpperCase() === normSize &&
+                            String(v.color || '').trim().toLowerCase() === normColor
+                        );
+                        if (variant && variant.stock_quantity !== undefined && variant.stock_quantity !== null) {
+                            let sq = Number(variant.stock_quantity);
+                            const comboKey = `${normColor}:::${normSize}`;
+                            if (prodOverride && prodOverride.variantCombos && prodOverride.variantCombos[comboKey] !== undefined) {
+                                sq = Math.max(0, sq - prodOverride.variantCombos[comboKey]);
                             }
+                            return Math.max(0, sq);
                         }
-                        return `<div class="size-box${outClass}" onclick="selectSize(this, '${size}')" data-size="${size}" data-stock="${st !== null && st !== undefined ? st : ''}">
-                            <span>${size}</span>
-                            ${stockBadge}
-                        </div>`;
-                    }).join('');
-                }
-                if (sizeSec) sizeSec.style.display = 'block';
-            } else {
-                if (sizeSec) sizeSec.style.display = 'none';
-            }
+                    }
 
+                    // 2. Only size specified: sum across all colors
+                    if (normSize && !normColor) {
+                        let sum = 0;
+                        let foundAny = false;
+                        pd.product_variants.forEach(v => {
+                            if (String(v.size || '').trim().toUpperCase() === normSize) {
+                                let sq = Number(v.stock_quantity || 0);
+                                const vColor = String(v.color || '').trim().toLowerCase();
+                                const comboKey = `${vColor}:::${normSize}`;
+                                if (prodOverride && prodOverride.variantCombos && prodOverride.variantCombos[comboKey] !== undefined) {
+                                    sq = Math.max(0, sq - prodOverride.variantCombos[comboKey]);
+                                }
+                                sum += sq;
+                                foundAny = true;
+                            }
+                        });
+                        if (foundAny) return Math.max(0, sum);
+                    }
+
+                    // 3. Only color specified: sum across all sizes for this color
+                    if (normColor && !normSize) {
+                        let sum = 0;
+                        let foundAny = false;
+                        pd.product_variants.forEach(v => {
+                            if (String(v.color || '').trim().toLowerCase() === normColor) {
+                                let sq = Number(v.stock_quantity || 0);
+                                const vSize = String(v.size || '').trim().toUpperCase();
+                                const comboKey = `${normColor}:::${vSize}`;
+                                if (prodOverride && prodOverride.variantCombos && prodOverride.variantCombos[comboKey] !== undefined) {
+                                    sq = Math.max(0, sq - prodOverride.variantCombos[comboKey]);
+                                }
+                                sum += sq;
+                                foundAny = true;
+                            }
+                        });
+                        if (foundAny) return Math.max(0, sum);
+                    }
+                }
+
+                // Fallback to total product stock
+                let totalStock = (pd.stock_quantity !== undefined && pd.stock_quantity !== null) ? Number(pd.stock_quantity) : 999;
+                if (prodOverride && prodOverride.totalDeducted) {
+                    totalStock = Math.max(0, totalStock - prodOverride.totalDeducted);
+                }
+                return Math.max(0, totalStock);
+            };
+
+            // Dynamically render size options based on the currently chosen color
+            window.renderSizeOptionsForColor = function(color) {
+                const pd = window.currentProductData;
+                if (!pd) return;
+
+                const pdpSizes = document.getElementById('pdp-sizes');
+                const sizeSec = document.getElementById('size-section');
+                if (!pdpSizes || !sizeSec) return;
+
+                const allSizes = window.productAllSizes || [];
+                if (allSizes.length === 0) {
+                    sizeSec.style.display = 'none';
+                    return;
+                }
+                sizeSec.style.display = 'block';
+
+                window.sizeStockMap = {};
+                pdpSizes.innerHTML = allSizes.map(size => {
+                    const st = window.getProductVariantStock(size, color);
+                    window.sizeStockMap[size] = st;
+
+                    let stockBadge = '';
+                    let outClass = '';
+                    if (st === 0) {
+                        stockBadge = `<span class="size-stock-tag out">Out</span>`;
+                        outClass = ' out-of-stock-box';
+                    } else if (st <= 3) {
+                        stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                    } else if (st <= 10) {
+                        stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                    } else {
+                        stockBadge = `<span class="size-stock-tag plenty">In Stock</span>`;
+                    }
+
+                    const isSelected = window.selectedSize === size;
+                    const selectedClass = isSelected ? ' selected' : '';
+
+                    return `<div class="size-box${outClass}${selectedClass}" onclick="selectSize(this, '${size}')" data-size="${size}" data-stock="${st}">
+                        <span>${size}</span>
+                        ${stockBadge}
+                    </div>`;
+                }).join('');
+
+                if (window.selectedSize) {
+                    const currentStock = (window.sizeStockMap[window.selectedSize] !== undefined)
+                        ? window.sizeStockMap[window.selectedSize]
+                        : window.getProductVariantStock(window.selectedSize, color);
+                    window.currentAvailableStock = currentStock;
+
+                    if (currentStock <= 0) {
+                        window.currentQty = 0;
+                    } else if (window.currentQty > currentStock) {
+                        window.currentQty = currentStock;
+                    } else if (window.currentQty < 1) {
+                        window.currentQty = 1;
+                    }
+                    const qtyEl = document.getElementById('pdp-qty');
+                    if (qtyEl) qtyEl.textContent = window.currentQty;
+
+                    const infoBar = document.getElementById('size-stock-info');
+                    if (infoBar) {
+                        infoBar.style.display = 'block';
+                        const colorSuffix = color && color !== 'Default' && color !== 'N/A' ? ` (${color})` : '';
+                        if (currentStock === 0) {
+                            infoBar.className = 'info-out-stock';
+                            infoBar.textContent = `Size ${window.selectedSize}${colorSuffix}: Out of Stock`;
+                        } else if (currentStock <= 5) {
+                            infoBar.className = 'info-low-stock';
+                            infoBar.textContent = `⚡ Hurry! Only ${currentStock} left in size ${window.selectedSize}${colorSuffix}`;
+                        } else {
+                            infoBar.className = 'info-in-stock';
+                            infoBar.textContent = `✓ ${currentStock} available in size ${window.selectedSize}${colorSuffix}`;
+                        }
+                    }
+                    updateStockAlert(currentStock, window.selectedSize);
+                } else {
+                    const colorStock = window.getProductVariantStock(null, color);
+                    window.currentAvailableStock = colorStock;
+                    updateStockAlert(colorStock);
+                }
+            };
+
+            // 1. Build Color Swatches first to determine default active color
             const colorSec = document.getElementById('color-section');
-            if (colors.length > 0) {
+            if (window.productAllColors.length > 0) {
                 const colorImageMap = {};
                 const sortedImages = images.slice();
                 sortedImages.forEach(img => {
@@ -2755,12 +2853,15 @@
 
                 const pdpColors = document.getElementById('pdp-colors');
                 if (pdpColors) {
-                    buildColorSwatches(pdpColors, colors, colorImageMap, sortedImages);
+                    buildColorSwatches(pdpColors, window.productAllColors, colorImageMap, sortedImages);
                 }
                 if (colorSec) colorSec.style.display = 'block';
             } else {
                 if (colorSec) colorSec.style.display = 'none';
             }
+
+            // 2. Render size options specifically for the active color
+            window.renderSizeOptionsForColor(window.selectedColor || null);
         }
 
         async function loadSingleProduct() {
