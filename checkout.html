@@ -1086,23 +1086,27 @@
 
         async function loadCheckoutDetails() {
             try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const isBuyNowMode = urlParams.get('mode') === 'buynow';
                 const buyNowItemStr = localStorage.getItem("kappa_buy_now_item");
-                if (buyNowItemStr) {
+                if (isBuyNowMode && buyNowItemStr) {
                     const buyNowItem = JSON.parse(buyNowItemStr);
                     cartItems = [{ ...buyNowItem, qty: buyNowItem.qty || 1 }];
                 } else {
+                    // Clear stale buy now item if in standard cart checkout mode
+                    localStorage.removeItem("kappa_buy_now_item");
                     // Always read from the user's personal cart — single source of truth
                     const cartKey = await getCartKey();
                     cartItems = JSON.parse(localStorage.getItem(cartKey) || "[]");
-                    // Merge qty: kappa_cart stores each entry as qty:1, group by id+size+color
+                    // Merge qty: group by id+size+color
                     const merged = [];
                     cartItems.forEach(item => {
-                        const key = `${item.id}|${item.size}|${item.color}`;
-                        const existing = merged.find(m => `${m.id}|${m.size}|${m.color}` === key);
+                        const key = `${String(item.id)}|${String(item.size || 'Default').trim()}|${String(item.color || 'N/A').trim()}`;
+                        const existing = merged.find(m => `${String(m.id)}|${String(m.size || 'Default').trim()}|${String(m.color || 'N/A').trim()}` === key);
                         if (existing) {
-                            existing.qty = (existing.qty || 1) + (item.qty || 1);
+                            existing.qty = (Number(existing.qty) || 1) + (Number(item.qty) || 1);
                         } else {
-                            merged.push({ ...item, qty: item.qty || 1 });
+                            merged.push({ ...item, qty: Number(item.qty) || 1 });
                         }
                     });
                     cartItems = merged;

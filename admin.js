@@ -2319,18 +2319,21 @@ function renderAllColorVariants() {
 
     let html = '';
     colorVariantsData.forEach((variant, vIdx) => {
-        let sizeCheckboxesHtml = availableSizes.map(sz => {
+        const variantSizes = Object.keys(variant.sizes || {});
+        const allSizesForVariant = Array.from(new Set([...availableSizes, ...variantSizes]));
+
+        let sizeCheckboxesHtml = allSizesForVariant.map(sz => {
             const isChecked = variant.sizes && variant.sizes[sz] !== undefined && variant.sizes[sz] !== null;
             return `
-                <label class="size-checkbox-pill ${isChecked ? 'checked' : ''}" id="pill-variant-${vIdx}-${sz}">
-                    <input type="checkbox" style="display:none;" ${isChecked ? 'checked' : ''} onchange="toggleVariantSize(${vIdx}, '${sz}', this.checked)">
+                <label class="size-checkbox-pill ${isChecked ? 'checked' : ''}" id="pill-variant-${vIdx}-${sz}" onclick="event.preventDefault(); toggleVariantSize(${vIdx}, '${sz}', ${!isChecked})">
+                    <input type="checkbox" style="display:none;" ${isChecked ? 'checked' : ''}>
                     <span>${sz}</span>
                 </label>
             `;
         }).join('');
 
         let stockInputsHtml = '';
-        availableSizes.forEach(sz => {
+        allSizesForVariant.forEach(sz => {
             const isChecked = variant.sizes && variant.sizes[sz] !== undefined && variant.sizes[sz] !== null;
             if (isChecked) {
                 const stockVal = variant.sizes[sz] !== undefined ? variant.sizes[sz] : 0;
@@ -2400,6 +2403,10 @@ function renderAllColorVariants() {
                     <div class="size-pill-group">
                         ${sizeCheckboxesHtml}
                     </div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+                        <input type="text" id="custom-size-input-${vIdx}" placeholder="Add custom size (e.g. 3XL, Free)" style="width:200px; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:12px; font-weight:600;" onkeydown="if(event.key==='Enter'){event.preventDefault(); addCustomSizeToVariant(${vIdx}, this.value);}">
+                        <button type="button" onclick="const inp = document.getElementById('custom-size-input-${vIdx}'); if(inp && inp.value){ addCustomSizeToVariant(${vIdx}, inp.value); }" style="background:#0f172a; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">+ Add Size</button>
+                    </div>
 
                     <div class="variant-stock-grid">
                         ${stockInputsHtml}
@@ -2450,6 +2457,18 @@ window.toggleVariantSize = function (vIdx, size, isChecked) {
         delete colorVariantsData[vIdx].sizes[size];
     }
 
+    renderAllColorVariants();
+    updateLiveProductSummary();
+};
+
+window.addCustomSizeToVariant = function(vIdx, customSize) {
+    if (!colorVariantsData[vIdx]) return;
+    const cleanSz = (customSize || '').trim().toUpperCase();
+    if (!cleanSz) return;
+    if (!colorVariantsData[vIdx].sizes) colorVariantsData[vIdx].sizes = {};
+    if (colorVariantsData[vIdx].sizes[cleanSz] === undefined) {
+        colorVariantsData[vIdx].sizes[cleanSz] = 5;
+    }
     renderAllColorVariants();
     updateLiveProductSummary();
 };

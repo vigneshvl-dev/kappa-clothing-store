@@ -2436,10 +2436,10 @@
 
                 localStorage.setItem('kappa_buy_now_item', JSON.stringify(newItem));
                 console.log('✅ Buy Now: saved to kappa_buy_now_item', newItem);
-                window.location.href = 'checkout.html';
+                window.location.href = 'checkout.html?mode=buynow';
             } catch (err) {
                 console.error("Buy Now error:", err);
-                window.location.href = 'checkout.html';
+                window.location.href = 'checkout.html?mode=buynow';
             }
         }
 
@@ -3094,30 +3094,42 @@ window.selectSize = function selectSize(element, size) {
     const sizeErr = document.getElementById('size-error-msg');
     if (sizeErr) sizeErr.style.display = 'none';
 
+    // Calculate stock specifically for this selected size
+    const sizeStock = (window.sizeStockMap && window.sizeStockMap[size] !== undefined)
+        ? window.sizeStockMap[size]
+        : ((window.currentProductData && window.currentProductData.stock_quantity !== undefined && window.currentProductData.stock_quantity !== null)
+            ? Number(window.currentProductData.stock_quantity)
+            : 999);
+
+    // Set available stock for this size and update quantity bounds
+    window.currentAvailableStock = sizeStock;
+    if (!window.currentQty || window.currentQty < 1) {
+        window.currentQty = (sizeStock > 0 ? 1 : 0);
+    } else if (sizeStock > 0 && window.currentQty > sizeStock) {
+        window.currentQty = sizeStock;
+    }
+    const qtyEl = document.getElementById('pdp-qty');
+    if (qtyEl) qtyEl.textContent = window.currentQty;
+
     // Show stock info bar for selected size
     const infoBar = document.getElementById('size-stock-info');
-    if (infoBar && window.sizeStockMap && window.sizeStockMap[size] !== undefined) {
-        const stock = window.sizeStockMap[size];
+    if (infoBar) {
         infoBar.style.display = 'block';
-        if (stock === 0) {
+        if (sizeStock === 0) {
             infoBar.className = 'info-out-stock';
             infoBar.textContent = `Size ${size}: Out of Stock`;
-        } else if (stock <= 5) {
+        } else if (sizeStock <= 5) {
             infoBar.className = 'info-low-stock';
-            infoBar.textContent = `⚡ Hurry! Only ${stock} left in size ${size}`;
+            infoBar.textContent = `⚡ Hurry! Only ${sizeStock} left in size ${size}`;
         } else {
             infoBar.className = 'info-in-stock';
-            infoBar.textContent = `✓ ${stock} available in size ${size}`;
+            infoBar.textContent = `✓ ${sizeStock} available in size ${size}`;
         }
-    } else if (infoBar) {
-        infoBar.style.display = 'none';
     }
 
-    // Update stock alert for selected size if stock mapping exists
-    if (window.sizeStockMap && window.sizeStockMap[size] !== undefined) {
-        updateStockAlert(window.sizeStockMap[size], size);
-    }
-}
+    // Always update buttons and stock alert state for the chosen size
+    updateStockAlert(sizeStock, size);
+};
 
 window.selectColor = function selectColor(element, color, imgUrl) {
     document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => { el.classList.remove('selected'); el.style.outline = ''; });
@@ -3145,7 +3157,7 @@ window.selectColor = function selectColor(element, color, imgUrl) {
             t.classList.toggle('active', cleanThumb === cleanTarget || t.src.includes(cleanTarget.split('/').pop()));
         });
     }
-}
+};
 
 window.handleAddToCart = function handleAddToCart() {
     const pd = window.currentProductData;
@@ -3163,9 +3175,9 @@ window.handleAddToCart = function handleAddToCart() {
     if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
     const sSize = window.selectedSize || 'Default';
-    const qty = window.currentQty || 1;
+    const qty = Math.max(1, window.currentQty || 1);
 
-    // Out of stock guard check
+    // Out of stock guard check specifically for this size
     const currentStock = (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
         ? window.sizeStockMap[sSize]
         : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999);
@@ -3183,7 +3195,7 @@ window.handleAddToCart = function handleAddToCart() {
         img = pd.product_images[0].url;
     }
 
-    // Immediately reduce stock on Add to Cart
+    // Immediately reduce stock on Add to Cart for this specific size
     const newStock = Math.max(0, currentStock - qty);
     if (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) {
         window.sizeStockMap[sSize] = newStock;
@@ -3209,16 +3221,18 @@ window.handleAddToCart = function handleAddToCart() {
         stockDeducted: true
     };
 
-    // Directly write to localStorage — reliable, no IIFE dependency
-    // Use the user-aware cart key so different accounts never share a cart.
+    // Directly write to localStorage using normalized type comparison
     try {
         const cartKey = (typeof window.getCartKey === 'function') ? window.getCartKey() : 'kappa_cart_guest';
         let existingCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+        if (!Array.isArray(existingCart)) existingCart = [];
         const found = existingCart.find(c =>
-            c.id == pd.id && c.size === sSize && c.color === sColor
+            String(c.id) === String(pd.id) &&
+            String(c.size).trim() === String(sSize).trim() &&
+            String(c.color).trim() === String(sColor).trim()
         );
         if (found) {
-            found.qty = (found.qty || 1) + qty;
+            found.qty = (Number(found.qty) || 1) + qty;
         } else {
             existingCart.push(newItem);
         }
@@ -3228,17 +3242,17 @@ window.handleAddToCart = function handleAddToCart() {
         console.error('Failed to save cart:', e);
     }
 
-    // Also call window.addToCart with skipStockDeduct=true to keep cart badge/overlay UI in sync without double deducting
-    if (typeof window.addToCart === 'function') {
-        for (let i = 0; i < qty; i++) {
-            window.addToCart(pd.id, sSize, sColor, pd.price, img, pd.name, true);
-        }
+    // Synchronize UI / drawer / badge using unified renderCart
+    if (typeof window.renderCart === 'function') {
+        window.renderCart();
+    } else if (typeof window.addToCart === 'function') {
+        window.addToCart(pd.id, sSize, sColor, pd.price, img, pd.name, true);
     }
 
     if (typeof showProductToast === 'function') {
-        showProductToast(`✅ Added ${qty} item(s) to cart! Remaining stock: ${newStock}`);
+        showProductToast(`✅ Added ${qty} item(s) to cart! (Size ${sSize})`);
     }
-}
+};
 
 /* ============ PDP REVIEWS SYSTEM ============ */
 window.currentProductReviews = [];

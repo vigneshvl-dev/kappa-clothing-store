@@ -868,8 +868,14 @@ testDatabaseConnection();
         if (el) el.addEventListener(event, callback);
     }
 
-    safeAddListener("cartBtn", "click", () => openOverlay(cartOverlay));
-    safeAddListener("bnavCart", "click", () => openOverlay(cartOverlay));
+    safeAddListener("cartBtn", "click", () => {
+        if (typeof renderCart === 'function') renderCart();
+        openOverlay(cartOverlay);
+    });
+    safeAddListener("bnavCart", "click", () => {
+        if (typeof renderCart === 'function') renderCart();
+        openOverlay(cartOverlay);
+    });
     safeAddListener("cartClose", "click", () => closeOverlay(cartOverlay));
     safeAddListener("wishBtn", "click", () => openOverlay(wishOverlay));
     safeAddListener("bnavWish", "click", () => openOverlay(wishOverlay));
@@ -1068,6 +1074,7 @@ testDatabaseConnection();
                 localStorage.setItem("kappa_checkout_shipping", shipCost.toString());
                 localStorage.setItem("kappa_checkout_discount", discPercent.toString());
                 localStorage.setItem("kappa_checkout_promo_code", appliedPromo.trim().toUpperCase());
+                localStorage.removeItem("kappa_buy_now_item");
                 
                 window.location.href = "checkout.html";
             } catch (err) {
@@ -1176,6 +1183,23 @@ testDatabaseConnection();
         } catch (_) {}
     };
 
+    function syncCartFromStorage() {
+        const _ck = getCartKey();
+        try {
+            const raw = localStorage.getItem(_ck);
+            if (raw) {
+                cart = JSON.parse(raw);
+                if (!Array.isArray(cart)) cart = [];
+            } else {
+                cart = [];
+            }
+        } catch (_) {
+            cart = [];
+        }
+        return cart;
+    }
+    window.syncCartFromStorage = syncCartFromStorage;
+
     function addToCart(id, size = 'Default', color = 'N/A', price, img, passedName, skipStockDeduct = false) {
         let actualSize = size;
         let actualColor = color;
@@ -1192,8 +1216,11 @@ testDatabaseConnection();
             actualColor = 'N/A';
         }
 
+        // Always sync with latest storage so additions across pages/handlers never overwrite each other
+        syncCartFromStorage();
+
         // Find product or create fallback
-        let p = PRODUCTS.find(x => x.id === id || x.id == id);
+        let p = PRODUCTS.find(x => String(x.id) === String(id) || String(x.slug) === String(id));
         if (!p) {
             p = {
                 id: id,
@@ -1210,12 +1237,16 @@ testDatabaseConnection();
         const finalColor = actualColor || 'N/A';
         const finalName = actualName || p.name || 'Product';
 
-        const existing = cart.find(c => c.id === id && c.size === finalSize && c.color === finalColor);
+        const existing = cart.find(c => 
+            String(c.id) === String(id) && 
+            String(c.size).trim() === String(finalSize).trim() && 
+            String(c.color).trim() === String(finalColor).trim()
+        );
         if (existing) {
-            existing.qty++;
+            existing.qty = (existing.qty || 1) + 1;
         } else {
             cart.push({
-                id,
+                id: id,
                 size: finalSize,
                 color: finalColor,
                 qty: 1,
@@ -1230,17 +1261,20 @@ testDatabaseConnection();
             window.modifyStockOnCartAction(id, finalSize, finalColor, 1);
         }
 
-        renderCart();
+        renderCart(true);
         showToast(`${finalName} added to cart`);
     }
     window.addToCart = addToCart;
     window.getCartKey = getCartKey;  // Expose so product.html can use the same user-aware key
 
-    function renderCart() {
+    function renderCart(skipStorageRead = false) {
+        if (!skipStorageRead) {
+            syncCartFromStorage();
+        }
         const _ck = getCartKey();
         localStorage.setItem(_ck, JSON.stringify(cart));
         const wrap = document.getElementById("cartItems");
-        const cartTotal = cart.reduce((a, c) => a + c.qty, 0);
+        const cartTotal = cart.reduce((a, c) => a + (Number(c.qty) || 1), 0);
         const cartCountEl = document.getElementById("cartCount");
         if (cartCountEl) cartCountEl.textContent = cartTotal;
         const heroCartCount = document.getElementById("heroCartCount");
@@ -1255,11 +1289,12 @@ testDatabaseConnection();
                 cartBtnBadge.style.display = "none";
             }
         }
+        if (!wrap) return;
         if (!cart.length) {
             wrap.innerHTML = `<div class="cart-empty">Your cart is empty.<br>Start adding icons.</div>`;
         } else {
             wrap.innerHTML = cart.map((c, idx) => {
-                const p = PRODUCTS.find(x => x.id === c.id || x.id == c.id);
+                const p = PRODUCTS.find(x => String(x.id) === String(c.id) || String(x.slug) === String(c.id));
                 const name = (p ? p.name : null) || c.name || 'Product';
                 const img = c.customImg || (p ? p.img : null) || 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
                 const price = (p ? p.price : null) ?? c.price ?? 0;
@@ -1269,7 +1304,7 @@ testDatabaseConnection();
         <div class="ci-info">
           <div class="ci-head">
             <div class="ci-name">${name}</div>
-            <div class="ci-price">${fmt(price * c.qty)}</div>
+            <div class="ci-price">${fmt(price * (c.qty || 1))}</div>
           </div>
           <div class="ci-meta">Size: ${c.size || 'Default'} | Color: ${c.color || 'N/A'}</div>
           <div class="ci-actions">
@@ -1289,6 +1324,7 @@ testDatabaseConnection();
         }
         updateSummary();
     }
+    window.renderCart = renderCart;
 
     document.getElementById("cartItems").addEventListener("click", e => {
         const targetBtn = e.target.closest('[data-inc], [data-dec], [data-remove]');
@@ -1300,7 +1336,7 @@ testDatabaseConnection();
             if (typeof window.modifyStockOnCartAction === 'function') {
                 window.modifyStockOnCartAction(item.id, item.size, item.color, 1);
             }
-            renderCart();
+            renderCart(true);
         }
         if (dec !== undefined && cart[dec]) {
             const item = cart[dec];
@@ -1309,7 +1345,7 @@ testDatabaseConnection();
                 window.modifyStockOnCartAction(item.id, item.size, item.color, -1);
             }
             if (item.qty <= 0) cart.splice(dec, 1);
-            renderCart();
+            renderCart(true);
         }
         if (rem !== undefined && cart[rem]) {
             const item = cart[rem];
@@ -1318,7 +1354,7 @@ testDatabaseConnection();
                 window.modifyStockOnCartAction(item.id, item.size, item.color, -removedQty);
             }
             cart.splice(rem, 1);
-            renderCart();
+            renderCart(true);
         }
     });
 
@@ -1400,7 +1436,11 @@ testDatabaseConnection();
 
     /* ---------- QUICK VIEW ---------- */
     function openQuickView(id) {
-        const p = PRODUCTS.find(x => x.id === id);
+        const p = PRODUCTS.find(x => String(x.id) === String(id) || String(x.slug) === String(id));
+        if (!p) {
+            console.warn('Quick view product not found:', id);
+            return;
+        }
         const panel = document.getElementById("qvPanel");
         panel.innerHTML = `
 <button class="overlay-close" id="qvClose">✕</button>
@@ -1435,7 +1475,7 @@ testDatabaseConnection();
         panel.querySelector("#qvDec").addEventListener("click", () => { qty = Math.max(1, qty - 1); panel.querySelector("#qvQty").textContent = qty; });
 
         panel.querySelector("#qvAdd").addEventListener("click", () => {
-            for (let i = 0; i < qty; i++) addToCart(id, selectedSize, selectedColor);
+            for (let i = 0; i < qty; i++) addToCart(p.id, selectedSize, selectedColor);
             closeOverlay(qvOverlay);
         });
         panel.querySelector("#qvClose").addEventListener("click", () => closeOverlay(qvOverlay));
@@ -1447,12 +1487,12 @@ testDatabaseConnection();
         const addId = e.target.dataset.add;
         const viewId = e.target.dataset.view;
         if (addId) {
-            const p = PRODUCTS.find(x => x.id === Number(addId) || x.id == addId);
+            const p = PRODUCTS.find(x => String(x.id) === String(addId) || String(x.slug) === String(addId));
             const defaultSize = (p && p.sizes && p.sizes.length > 0) ? p.sizes[0] : 'Default';
             const defaultColor = (p && p.colors && p.colors.length > 0) ? p.colors[0] : 'N/A';
-            addToCart(Number(addId), defaultSize, defaultColor);
+            addToCart(p ? p.id : addId, defaultSize, defaultColor);
         }
-        if (viewId) openQuickView(Number(viewId));
+        if (viewId) openQuickView(viewId);
     });
 
     /* ---------- SEARCH ---------- */
