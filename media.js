@@ -167,7 +167,10 @@ function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', 
                 <img class="desktop-preview-img" src="${getPreviewSrc(desktopUrl)}" style="max-height:100%; max-width:100%; object-fit:contain; cursor:pointer;" title="Click to Crop Image" onclick="triggerCropSlideImage(this, 'desktop')">
             </div>
             <div>
-                <label style="font-size:10px; font-weight:700;">Desktop Image</label>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label style="font-size:10px; font-weight:700;">Desktop Image</label>
+                    <button type="button" onclick="clearSlideInput(this, 'desktop')" style="background:none; border:none; color:#ff4d4d; font-size:10px; cursor:pointer; padding:0;">Delete</button>
+                </div>
                 <input type="text" class="admin-input slide-desktop-url" value="${desktopUrl}" style="display:none;">
                 <input type="file" class="admin-input slide-desktop-file" accept="image/*" style="padding:2px; font-size:10px;" onchange="previewSlideFile(this, 'desktop')">
             </div>
@@ -177,7 +180,10 @@ function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', 
                 <img class="mobile-preview-img" src="${getPreviewSrc(mobileUrl)}" style="max-height:100%; max-width:100%; object-fit:contain; cursor:pointer;" title="Click to Crop Image" onclick="triggerCropSlideImage(this, 'mobile')">
             </div>
             <div>
-                <label style="font-size:10px; font-weight:700;">Mobile Image</label>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label style="font-size:10px; font-weight:700;">Mobile Image</label>
+                    <button type="button" onclick="clearSlideInput(this, 'mobile')" style="background:none; border:none; color:#ff4d4d; font-size:10px; cursor:pointer; padding:0;">Delete</button>
+                </div>
                 <input type="text" class="admin-input slide-mobile-url" value="${mobileUrl}" style="display:none;">
                 <input type="file" class="admin-input slide-mobile-file" accept="image/*" style="padding:2px; font-size:10px;" onchange="previewSlideFile(this, 'mobile')">
             </div>
@@ -188,12 +194,15 @@ function addHeroSlideRowElement(desktopUrl = '', mobileUrl = '', videoUrl = '', 
                 <span class="slide-video-placeholder" style="color:#bbb; font-size:9px; display:${videoUrl ? 'none' : 'block'};">No video</span>
             </div>
             <div>
-                <label style="font-size:10px; font-weight:700;">Optional Video (.mp4)</label>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label style="font-size:10px; font-weight:700;">Optional Video (.mp4)</label>
+                    <button type="button" onclick="clearSlideInput(this, 'video')" style="background:none; border:none; color:#ff4d4d; font-size:10px; cursor:pointer; padding:0;">Delete</button>
+                </div>
                 <input type="text" class="admin-input slide-video-url" value="${videoUrl}" style="display:none;">
                 <input type="file" class="admin-input slide-video-file" accept="video/mp4" style="padding:2px; font-size:10px;" onchange="previewSlideVideoFile(this)">
             </div>
         </div>
-        <button type="button" class="btn-delete" style="background:#ff4d4d; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;" onclick="this.closest('.hero-slide-row').remove()">Delete</button>
+        <button type="button" class="btn-delete" style="background:#ff4d4d; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;" onclick="this.closest('.hero-slide-row').remove()">Delete Row</button>
     `;
 
     slideContainer.appendChild(div);
@@ -229,6 +238,24 @@ window.getImageMetadata = function (fileOrUrl) {
             resolve(null);
         }
     });
+};
+
+window.clearSlideInput = function(btn, type) {
+    const row = btn.closest('.hero-slide-row');
+    if (type === 'video') {
+        row.querySelector('.slide-video-url').value = '';
+        row.querySelector('.slide-video-file').value = '';
+        const preview = row.querySelector('.slide-video-preview');
+        preview.src = '';
+        preview.style.display = 'none';
+        row.querySelector('.slide-video-placeholder').style.display = 'block';
+    } else {
+        row.querySelector(`.slide-${type}-url`).value = '';
+        row.querySelector(`.slide-${type}-file`).value = '';
+        row.querySelector(`.${type}-preview-img`).src = 'assets/duplicate.png';
+        const badge = row.querySelector(`.${type}-meta-badge`);
+        if (badge) badge.remove();
+    }
 };
 
 async function previewSlideFile(input, type) {
