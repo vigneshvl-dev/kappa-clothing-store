@@ -2680,9 +2680,12 @@ window.saveProductForm = async function (e) {
             if (found) resolvedCatId = found.id;
         }
 
+        const baseSlug = generateSlug(name);
+        const uniqueSlug = editingId ? baseSlug : (baseSlug + '-' + Math.random().toString(36).substring(2, 8));
+
         const prodDataObj = {
             name: name,
-            slug: generateSlug(name),
+            slug: uniqueSlug,
             description: finalDesc,
             price: sellPrice,
             compare_at_price: comparePrice,
