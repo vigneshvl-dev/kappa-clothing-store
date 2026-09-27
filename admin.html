@@ -930,6 +930,16 @@
                     </button>
                 </div>
 
+                <!-- GENDER FILTER TABS -->
+                <div id="explore-gender-tabs" style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+                    <button onclick="filterExploreByGender('all', this)" id="explore-tab-all"
+                        style="padding:8px 22px; border-radius:20px; border:none; font-size:13px; font-weight:700; cursor:pointer; background:#111; color:#fff; transition:all .2s;">All</button>
+                    <button onclick="filterExploreByGender('men', this)" id="explore-tab-men"
+                        style="padding:8px 22px; border-radius:20px; border:1px solid #ddd; font-size:13px; font-weight:700; cursor:pointer; background:#fff; color:#333; transition:all .2s;">👔 Men</button>
+                    <button onclick="filterExploreByGender('women', this)" id="explore-tab-women"
+                        style="padding:8px 22px; border-radius:20px; border:1px solid #ddd; font-size:13px; font-weight:700; cursor:pointer; background:#fff; color:#333; transition:all .2s;">👗 Women</button>
+                </div>
+
                 <!-- EXPLORE CARDS TABLE -->
                 <div class="card" style="padding:0; overflow:hidden; border-radius:12px; border:1px solid #eee;">
                     <div style="overflow-x:auto;">
@@ -999,7 +1009,7 @@
                                         placeholder="e.g. shirts / trousers / denim" oninput="updateExplorePreview()">
                                 </div>
 
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
                                     <div>
                                         <label
                                             style="display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:#333;">Tag
@@ -1013,6 +1023,16 @@
                                             Text</label>
                                         <input type="text" id="explore-form-btn-text" class="admin-input"
                                             placeholder="SHOP NOW" value="SHOP NOW" oninput="updateExplorePreview()">
+                                    </div>
+                                    <div>
+                                        <label
+                                            style="display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:#333;">Gender
+                                            Section</label>
+                                        <select id="explore-form-gender" class="admin-input" style="width:100%;">
+                                            <option value="both">Both (All)</option>
+                                            <option value="men">👔 Men</option>
+                                            <option value="women">👗 Women</option>
+                                        </select>
                                     </div>
                                 </div>
 

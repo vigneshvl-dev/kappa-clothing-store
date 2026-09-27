@@ -5793,7 +5793,7 @@ function renderExploreCardsAdminTable(cards) {
         else if (card.selection_type === 'custom_url') targetDetail = card.destination_url || 'URL';
 
         html += `
-        <tr style="border-bottom:1px solid #eee;">
+        <tr style="border-bottom:1px solid #eee;" data-gender="${card.gender || 'both'}">
             <td style="padding:12px;">
                 <div style="width:48px; height:58px; border-radius:6px; overflow:hidden; background:#eee; border:1px solid #ddd;">
                     <img src="${img}" style="width:100%; height:100%; object-fit:cover;" alt="Card Image">
@@ -5803,6 +5803,7 @@ function renderExploreCardsAdminTable(cards) {
                 <strong style="font-size:14px; display:block; text-transform:uppercase; color:#111;">${card.title}</strong>
                 <span style="font-size:12px; color:#d97706; font-family:serif; font-style:italic;">${card.subtitle || ''}</span>
                 <span style="display:block; font-size:10px; color:#888;">${card.tag_label || 'Explore >'}</span>
+                ${card.gender && card.gender !== 'both' ? `<span style="display:inline-block; margin-top:3px; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; background:${card.gender === 'men' ? '#dbeafe' : '#fce7f3'}; color:${card.gender === 'men' ? '#1d4ed8' : '#be185d'};">${card.gender === 'men' ? '👔 Men' : '👗 Women'}</span>` : '<span style="display:inline-block; margin-top:3px; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; background:#f3f4f6; color:#6b7280;">All</span>'}
             </td>
             <td style="padding:12px;">
                 <span style="background:#eef2ff; color:#4f46e5; font-size:11px; font-weight:700; padding:4px 10px; border-radius:12px; text-transform:uppercase; display:inline-block;">${card.selection_type || 'category'}</span>
@@ -5857,6 +5858,8 @@ window.openExploreModal = function (cardId) {
             document.getElementById('explore-form-order').value = card.display_order || 1;
             document.getElementById('explore-form-status').value = (card.is_active !== false).toString();
             document.getElementById('explore-form-image-url').value = card.image_url || '';
+            const genderEl = document.getElementById('explore-form-gender');
+            if (genderEl) genderEl.value = card.gender || 'both';
 
             const radio = document.querySelector(`input[name="selection_type"][value="${card.selection_type || 'category'}"]`);
             if (radio) radio.checked = true;
@@ -5969,6 +5972,7 @@ window.saveExploreCardForm = async function (e) {
         const subtitle = document.getElementById('explore-form-subtitle').value.trim();
         const tag_label = document.getElementById('explore-form-tag').value.trim() || 'Explore >';
         const button_text = document.getElementById('explore-form-btn-text').value.trim() || 'SHOP NOW';
+        const gender = document.getElementById('explore-form-gender')?.value || 'both';
         const display_order = parseInt(document.getElementById('explore-form-order').value) || 1;
         const is_active = document.getElementById('explore-form-status').value === 'true';
         const selection_type = document.querySelector('input[name="selection_type"]:checked')?.value || 'category';
@@ -6002,6 +6006,7 @@ window.saveExploreCardForm = async function (e) {
             subtitle,
             tag_label,
             button_text,
+            gender,
             display_order,
             is_active,
             selection_type,
@@ -6062,6 +6067,39 @@ window.saveExploreCardForm = async function (e) {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
+};
+
+// ── EXPLORE GENDER TAB FILTER ──
+let _currentExploreGenderFilter = 'all';
+
+window.filterExploreByGender = function (gender, btnEl) {
+    _currentExploreGenderFilter = gender;
+
+    // Update tab styles
+    const tabs = document.querySelectorAll('#explore-gender-tabs button');
+    tabs.forEach(btn => {
+        btn.style.background = '#fff';
+        btn.style.color = '#333';
+        btn.style.border = '1px solid #ddd';
+    });
+    if (btnEl) {
+        btnEl.style.background = '#111';
+        btnEl.style.color = '#fff';
+        btnEl.style.border = 'none';
+    }
+
+    // Filter table rows
+    const rows = document.querySelectorAll('#explore-cards-admin-tbody tr[data-gender]');
+    rows.forEach(row => {
+        const rowGender = row.getAttribute('data-gender') || 'both';
+        if (gender === 'all') {
+            row.style.display = '';
+        } else if (gender === 'men') {
+            row.style.display = (rowGender === 'men' || rowGender === 'both') ? '' : 'none';
+        } else if (gender === 'women') {
+            row.style.display = (rowGender === 'women' || rowGender === 'both') ? '' : 'none';
+        }
+    });
 };
 window.deleteExploreCard = async function (cardId) {
     if (!confirm('Are you sure you want to delete this Explore Card?')) return;
