@@ -75,7 +75,7 @@ function runAdminInit() {
     try { loadParentCategories(); } catch (e) { console.error('loadParentCategories error:', e); }
     try { initImagePreview(); } catch (e) { console.error('initImagePreview error:', e); }
     try { initRealtimeOrdersAndNotifications(); } catch (e) { console.error('initRealtimeOrdersAndNotifications error:', e); }
-    try { if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges(); } catch (e) {}
+    try { if (typeof updateSidebarOrderBadges === 'function') updateSidebarOrderBadges(); } catch (e) { }
 }
 
 if (document.readyState === 'loading') {
@@ -321,65 +321,74 @@ function renderSalesChart(orders, timeframe) {
         return !st.includes('cancel') && !st.includes('refund') && stage !== 'cancelled';
     });
     if (timeframe === 'today') {
-        for (let h = 0; h < 24; h++) { labels.push(h===0?'12am':h<12?h+'am':h===12?'12pm':(h-12)+'pm'); buckets.push(0); }
-        clean.forEach(o => { const d=new Date(o.created_at); if(d.toDateString()===now.toDateString()) buckets[d.getHours()]+=parseFloat(o.total_amount)||0; });
+        for (let h = 0; h < 24; h++) { labels.push(h === 0 ? '12am' : h < 12 ? h + 'am' : h === 12 ? '12pm' : (h - 12) + 'pm'); buckets.push(0); }
+        clean.forEach(o => { const d = new Date(o.created_at); if (d.toDateString() === now.toDateString()) buckets[d.getHours()] += parseFloat(o.total_amount) || 0; });
     } else if (timeframe === '7days') {
-        for (let i=6;i>=0;i--) { const d=new Date(now); d.setDate(d.getDate()-i); labels.push(d.toLocaleDateString('en-IN',{weekday:'short'})); buckets.push(0); }
-        clean.forEach(o => { const d=new Date(o.created_at),diff=Math.floor((now-d)/86400000); if(diff>=0&&diff<7) buckets[6-diff]+=parseFloat(o.total_amount)||0; });
+        for (let i = 6; i >= 0; i--) { const d = new Date(now); d.setDate(d.getDate() - i); labels.push(d.toLocaleDateString('en-IN', { weekday: 'short' })); buckets.push(0); }
+        clean.forEach(o => { const d = new Date(o.created_at), diff = Math.floor((now - d) / 86400000); if (diff >= 0 && diff < 7) buckets[6 - diff] += parseFloat(o.total_amount) || 0; });
     } else if (timeframe === '30days') {
-        for (let i=29;i>=0;i--) { const d=new Date(now); d.setDate(d.getDate()-i); labels.push(i%5===0?d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}):''); buckets.push(0); }
-        clean.forEach(o => { const d=new Date(o.created_at),diff=Math.floor((now-d)/86400000); if(diff>=0&&diff<30) buckets[29-diff]+=parseFloat(o.total_amount)||0; });
+        for (let i = 29; i >= 0; i--) { const d = new Date(now); d.setDate(d.getDate() - i); labels.push(i % 5 === 0 ? d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : ''); buckets.push(0); }
+        clean.forEach(o => { const d = new Date(o.created_at), diff = Math.floor((now - d) / 86400000); if (diff >= 0 && diff < 30) buckets[29 - diff] += parseFloat(o.total_amount) || 0; });
     } else if (timeframe === 'thisyear') {
-        ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].forEach(m => { labels.push(m); buckets.push(0); });
-        clean.forEach(o => { const d=new Date(o.created_at); if(d.getFullYear()===now.getFullYear()) buckets[d.getMonth()]+=parseFloat(o.total_amount)||0; });
+        ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].forEach(m => { labels.push(m); buckets.push(0); });
+        clean.forEach(o => { const d = new Date(o.created_at); if (d.getFullYear() === now.getFullYear()) buckets[d.getMonth()] += parseFloat(o.total_amount) || 0; });
     } else {
-        const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); labels.push(mn[d.getMonth()]); buckets.push(0); }
-        clean.forEach(o => { const d=new Date(o.created_at); for(let i=5;i>=0;i--){const ref=new Date(now.getFullYear(),now.getMonth()-i,1);if(d.getFullYear()===ref.getFullYear()&&d.getMonth()===ref.getMonth()){buckets[5-i]+=parseFloat(o.total_amount)||0;break;}} });
+        const mn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); labels.push(mn[d.getMonth()]); buckets.push(0); }
+        clean.forEach(o => { const d = new Date(o.created_at); for (let i = 5; i >= 0; i--) { const ref = new Date(now.getFullYear(), now.getMonth() - i, 1); if (d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth()) { buckets[5 - i] += parseFloat(o.total_amount) || 0; break; } } });
     }
-    const tot=buckets.reduce((s,v)=>s+v,0), peakI=buckets.indexOf(Math.max(...buckets));
-    const peak=buckets[peakI]>0?(labels[peakI]||'—'):'—';
-    const pOrds=clean.filter(o=>{ const d=new Date(o.created_at);
-        if(timeframe==='today') return d.toDateString()===now.toDateString();
-        if(timeframe==='7days') return (now-d)/86400000<7;
-        if(timeframe==='30days') return (now-d)/86400000<30;
-        if(timeframe==='thisyear') return d.getFullYear()===now.getFullYear();
-        return d>=new Date(now.getFullYear(),now.getMonth()-5,1);
+    const tot = buckets.reduce((s, v) => s + v, 0), peakI = buckets.indexOf(Math.max(...buckets));
+    const peak = buckets[peakI] > 0 ? (labels[peakI] || '—') : '—';
+    const pOrds = clean.filter(o => {
+        const d = new Date(o.created_at);
+        if (timeframe === 'today') return d.toDateString() === now.toDateString();
+        if (timeframe === '7days') return (now - d) / 86400000 < 7;
+        if (timeframe === '30days') return (now - d) / 86400000 < 30;
+        if (timeframe === 'thisyear') return d.getFullYear() === now.getFullYear();
+        return d >= new Date(now.getFullYear(), now.getMonth() - 5, 1);
     }).length;
-    const avg=pOrds>0?Math.round(tot/pOrds):0;
-    const ptEl=document.getElementById('sales-period-total'); if(ptEl) ptEl.textContent=`₹${tot.toLocaleString('en-IN')}`;
-    const pmEl=document.getElementById('sales-peak-month'); if(pmEl) pmEl.textContent=peak;
-    const aoEl=document.getElementById('sales-avg-order'); if(aoEl) aoEl.textContent=`₹${avg.toLocaleString('en-IN')}`;
-    const poEl=document.getElementById('sales-period-orders'); if(poEl) poEl.textContent=pOrds;
-    const maxV=Math.max(...buckets,1),W=600,H=160,PL=48,PB=32,PT=10,PR=10,cW=W-PL-PR,cH=H-PB-PT,n=buckets.length,bW=Math.max(4,Math.floor((cW/n)*0.6)),gap=cW/n;
-    let grid='',yL='',bars='',xL='';
-    for(let i=0;i<=4;i++){const y=PT+cH-(i/4)*cH,v=Math.round((i/4)*maxV),lt=v>=1000?`₹${(v/1000).toFixed(0)}k`:`₹${v}`;
-        grid+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#f0f0f0" stroke-width="1"/>`;
-        yL+=`<text x="${PL-4}" y="${y+4}" text-anchor="end" font-size="9" fill="#aaa">${lt}</text>`;}
-    buckets.forEach((v,i)=>{const x=PL+i*gap+gap/2-bW/2,bH=v>0?Math.max(3,(v/maxV)*cH):0,y=PT+cH-bH,isMx=v===Math.max(...buckets)&&v>0;
-        bars+=`<rect x="${x}" y="${y}" width="${bW}" height="${bH}" rx="3" fill="${isMx?'#FFD700':'#111'}" opacity="${v>0?'0.85':'0.1'}"><title>₹${v.toLocaleString('en-IN')}</title></rect>`;
-        if(labels[i]) xL+=`<text x="${PL+i*gap+gap/2}" y="${H-4}" text-anchor="middle" font-size="9" fill="#888">${labels[i]}</text>`;});
-    container.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">${grid}${yL}${bars}${xL}<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="#eee" stroke-width="1"/></svg>`;
+    const avg = pOrds > 0 ? Math.round(tot / pOrds) : 0;
+    const ptEl = document.getElementById('sales-period-total'); if (ptEl) ptEl.textContent = `₹${tot.toLocaleString('en-IN')}`;
+    const pmEl = document.getElementById('sales-peak-month'); if (pmEl) pmEl.textContent = peak;
+    const aoEl = document.getElementById('sales-avg-order'); if (aoEl) aoEl.textContent = `₹${avg.toLocaleString('en-IN')}`;
+    const poEl = document.getElementById('sales-period-orders'); if (poEl) poEl.textContent = pOrds;
+    const maxV = Math.max(...buckets, 1), W = 600, H = 160, PL = 48, PB = 32, PT = 10, PR = 10, cW = W - PL - PR, cH = H - PB - PT, n = buckets.length, bW = Math.max(4, Math.floor((cW / n) * 0.6)), gap = cW / n;
+    let grid = '', yL = '', bars = '', xL = '';
+    for (let i = 0; i <= 4; i++) {
+        const y = PT + cH - (i / 4) * cH, v = Math.round((i / 4) * maxV), lt = v >= 1000 ? `₹${(v / 1000).toFixed(0)}k` : `₹${v}`;
+        grid += `<line x1="${PL}" y1="${y}" x2="${W - PR}" y2="${y}" stroke="#f0f0f0" stroke-width="1"/>`;
+        yL += `<text x="${PL - 4}" y="${y + 4}" text-anchor="end" font-size="9" fill="#aaa">${lt}</text>`;
+    }
+    buckets.forEach((v, i) => {
+        const x = PL + i * gap + gap / 2 - bW / 2, bH = v > 0 ? Math.max(3, (v / maxV) * cH) : 0, y = PT + cH - bH, isMx = v === Math.max(...buckets) && v > 0;
+        bars += `<rect x="${x}" y="${y}" width="${bW}" height="${bH}" rx="3" fill="${isMx ? '#FFD700' : '#111'}" opacity="${v > 0 ? '0.85' : '0.1'}"><title>₹${v.toLocaleString('en-IN')}</title></rect>`;
+        if (labels[i]) xL += `<text x="${PL + i * gap + gap / 2}" y="${H - 4}" text-anchor="middle" font-size="9" fill="#888">${labels[i]}</text>`;
+    });
+    container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">${grid}${yL}${bars}${xL}<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT + cH}" stroke="#eee" stroke-width="1"/></svg>`;
 }
 
 function renderDonutChart(orders) {
-    const wrap=document.getElementById('donutChartWrap'), legend=document.getElementById('donutLegendContainer');
-    if(!wrap||!legend) return;
-    const counts={}, colors={incoming:'#FFD700',confirmed:'#3B82F6',processing:'#8B5CF6',packed:'#F97316',shipped:'#06B6D4',out_for_delivery:'#EC4899',delivered:'#16A34A',cancelled:'#EF4444',return_requested:'#F59E0B',returned:'#6B7280',refunded:'#9CA3AF'};
-    orders.forEach(o=>{const s=o.order_stage||((o.status||'').toLowerCase().includes('cancel')?'cancelled':'incoming'); counts[s]=(counts[s]||0)+1;});
-    const total=Object.values(counts).reduce((s,v)=>s+v,0);
-    if(!total){wrap.innerHTML='<div style="text-align:center;padding:30px;color:#aaa;font-size:13px;">No orders yet</div>';legend.innerHTML='';return;}
-    const R=54,r=34,cx=70,cy=70; let sa=-Math.PI/2, paths='';
-    const ents=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-    ents.forEach(([stage,count])=>{const ang=(count/total)*2*Math.PI,ea=sa+ang;
-        const x1=cx+R*Math.cos(sa),y1=cy+R*Math.sin(sa),x2=cx+R*Math.cos(ea),y2=cy+R*Math.sin(ea);
-        const ix1=cx+r*Math.cos(sa),iy1=cy+r*Math.sin(sa),ix2=cx+r*Math.cos(ea),iy2=cy+r*Math.sin(ea);
-        const lg=ang>Math.PI?1:0,col=colors[stage]||'#ccc';
-        paths+=`<path d="M${x1},${y1} A${R},${R} 0 ${lg},1 ${x2},${y2} L${ix2},${iy2} A${r},${r} 0 ${lg},0 ${ix1},${iy1} Z" fill="${col}" opacity="0.9"><title>${stage}: ${count}</title></path>`;
-        sa=ea;});
-    wrap.innerHTML=`<svg viewBox="0 0 140 140" style="width:140px;height:140px;" xmlns="http://www.w3.org/2000/svg">${paths}<text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="18" font-weight="700" fill="#111">${total}</text><text x="${cx}" y="${cy+10}" text-anchor="middle" font-size="9" fill="#888">Orders</text></svg>`;
-    legend.innerHTML=ents.map(([stage,count])=>{const col=colors[stage]||'#ccc',lbl=stage.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),pct=Math.round((count/total)*100);
-        return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0;"></span><span style="font-size:12px;color:#555;flex:1;">${lbl}</span><span style="font-size:12px;font-weight:700;color:#111;">${count}</span><span style="font-size:11px;color:#aaa;">(${pct}%)</span></div>`;}).join('');
+    const wrap = document.getElementById('donutChartWrap'), legend = document.getElementById('donutLegendContainer');
+    if (!wrap || !legend) return;
+    const counts = {}, colors = { incoming: '#FFD700', confirmed: '#3B82F6', processing: '#8B5CF6', packed: '#F97316', shipped: '#06B6D4', out_for_delivery: '#EC4899', delivered: '#16A34A', cancelled: '#EF4444', return_requested: '#F59E0B', returned: '#6B7280', refunded: '#9CA3AF' };
+    orders.forEach(o => { const s = o.order_stage || ((o.status || '').toLowerCase().includes('cancel') ? 'cancelled' : 'incoming'); counts[s] = (counts[s] || 0) + 1; });
+    const total = Object.values(counts).reduce((s, v) => s + v, 0);
+    if (!total) { wrap.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-size:13px;">No orders yet</div>'; legend.innerHTML = ''; return; }
+    const R = 54, r = 34, cx = 70, cy = 70; let sa = -Math.PI / 2, paths = '';
+    const ents = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    ents.forEach(([stage, count]) => {
+        const ang = (count / total) * 2 * Math.PI, ea = sa + ang;
+        const x1 = cx + R * Math.cos(sa), y1 = cy + R * Math.sin(sa), x2 = cx + R * Math.cos(ea), y2 = cy + R * Math.sin(ea);
+        const ix1 = cx + r * Math.cos(sa), iy1 = cy + r * Math.sin(sa), ix2 = cx + r * Math.cos(ea), iy2 = cy + r * Math.sin(ea);
+        const lg = ang > Math.PI ? 1 : 0, col = colors[stage] || '#ccc';
+        paths += `<path d="M${x1},${y1} A${R},${R} 0 ${lg},1 ${x2},${y2} L${ix2},${iy2} A${r},${r} 0 ${lg},0 ${ix1},${iy1} Z" fill="${col}" opacity="0.9"><title>${stage}: ${count}</title></path>`;
+        sa = ea;
+    });
+    wrap.innerHTML = `<svg viewBox="0 0 140 140" style="width:140px;height:140px;" xmlns="http://www.w3.org/2000/svg">${paths}<text x="${cx}" y="${cy - 6}" text-anchor="middle" font-size="18" font-weight="700" fill="#111">${total}</text><text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="9" fill="#888">Orders</text></svg>`;
+    legend.innerHTML = ents.map(([stage, count]) => {
+        const col = colors[stage] || '#ccc', lbl = stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), pct = Math.round((count / total) * 100);
+        return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0;"></span><span style="font-size:12px;color:#555;flex:1;">${lbl}</span><span style="font-size:12px;font-weight:700;color:#111;">${count}</span><span style="font-size:11px;color:#aaa;">(${pct}%)</span></div>`;
+    }).join('');
 }
 
 // ==========================================
@@ -398,9 +407,9 @@ function isAuthorizedAdminEmail(email) {
 
 async function verifyAdmin() {
     const session = await ensureFreshSession();
-    if (!session || !session.user) { 
-        window.location.replace('index.html'); 
-        return; 
+    if (!session || !session.user) {
+        window.location.replace('index.html');
+        return;
     }
 
     const userEmail = (session.user.email || '').trim().toLowerCase();
@@ -948,10 +957,10 @@ async function loadOrders() {
     const allOrders = (data || []).filter(o => {
         const st = (o.status || '').toLowerCase();
         const stg = (o.order_stage || '').toLowerCase();
-        
+
         if (stg === 'recycled' || st === 'recycled') return false;
         if (stg === 'cancelled' || stg === 'refunded' || st.includes('cancel') || st.includes('refund')) return false;
-        
+
         return true;
     });
     _allFetchedOrders = allOrders;
@@ -1375,7 +1384,7 @@ window.renderRecycleBinView = async function (targetContainer) {
             .order('updated_at', { ascending: false });
 
         if (data) dbRecycled = data;
-    } catch (_) {}
+    } catch (_) { }
 
     // Merge with localStorage recycled orders (unique by ID)
     const localRecycled = getRecycledOrders();
@@ -2465,7 +2474,7 @@ window.toggleVariantSize = function (vIdx, size, isChecked) {
     updateLiveProductSummary();
 };
 
-window.addCustomSizeToVariant = function(vIdx, customSize) {
+window.addCustomSizeToVariant = function (vIdx, customSize) {
     if (!colorVariantsData[vIdx]) return;
     const cleanSz = (customSize || '').trim().toUpperCase();
     if (!cleanSz) return;
@@ -2929,16 +2938,12 @@ async function loadInventory() {
         if (prod.product_variants && prod.product_variants.length > 0) {
             prod.product_variants.forEach(v => {
                 let vQty = Number(v.stock_quantity || 0);
-                const vKey = `${String(v.color || '').trim().toLowerCase()}:::${String(v.size || '').trim().toUpperCase()}`;
-                if (prodOverride && prodOverride.variantCombos && prodOverride.variantCombos[vKey] !== undefined) {
-                    vQty = Math.max(0, vQty - prodOverride.variantCombos[vKey]);
-                } else if (prodOverride && prodOverride.variants && prodOverride.variants[v.size]) {
+                if (prodOverride && prodOverride.variants && prodOverride.variants[v.size]) {
                     vQty = Math.max(0, vQty - prodOverride.variants[v.size]);
                 }
                 totalStock += vQty;
                 if (v.size && v.size !== 'Default') {
-                    const label = (v.color && v.color !== 'Default') ? `${v.color} ${v.size}` : v.size;
-                    variantStockList.push(`${label}: <strong>${vQty}</strong>`);
+                    variantStockList.push(`${v.size}: <strong>${vQty}</strong>`);
                 }
             });
         } else {
@@ -5047,9 +5052,9 @@ async function loadCancelledOrders() {
         cachedCancelledOrdersList = (orders || []).filter(ord => {
             const st = (ord.status || '').toLowerCase().trim();
             const stg = (ord.order_stage || '').toLowerCase().trim();
-            
+
             if (stg === 'recycled' || st === 'recycled') return false;
-            
+
             return st.includes('cancel') || st.includes('refund') || stg === 'cancelled' || stg === 'refunded';
         });
 
@@ -6528,7 +6533,7 @@ function formatNotifTime(isoString) {
 
 window.addMobileAdminNotification = function (notifObj) {
     const list = getMobileAdminNotifications();
-    
+
     // Prevent duplicate notifications for the exact same order event
     const exists = list.some(n => n.order_id === notifObj.order_id && n.type === notifObj.type);
     if (exists) return;
@@ -6697,7 +6702,7 @@ function showMobilePushToast(notif) {
     if (iconEl) iconEl.textContent = isCancelled ? '⚠️' : '🔔';
     if (titleEl) titleEl.textContent = isCancelled ? 'Order Cancelled' : 'New Order Received';
     if (timeEl) timeEl.textContent = formatNotifTime(notif.timestamp);
-    if (msgEl) msgEl.textContent = `Order ${notif.order_number || '#'+notif.order_id} has been ${isCancelled ? 'cancelled' : 'placed'}.`;
+    if (msgEl) msgEl.textContent = `Order ${notif.order_number || '#' + notif.order_id} has been ${isCancelled ? 'cancelled' : 'placed'}.`;
     if (metaEl) metaEl.textContent = notif.amount > 0 ? `₹${Number(notif.amount).toLocaleString('en-IN')} • ${notif.itemsCount || 1} Item${(notif.itemsCount || 1) === 1 ? '' : 's'}` : '';
 
     toast.onclick = function (e) {
@@ -6725,7 +6730,7 @@ function triggerWebPushNotification(notif) {
     if (Notification.permission === "granted") {
         const isCancelled = notif.type === 'cancelled_order';
         const title = isCancelled ? '⚠️ Order Cancelled' : '🔔 New Order Received';
-        const body = `Order ${notif.order_number || '#'+notif.order_id} has been ${isCancelled ? 'cancelled' : 'placed'}.\n₹${Number(notif.amount || 0).toLocaleString('en-IN')} • ${notif.itemsCount || 1} Items\nTap to view details.`;
+        const body = `Order ${notif.order_number || '#' + notif.order_id} has been ${isCancelled ? 'cancelled' : 'placed'}.\n₹${Number(notif.amount || 0).toLocaleString('en-IN')} • ${notif.itemsCount || 1} Items\nTap to view details.`;
         try {
             new Notification(title, { body: body, icon: 'assets/kappalogo_favion.png' });
         } catch (e) { }
@@ -6876,4 +6881,4 @@ async function syncExistingOrdersToNotifications() {
     } catch (e) {
         console.error('Error syncing existing orders to notifications:', e);
     }
-}
+}
