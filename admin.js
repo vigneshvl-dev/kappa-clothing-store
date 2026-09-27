@@ -396,7 +396,8 @@ function renderDonutChart(orders) {
 // ==========================================
 const AUTHORIZED_ADMIN_EMAIL = 'kappatvm@gmail.com';
 const AUTHORIZED_ADMIN_EMAILS = [
-    'kappatvm@gmail.com'
+    'kappatvm@gmail.com',
+    'nano95007493@gmail.com'
 ];
 
 function isAuthorizedAdminEmail(email) {

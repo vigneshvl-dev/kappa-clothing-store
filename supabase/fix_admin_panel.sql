@@ -273,11 +273,11 @@ UPDATE public.profiles p
 SET role = 'admin'
 FROM auth.users u
 WHERE p.id = u.id
-  AND LOWER(u.email) IN ('kappatvm@gmail.com');
+  AND LOWER(u.email) IN ('kappatvm@gmail.com', 'nano95007493@gmail.com');
 
 -- 4. Revoke Admin Role from Non-Authorized Accounts
 UPDATE public.profiles p
 SET role = 'customer'
 FROM auth.users u
 WHERE p.id = u.id
-  AND LOWER(u.email) NOT IN ('kappatvm@gmail.com');
+  AND LOWER(u.email) NOT IN ('kappatvm@gmail.com', 'nano95007493@gmail.com');
