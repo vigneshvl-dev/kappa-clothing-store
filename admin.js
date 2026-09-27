@@ -6114,16 +6114,15 @@ window.filterExploreByGender = function (gender, btnEl) {
         btnEl.style.border = 'none';
     }
 
-    // Filter table rows
+    // Strict filter — Men tab shows ONLY men, Women tab shows ONLY women
+    // "Both/All" cards only appear in the "All" tab
     const rows = document.querySelectorAll('#explore-cards-admin-tbody tr[data-gender]');
     rows.forEach(row => {
         const rowGender = row.getAttribute('data-gender') || 'both';
         if (gender === 'all') {
-            row.style.display = '';
-        } else if (gender === 'men') {
-            row.style.display = (rowGender === 'men' || rowGender === 'both') ? '' : 'none';
-        } else if (gender === 'women') {
-            row.style.display = (rowGender === 'women' || rowGender === 'both') ? '' : 'none';
+            row.style.display = '';                       // All tab → show every card
+        } else {
+            row.style.display = rowGender === gender ? '' : 'none'; // Strict match only
         }
     });
 };

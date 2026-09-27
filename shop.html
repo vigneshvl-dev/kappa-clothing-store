@@ -535,7 +535,6 @@
     </div>
 
 
-    <!-- EXPLORE SECTION (DYNAMIC CAROUSEL / GRID) -->
     <section id="explore-section">
         <div class="explore-header">
             <div class="explore-title-group">
@@ -544,13 +543,24 @@
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
                 <button onclick="scrollExploreTrack(-1)"
-                    style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">‹</button>
+                    style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">&#8249;</button>
                 <button onclick="scrollExploreTrack(1)"
-                    style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">›</button>
+                    style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">&#8250;</button>
                 <a href="javascript:void(0)" onclick="loadShopProducts(null, 'ALL PRODUCTS')"
                     style="font-size: 12px; font-weight: 600; color: #111; text-decoration: underline; margin-left: 6px; white-space: nowrap;">View all</a>
             </div>
         </div>
+
+        <!-- GENDER FILTER TABS -->
+        <div id="shop-explore-gender-tabs" style="display:flex; gap:8px; margin:12px 0 16px; flex-wrap:wrap;">
+            <button id="shop-explore-tab-all" onclick="shopFilterExploreByGender('all', this)"
+                style="padding:7px 20px; border-radius:20px; border:none; font-size:13px; font-weight:700; cursor:pointer; background:#111; color:#fff; transition:all .2s;">All</button>
+            <button id="shop-explore-tab-men" onclick="shopFilterExploreByGender('men', this)"
+                style="padding:7px 20px; border-radius:20px; border:1px solid #ddd; font-size:13px; font-weight:700; cursor:pointer; background:#fff; color:#333; transition:all .2s;">👔 Men</button>
+            <button id="shop-explore-tab-women" onclick="shopFilterExploreByGender('women', this)"
+                style="padding:7px 20px; border-radius:20px; border:1px solid #ddd; font-size:13px; font-weight:700; cursor:pointer; background:#fff; color:#333; transition:all .2s;">👗 Women</button>
+        </div>
+
         <div class="explore-track-container">
             <div id="explore-cards-track" class="explore-track"></div>
         </div>
@@ -1231,11 +1241,12 @@
                 const title = card.title || 'EXPLORE';
                 const subtitle = card.subtitle || '';
                 const btnText = card.button_text || 'SHOP NOW';
+                const cardGender = card.gender || 'both';
 
                 const fitStyle = card.display_mode === 'contain' ? 'style="object-fit:contain; background:#111;"' : '';
 
                 html += `
-                    <div class="explore-card" onclick="handleExploreCardClick(${index})">
+                    <div class="explore-card" data-gender="${cardGender}" onclick="handleExploreCardClick(${index})">
                         <img src="${img}" class="explore-card-img" ${fitStyle} alt="${title}">
                         <div class="explore-card-overlay"></div>
                         <div class="explore-card-tag">${tag}</div>
@@ -1250,7 +1261,41 @@
 
             track.innerHTML = html;
             section.style.display = 'block';
+
+            // Re-apply the active gender filter after re-render
+            if (window._shopExploreGenderFilter && window._shopExploreGenderFilter !== 'all') {
+                const btn = document.getElementById('shop-explore-tab-' + window._shopExploreGenderFilter);
+                shopFilterExploreByGender(window._shopExploreGenderFilter, btn);
+            }
         }
+
+        // Strict gender filter for shop explore cards
+        window._shopExploreGenderFilter = 'all';
+        window.shopFilterExploreByGender = function (gender, btnEl) {
+            window._shopExploreGenderFilter = gender;
+
+            // Update tab button styles
+            document.querySelectorAll('#shop-explore-gender-tabs button').forEach(btn => {
+                btn.style.background = '#fff';
+                btn.style.color = '#333';
+                btn.style.border = '1px solid #ddd';
+            });
+            if (btnEl) {
+                btnEl.style.background = '#111';
+                btnEl.style.color = '#fff';
+                btnEl.style.border = 'none';
+            }
+
+            // Strict filter — Men shows ONLY men, Women shows ONLY women
+            document.querySelectorAll('#explore-cards-track .explore-card[data-gender]').forEach(card => {
+                const cardGender = card.getAttribute('data-gender') || 'both';
+                if (gender === 'all') {
+                    card.style.display = '';
+                } else {
+                    card.style.display = cardGender === gender ? '' : 'none';
+                }
+            });
+        };
 
         function scrollExploreTrack(dir) {
             const track = document.getElementById('explore-cards-track');
