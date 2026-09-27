@@ -77,32 +77,8 @@ module.exports = async (req, res) => {
                 }
             }
 
-            // 2. Update main product stock
-            const pRes = await fetch(`${SUPABASE_URL}/rest/v1/products?id=eq.${prodId}&select=id,stock_quantity`, { headers });
-            if (pRes.ok) {
-                const prods = await pRes.json();
-                if (Array.isArray(prods) && prods.length > 0) {
-                    const prod = prods[0];
-                    const currentProdStock = Number(prod.stock_quantity || 0);
-                    const newProdStock = Math.max(0, currentProdStock - qty);
-
-                    await fetch(`${SUPABASE_URL}/rest/v1/products?id=eq.${prodId}`, {
-                        method: 'PATCH',
-                        headers: {
-                            ...headers,
-                            'Prefer': 'return=minimal'
-                        },
-                        body: JSON.stringify({ stock_quantity: newProdStock })
-                    });
-
-                    updated.push({
-                        type: 'product',
-                        productId: prodId,
-                        previousStock: currentProdStock,
-                        newStock: newProdStock
-                    });
-                }
-            }
+            // 2. Main product stock is no longer updated automatically.
+            // Stock is fully managed at the variant level.
         }
 
         return res.status(200).json({
