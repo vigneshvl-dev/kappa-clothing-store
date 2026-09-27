@@ -67,9 +67,7 @@ begin
                 where product_id = v_prod_id
                   and lower(trim(size)) = lower(v_size)
                   and lower(trim(color)) = lower(v_color);
-            end if;
-
-            if not found then
+            else
                 update public.product_variants
                 set stock_quantity = greatest(0, coalesce(stock_quantity, 0) - v_qty)
                 where product_id = v_prod_id

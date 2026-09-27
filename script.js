@@ -1121,17 +1121,29 @@ testDatabaseConnection();
         const pid = String(productId);
         const qty = Number(deltaQty); // positive = deduct from stock, negative = add back to stock
 
+        const normSize = (size && size !== 'Default' && size !== 'N/A') ? String(size).trim() : null;
+        const normColor = (color && color !== 'Default' && color !== 'N/A') ? String(color).trim() : null;
+
         // 1. Update localStorage kappa_stock_overrides
         try {
             let overrides = {};
             try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) {}
             if (!overrides[pid]) {
-                overrides[pid] = { totalDeducted: 0, variants: {} };
+                overrides[pid] = { totalDeducted: 0, variants: {}, variantCombos: {} };
+            }
+            if (!overrides[pid].variantCombos) {
+                overrides[pid].variantCombos = {};
             }
             overrides[pid].totalDeducted = Math.max(0, (overrides[pid].totalDeducted || 0) + qty);
-            if (size && size !== 'Default' && size !== 'N/A') {
-                overrides[pid].variants = overrides[pid].variants || {};
-                overrides[pid].variants[size] = Math.max(0, (overrides[pid].variants[size] || 0) + qty);
+
+            if (normSize) {
+                if (normColor) {
+                    const comboKey = `${normColor.toLowerCase()}:::${normSize.toUpperCase()}`;
+                    overrides[pid].variantCombos[comboKey] = Math.max(0, (overrides[pid].variantCombos[comboKey] || 0) + qty);
+                } else {
+                    overrides[pid].variants = overrides[pid].variants || {};
+                    overrides[pid].variants[normSize] = Math.max(0, (overrides[pid].variants[normSize] || 0) + qty);
+                }
             }
             localStorage.setItem('kappa_stock_overrides', JSON.stringify(overrides));
         } catch (_) {}
@@ -1147,8 +1159,13 @@ testDatabaseConnection();
                         prod.stock_quantity = Math.max(0, Number(prod.stock_quantity) - qty);
                     }
                     if (prod.product_variants && Array.isArray(prod.product_variants)) {
+                        const targetSize = normSize ? normSize.toUpperCase() : null;
+                        const targetColor = normColor ? normColor.toLowerCase() : null;
+
                         prod.product_variants.forEach(v => {
-                            if (v.size === size) {
+                            const vSizeMatch = !targetSize || String(v.size || '').trim().toUpperCase() === targetSize;
+                            const vColorMatch = !targetColor || String(v.color || '').trim().toLowerCase() === targetColor;
+                            if (vSizeMatch && vColorMatch) {
                                 v.stock_quantity = Math.max(0, Number(v.stock_quantity || 0) - qty);
                             }
                         });

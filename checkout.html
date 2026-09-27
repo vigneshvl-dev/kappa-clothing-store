@@ -1480,17 +1480,19 @@
 
                         try {
                             if (prodId && size) {
-                                let vQuery = supabaseClient
+                                const { data: vList } = await supabaseClient
                                     .from('product_variants')
-                                    .select('id, stock_quantity')
-                                    .eq('product_id', prodId)
-                                    .eq('size', size);
+                                    .select('id, stock_quantity, size, color')
+                                    .eq('product_id', prodId);
 
-                                if (color) vQuery = vQuery.eq('color', color);
-
-                                const { data: vList } = await vQuery;
                                 if (vList && vList.length > 0) {
-                                    for (const v of vList) {
+                                    const normS = String(size).trim().toLowerCase();
+                                    const normC = color ? String(color).trim().toLowerCase() : null;
+                                    const matched = vList.filter(v => 
+                                        String(v.size || '').trim().toLowerCase() === normS &&
+                                        (!normC || String(v.color || '').trim().toLowerCase() === normC)
+                                    );
+                                    for (const v of matched) {
                                         const newVStock = Math.max(0, Number(v.stock_quantity || 0) - qty);
                                         await supabaseClient
                                             .from('product_variants')
@@ -1529,12 +1531,24 @@
                     for (const item of targetItems) {
                         const pid = String(item.id);
                         if (!overrides[pid]) {
-                            overrides[pid] = { totalDeducted: 0, variants: {} };
+                            overrides[pid] = { totalDeducted: 0, variants: {}, variantCombos: {} };
+                        }
+                        if (!overrides[pid].variantCombos) {
+                            overrides[pid].variantCombos = {};
                         }
                         const q = item.qty || 1;
                         overrides[pid].totalDeducted = (overrides[pid].totalDeducted || 0) + q;
-                        if (item.size && item.size !== 'Default' && item.size !== 'N/A') {
-                            overrides[pid].variants[item.size] = (overrides[pid].variants[item.size] || 0) + q;
+                        const itemSize = (item.size && item.size !== 'Default' && item.size !== 'N/A') ? String(item.size).trim() : null;
+                        const itemColor = (item.color && item.color !== 'Default' && item.color !== 'N/A') ? String(item.color).trim() : null;
+
+                        if (itemSize) {
+                            if (itemColor) {
+                                const comboKey = `${itemColor.toLowerCase()}:::${itemSize.toUpperCase()}`;
+                                overrides[pid].variantCombos[comboKey] = (overrides[pid].variantCombos[comboKey] || 0) + q;
+                            } else {
+                                overrides[pid].variants = overrides[pid].variants || {};
+                                overrides[pid].variants[itemSize] = (overrides[pid].variants[itemSize] || 0) + q;
+                            }
                         }
                     }
                     localStorage.setItem('kappa_stock_overrides', JSON.stringify(overrides));
@@ -1550,8 +1564,13 @@
                                     prod.stock_quantity = Math.max(0, Number(prod.stock_quantity) - (item.qty || 1));
                                 }
                                 if (prod.product_variants && Array.isArray(prod.product_variants)) {
+                                    const targetSize = (item.size && item.size !== 'Default' && item.size !== 'N/A') ? String(item.size).trim().toUpperCase() : null;
+                                    const targetColor = (item.color && item.color !== 'Default' && item.color !== 'N/A') ? String(item.color).trim().toLowerCase() : null;
+
                                     prod.product_variants.forEach(v => {
-                                        if (v.size === item.size) {
+                                        const vSizeMatch = !targetSize || String(v.size || '').trim().toUpperCase() === targetSize;
+                                        const vColorMatch = !targetColor || String(v.color || '').trim().toLowerCase() === targetColor;
+                                        if (vSizeMatch && vColorMatch) {
                                             v.stock_quantity = Math.max(0, Number(v.stock_quantity || 0) - (item.qty || 1));
                                         }
                                     });
