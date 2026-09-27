@@ -432,8 +432,7 @@
             <a href="contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
         </nav>
 
-        <a href="/" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png"
-                alt="KAPPA Fashion Store"></a>
+        <a href="/" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store"></a>
 
         <div class="nav-actions">
             <button class="icon-btn cart-btn" id="cartBtn">
@@ -547,16 +546,19 @@
                 <button onclick="scrollExploreTrack(1)"
                     style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ccc; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">&#8250;</button>
                 <a href="javascript:void(0)" onclick="loadShopProducts(null, 'ALL PRODUCTS')"
-                    style="font-size: 12px; font-weight: 600; color: #111; text-decoration: underline; margin-left: 6px; white-space: nowrap;">View all</a>
+                    style="font-size: 12px; font-weight: 600; color: #111; text-decoration: underline; margin-left: 6px; white-space: nowrap;">View
+                    all</a>
             </div>
         </div>
 
         <!-- GENDER FILTER TABS -->
         <div id="shop-explore-gender-tabs" style="display:flex; gap:8px; margin:12px 0 16px; flex-wrap:wrap;">
             <button id="shop-explore-tab-men" onclick="shopFilterExploreByGender('men', this)"
-                style="padding:7px 20px; border-radius:20px; border:none; font-size:13px; font-weight:700; cursor:pointer; background:#111; color:#fff; transition:all .2s;">👔 Men</button>
+                style="padding:7px 20px; border-radius:20px; border:none; font-size:13px; font-weight:700; cursor:pointer; background:#111; color:#fff; transition:all .2s;">👔
+                Men</button>
             <button id="shop-explore-tab-women" onclick="shopFilterExploreByGender('women', this)"
-                style="padding:7px 20px; border-radius:20px; border:1px solid #ddd; font-size:13px; font-weight:700; cursor:pointer; background:#fff; color:#333; transition:all .2s;">👗 Women</button>
+                style="padding:7px 20px; border-radius:20px; border:1px solid #ddd; font-size:13px; font-weight:700; cursor:pointer; background:#fff; color:#333; transition:all .2s;">👗
+                Women</button>
         </div>
 
         <div class="explore-track-container">
@@ -1243,7 +1245,7 @@
                 const title = card.title || 'EXPLORE';
                 const subtitle = card.subtitle || '';
                 const btnText = card.button_text || 'SHOP NOW';
-                
+
                 // Determine gender strictly or with intelligent fallback from tag/title
                 let cardGender = card.gender;
                 if (!cardGender || cardGender === 'both') {
@@ -1632,7 +1634,7 @@
             // --- OPTIMISTIC RENDER FROM CACHE ---
             let cached = [];
             try { cached = JSON.parse(localStorage.getItem("kappa_cached_products") || "[]"); } catch (e) { }
-            
+
             if (cached.length > 0) {
                 let initialProducts = cached;
                 if (currentCategoryIds.length > 0) {
@@ -1697,13 +1699,8 @@
                 let hasPositive = false;
                 variants.forEach(v => {
                     const varKey = (product.id || product.slug) + '_' + (v.size || '') + '_' + (v.color || '');
-                    let qty = (overrides[varKey] !== undefined) ? Number(overrides[varKey]) : (Number(v.stock_quantity) || 0);
-                    if (prodOverride && prodOverride.variantCombos) {
-                        const comboKey = `${String(v.color || '').trim().toLowerCase()}:::${String(v.size || '').trim().toUpperCase()}`;
-                        if (prodOverride.variantCombos[comboKey]) {
-                            qty = Math.max(0, qty - prodOverride.variantCombos[comboKey]);
-                        }
-                    }
+                    const vOverride = overrides[varKey];
+                    const qty = (vOverride !== undefined) ? Number(vOverride) : (Number(v.stock_quantity) || 0);
                     if (qty > 0) hasPositive = true;
                     vTotal += Math.max(0, qty);
                 });
@@ -1981,7 +1978,7 @@
             }
 
             if (imageUrl) {
-                try { sessionStorage.setItem('kappa_pdp_selected_img', imageUrl); } catch (_) {}
+                try { sessionStorage.setItem('kappa_pdp_selected_img', imageUrl); } catch (_) { }
             }
 
             const thumbs = card.querySelectorAll('.boys-card-thumb');

@@ -63,7 +63,7 @@ testDatabaseConnection();
             const cleanUrl = (path === '/' ? '/' : path) + (loc.search || '');
             window.history.replaceState(null, '', cleanUrl);
         }
-    } catch (e) {}
+    } catch (e) { }
 
 
 
@@ -630,7 +630,7 @@ testDatabaseConnection();
             if (m && m[1]) return m[1].trim().toUpperCase();
         }
         let tagMap = {};
-        try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) {}
+        try { tagMap = JSON.parse(localStorage.getItem('kappa_product_tags') || '{}'); } catch (_) { }
         if (p.id && tagMap[String(p.id)]) return tagMap[String(p.id)].toUpperCase();
         return p.tag || 'NEW';
     }
@@ -679,14 +679,14 @@ testDatabaseConnection();
             const card = e.target.closest('.product-card');
             if (!card) return;
             const front = card.querySelector('.pc-img-front');
-            const back  = card.querySelector('.pc-img-hover');
+            const back = card.querySelector('.pc-img-hover');
             if (front && back) { front.style.opacity = '0'; back.style.opacity = '1'; }
         }, true);
         container.addEventListener('mouseleave', e => {
             const card = e.target.closest('.product-card');
             if (!card) return;
             const front = card.querySelector('.pc-img-front');
-            const back  = card.querySelector('.pc-img-hover');
+            const back = card.querySelector('.pc-img-hover');
             if (front && back) { front.style.opacity = '1'; back.style.opacity = '0'; }
         }, true);
     }
@@ -1069,13 +1069,13 @@ testDatabaseConnection();
                 const discPercent = discount || 0;
                 const promoInput = document.getElementById("promoInput");
                 const appliedPromo = discount > 0 ? (promoInput ? promoInput.value : "") : "";
-                
+
                 localStorage.setItem("kappa_checkout_cart", JSON.stringify(cartDetails));
                 localStorage.setItem("kappa_checkout_shipping", shipCost.toString());
                 localStorage.setItem("kappa_checkout_discount", discPercent.toString());
                 localStorage.setItem("kappa_checkout_promo_code", appliedPromo.trim().toUpperCase());
                 localStorage.removeItem("kappa_buy_now_item");
-                
+
                 window.location.href = "checkout.html";
             } catch (err) {
                 console.error("Checkout navigation error:", err);
@@ -1116,37 +1116,25 @@ testDatabaseConnection();
     }
 
 
-    window.modifyStockOnCartAction = async function(productId, size, color, deltaQty) {
+    window.modifyStockOnCartAction = async function (productId, size, color, deltaQty) {
         if (!productId || !deltaQty) return;
         const pid = String(productId);
         const qty = Number(deltaQty); // positive = deduct from stock, negative = add back to stock
 
-        const normSize = (size && size !== 'Default' && size !== 'N/A') ? String(size).trim() : null;
-        const normColor = (color && color !== 'Default' && color !== 'N/A') ? String(color).trim() : null;
-
         // 1. Update localStorage kappa_stock_overrides
         try {
             let overrides = {};
-            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) {}
+            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { }
             if (!overrides[pid]) {
-                overrides[pid] = { totalDeducted: 0, variants: {}, variantCombos: {} };
-            }
-            if (!overrides[pid].variantCombos) {
-                overrides[pid].variantCombos = {};
+                overrides[pid] = { totalDeducted: 0, variants: {} };
             }
             overrides[pid].totalDeducted = Math.max(0, (overrides[pid].totalDeducted || 0) + qty);
-
-            if (normSize) {
-                if (normColor) {
-                    const comboKey = `${normColor.toLowerCase()}:::${normSize.toUpperCase()}`;
-                    overrides[pid].variantCombos[comboKey] = Math.max(0, (overrides[pid].variantCombos[comboKey] || 0) + qty);
-                } else {
-                    overrides[pid].variants = overrides[pid].variants || {};
-                    overrides[pid].variants[normSize] = Math.max(0, (overrides[pid].variants[normSize] || 0) + qty);
-                }
+            if (size && size !== 'Default' && size !== 'N/A') {
+                overrides[pid].variants = overrides[pid].variants || {};
+                overrides[pid].variants[size] = Math.max(0, (overrides[pid].variants[size] || 0) + qty);
             }
             localStorage.setItem('kappa_stock_overrides', JSON.stringify(overrides));
-        } catch (_) {}
+        } catch (_) { }
 
         // 2. Update localStorage kappa_cached_products
         try {
@@ -1159,13 +1147,8 @@ testDatabaseConnection();
                         prod.stock_quantity = Math.max(0, Number(prod.stock_quantity) - qty);
                     }
                     if (prod.product_variants && Array.isArray(prod.product_variants)) {
-                        const targetSize = normSize ? normSize.toUpperCase() : null;
-                        const targetColor = normColor ? normColor.toLowerCase() : null;
-
                         prod.product_variants.forEach(v => {
-                            const vSizeMatch = !targetSize || String(v.size || '').trim().toUpperCase() === targetSize;
-                            const vColorMatch = !targetColor || String(v.color || '').trim().toLowerCase() === targetColor;
-                            if (vSizeMatch && vColorMatch) {
+                            if (v.size === size) {
                                 v.stock_quantity = Math.max(0, Number(v.stock_quantity || 0) - qty);
                             }
                         });
@@ -1173,7 +1156,7 @@ testDatabaseConnection();
                     localStorage.setItem("kappa_cached_products", JSON.stringify(cached));
                 }
             }
-        } catch (_) {}
+        } catch (_) { }
 
         // 3. Sync to Supabase in background
         try {
@@ -1188,16 +1171,16 @@ testDatabaseConnection();
                     body: JSON.stringify({
                         items: [{ id: pid, qty: qty, size: size, color: color }]
                     })
-                }).catch(() => {});
+                }).catch(() => { });
 
                 const client = window.supabaseClient || window._pdp;
                 if (client && typeof client.rpc === 'function') {
                     client.rpc('deduct_product_stock', {
                         p_items: [{ id: pid, qty: qty, size: size, color: color }]
-                    }).catch(() => {});
+                    }).catch(() => { });
                 }
             }
-        } catch (_) {}
+        } catch (_) { }
     };
 
     function syncCartFromStorage() {
@@ -1254,9 +1237,9 @@ testDatabaseConnection();
         const finalColor = actualColor || 'N/A';
         const finalName = actualName || p.name || 'Product';
 
-        const existing = cart.find(c => 
-            String(c.id) === String(id) && 
-            String(c.size).trim() === String(finalSize).trim() && 
+        const existing = cart.find(c =>
+            String(c.id) === String(id) &&
+            String(c.size).trim() === String(finalSize).trim() &&
             String(c.color).trim() === String(finalColor).trim()
         );
         if (existing) {
@@ -2066,9 +2049,9 @@ testDatabaseConnection();
             const userName = localStorage.getItem('kappa_congrats_user_name') || 'Valued Customer';
             localStorage.removeItem('kappa_show_congrats_popup');
             localStorage.removeItem('kappa_congrats_user_name');
-            
+
             closeAccountOverlay();
-            
+
             setTimeout(() => {
                 triggerCongratsPopup(userName);
             }, 350);
@@ -2090,9 +2073,9 @@ testDatabaseConnection();
             confetti.style.opacity = '1';
             confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
             confetti.style.transition = `all ${Math.random() * 2.5 + 1.5}s cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-            
+
             document.body.appendChild(confetti);
-            
+
             setTimeout(() => {
                 confetti.style.top = (Math.random() * 40 + 60) + 'vh';
                 confetti.style.left = (parseFloat(confetti.style.left) + (Math.random() * 100 - 50)) + 'vw';
@@ -2460,7 +2443,7 @@ testDatabaseConnection();
         const orders = loadOrders(userId);
         const count = orders.length;
         const links = [document.getElementById('mobileOrdersLink'), document.getElementById('popupMyOrders')];
-        
+
         links.forEach(link => {
             if (!link) return;
             let badge = link.querySelector('.orders-badge');
@@ -2992,7 +2975,7 @@ testDatabaseConnection();
             localStorage.setItem('kappa_congrats_user_name', fullName);
 
             // Log in user immediately
-            await supabaseClient.auth.signInWithPassword({ email, password }).catch(() => {});
+            await supabaseClient.auth.signInWithPassword({ email, password }).catch(() => { });
 
             // DIRECTLY NAVIGATE TO HOME PAGE & POPUP CONGRATULATIONS
             const pathname = window.location.pathname;
@@ -3264,7 +3247,7 @@ window.changeCardColor = function (thumbElement, colorName, imageUrl) {
         }
     }
     if (imageUrl) {
-        try { sessionStorage.setItem('kappa_pdp_selected_img', imageUrl); } catch (_) {}
+        try { sessionStorage.setItem('kappa_pdp_selected_img', imageUrl); } catch (_) { }
     }
 
     // Remove active styling from all sibling thumbnails, add to clicked one

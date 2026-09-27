@@ -37,31 +37,22 @@ module.exports = async (req, res) => {
 
             // 1. Update variant stock if size specified
             if (size) {
-                // Fetch all variants for this product to match case-insensitively and safely
-                const vRes = await fetch(`${SUPABASE_URL}/rest/v1/product_variants?product_id=eq.${prodId}`, { headers });
-                const allVariants = vRes.ok ? await vRes.json() : [];
-
-                const normSize = size.trim().toLowerCase();
-                const normColor = color ? color.trim().toLowerCase() : null;
-
-                let matchingVariants = [];
-                if (Array.isArray(allVariants) && allVariants.length > 0) {
-                    if (normColor) {
-                        // Strict match on both color AND size
-                        matchingVariants = allVariants.filter(v => 
-                            String(v.size || '').trim().toLowerCase() === normSize &&
-                            String(v.color || '').trim().toLowerCase() === normColor
-                        );
-                    } else {
-                        // Only size was specified
-                        matchingVariants = allVariants.filter(v => 
-                            String(v.size || '').trim().toLowerCase() === normSize
-                        );
-                    }
+                let variantQuery = `${SUPABASE_URL}/rest/v1/product_variants?product_id=eq.${prodId}&size=eq.${encodeURIComponent(size)}`;
+                if (color) {
+                    variantQuery += `&color=eq.${encodeURIComponent(color)}`;
                 }
 
-                if (matchingVariants.length > 0) {
-                    for (const variant of matchingVariants) {
+                const vRes = await fetch(variantQuery, { headers });
+                let variants = vRes.ok ? await vRes.json() : [];
+
+                // Fallback to size only if color match didn't find rows
+                if ((!variants || variants.length === 0) && color) {
+                    const vResSize = await fetch(`${SUPABASE_URL}/rest/v1/product_variants?product_id=eq.${prodId}&size=eq.${encodeURIComponent(size)}`, { headers });
+                    if (vResSize.ok) variants = await vResSize.json();
+                }
+
+                if (Array.isArray(variants) && variants.length > 0) {
+                    for (const variant of variants) {
                         const currentStock = Number(variant.stock_quantity || 0);
                         const newStock = Math.max(0, currentStock - qty);
 
@@ -79,7 +70,6 @@ module.exports = async (req, res) => {
                             variantId: variant.id,
                             productId: prodId,
                             size: variant.size,
-                            color: variant.color,
                             previousStock: currentStock,
                             newStock
                         });

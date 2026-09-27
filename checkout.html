@@ -38,28 +38,9 @@
             padding-top: calc(var(--marquee-h) + var(--nav-h));
         }
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - KAPPA</title>
-    <link rel="icon" type="image/png" href="assets/kappalogo_favion.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Cormorant+Garamond:ital,wght@1,500&display=swap"
-        rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.18/dist/lenis.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <style>
-        @media (max-width: 768px) {
+        < !DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Checkout - KAPPA</title><link rel="icon" type="image/png" href="assets/kappalogo_favion.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Cormorant+Garamond:ital,wght@1,500&display=swap"
+        rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+        rel="stylesheet"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="https://unpkg.com/lenis@1.1.18/dist/lenis.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://checkout.razorpay.com/v1/checkout.js"></script><style>@media (max-width: 768px) {
             .marquee {
                 display: none !important;
             }
@@ -87,7 +68,10 @@
         /* Success Modal */
         .success-modal-overlay {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
             z-index: 10000;
@@ -98,10 +82,12 @@
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
+
         .success-modal-overlay.show {
             opacity: 1;
             pointer-events: auto;
         }
+
         .success-modal-box {
             background: #fff;
             padding: 36px 28px;
@@ -116,9 +102,11 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             position: relative;
         }
+
         .success-modal-overlay.show .success-modal-box {
             transform: translateY(0);
         }
+
         .success-modal-icon {
             width: 60px;
             height: 60px;
@@ -130,22 +118,26 @@
             justify-content: center;
             margin: 0 auto 16px;
         }
+
         .success-modal-icon svg {
             width: 30px;
             height: 30px;
         }
+
         .success-modal-title {
             font-family: var(--font-heading);
             font-size: 24px;
             color: #111;
             margin-bottom: 6px;
         }
+
         .success-modal-text {
             color: #666;
             font-size: 14px;
             margin-bottom: 20px;
             line-height: 1.5;
         }
+
         .post-order-reviews-section {
             background: #fdfdfd;
             border: 1px solid #e8e8e8;
@@ -154,6 +146,7 @@
             margin-bottom: 20px;
             text-align: left;
         }
+
         .post-order-reviews-title {
             font-size: 13px;
             font-weight: 700;
@@ -165,6 +158,7 @@
             align-items: center;
             gap: 6px;
         }
+
         .post-order-items-list {
             display: flex;
             flex-direction: column;
@@ -172,6 +166,7 @@
             max-height: 220px;
             overflow-y: auto;
         }
+
         .post-order-item-row {
             display: flex;
             align-items: center;
@@ -182,12 +177,14 @@
             padding: 10px 12px;
             gap: 12px;
         }
+
         .post-order-item-left {
             display: flex;
             align-items: center;
             gap: 10px;
             min-width: 0;
         }
+
         .post-order-item-img {
             width: 44px;
             height: 44px;
@@ -196,6 +193,7 @@
             background: #f4f4f4;
             flex-shrink: 0;
         }
+
         .post-order-item-name {
             font-size: 13px;
             font-weight: 600;
@@ -205,10 +203,12 @@
             text-overflow: ellipsis;
             max-width: 170px;
         }
+
         .post-order-item-meta {
             font-size: 11px;
             color: #777;
         }
+
         .btn-order-item-review {
             background: #FFD700;
             color: #111;
@@ -225,19 +225,23 @@
             transition: all 0.2s;
             flex-shrink: 0;
         }
+
         .btn-order-item-review:hover {
             background: #e6c200;
             transform: translateY(-1px);
         }
+
         .btn-order-item-review.reviewed {
             background: #e8f5e9;
             color: #2e7d32;
             cursor: default;
         }
+
         .success-modal-actions {
             display: flex;
             gap: 10px;
         }
+
         .success-modal-btn {
             background: #111;
             color: #fff;
@@ -255,20 +259,27 @@
             align-items: center;
             justify-content: center;
         }
+
         .success-modal-btn:hover {
             background: #333;
         }
+
         .success-modal-btn-alt {
             background: #f0f0f0;
             color: #111;
         }
+
         .success-modal-btn-alt:hover {
             background: #e0e0e0;
         }
+
         /* Checkout inline review modal */
         .checkout-review-modal-box {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: #fff;
             border-radius: 20px;
             padding: 28px;
@@ -277,6 +288,7 @@
             text-align: left;
             z-index: 10;
         }
+
         .checkout-review-modal-box.active {
             display: flex;
         }
@@ -569,8 +581,7 @@
             <a href="contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
         </nav>
 
-        <a href="/" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png"
-                alt="KAPPA Fashion Store"></a>
+        <a href="/" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store"></a>
 
         <div class="nav-actions">
             <button class="icon-btn cart-btn" id="cartBtn">
@@ -705,7 +716,8 @@
                 <div class="form-row" style="grid-template-columns: 1fr;">
                     <div class="form-group">
                         <label for="bill-address">Shipping Address *</label>
-                        <input type="text" id="bill-address" placeholder="Apartment, suite, unit, street address" required style="width: 100%;">
+                        <input type="text" id="bill-address" placeholder="Apartment, suite, unit, street address"
+                            required style="width: 100%;">
                     </div>
                 </div>
 
@@ -730,28 +742,43 @@
                 <button type="submit" class="btn-order" id="btnPlaceOrder">Place Order</button>
 
                 <!-- Bank-Grade Security & Fraud Protection Assurance -->
-                <div class="checkout-security-badge" style="margin-top: 18px; padding: 14px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <div class="checkout-security-badge"
+                    style="margin-top: 18px; padding: 14px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <div
+                        style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                         <span>256-Bit SSL End-to-End Encrypted Checkout</span>
                     </div>
                     <p style="margin: 0 0 10px 0; font-size: 11px; color: #64748b; line-height: 1.5;">
-                        Your payment is processed via RBI-authorized secure payment gateways. We never store or view your full card numbers, CVV, or UPI PINs.
+                        Your payment is processed via RBI-authorized secure payment gateways. We never store or view
+                        your full card numbers, CVV, or UPI PINs.
                     </p>
-                    <div style="display: flex; align-items: center; gap: 14px; font-size: 11px; font-weight: 600; color: #475569; flex-wrap: wrap; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+                    <div
+                        style="display: flex; align-items: center; gap: 14px; font-size: 11px; font-weight: 600; color: #475569; flex-wrap: wrap; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
                         <span style="display: inline-flex; align-items: center; gap: 4px;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb"
+                                stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
                             PCI-DSS Certified
                         </span>
                         <span style="display: inline-flex; align-items: center; gap: 4px;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a"
+                                stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"></path>
+                            </svg>
                             Fraud Protected
                         </span>
                         <span style="display: inline-flex; align-items: center; gap: 4px;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
                             Instant Confirmation
                         </span>
                     </div>
@@ -935,7 +962,7 @@
                 </div>
 
                 <!-- RIGHT FORM SIDE (WHITE) -->
-                                <div class="auth-form-side">
+                <div class="auth-form-side">
                     <button type="button" class="card-close-btn" aria-label="Close">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                             stroke-linecap="round" stroke-linejoin="round">
@@ -943,7 +970,7 @@
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
-                    
+
                     <!-- LOGIN PANEL -->
                     <section class="panel active" id="panel-login">
                         <h1 class="headline" data-i18n="acc_welcome" style="margin-bottom: 24px;">SIGN IN</h1>
@@ -963,9 +990,11 @@
                                 <span data-i18n="acc_google">Continue with Google</span>
                             </button>
 
-                            <p class="auth-legal-note" style="margin-top: 12px; text-align: center; font-size: 11px; color: #777;">
-                                By signing in, you agree to our <a href="terms.html" style="text-decoration: underline;">Terms of Service</a> and <a
-                                    href="privacy.html" style="text-decoration: underline;">Privacy Policy</a>
+                            <p class="auth-legal-note"
+                                style="margin-top: 12px; text-align: center; font-size: 11px; color: #777;">
+                                By signing in, you agree to our <a href="terms.html"
+                                    style="text-decoration: underline;">Terms of Service</a> and <a href="privacy.html"
+                                    style="text-decoration: underline;">Privacy Policy</a>
                             </p>
                         </div>
                     </section>
@@ -973,40 +1002,73 @@
                     <!-- SIGN UP PANEL -->
                     <section class="panel" id="panel-signup">
                         <h1 class="headline" style="margin-bottom: 4px;">CREATE ACCOUNT</h1>
-                        <p class="subline" style="margin-bottom: 20px; text-align: center;">Already have an account? <span class="link-highlight" id="go-login">Sign in</span></p>
+                        <p class="subline" style="margin-bottom: 20px; text-align: center;">Already have an account?
+                            <span class="link-highlight" id="go-login">Sign in</span></p>
 
                         <form id="signup-form">
                             <div class="field">
                                 <label for="su-name">Full Name</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
                                     <input type="text" id="su-name" placeholder="John Doe" required>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-email">Email Address</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <path
+                                            d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                        </path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
                                     <input type="email" id="su-email" placeholder="example@gmail.com" required>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-password">Password</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                    <input type="password" id="su-password" class="has-toggle" placeholder="At least 6 characters" required>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="su-password" class="has-toggle"
+                                        placeholder="At least 6 characters" required>
                                     <button type="button" class="toggle-eye" data-target="su-password">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-confirm">Confirm Password</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                    <input type="password" id="su-confirm" class="has-toggle" placeholder="Re-enter password" required>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="su-confirm" class="has-toggle"
+                                        placeholder="Re-enter password" required>
                                     <button type="button" class="toggle-eye" data-target="su-confirm">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
@@ -1016,10 +1078,10 @@
                         </form>
                     </section>
                 </div>
-                    </section>
-                </div>
+                </section>
             </div>
         </div>
+    </div>
     </div>
     <div class="overlay" id="quickViewOverlay">
         <div class="qv-panel" id="qvPanel"></div>
@@ -1467,7 +1529,7 @@
                         if (!rpcErr) {
                             apiHandled = true;
                         }
-                    } catch (_) {}
+                    } catch (_) { }
                 }
 
                 // Layer 3: Direct client update attempt as fallback
@@ -1480,19 +1542,17 @@
 
                         try {
                             if (prodId && size) {
-                                const { data: vList } = await supabaseClient
+                                let vQuery = supabaseClient
                                     .from('product_variants')
-                                    .select('id, stock_quantity, size, color')
-                                    .eq('product_id', prodId);
+                                    .select('id, stock_quantity')
+                                    .eq('product_id', prodId)
+                                    .eq('size', size);
 
+                                if (color) vQuery = vQuery.eq('color', color);
+
+                                const { data: vList } = await vQuery;
                                 if (vList && vList.length > 0) {
-                                    const normS = String(size).trim().toLowerCase();
-                                    const normC = color ? String(color).trim().toLowerCase() : null;
-                                    const matched = vList.filter(v => 
-                                        String(v.size || '').trim().toLowerCase() === normS &&
-                                        (!normC || String(v.color || '').trim().toLowerCase() === normC)
-                                    );
-                                    for (const v of matched) {
+                                    for (const v of vList) {
                                         const newVStock = Math.max(0, Number(v.stock_quantity || 0) - qty);
                                         await supabaseClient
                                             .from('product_variants')
@@ -1517,7 +1577,7 @@
                                         .eq('id', prodId);
                                 }
                             }
-                        } catch (_) {}
+                        } catch (_) { }
                     }
                 }
 
@@ -1531,24 +1591,12 @@
                     for (const item of targetItems) {
                         const pid = String(item.id);
                         if (!overrides[pid]) {
-                            overrides[pid] = { totalDeducted: 0, variants: {}, variantCombos: {} };
-                        }
-                        if (!overrides[pid].variantCombos) {
-                            overrides[pid].variantCombos = {};
+                            overrides[pid] = { totalDeducted: 0, variants: {} };
                         }
                         const q = item.qty || 1;
                         overrides[pid].totalDeducted = (overrides[pid].totalDeducted || 0) + q;
-                        const itemSize = (item.size && item.size !== 'Default' && item.size !== 'N/A') ? String(item.size).trim() : null;
-                        const itemColor = (item.color && item.color !== 'Default' && item.color !== 'N/A') ? String(item.color).trim() : null;
-
-                        if (itemSize) {
-                            if (itemColor) {
-                                const comboKey = `${itemColor.toLowerCase()}:::${itemSize.toUpperCase()}`;
-                                overrides[pid].variantCombos[comboKey] = (overrides[pid].variantCombos[comboKey] || 0) + q;
-                            } else {
-                                overrides[pid].variants = overrides[pid].variants || {};
-                                overrides[pid].variants[itemSize] = (overrides[pid].variants[itemSize] || 0) + q;
-                            }
+                        if (item.size && item.size !== 'Default' && item.size !== 'N/A') {
+                            overrides[pid].variants[item.size] = (overrides[pid].variants[item.size] || 0) + q;
                         }
                     }
                     localStorage.setItem('kappa_stock_overrides', JSON.stringify(overrides));
@@ -1564,13 +1612,8 @@
                                     prod.stock_quantity = Math.max(0, Number(prod.stock_quantity) - (item.qty || 1));
                                 }
                                 if (prod.product_variants && Array.isArray(prod.product_variants)) {
-                                    const targetSize = (item.size && item.size !== 'Default' && item.size !== 'N/A') ? String(item.size).trim().toUpperCase() : null;
-                                    const targetColor = (item.color && item.color !== 'Default' && item.color !== 'N/A') ? String(item.color).trim().toLowerCase() : null;
-
                                     prod.product_variants.forEach(v => {
-                                        const vSizeMatch = !targetSize || String(v.size || '').trim().toUpperCase() === targetSize;
-                                        const vColorMatch = !targetColor || String(v.color || '').trim().toLowerCase() === targetColor;
-                                        if (vSizeMatch && vColorMatch) {
+                                        if (v.size === item.size) {
                                             v.stock_quantity = Math.max(0, Number(v.stock_quantity || 0) - (item.qty || 1));
                                         }
                                     });
@@ -1579,13 +1622,13 @@
                         }
                         localStorage.setItem("kappa_cached_products", JSON.stringify(cached));
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
 
             // 3. Generate standard UUID for the order so it is database-compliant
             const newOrderId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
                 ? crypto.randomUUID()
-                : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                     const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
                     return v.toString(16);
                 });
@@ -1698,7 +1741,7 @@
                         uOrders.unshift(orderRecord);
                         localStorage.setItem(userKey, JSON.stringify(uOrders));
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
 
             const cartKey = await getCartKey();
@@ -1708,7 +1751,7 @@
             localStorage.removeItem('kappa_buy_now_item');
             localStorage.removeItem('kappa_checkout_shipping');
             localStorage.removeItem('kappa_checkout_discount');
-            
+
             // Dispatch storage event manually so script.js in other tabs can update UI
             window.dispatchEvent(new Event('storage'));
         }
@@ -1763,7 +1806,7 @@
             }).join('');
         }
 
-        window.openCheckoutReviewModal = function(itemIdx) {
+        window.openCheckoutReviewModal = function (itemIdx) {
             const item = window.activeCheckoutItems[itemIdx];
             if (!item) return;
 
@@ -1785,13 +1828,13 @@
             popup.classList.add('active');
         };
 
-        window.closeCheckoutReviewModal = function() {
+        window.closeCheckoutReviewModal = function () {
             const popup = document.getElementById('checkoutReviewModalBox');
             if (popup) popup.classList.remove('active');
             window.activeReviewingItem = null;
         };
 
-        window.setCheckoutStarRating = function(rating) {
+        window.setCheckoutStarRating = function (rating) {
             const rInput = document.getElementById('crFormRating');
             if (rInput) rInput.value = rating;
 
@@ -1806,7 +1849,7 @@
             if (sEl) sEl.textContent = sentiments[rating] || `${rating} Stars`;
         };
 
-        window.submitCheckoutReview = async function() {
+        window.submitCheckoutReview = async function () {
             if (!window.activeReviewingItem) return;
             const item = window.activeReviewingItem;
             const ratingVal = parseInt(document.getElementById('crFormRating')?.value || '5', 10);
@@ -1880,7 +1923,7 @@
             }
         };
 
-        window.closeSuccessModal = function() {
+        window.closeSuccessModal = function () {
             window.location.href = '/';
         };
 
@@ -1907,7 +1950,7 @@
                     if (response.ok) {
                         order = await response.json();
                     }
-                } catch (_) {}
+                } catch (_) { }
 
                 const options = {
                     key: (order && order.key_id) || "rzp_test_1234567890",
@@ -2021,12 +2064,14 @@
     <div class="success-modal-overlay" id="paymentSuccessModal">
         <div class="success-modal-box">
             <div class="success-modal-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                    stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
             </div>
             <h2 class="success-modal-title">Thank You!</h2>
-            <p class="success-modal-text">Your order has been placed successfully. Please share your rating and review for your purchased items below!</p>
+            <p class="success-modal-text">Your order has been placed successfully. Please share your rating and review
+                for your purchased items below!</p>
 
             <!-- Post-Order Rate & Review List -->
             <div class="post-order-reviews-section">
@@ -2046,43 +2091,72 @@
 
             <!-- Inline Review Submission Modal -->
             <div class="checkout-review-modal-box" id="checkoutReviewModalBox">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #eee; padding-bottom:10px;">
-                    <h3 style="font-size:15px; font-weight:800; text-transform:uppercase; margin:0; color:#111;">Write Review</h3>
-                    <button type="button" onclick="closeCheckoutReviewModal()" style="background:none; border:none; font-size:18px; cursor:pointer; color:#888;">✕</button>
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                    <h3 style="font-size:15px; font-weight:800; text-transform:uppercase; margin:0; color:#111;">Write
+                        Review</h3>
+                    <button type="button" onclick="closeCheckoutReviewModal()"
+                        style="background:none; border:none; font-size:18px; cursor:pointer; color:#888;">✕</button>
                 </div>
 
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; background:#f9f9f9; padding:10px; border-radius:8px;">
-                    <img src="assets/Frame 1.jpg" id="crItemImg" style="width:42px; height:42px; border-radius:6px; object-fit:cover;">
-                    <div id="crItemName" style="font-size:13px; font-weight:700; color:#111; line-height:1.3;">Product Name</div>
+                <div
+                    style="display:flex; align-items:center; gap:12px; margin-bottom:16px; background:#f9f9f9; padding:10px; border-radius:8px;">
+                    <img src="assets/Frame 1.jpg" id="crItemImg"
+                        style="width:42px; height:42px; border-radius:6px; object-fit:cover;">
+                    <div id="crItemName" style="font-size:13px; font-weight:700; color:#111; line-height:1.3;">Product
+                        Name</div>
                 </div>
 
-                <form onsubmit="event.preventDefault(); submitCheckoutReview();" style="display:flex; flex-direction:column; gap:12px;">
+                <form onsubmit="event.preventDefault(); submitCheckoutReview();"
+                    style="display:flex; flex-direction:column; gap:12px;">
                     <div>
-                        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:6px;">Your Rating</label>
-                        <div id="crStarPicker" style="display:flex; gap:6px; font-size:26px; cursor:pointer; align-items:center;">
-                            <span class="cr-star-btn" data-val="1" onclick="setCheckoutStarRating(1)" style="color:#FFB800;">★</span>
-                            <span class="cr-star-btn" data-val="2" onclick="setCheckoutStarRating(2)" style="color:#FFB800;">★</span>
-                            <span class="cr-star-btn" data-val="3" onclick="setCheckoutStarRating(3)" style="color:#FFB800;">★</span>
-                            <span class="cr-star-btn" data-val="4" onclick="setCheckoutStarRating(4)" style="color:#FFB800;">★</span>
-                            <span class="cr-star-btn" data-val="5" onclick="setCheckoutStarRating(5)" style="color:#FFB800;">★</span>
-                            <span id="crRatingSentiment" style="font-size:12px; font-weight:600; color:#111; margin-left:8px;">5 - Excellent</span>
+                        <label
+                            style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:6px;">Your
+                            Rating</label>
+                        <div id="crStarPicker"
+                            style="display:flex; gap:6px; font-size:26px; cursor:pointer; align-items:center;">
+                            <span class="cr-star-btn" data-val="1" onclick="setCheckoutStarRating(1)"
+                                style="color:#FFB800;">★</span>
+                            <span class="cr-star-btn" data-val="2" onclick="setCheckoutStarRating(2)"
+                                style="color:#FFB800;">★</span>
+                            <span class="cr-star-btn" data-val="3" onclick="setCheckoutStarRating(3)"
+                                style="color:#FFB800;">★</span>
+                            <span class="cr-star-btn" data-val="4" onclick="setCheckoutStarRating(4)"
+                                style="color:#FFB800;">★</span>
+                            <span class="cr-star-btn" data-val="5" onclick="setCheckoutStarRating(5)"
+                                style="color:#FFB800;">★</span>
+                            <span id="crRatingSentiment"
+                                style="font-size:12px; font-weight:600; color:#111; margin-left:8px;">5 -
+                                Excellent</span>
                         </div>
                         <input type="hidden" id="crFormRating" value="5">
                     </div>
 
                     <div>
-                        <label for="crAuthorName" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:4px;">Your Name</label>
-                        <input type="text" id="crAuthorName" placeholder="Alex" style="width:100%; padding:9px 12px; border:1px solid #ccc; border-radius:6px; font-size:13px;" required>
+                        <label for="crAuthorName"
+                            style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:4px;">Your
+                            Name</label>
+                        <input type="text" id="crAuthorName" placeholder="Alex"
+                            style="width:100%; padding:9px 12px; border:1px solid #ccc; border-radius:6px; font-size:13px;"
+                            required>
                     </div>
 
                     <div>
-                        <label for="crComments" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:4px;">Review &amp; Feedback</label>
-                        <textarea id="crComments" placeholder="Share your experience with the product fit, quality, and design..." style="width:100%; height:75px; padding:9px 12px; border:1px solid #ccc; border-radius:6px; font-size:13px; resize:none;" required></textarea>
+                        <label for="crComments"
+                            style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#444; margin-bottom:4px;">Review
+                            &amp; Feedback</label>
+                        <textarea id="crComments"
+                            placeholder="Share your experience with the product fit, quality, and design..."
+                            style="width:100%; height:75px; padding:9px 12px; border:1px solid #ccc; border-radius:6px; font-size:13px; resize:none;"
+                            required></textarea>
                     </div>
 
                     <div style="display:flex; gap:10px; margin-top:6px;">
-                        <button type="button" onclick="closeCheckoutReviewModal()" style="flex:1; padding:10px; background:#f0f0f0; border:none; border-radius:6px; font-weight:600; font-size:12px; cursor:pointer;">Cancel</button>
-                        <button type="submit" id="btnSubmitCrReview" style="flex:2; padding:10px; background:#111; color:#fff; border:none; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;">Submit Review</button>
+                        <button type="button" onclick="closeCheckoutReviewModal()"
+                            style="flex:1; padding:10px; background:#f0f0f0; border:none; border-radius:6px; font-weight:600; font-size:12px; cursor:pointer;">Cancel</button>
+                        <button type="submit" id="btnSubmitCrReview"
+                            style="flex:2; padding:10px; background:#111; color:#fff; border:none; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;">Submit
+                            Review</button>
                     </div>
                 </form>
             </div>

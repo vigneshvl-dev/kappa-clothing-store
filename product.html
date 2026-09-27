@@ -308,7 +308,7 @@
             transition: all 0.2s ease;
             position: relative;
             box-sizing: border-box;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
         }
 
         .color-box:hover {
@@ -423,8 +423,10 @@
         .size-box.out-of-stock-box::after {
             content: '';
             position: absolute;
-            left: 6px; right: 6px;
-            top: 50%; height: 1.5px;
+            left: 6px;
+            right: 6px;
+            top: 50%;
+            height: 1.5px;
             background: #bbb;
             transform: rotate(-15deg);
         }
@@ -460,16 +462,19 @@
             border: 1px solid;
             transition: all 0.2s ease;
         }
+
         #size-stock-info.info-in-stock {
             background: #e8f5e9;
             border-color: #a5d6a7;
             color: #1b5e20;
         }
+
         #size-stock-info.info-low-stock {
             background: #fff3e0;
             border-color: #ffcc80;
             color: #e65100;
         }
+
         #size-stock-info.info-out-stock {
             background: #f5f5f5;
             border-color: #e0e0e0;
@@ -914,28 +919,33 @@
             cursor: pointer;
             transition: opacity 0.2s;
         }
+
         .pdp-rating-snippet:hover {
             opacity: 0.8;
             text-decoration: underline;
         }
+
         .pdp-rating-snippet-stars {
             color: #FFB800;
             font-size: 14px;
             letter-spacing: 1px;
         }
+
         .pdp-reviews-section {
             max-width: 1100px;
             margin: 60px auto 20px;
             padding: 0 40px;
             font-family: 'Inter', sans-serif;
         }
+
         .pdp-reviews-box {
             background: #fff;
             border: 1px solid #e8e8e8;
             border-radius: 12px;
             padding: 36px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
         }
+
         .pdp-reviews-topbar {
             display: flex;
             justify-content: space-between;
@@ -946,6 +956,7 @@
             flex-wrap: wrap;
             gap: 20px;
         }
+
         .pdp-reviews-title-wrap h3 {
             font-size: 20px;
             font-weight: 800;
@@ -954,10 +965,12 @@
             color: #111;
             margin-bottom: 6px;
         }
+
         .pdp-reviews-title-wrap p {
             font-size: 13px;
             color: #666;
         }
+
         .btn-write-review {
             display: inline-flex;
             align-items: center;
@@ -974,11 +987,13 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .btn-write-review:hover {
             background: #333;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
+
         .pdp-reviews-summary-grid {
             display: grid;
             grid-template-columns: 240px 1fr;
@@ -988,6 +1003,7 @@
             border-bottom: 1px solid #f0f0f0;
             align-items: center;
         }
+
         .pdp-rating-big-score {
             text-align: center;
             background: #fafafa;
@@ -995,6 +1011,7 @@
             padding: 24px;
             border: 1px solid #f0f0f0;
         }
+
         .pdp-rating-big-num {
             font-size: 48px;
             font-weight: 800;
@@ -1002,22 +1019,26 @@
             line-height: 1;
             margin-bottom: 8px;
         }
+
         .pdp-rating-big-stars {
             color: #FFB800;
             font-size: 20px;
             letter-spacing: 3px;
             margin-bottom: 6px;
         }
+
         .pdp-rating-count-text {
             font-size: 12px;
             color: #777;
             font-weight: 500;
         }
+
         .pdp-breakdown-bars {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
+
         .pdp-bar-row {
             display: flex;
             align-items: center;
@@ -1026,12 +1047,14 @@
             color: #555;
             font-weight: 600;
         }
+
         .pdp-bar-label {
             width: 45px;
             display: flex;
             align-items: center;
             gap: 2px;
         }
+
         .pdp-bar-track {
             flex: 1;
             height: 8px;
@@ -1039,6 +1062,7 @@
             border-radius: 4px;
             overflow: hidden;
         }
+
         .pdp-bar-fill {
             height: 100%;
             background: #FFB800;
@@ -1046,12 +1070,14 @@
             width: 0%;
             transition: width 0.4s ease;
         }
+
         .pdp-bar-count {
             width: 35px;
             text-align: right;
             color: #888;
             font-size: 11px;
         }
+
         /* Write Review Form Card */
         .pdp-review-form-panel {
             background: #fdfdfd;
@@ -1062,10 +1088,19 @@
             display: none;
             animation: fadeInDown 0.3s ease;
         }
+
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .pdp-form-title {
             font-size: 16px;
             font-weight: 800;
@@ -1077,9 +1112,11 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .pdp-star-picker-wrap {
             margin-bottom: 20px;
         }
+
         .pdp-star-picker-label {
             font-size: 12px;
             font-weight: 700;
@@ -1088,11 +1125,13 @@
             margin-bottom: 8px;
             display: block;
         }
+
         .pdp-interactive-stars {
             display: inline-flex;
             gap: 6px;
             cursor: pointer;
         }
+
         .pdp-star-btn {
             font-size: 28px;
             color: #ddd;
@@ -1100,11 +1139,13 @@
             user-select: none;
             line-height: 1;
         }
+
         .pdp-star-btn.active,
         .pdp-star-btn.hover {
             color: #FFB800;
             transform: scale(1.1);
         }
+
         .pdp-rating-sentiment {
             display: inline-block;
             margin-left: 12px;
@@ -1113,15 +1154,18 @@
             color: #111;
             vertical-align: middle;
         }
+
         .pdp-form-row-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
             margin-bottom: 16px;
         }
+
         .pdp-input-group {
             margin-bottom: 16px;
         }
+
         .pdp-input-group label {
             display: block;
             font-size: 12px;
@@ -1130,6 +1174,7 @@
             color: #333;
             margin-bottom: 6px;
         }
+
         .pdp-input-field,
         .pdp-textarea-field {
             width: 100%;
@@ -1142,21 +1187,25 @@
             transition: border-color 0.2s, box-shadow 0.2s;
             background: #fff;
         }
+
         .pdp-input-field:focus,
         .pdp-textarea-field:focus {
             border-color: #111;
-            box-shadow: 0 0 0 2px rgba(0,0,0,0.06);
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.06);
         }
+
         .pdp-textarea-field {
             resize: vertical;
             min-height: 100px;
         }
+
         .pdp-form-actions {
             display: flex;
             gap: 12px;
             justify-content: flex-end;
             margin-top: 10px;
         }
+
         .btn-cancel-review {
             background: #f0f0f0;
             color: #333;
@@ -1167,6 +1216,7 @@
             font-size: 13px;
             cursor: pointer;
         }
+
         .btn-submit-review {
             background: #111;
             color: #fff;
@@ -1178,15 +1228,18 @@
             cursor: pointer;
             transition: background 0.2s;
         }
+
         .btn-submit-review:hover {
             background: #333;
         }
+
         /* Reviews list */
         .pdp-reviews-list {
             display: flex;
             flex-direction: column;
             gap: 18px;
         }
+
         .pdp-review-card {
             padding: 22px;
             border-radius: 8px;
@@ -1194,10 +1247,12 @@
             background: #fafafa;
             transition: transform 0.2s, box-shadow 0.2s;
         }
+
         .pdp-review-card:hover {
             background: #fff;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
         }
+
         .pdp-review-card-head {
             display: flex;
             justify-content: space-between;
@@ -1206,11 +1261,13 @@
             flex-wrap: wrap;
             gap: 8px;
         }
+
         .pdp-reviewer-profile {
             display: flex;
             align-items: center;
             gap: 12px;
         }
+
         .pdp-reviewer-avatar {
             width: 38px;
             height: 38px;
@@ -1224,6 +1281,7 @@
             justify-content: center;
             flex-shrink: 0;
         }
+
         .pdp-reviewer-name {
             font-size: 14px;
             font-weight: 700;
@@ -1232,6 +1290,7 @@
             align-items: center;
             gap: 6px;
         }
+
         .pdp-verified-badge {
             display: inline-flex;
             align-items: center;
@@ -1245,49 +1304,59 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
         .pdp-review-date {
             font-size: 12px;
             color: #888;
         }
+
         .pdp-review-stars {
             color: #FFB800;
             font-size: 15px;
             letter-spacing: 2px;
             margin-bottom: 8px;
         }
+
         .pdp-review-title {
             font-size: 14px;
             font-weight: 700;
             color: #111;
             margin-bottom: 6px;
         }
+
         .pdp-review-comment {
             font-size: 13.5px;
             color: #444;
             line-height: 1.6;
         }
+
         .pdp-no-reviews {
             text-align: center;
             padding: 40px 20px;
             color: #777;
         }
+
         .pdp-no-reviews-icon {
             font-size: 36px;
             margin-bottom: 12px;
             color: #FFB800;
         }
+
         @media (max-width: 768px) {
             .pdp-reviews-section {
                 padding: 0 20px;
                 margin-top: 40px;
             }
+
             .pdp-reviews-box {
                 padding: 20px;
             }
+
             .pdp-reviews-summary-grid {
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
+
             .pdp-form-row-2 {
                 grid-template-columns: 1fr;
             }
@@ -1312,16 +1381,22 @@
             <a href="contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
         </nav>
 
-        <a href="/" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png"
-                alt="KAPPA Fashion Store"></a>
+        <a href="/" class="nav-logo"><img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store"></a>
 
         <div class="nav-actions">
             <button class="icon-btn cart-btn" id="cartBtn">
                 <span class="badge"></span>
-                <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
+                <svg viewBox="0 0 24 24">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path>
+                </svg>
             </button>
             <button class="icon-btn profile-btn" id="profileBtn">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path></svg>
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
+                </svg>
             </button>
             <div class="profile-popup" id="profilePopup">
                 <div class="profile-popup-header">
@@ -1336,9 +1411,28 @@
                 </div>
                 <div class="profile-divider"></div>
                 <ul class="profile-popup-menu">
-                    <li><a href="my-orders.html" id="popupMyOrders"><span class="menu-icon-wrap" style="background-color:#ffeef2;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span><span class="menu-label">My Orders</span></a></li>
-                    <li><a href="saved-address.html" id="popupSavedAddress"><span class="menu-icon-wrap" style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span><span class="menu-label">Saved Address</span></a></li>
-                    <li><a href="#" id="popupLogout"><span class="menu-icon-wrap" style="background-color:#ffebee;"><svg class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></span><span class="menu-label">Logout</span></a></li>
+                    <li><a href="my-orders.html" id="popupMyOrders"><span class="menu-icon-wrap"
+                                style="background-color:#ffeef2;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
+                                    fill="none" stroke="#ff4d7a" stroke-width="2.2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                </svg></span><span class="menu-label">My Orders</span></a></li>
+                    <li><a href="saved-address.html" id="popupSavedAddress"><span class="menu-icon-wrap"
+                                style="background-color:#f3e5f5;"><svg class="menu-svg-icon" viewBox="0 0 24 24"
+                                    fill="none" stroke="#8e24aa" stroke-width="2.2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg></span><span class="menu-label">Saved Address</span></a></li>
+                    <li><a href="#" id="popupLogout"><span class="menu-icon-wrap" style="background-color:#ffebee;"><svg
+                                    class="menu-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#d32f2f"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg></span><span class="menu-label">Logout</span></a></li>
                 </ul>
             </div>
         </div>
@@ -1397,25 +1491,30 @@
                 <!-- Inner items loaded via DOM parser -->
             </div>
             <div class="hero-main-img">
-                <img id="main-product-image" src="https://placehold.co/400x500/f5f5f5/888888?text=Loading..." alt="Product Image"
-                    style="background:#f5f5f5;" onerror="this.onerror=null; this.src='https://placehold.co/400x500/f5f5f5/888888?text=KAPPA';">
+                <img id="main-product-image" src="https://placehold.co/400x500/f5f5f5/888888?text=Loading..."
+                    alt="Product Image" style="background:#f5f5f5;"
+                    onerror="this.onerror=null; this.src='https://placehold.co/400x500/f5f5f5/888888?text=KAPPA';">
 
                 <!-- SVG Icons for Sharing -->
                 <div class="share-icons">
                     SHARE:
                     <!-- Instagram Icon -->
-                    <a href="https://www.instagram.com/kappa_fashion_store" target="_blank" rel="noopener noreferrer" title="Follow us on Instagram">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="2" width="20" height="20" rx="5"/>
-                            <circle cx="12" cy="12" r="5"/>
-                            <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+                    <a href="https://www.instagram.com/kappa_fashion_store" target="_blank" rel="noopener noreferrer"
+                        title="Follow us on Instagram">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" />
+                            <circle cx="12" cy="12" r="5" />
+                            <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
                         </svg>
                     </a>
 
                     <!-- WhatsApp Icon -->
                     <a href="#" onclick="shareWhatsApp()" title="Share to WhatsApp">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                         </svg>
                     </a>
                 </div>
@@ -1456,14 +1555,18 @@
                 </div>
                 <div class="size-grid" id="pdp-sizes"></div>
                 <div id="size-stock-info"></div>
-                <div id="size-error-msg" style="display:none; color:#e00; font-size:12px; font-weight:600; margin-top:6px; letter-spacing:0.3px;">⚠ Please select a size to continue.</div>
+                <div id="size-error-msg"
+                    style="display:none; color:#e00; font-size:12px; font-weight:600; margin-top:6px; letter-spacing:0.3px;">
+                    ⚠ Please select a size to continue.</div>
             </div>
 
             <!-- Color selector -->
             <div id="color-section" style="display:none;">
                 <div class="selector-header"><span>COLOUR</span></div>
                 <div class="color-grid" id="pdp-colors"></div>
-                <div id="color-error-msg" style="display:none; color:#e00; font-size:12px; font-weight:600; margin-top:6px; letter-spacing:0.3px;">⚠ Please select a colour to continue.</div>
+                <div id="color-error-msg"
+                    style="display:none; color:#e00; font-size:12px; font-weight:600; margin-top:6px; letter-spacing:0.3px;">
+                    ⚠ Please select a colour to continue.</div>
             </div>
 
             <!-- WhatsApp Help Bar -->
@@ -1493,7 +1596,8 @@
 
             <!-- Delivery Info Strip -->
             <div class="pdp-delivery-strip">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect x="1" y="3" width="15" height="13" rx="1"></rect>
                     <path d="M16 8h4l3 6v3h-7V8z"></path>
                     <circle cx="5.5" cy="18.5" r="2.5"></circle>
@@ -1503,37 +1607,41 @@
             </div>
 
             <!-- Payment & Delivery Badges Bar -->
-            <div class="pdp-payment-badges-row" style="display: flex; align-items: center; justify-content: flex-start; gap: 18px; margin-top: 24px; margin-bottom: 24px; padding-bottom: 8px; flex-wrap: wrap;">
+            <div class="pdp-payment-badges-row"
+                style="display: flex; align-items: center; justify-content: flex-start; gap: 18px; margin-top: 24px; margin-bottom: 24px; padding-bottom: 8px; flex-wrap: wrap;">
                 <!-- UPI -->
                 <div style="height: 24px; display: flex; align-items: center;" title="UPI Payments">
                     <svg height="22" viewBox="0 0 100 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 4L22 15L12 26H5L15 15L5 4H12Z" fill="#008338"/>
-                        <path d="M22 4L32 15L22 26H15L25 15L15 4H22Z" fill="#E45826"/>
-                        <text x="36" y="21" font-family="'Jost', sans-serif" font-weight="800" font-size="20" fill="#2d3748" font-style="italic">UPI</text>
+                        <path d="M12 4L22 15L12 26H5L15 15L5 4H12Z" fill="#008338" />
+                        <path d="M22 4L32 15L22 26H15L25 15L15 4H22Z" fill="#E45826" />
+                        <text x="36" y="21" font-family="'Jost', sans-serif" font-weight="800" font-size="20"
+                            fill="#2d3748" font-style="italic">UPI</text>
                     </svg>
                 </div>
 
                 <!-- RuPay -->
                 <div style="height: 24px; display: flex; align-items: center;" title="RuPay Card">
                     <svg height="22" viewBox="0 0 110 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <text x="0" y="21" font-family="'Jost', sans-serif" font-weight="900" font-size="20" fill="#0a2540">RuPay</text>
-                        <path d="M82 6L94 15L82 24H74L86 15L74 6H82Z" fill="#008338"/>
-                        <path d="M92 6L104 15L92 24H84L96 15L84 6H92Z" fill="#E45826"/>
+                        <text x="0" y="21" font-family="'Jost', sans-serif" font-weight="900" font-size="20"
+                            fill="#0a2540">RuPay</text>
+                        <path d="M82 6L94 15L82 24H74L86 15L74 6H82Z" fill="#008338" />
+                        <path d="M92 6L104 15L92 24H84L96 15L84 6H92Z" fill="#E45826" />
                     </svg>
                 </div>
 
                 <!-- VISA -->
                 <div style="height: 24px; display: flex; align-items: center;" title="VISA">
                     <svg height="20" viewBox="0 0 80 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <text x="0" y="22" font-family="'Jost', sans-serif" font-weight="900" font-size="24" fill="#1434CB" font-style="italic" letter-spacing="1">VISA</text>
+                        <text x="0" y="22" font-family="'Jost', sans-serif" font-weight="900" font-size="24"
+                            fill="#1434CB" font-style="italic" letter-spacing="1">VISA</text>
                     </svg>
                 </div>
 
                 <!-- Mastercard -->
                 <div style="height: 24px; display: flex; align-items: center;" title="Mastercard">
                     <svg height="24" viewBox="0 0 40 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="14" cy="13" r="12" fill="#EB001B"/>
-                        <circle cx="26" cy="13" r="12" fill="#F79E1B" fill-opacity="0.9"/>
+                        <circle cx="14" cy="13" r="12" fill="#EB001B" />
+                        <circle cx="26" cy="13" r="12" fill="#F79E1B" fill-opacity="0.9" />
                     </svg>
                 </div>
 
@@ -1543,11 +1651,14 @@
             <div class="pdp-accordions-wrapper" style="border-top: 1px solid #e0e0e0; margin-top: 10px;">
                 <!-- 1. Description Accordion -->
                 <div class="pdp-accordion-item" style="border-bottom: 1px solid #e0e0e0;">
-                    <button class="pdp-accordion-header" onclick="togglePdpAccordion(this)" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: none; border: none; font-size: 15px; font-weight: 500; color: #222; cursor: pointer; text-align: left; font-family: inherit;">
+                    <button class="pdp-accordion-header" onclick="togglePdpAccordion(this)"
+                        style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: none; border: none; font-size: 15px; font-weight: 500; color: #222; cursor: pointer; text-align: left; font-family: inherit;">
                         <span>Description</span>
                         <span class="acc-icon" style="font-size: 18px; font-weight: 300; color: #555;">+</span>
                     </button>
-                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7; white-space: pre-wrap;" id="pdp-description">
+                    <div class="pdp-accordion-body"
+                        style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7; white-space: pre-wrap;"
+                        id="pdp-description">
                         Loading description...
                     </div>
                 </div>
@@ -1556,11 +1667,14 @@
 
                 <!-- 2. Shipping Policy Accordion -->
                 <div class="pdp-accordion-item" style="border-bottom: 1px solid #e0e0e0;">
-                    <button class="pdp-accordion-header" onclick="togglePdpAccordion(this)" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: none; border: none; font-size: 15px; font-weight: 500; color: #222; cursor: pointer; text-align: left; font-family: inherit;">
+                    <button class="pdp-accordion-header" onclick="togglePdpAccordion(this)"
+                        style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: none; border: none; font-size: 15px; font-weight: 500; color: #222; cursor: pointer; text-align: left; font-family: inherit;">
                         <span>Shipping policy</span>
                         <span class="acc-icon" style="font-size: 18px; font-weight: 300; color: #555;">+</span>
                     </button>
-                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;" id="pdp-shipping-policy">
+                    <div class="pdp-accordion-body"
+                        style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;"
+                        id="pdp-shipping-policy">
                         • Free Shipping on orders above ₹4000.<br>
                         • Standard dispatch within 24-48 business hours.<br>
                         • Delivery within 2-5 business days across India via Shiprocket courier partners.<br>
@@ -1570,13 +1684,17 @@
 
                 <!-- 4. Legal Metrology Accordion -->
                 <div class="pdp-accordion-item" style="border-bottom: 1px solid #e0e0e0;">
-                    <button class="pdp-accordion-header" onclick="togglePdpAccordion(this)" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: none; border: none; font-size: 15px; font-weight: 500; color: #222; cursor: pointer; text-align: left; font-family: inherit;">
+                    <button class="pdp-accordion-header" onclick="togglePdpAccordion(this)"
+                        style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 0; background: none; border: none; font-size: 15px; font-weight: 500; color: #222; cursor: pointer; text-align: left; font-family: inherit;">
                         <span>Legal Metrology</span>
                         <span class="acc-icon" style="font-size: 18px; font-weight: 300; color: #555;">+</span>
                     </button>
-                    <div class="pdp-accordion-body" style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;" id="pdp-legal-metrology">
+                    <div class="pdp-accordion-body"
+                        style="display: none; padding-bottom: 16px; font-size: 13.5px; color: #444; line-height: 1.7;"
+                        id="pdp-legal-metrology">
                         • <strong>Country of Origin:</strong> India<br>
-                        • <strong>Marketed & Packed By:</strong> KAPPA Clothing Store, Mahatma Gandhi Rd, Pazhavangadi, Thiruvananthapuram, Kerala 695023.<br>
+                        • <strong>Marketed & Packed By:</strong> KAPPA Clothing Store, Mahatma Gandhi Rd, Pazhavangadi,
+                        Thiruvananthapuram, Kerala 695023.<br>
                         • <strong>Customer Support:</strong> kappatvm@gmail.com | +91 62386 16662<br>
                         • Net Quantity: 1 Unit. All prices inclusive of all taxes.
                     </div>
@@ -1600,8 +1718,11 @@
                     <p>Verified ratings &amp; real customer feedback</p>
                 </div>
                 <button type="button" class="btn-write-review" id="btnToggleReviewForm" onclick="toggleReviewForm()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                        </polygon>
                     </svg>
                     <span>Write a Review</span>
                 </button>
@@ -1618,27 +1739,37 @@
                 <div class="pdp-breakdown-bars">
                     <div class="pdp-bar-row">
                         <div class="pdp-bar-label">5 ★</div>
-                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-5" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-track">
+                            <div class="pdp-bar-fill" id="bar-5" style="width: 0%;"></div>
+                        </div>
                         <div class="pdp-bar-count" id="count-5">0</div>
                     </div>
                     <div class="pdp-bar-row">
                         <div class="pdp-bar-label">4 ★</div>
-                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-4" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-track">
+                            <div class="pdp-bar-fill" id="bar-4" style="width: 0%;"></div>
+                        </div>
                         <div class="pdp-bar-count" id="count-4">0</div>
                     </div>
                     <div class="pdp-bar-row">
                         <div class="pdp-bar-label">3 ★</div>
-                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-3" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-track">
+                            <div class="pdp-bar-fill" id="bar-3" style="width: 0%;"></div>
+                        </div>
                         <div class="pdp-bar-count" id="count-3">0</div>
                     </div>
                     <div class="pdp-bar-row">
                         <div class="pdp-bar-label">2 ★</div>
-                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-2" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-track">
+                            <div class="pdp-bar-fill" id="bar-2" style="width: 0%;"></div>
+                        </div>
                         <div class="pdp-bar-count" id="count-2">0</div>
                     </div>
                     <div class="pdp-bar-row">
                         <div class="pdp-bar-label">1 ★</div>
-                        <div class="pdp-bar-track"><div class="pdp-bar-fill" id="bar-1" style="width: 0%;"></div></div>
+                        <div class="pdp-bar-track">
+                            <div class="pdp-bar-fill" id="bar-1" style="width: 0%;"></div>
+                        </div>
                         <div class="pdp-bar-count" id="count-1">0</div>
                     </div>
                 </div>
@@ -1648,9 +1779,10 @@
             <div class="pdp-review-form-panel" id="pdpReviewFormPanel">
                 <div class="pdp-form-title">
                     <span>Write Your Review</span>
-                    <button type="button" onclick="toggleReviewForm(false)" style="background:none; border:none; font-size:18px; cursor:pointer; color:#888;">✕</button>
+                    <button type="button" onclick="toggleReviewForm(false)"
+                        style="background:none; border:none; font-size:18px; cursor:pointer; color:#888;">✕</button>
                 </div>
-                
+
                 <form id="pdpReviewForm" onsubmit="event.preventDefault(); submitProductReview();">
                     <!-- Interactive Star Rating -->
                     <div class="pdp-star-picker-wrap">
@@ -1669,21 +1801,26 @@
                     <div class="pdp-form-row-2">
                         <div class="pdp-input-group">
                             <label for="reviewAuthorName">Your Name <span style="color:#e00;">*</span></label>
-                            <input type="text" id="reviewAuthorName" class="pdp-input-field" placeholder="e.g. Alex Johnson" required>
+                            <input type="text" id="reviewAuthorName" class="pdp-input-field"
+                                placeholder="e.g. Alex Johnson" required>
                         </div>
                         <div class="pdp-input-group">
                             <label for="reviewHeadline">Review Headline</label>
-                            <input type="text" id="reviewHeadline" class="pdp-input-field" placeholder="e.g. Perfect fit, ultra comfortable!">
+                            <input type="text" id="reviewHeadline" class="pdp-input-field"
+                                placeholder="e.g. Perfect fit, ultra comfortable!">
                         </div>
                     </div>
 
                     <div class="pdp-input-group">
                         <label for="reviewComments">Your Review <span style="color:#e00;">*</span></label>
-                        <textarea id="reviewComments" class="pdp-textarea-field" placeholder="What did you like or dislike about this product? How does the material, fit, and style feel?" required></textarea>
+                        <textarea id="reviewComments" class="pdp-textarea-field"
+                            placeholder="What did you like or dislike about this product? How does the material, fit, and style feel?"
+                            required></textarea>
                     </div>
 
                     <div class="pdp-form-actions">
-                        <button type="button" class="btn-cancel-review" onclick="toggleReviewForm(false)">Cancel</button>
+                        <button type="button" class="btn-cancel-review"
+                            onclick="toggleReviewForm(false)">Cancel</button>
                         <button type="submit" class="btn-submit-review" id="btnSubmitReview">Submit Review</button>
                     </div>
                 </form>
@@ -1836,40 +1973,55 @@
     </div>
 
     <!-- ACCOUNT OVERLAY -->
-            <!-- ACCOUNT OVERLAY -->
-        <div class="overlay" id="accountOverlay">
-            <button class="overlay-close" id="accountClose" aria-label="Close overlay" style="display: none;">✕</button>
-            <div class="stage">
-                <div class="card auth-split-card">
-                    <!-- LEFT HERO BANNER (YELLOW) -->
-                    <div class="auth-hero-banner">
-                        <div class="auth-brand-head">
-                            <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store" class="auth-brand-logo">
-                        </div>
-                        
-                        <div class="auth-hero-content">
-                            <h2 class="auth-hero-headline">CONGRATULATIONS</h2>
-                            <p class="auth-hero-sub">Premium Streetwear, Unmatched Style</p>
-                        </div>
-
-                        <ul class="auth-feature-list">
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 11l2 2 4-4"></path></svg>
-                                <span>Secure &amp; Fast Checkout</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-                                <span>Free Shipping Over ₹4000</span>
-                            </li>
-                            <li>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.96"></path></svg>
-                                <span>Easy 7-Day Returns</span>
-                            </li>
-                        </ul>
+    <!-- ACCOUNT OVERLAY -->
+    <div class="overlay" id="accountOverlay">
+        <button class="overlay-close" id="accountClose" aria-label="Close overlay" style="display: none;">✕</button>
+        <div class="stage">
+            <div class="card auth-split-card">
+                <!-- LEFT HERO BANNER (YELLOW) -->
+                <div class="auth-hero-banner">
+                    <div class="auth-brand-head">
+                        <img src="assets/IMG_4646-removebg-preview.png" alt="KAPPA Fashion Store"
+                            class="auth-brand-logo">
                     </div>
 
-                    <!-- RIGHT FORM SIDE (WHITE) -->
-                                    <div class="auth-form-side">
+                    <div class="auth-hero-content">
+                        <h2 class="auth-hero-headline">CONGRATULATIONS</h2>
+                        <p class="auth-hero-sub">Premium Streetwear, Unmatched Style</p>
+                    </div>
+
+                    <ul class="auth-feature-list">
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <path d="M9 11l2 2 4-4"></path>
+                            </svg>
+                            <span>Secure &amp; Fast Checkout</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                            <span>Free Shipping Over ₹4000</span>
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="1 4 1 10 7 10"></polyline>
+                                <path d="M3.51 15a9 9 0 1 0 .49-3.96"></path>
+                            </svg>
+                            <span>Easy 7-Day Returns</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- RIGHT FORM SIDE (WHITE) -->
+                <div class="auth-form-side">
                     <button type="button" class="card-close-btn" aria-label="Close">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                             stroke-linecap="round" stroke-linejoin="round">
@@ -1877,7 +2029,7 @@
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
-                    
+
                     <!-- LOGIN PANEL -->
                     <section class="panel active" id="panel-login">
                         <h1 class="headline" data-i18n="acc_welcome" style="margin-bottom: 24px;">SIGN IN</h1>
@@ -1897,9 +2049,11 @@
                                 <span data-i18n="acc_google">Continue with Google</span>
                             </button>
 
-                            <p class="auth-legal-note" style="margin-top: 12px; text-align: center; font-size: 11px; color: #777;">
-                                By signing in, you agree to our <a href="terms.html" style="text-decoration: underline;">Terms of Service</a> and <a
-                                    href="privacy.html" style="text-decoration: underline;">Privacy Policy</a>
+                            <p class="auth-legal-note"
+                                style="margin-top: 12px; text-align: center; font-size: 11px; color: #777;">
+                                By signing in, you agree to our <a href="terms.html"
+                                    style="text-decoration: underline;">Terms of Service</a> and <a href="privacy.html"
+                                    style="text-decoration: underline;">Privacy Policy</a>
                             </p>
                         </div>
                     </section>
@@ -1907,40 +2061,73 @@
                     <!-- SIGN UP PANEL -->
                     <section class="panel" id="panel-signup">
                         <h1 class="headline" style="margin-bottom: 4px;">CREATE ACCOUNT</h1>
-                        <p class="subline" style="margin-bottom: 20px; text-align: center;">Already have an account? <span class="link-highlight" id="go-login">Sign in</span></p>
+                        <p class="subline" style="margin-bottom: 20px; text-align: center;">Already have an account?
+                            <span class="link-highlight" id="go-login">Sign in</span></p>
 
                         <form id="signup-form">
                             <div class="field">
                                 <label for="su-name">Full Name</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
                                     <input type="text" id="su-name" placeholder="John Doe" required>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-email">Email Address</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <path
+                                            d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                        </path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
                                     <input type="email" id="su-email" placeholder="example@gmail.com" required>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-password">Password</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                    <input type="password" id="su-password" class="has-toggle" placeholder="At least 6 characters" required>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="su-password" class="has-toggle"
+                                        placeholder="At least 6 characters" required>
                                     <button type="button" class="toggle-eye" data-target="su-password">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="su-confirm">Confirm Password</label>
                                 <div class="input-shell">
-                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                                    <input type="password" id="su-confirm" class="has-toggle" placeholder="Re-enter password" required>
+                                    <svg class="input-icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2"
+                                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #9ca3af; pointer-events: none; z-index: 2;">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="su-confirm" class="has-toggle"
+                                        placeholder="Re-enter password" required>
                                     <button type="button" class="toggle-eye" data-target="su-confirm">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
@@ -1950,13 +2137,13 @@
                         </form>
                     </section>
                 </div>
-                        </section>
-                    </div>
-                </div>
+                </section>
             </div>
         </div>
+    </div>
+    </div>
 
-        <div class="overlay" id="quickViewOverlay">
+    <div class="overlay" id="quickViewOverlay">
         <div class="qv-panel" id="qvPanel"></div>
     </div>
 
@@ -2051,7 +2238,7 @@
                     window.supabaseClient = c;
                     return c;
                 }
-            } catch(e) { console.error('Supabase client init error:', e); }
+            } catch (e) { console.error('Supabase client init error:', e); }
             return null;
         }
 
@@ -2322,7 +2509,7 @@
             updateStockAlert(newStock, size);
         }
 
-        window.togglePdpAccordion = function(btn) {
+        window.togglePdpAccordion = function (btn) {
             const item = btn.closest('.pdp-accordion-item');
             if (!item) return;
             const body = item.querySelector('.pdp-accordion-body');
@@ -2389,18 +2576,18 @@
                 if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
                 const sSize = window.selectedSize || 'Default';
-                const sColor = window.selectedColor || 'N/A';
                 const qty = window.currentQty || 1;
 
-                const currentStock = (typeof window.getProductVariantStock === 'function')
-                    ? window.getProductVariantStock(sSize, sColor)
-                    : ((window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) ? window.sizeStockMap[sSize] : 999);
+                const currentStock = (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
+                    ? window.sizeStockMap[sSize]
+                    : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999);
 
                 if (currentStock <= 0 || qty > currentStock) {
-                    const colorLabel = (sColor && sColor !== 'N/A') ? ` (${sColor})` : '';
-                    if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize}${colorLabel} does not have enough stock.`);
+                    if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} does not have enough stock.`);
                     return;
                 }
+
+                const sColor = window.selectedColor || 'N/A';
 
                 let img = '';
                 if (window.currentMainImageUrl) {
@@ -2418,9 +2605,7 @@
                 if (typeof window.modifyStockOnCartAction === 'function') {
                     window.modifyStockOnCartAction(pd.id, sSize, sColor, qty);
                 }
-                if (typeof window.renderSizeOptionsForColor === 'function') {
-                    window.renderSizeOptionsForColor(sColor);
-                } else if (typeof refreshProductSizeStockUI === 'function') {
+                if (typeof refreshProductSizeStockUI === 'function') {
                     refreshProductSizeStockUI(sSize, newStock);
                 }
 
@@ -2462,7 +2647,7 @@
 
         function renderSingleProduct(product) {
             window.currentProductData = product;
-            
+
             const hero = document.querySelector('.zara-hero');
             if (hero) hero.classList.add('loaded');
 
@@ -2624,7 +2809,7 @@
             try {
                 initialImg = sessionStorage.getItem('kappa_pdp_selected_img');
                 if (initialImg) sessionStorage.removeItem('kappa_pdp_selected_img');
-            } catch (_) {}
+            } catch (_) { }
 
             if (!initialImg) {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -2656,11 +2841,38 @@
             let availableSizes = new Set();
             let availableColors = new Set();
 
+            // Check for real-time local stock overrides from purchases
+            let overrides = {};
+            try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { overrides = {}; }
+            const prodOverride = overrides[String(product.id)] || null;
+
+            let totalProductStock = (product.stock_quantity !== undefined && product.stock_quantity !== null) ? Number(product.stock_quantity) : null;
+            if (prodOverride && prodOverride.totalDeducted && totalProductStock !== null) {
+                totalProductStock = Math.max(0, totalProductStock - prodOverride.totalDeducted);
+            }
+
             if (product.product_variants && product.product_variants.length > 0) {
+                let variantStockSum = 0;
+                let hasVariantStockData = false;
                 product.product_variants.forEach(variant => {
-                    if (variant.size) availableSizes.add(variant.size.trim());
+                    if (variant.size) {
+                        const sz = variant.size.trim();
+                        availableSizes.add(sz);
+                        let sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
+                        if (sq !== null) {
+                            if (prodOverride && prodOverride.variants && prodOverride.variants[sz]) {
+                                sq = Math.max(0, sq - prodOverride.variants[sz]);
+                            }
+                            window.sizeStockMap[sz] = (window.sizeStockMap[sz] !== undefined ? window.sizeStockMap[sz] : 0) + sq;
+                            variantStockSum += sq;
+                            hasVariantStockData = true;
+                        }
+                    }
                     if (variant.color) availableColors.add(variant.color.trim());
                 });
+                if (hasVariantStockData) {
+                    totalProductStock = variantStockSum;
+                }
             }
 
             // Extract additional color tags from product images
@@ -2677,171 +2889,46 @@
                 });
             }
 
-            window.productAllSizes = Array.from(availableSizes);
-            window.productAllColors = Array.from(availableColors);
+            if (totalProductStock !== null) {
+                updateStockAlert(totalProductStock);
+            }
 
-            // Robust stock lookup for any (size, color) variant combination
-            window.getProductVariantStock = function(size, color) {
-                const pd = window.currentProductData;
-                if (!pd) return 0;
-                const pid = String(pd.id || pd.slug || '');
+            const sizes = Array.from(availableSizes);
+            const colors = Array.from(availableColors);
 
-                let overrides = {};
-                try { overrides = JSON.parse(localStorage.getItem('kappa_stock_overrides') || '{}'); } catch (_) { overrides = {}; }
-                const prodOverride = overrides[pid] || overrides[String(pd.id)] || null;
-
-                const normSize = (size && size !== 'Default' && size !== 'N/A') ? String(size).trim().toUpperCase() : null;
-                const normColor = (color && color !== 'Default' && color !== 'N/A') ? String(color).trim().toLowerCase() : null;
-
-                if (pd.product_variants && pd.product_variants.length > 0) {
-                    // 1. Both color and size specified: exact variant match
-                    if (normColor && normSize) {
-                        const variant = pd.product_variants.find(v => 
-                            String(v.size || '').trim().toUpperCase() === normSize &&
-                            String(v.color || '').trim().toLowerCase() === normColor
-                        );
-                        if (variant && variant.stock_quantity !== undefined && variant.stock_quantity !== null) {
-                            let sq = Number(variant.stock_quantity);
-                            const comboKey = `${normColor}:::${normSize}`;
-                            if (prodOverride && prodOverride.variantCombos && prodOverride.variantCombos[comboKey] !== undefined) {
-                                sq = Math.max(0, sq - prodOverride.variantCombos[comboKey]);
-                            }
-                            return Math.max(0, sq);
-                        }
-                    }
-
-                    // 2. Only size specified: sum across all colors
-                    if (normSize && !normColor) {
-                        let sum = 0;
-                        let foundAny = false;
-                        pd.product_variants.forEach(v => {
-                            if (String(v.size || '').trim().toUpperCase() === normSize) {
-                                let sq = Number(v.stock_quantity || 0);
-                                const vColor = String(v.color || '').trim().toLowerCase();
-                                const comboKey = `${vColor}:::${normSize}`;
-                                if (prodOverride && prodOverride.variantCombos && prodOverride.variantCombos[comboKey] !== undefined) {
-                                    sq = Math.max(0, sq - prodOverride.variantCombos[comboKey]);
-                                }
-                                sum += sq;
-                                foundAny = true;
-                            }
-                        });
-                        if (foundAny) return Math.max(0, sum);
-                    }
-
-                    // 3. Only color specified: sum across all sizes for this color
-                    if (normColor && !normSize) {
-                        let sum = 0;
-                        let foundAny = false;
-                        pd.product_variants.forEach(v => {
-                            if (String(v.color || '').trim().toLowerCase() === normColor) {
-                                let sq = Number(v.stock_quantity || 0);
-                                const vSize = String(v.size || '').trim().toUpperCase();
-                                const comboKey = `${normColor}:::${vSize}`;
-                                if (prodOverride && prodOverride.variantCombos && prodOverride.variantCombos[comboKey] !== undefined) {
-                                    sq = Math.max(0, sq - prodOverride.variantCombos[comboKey]);
-                                }
-                                sum += sq;
-                                foundAny = true;
-                            }
-                        });
-                        if (foundAny) return Math.max(0, sum);
-                    }
-                }
-
-                // Fallback to total product stock
-                let totalStock = (pd.stock_quantity !== undefined && pd.stock_quantity !== null) ? Number(pd.stock_quantity) : 999;
-                if (prodOverride && prodOverride.totalDeducted) {
-                    totalStock = Math.max(0, totalStock - prodOverride.totalDeducted);
-                }
-                return Math.max(0, totalStock);
-            };
-
-            // Dynamically render size options based on the currently chosen color
-            window.renderSizeOptionsForColor = function(color) {
-                const pd = window.currentProductData;
-                if (!pd) return;
-
+            const sizeSec = document.getElementById('size-section');
+            if (sizes.length > 0) {
                 const pdpSizes = document.getElementById('pdp-sizes');
-                const sizeSec = document.getElementById('size-section');
-                if (!pdpSizes || !sizeSec) return;
-
-                const allSizes = window.productAllSizes || [];
-                if (allSizes.length === 0) {
-                    sizeSec.style.display = 'none';
-                    return;
-                }
-                sizeSec.style.display = 'block';
-
-                window.sizeStockMap = {};
-                pdpSizes.innerHTML = allSizes.map(size => {
-                    const st = window.getProductVariantStock(size, color);
-                    window.sizeStockMap[size] = st;
-
-                    let stockBadge = '';
-                    let outClass = '';
-                    if (st === 0) {
-                        stockBadge = `<span class="size-stock-tag out">Out</span>`;
-                        outClass = ' out-of-stock-box';
-                    } else if (st <= 3) {
-                        stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
-                    } else if (st <= 10) {
-                        stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
-                    } else {
-                        stockBadge = `<span class="size-stock-tag plenty">In Stock</span>`;
-                    }
-
-                    const isSelected = window.selectedSize === size;
-                    const selectedClass = isSelected ? ' selected' : '';
-
-                    return `<div class="size-box${outClass}${selectedClass}" onclick="selectSize(this, '${size}')" data-size="${size}" data-stock="${st}">
-                        <span>${size}</span>
-                        ${stockBadge}
-                    </div>`;
-                }).join('');
-
-                if (window.selectedSize) {
-                    const currentStock = (window.sizeStockMap[window.selectedSize] !== undefined)
-                        ? window.sizeStockMap[window.selectedSize]
-                        : window.getProductVariantStock(window.selectedSize, color);
-                    window.currentAvailableStock = currentStock;
-
-                    if (currentStock <= 0) {
-                        window.currentQty = 0;
-                    } else if (window.currentQty > currentStock) {
-                        window.currentQty = currentStock;
-                    } else if (window.currentQty < 1) {
-                        window.currentQty = 1;
-                    }
-                    const qtyEl = document.getElementById('pdp-qty');
-                    if (qtyEl) qtyEl.textContent = window.currentQty;
-
-                    const infoBar = document.getElementById('size-stock-info');
-                    if (infoBar) {
-                        infoBar.style.display = 'block';
-                        const colorSuffix = color && color !== 'Default' && color !== 'N/A' ? ` (${color})` : '';
-                        if (currentStock === 0) {
-                            infoBar.className = 'info-out-stock';
-                            infoBar.textContent = `Size ${window.selectedSize}${colorSuffix}: Out of Stock`;
-                        } else if (currentStock <= 5) {
-                            infoBar.className = 'info-low-stock';
-                            infoBar.textContent = `⚡ Hurry! Only ${currentStock} left in size ${window.selectedSize}${colorSuffix}`;
-                        } else {
-                            infoBar.className = 'info-in-stock';
-                            infoBar.textContent = `✓ ${currentStock} available in size ${window.selectedSize}${colorSuffix}`;
+                if (pdpSizes) {
+                    pdpSizes.innerHTML = sizes.map(size => {
+                        const st = window.sizeStockMap ? window.sizeStockMap[size] : null;
+                        let stockBadge = '';
+                        let outClass = '';
+                        if (st !== null && st !== undefined) {
+                            if (st === 0) {
+                                stockBadge = `<span class="size-stock-tag out">Out</span>`;
+                                outClass = ' out-of-stock-box';
+                            } else if (st <= 3) {
+                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                            } else if (st <= 10) {
+                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                            } else {
+                                stockBadge = `<span class="size-stock-tag plenty">In Stock</span>`;
+                            }
                         }
-                    }
-                    updateStockAlert(currentStock, window.selectedSize);
-                } else {
-                    const colorStock = window.getProductVariantStock(null, color);
-                    window.currentAvailableStock = colorStock;
-                    updateStockAlert(colorStock);
+                        return `<div class="size-box${outClass}" onclick="selectSize(this, '${size}')" data-size="${size}" data-stock="${st !== null && st !== undefined ? st : ''}">
+                            <span>${size}</span>
+                            ${stockBadge}
+                        </div>`;
+                    }).join('');
                 }
-            };
+                if (sizeSec) sizeSec.style.display = 'block';
+            } else {
+                if (sizeSec) sizeSec.style.display = 'none';
+            }
 
-            // 1. Build Color Swatches first to determine default active color
             const colorSec = document.getElementById('color-section');
-            if (window.productAllColors.length > 0) {
+            if (colors.length > 0) {
                 const colorImageMap = {};
                 const sortedImages = images.slice();
                 sortedImages.forEach(img => {
@@ -2855,15 +2942,12 @@
 
                 const pdpColors = document.getElementById('pdp-colors');
                 if (pdpColors) {
-                    buildColorSwatches(pdpColors, window.productAllColors, colorImageMap, sortedImages);
+                    buildColorSwatches(pdpColors, colors, colorImageMap, sortedImages);
                 }
                 if (colorSec) colorSec.style.display = 'block';
             } else {
                 if (colorSec) colorSec.style.display = 'none';
             }
-
-            // 2. Render size options specifically for the active color
-            window.renderSizeOptionsForColor(window.selectedColor || null);
         }
 
         async function loadSingleProduct() {
@@ -2879,8 +2963,8 @@
             try {
                 const cachedList = JSON.parse(localStorage.getItem("kappa_cached_products") || "[]");
                 if (cachedList.length > 0) {
-                    const cachedProduct = slug 
-                        ? cachedList.find(p => p.slug === slug || String(p.id) === slug) 
+                    const cachedProduct = slug
+                        ? cachedList.find(p => p.slug === slug || String(p.id) === slug)
                         : cachedList[0];
                     if (cachedProduct) {
                         console.log("⚡ Found matching product in cache! Rendering instantly...");
@@ -2894,7 +2978,7 @@
             try {
                 let product = null;
                 const client = _pdp;
-                
+
                 if (!client) {
                     console.error("❌ Supabase client is not available!");
                     if (!window.currentProductData) {
@@ -2929,7 +3013,7 @@
                             .select('*, product_images(url, position), product_variants(*)')
                             .eq('id', slug)
                             .maybeSingle();
-                        
+
                         if (idErr) console.error("ID query error:", idErr);
                         if (byId) {
                             product = byId;
@@ -3034,16 +3118,16 @@
                         const data = ctx.getImageData(0, 0, 50, 50).data;
                         let rSum = 0, gSum = 0, bSum = 0, count = 0;
                         for (let i = 0; i < data.length; i += 4) {
-                            const r = data[i], g = data[i+1], b = data[i+2];
+                            const r = data[i], g = data[i + 1], b = data[i + 2];
                             // Skip near-white background pixels
                             if (r > 220 && g > 220 && b > 220) continue;
                             rSum += r; gSum += g; bSum += b; count++;
                         }
-                        if (count === 0) return resolve({ r:128, g:128, b:128 });
-                        resolve({ r: Math.round(rSum/count), g: Math.round(gSum/count), b: Math.round(bSum/count) });
-                    } catch(e) { resolve({ r:128, g:128, b:128 }); }
+                        if (count === 0) return resolve({ r: 128, g: 128, b: 128 });
+                        resolve({ r: Math.round(rSum / count), g: Math.round(gSum / count), b: Math.round(bSum / count) });
+                    } catch (e) { resolve({ r: 128, g: 128, b: 128 }); }
                 };
-                img.onerror = () => resolve({ r:128, g:128, b:128 });
+                img.onerror = () => resolve({ r: 128, g: 128, b: 128 });
                 img.src = url;
             });
         }
@@ -3051,13 +3135,13 @@
         // Match detected RGB to the nearest color name from available variants
         function findClosestColorName(rgb, colorNames, alreadyMapped) {
             const namedColors = {
-                red: {r:200,g:30,b:30}, blue: {r:30,g:60,b:200}, navy:{r:20,g:30,b:90},
-                'navy blue':{r:20,g:30,b:90}, white:{r:240,g:240,b:240}, black:{r:20,g:20,b:20},
-                grey:{r:130,g:130,b:130}, gray:{r:130,g:130,b:130}, green:{r:30,g:160,b:50},
-                yellow:{r:230,g:210,b:40}, orange:{r:220,g:110,b:30}, pink:{r:220,g:100,b:150},
-                purple:{r:100,g:30,b:160}, brown:{r:130,g:70,b:30}, cyan:{r:30,g:190,b:200},
-                'light blue':{r:120,g:180,b:220}, 'dark blue':{r:15,g:25,b:80},
-                'sky blue':{r:100,g:170,b:230}, maroon:{r:120,g:20,b:30}
+                red: { r: 200, g: 30, b: 30 }, blue: { r: 30, g: 60, b: 200 }, navy: { r: 20, g: 30, b: 90 },
+                'navy blue': { r: 20, g: 30, b: 90 }, white: { r: 240, g: 240, b: 240 }, black: { r: 20, g: 20, b: 20 },
+                grey: { r: 130, g: 130, b: 130 }, gray: { r: 130, g: 130, b: 130 }, green: { r: 30, g: 160, b: 50 },
+                yellow: { r: 230, g: 210, b: 40 }, orange: { r: 220, g: 110, b: 30 }, pink: { r: 220, g: 100, b: 150 },
+                purple: { r: 100, g: 30, b: 160 }, brown: { r: 130, g: 70, b: 30 }, cyan: { r: 30, g: 190, b: 200 },
+                'light blue': { r: 120, g: 180, b: 220 }, 'dark blue': { r: 15, g: 25, b: 80 },
+                'sky blue': { r: 100, g: 170, b: 230 }, maroon: { r: 120, g: 20, b: 30 }
             };
 
             let best = null, bestDist = Infinity;
@@ -3077,89 +3161,89 @@
 
 
 
-async function loadZaraGrids(categoryId, currentProductId) {
-    try {
-        let targetCategoryIds = [];
-        const client = _pdp;
-        if (!client) return;
-
-        if (categoryId) {
-            targetCategoryIds.push(categoryId);
-
+        async function loadZaraGrids(categoryId, currentProductId) {
             try {
-                const { data: allCategories } = await client.from('categories').select('*');
+                let targetCategoryIds = [];
+                const client = _pdp;
+                if (!client) return;
 
-                if (allCategories && allCategories.length > 0) {
-                    const currentCat = allCategories.find(c => c.id === categoryId);
+                if (categoryId) {
+                    targetCategoryIds.push(categoryId);
 
-                    if (currentCat) {
-                        const parentId = currentCat.parent_id || currentCat.parentId || currentCat.parent || currentCat.id;
+                    try {
+                        const { data: allCategories } = await client.from('categories').select('*');
 
-                        allCategories.forEach(c => {
-                            const cParent = c.parent_id || c.parentId || c.parent;
-                            if (c.id === parentId || cParent === parentId) {
-                                if (!targetCategoryIds.includes(c.id)) {
-                                    targetCategoryIds.push(c.id);
-                                }
+                        if (allCategories && allCategories.length > 0) {
+                            const currentCat = allCategories.find(c => c.id === categoryId);
+
+                            if (currentCat) {
+                                const parentId = currentCat.parent_id || currentCat.parentId || currentCat.parent || currentCat.id;
+
+                                allCategories.forEach(c => {
+                                    const cParent = c.parent_id || c.parentId || c.parent;
+                                    if (c.id === parentId || cParent === parentId) {
+                                        if (!targetCategoryIds.includes(c.id)) {
+                                            targetCategoryIds.push(c.id);
+                                        }
+                                    }
+                                });
                             }
-                        });
+                        }
+                    } catch (e) {
+                        console.error("Category parsing safely bypassed. Falling back to strict match.", e);
                     }
                 }
-            } catch (e) {
-                console.error("Category parsing safely bypassed. Falling back to strict match.", e);
-            }
-        }
 
-        let query = client
-            .from('products')
-            .select('*, product_images(url, position)')
-            .neq('id', currentProductId)
-            .eq('is_active', true)
-            .limit(8);
-
-        if (targetCategoryIds.length > 0) {
-            query = query.in('category_id', targetCategoryIds);
-        }
-
-        let { data: related, error } = await query;
-        if (!related) related = [];
-
-        // If we don't have enough category-matching items (less than 8), fill with other active products
-        if (related.length < 8) {
-            try {
-                const excludeIds = [currentProductId, ...related.map(r => r.id)];
-                const { data: filler } = await client
+                let query = client
                     .from('products')
                     .select('*, product_images(url, position)')
-                    .notin('id', excludeIds)
+                    .neq('id', currentProductId)
                     .eq('is_active', true)
-                    .limit(8 - related.length);
-                if (filler && filler.length > 0) {
-                    related = [...related, ...filler];
+                    .limit(8);
+
+                if (targetCategoryIds.length > 0) {
+                    query = query.in('category_id', targetCategoryIds);
                 }
-            } catch (fillErr) {
-                console.error("Error loading related filler products:", fillErr);
-            }
-        }
 
-        if (related.length === 0) return;
+                let { data: related, error } = await query;
+                if (!related) related = [];
 
-        const matchWithItems = related.slice(0, 4);
-        const similarItems = related.slice(4, 8);
+                // If we don't have enough category-matching items (less than 8), fill with other active products
+                if (related.length < 8) {
+                    try {
+                        const excludeIds = [currentProductId, ...related.map(r => r.id)];
+                        const { data: filler } = await client
+                            .from('products')
+                            .select('*, product_images(url, position)')
+                            .notin('id', excludeIds)
+                            .eq('is_active', true)
+                            .limit(8 - related.length);
+                        if (filler && filler.length > 0) {
+                            related = [...related, ...filler];
+                        }
+                    } catch (fillErr) {
+                        console.error("Error loading related filler products:", fillErr);
+                    }
+                }
 
-        const renderGrid = (items, containerId, sectionId) => {
-            if (items.length > 0) {
-                const container = document.getElementById(containerId);
-                const section = document.getElementById(sectionId);
-                if (!container || !section) return;
+                if (related.length === 0) return;
 
-                let html = items.map(item => {
-                    let imgs = item.product_images || [];
-                    imgs.sort((a, b) => a.position - b.position);
-                    const imgUrl = imgs.length > 0 ? imgs[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
-                    const targetSlug = String(item.slug || item.id || '').trim();
-                    const cleanSlug = (targetSlug && !targetSlug.startsWith('data:') && targetSlug.length <= 80) ? targetSlug : (item.id || '1');
-                    return `
+                const matchWithItems = related.slice(0, 4);
+                const similarItems = related.slice(4, 8);
+
+                const renderGrid = (items, containerId, sectionId) => {
+                    if (items.length > 0) {
+                        const container = document.getElementById(containerId);
+                        const section = document.getElementById(sectionId);
+                        if (!container || !section) return;
+
+                        let html = items.map(item => {
+                            let imgs = item.product_images || [];
+                            imgs.sort((a, b) => a.position - b.position);
+                            const imgUrl = imgs.length > 0 ? imgs[0].url : 'https://placehold.co/400x500/eaeaea/000000?text=No+Image';
+                            const targetSlug = String(item.slug || item.id || '').trim();
+                            const cleanSlug = (targetSlug && !targetSlug.startsWith('data:') && targetSlug.length <= 80) ? targetSlug : (item.id || '1');
+                            return `
                         <div class="zara-card" onclick="window.location.href='product.html?slug=${cleanSlug}'">
                             <img src="${imgUrl}" alt="${item.name}">
                             <div class="zara-card-info">
@@ -3168,384 +3252,369 @@ async function loadZaraGrids(categoryId, currentProductId) {
                             </div>
                         </div>
                     `;
-                }).join('');
-                container.innerHTML = html;
-                section.style.display = 'block';
+                        }).join('');
+                        container.innerHTML = html;
+                        section.style.display = 'block';
+                    }
+                };
+
+                renderGrid(matchWithItems, 'match-with-grid', 'match-with-section');
+                renderGrid(similarItems, 'similar-items-grid', 'similar-items-section');
+
+            } catch (err) {
+                console.error("Error loading related grids:", err);
+            }
+        }
+
+        window.swapImage = function swapImage(url, element) {
+            const mainImg = document.getElementById('main-product-image');
+            if (mainImg) mainImg.src = url;
+            document.querySelectorAll('.thumb-img').forEach(el => el.classList.remove('active'));
+            if (element) element.classList.add('active');
+        }
+
+        window.selectSize = function selectSize(element, size) {
+            document.querySelectorAll('.size-box').forEach(el => { el.classList.remove('selected'); el.style.borderColor = ''; });
+            if (element) element.classList.add('selected');
+            window.selectedSize = size;
+            // Clear error message
+            const sizeErr = document.getElementById('size-error-msg');
+            if (sizeErr) sizeErr.style.display = 'none';
+
+            // Calculate stock specifically for this selected size
+            const sizeStock = (window.sizeStockMap && window.sizeStockMap[size] !== undefined)
+                ? window.sizeStockMap[size]
+                : ((window.currentProductData && window.currentProductData.stock_quantity !== undefined && window.currentProductData.stock_quantity !== null)
+                    ? Number(window.currentProductData.stock_quantity)
+                    : 999);
+
+            // Set available stock for this size and update quantity bounds
+            window.currentAvailableStock = sizeStock;
+            if (!window.currentQty || window.currentQty < 1) {
+                window.currentQty = (sizeStock > 0 ? 1 : 0);
+            } else if (sizeStock > 0 && window.currentQty > sizeStock) {
+                window.currentQty = sizeStock;
+            }
+            const qtyEl = document.getElementById('pdp-qty');
+            if (qtyEl) qtyEl.textContent = window.currentQty;
+
+            // Show stock info bar for selected size
+            const infoBar = document.getElementById('size-stock-info');
+            if (infoBar) {
+                infoBar.style.display = 'block';
+                if (sizeStock === 0) {
+                    infoBar.className = 'info-out-stock';
+                    infoBar.textContent = `Size ${size}: Out of Stock`;
+                } else if (sizeStock <= 5) {
+                    infoBar.className = 'info-low-stock';
+                    infoBar.textContent = `⚡ Hurry! Only ${sizeStock} left in size ${size}`;
+                } else {
+                    infoBar.className = 'info-in-stock';
+                    infoBar.textContent = `✓ ${sizeStock} available in size ${size}`;
+                }
+            }
+
+            // Always update buttons and stock alert state for the chosen size
+            updateStockAlert(sizeStock, size);
+        };
+
+        window.selectColor = function selectColor(element, color, imgUrl) {
+            document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => { el.classList.remove('selected'); el.style.outline = ''; });
+            if (element) element.classList.add('selected');
+            window.selectedColor = color;
+
+            // Clear error message
+            const colorErr = document.getElementById('color-error-msg');
+            if (colorErr) colorErr.style.display = 'none';
+
+            if (imgUrl) {
+                const cleanTarget = imgUrl.split('#')[0];
+                window.currentMainImageUrl = cleanTarget;
+                const mainImg = document.getElementById('main-product-image');
+                if (mainImg) {
+                    mainImg.style.transition = 'opacity 0.2s ease';
+                    mainImg.style.opacity = '0';
+                    setTimeout(() => {
+                        mainImg.src = cleanTarget;
+                        mainImg.style.opacity = '1';
+                    }, 180);
+                }
+                document.querySelectorAll('.thumb-img').forEach(t => {
+                    const cleanThumb = t.src.split('#')[0];
+                    t.classList.toggle('active', cleanThumb === cleanTarget || t.src.includes(cleanTarget.split('/').pop()));
+                });
             }
         };
 
-        renderGrid(matchWithItems, 'match-with-grid', 'match-with-section');
-        renderGrid(similarItems, 'similar-items-grid', 'similar-items-section');
+        window.handleAddToCart = function handleAddToCart() {
+            const pd = window.currentProductData;
+            if (!pd) { console.warn('handleAddToCart: no product data'); return; }
 
-    } catch (err) {
-        console.error("Error loading related grids:", err);
-    }
-}
+            let hasSizes = false, hasColors = false;
+            if (pd.product_variants && pd.product_variants.length > 0) {
+                pd.product_variants.forEach(v => {
+                    if (v.size) hasSizes = true;
+                    if (v.color) hasColors = true;
+                });
+            }
 
-window.swapImage = function swapImage(url, element) {
-    const mainImg = document.getElementById('main-product-image');
-    if (mainImg) mainImg.src = url;
-    document.querySelectorAll('.thumb-img').forEach(el => el.classList.remove('active'));
-    if (element) element.classList.add('active');
-}
+            // Inline red-highlight validation
+            if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
-window.selectSize = function selectSize(element, size) {
-    document.querySelectorAll('.size-box').forEach(el => { el.classList.remove('selected'); el.style.borderColor = ''; });
-    if (element) element.classList.add('selected');
-    window.selectedSize = size;
-    // Clear error message
-    const sizeErr = document.getElementById('size-error-msg');
-    if (sizeErr) sizeErr.style.display = 'none';
+            const sSize = window.selectedSize || 'Default';
+            const qty = Math.max(1, window.currentQty || 1);
 
-    // Calculate stock specifically for this selected size AND color
-    const sizeStock = (typeof window.getProductVariantStock === 'function')
-        ? window.getProductVariantStock(size, window.selectedColor)
-        : ((window.sizeStockMap && window.sizeStockMap[size] !== undefined)
-            ? window.sizeStockMap[size]
-            : ((window.currentProductData && window.currentProductData.stock_quantity !== undefined && window.currentProductData.stock_quantity !== null)
-                ? Number(window.currentProductData.stock_quantity)
-                : 999));
+            // Out of stock guard check specifically for this size
+            const currentStock = (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
+                ? window.sizeStockMap[sSize]
+                : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999);
 
-    // Set available stock for this size and update quantity bounds
-    window.currentAvailableStock = sizeStock;
-    if (sizeStock <= 0) {
-        window.currentQty = 0;
-    } else if (!window.currentQty || window.currentQty < 1) {
-        window.currentQty = 1;
-    } else if (window.currentQty > sizeStock) {
-        window.currentQty = sizeStock;
-    }
-    const qtyEl = document.getElementById('pdp-qty');
-    if (qtyEl) qtyEl.textContent = window.currentQty;
+            if (currentStock <= 0 || qty > currentStock) {
+                if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} does not have enough stock.`);
+                return;
+            }
+            const sColor = window.selectedColor || 'N/A';
 
-    // Show stock info bar for selected size and color
-    const infoBar = document.getElementById('size-stock-info');
-    if (infoBar) {
-        infoBar.style.display = 'block';
-        const colorSuffix = window.selectedColor && window.selectedColor !== 'Default' && window.selectedColor !== 'N/A' ? ` (${window.selectedColor})` : '';
-        if (sizeStock === 0) {
-            infoBar.className = 'info-out-stock';
-            infoBar.textContent = `Size ${size}${colorSuffix}: Out of Stock`;
-        } else if (sizeStock <= 5) {
-            infoBar.className = 'info-low-stock';
-            infoBar.textContent = `⚡ Hurry! Only ${sizeStock} left in size ${size}${colorSuffix}`;
-        } else {
-            infoBar.className = 'info-in-stock';
-            infoBar.textContent = `✓ ${sizeStock} available in size ${size}${colorSuffix}`;
-        }
-    }
+            let img = '';
+            if (window.currentMainImageUrl) {
+                img = window.currentMainImageUrl;
+            } else if (pd.product_images && pd.product_images.length > 0) {
+                img = pd.product_images[0].url;
+            }
 
-    // Always update buttons and stock alert state for the chosen size
-    updateStockAlert(sizeStock, size);
-};
+            // Immediately reduce stock on Add to Cart for this specific size
+            const newStock = Math.max(0, currentStock - qty);
+            if (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) {
+                window.sizeStockMap[sSize] = newStock;
+            }
+            window.currentAvailableStock = newStock;
 
-window.selectColor = function selectColor(element, color, imgUrl) {
-    document.querySelectorAll('.color-img-swatch, .color-box').forEach(el => { el.classList.remove('selected'); el.style.outline = ''; });
-    if (element) element.classList.add('selected');
-    window.selectedColor = color;
-    
-    // Clear error message
-    const colorErr = document.getElementById('color-error-msg');
-    if (colorErr) colorErr.style.display = 'none';
+            if (typeof window.modifyStockOnCartAction === 'function') {
+                window.modifyStockOnCartAction(pd.id, sSize, sColor, qty);
+            }
+            if (typeof refreshProductSizeStockUI === 'function') {
+                refreshProductSizeStockUI(sSize, newStock);
+            }
 
-    // Dynamically update sizes & stock for this chosen color variant!
-    if (typeof window.renderSizeOptionsForColor === 'function') {
-        window.renderSizeOptionsForColor(color);
-    }
-    
-    if (imgUrl) {
-        const cleanTarget = imgUrl.split('#')[0];
-        window.currentMainImageUrl = cleanTarget; 
-        const mainImg = document.getElementById('main-product-image');
-        if (mainImg) {
-            mainImg.style.transition = 'opacity 0.2s ease';
-            mainImg.style.opacity = '0';
-            setTimeout(() => {
-                mainImg.src = cleanTarget;
-                mainImg.style.opacity = '1';
-            }, 180);
-        }
-        document.querySelectorAll('.thumb-img').forEach(t => {
-            const cleanThumb = t.src.split('#')[0];
-            t.classList.toggle('active', cleanThumb === cleanTarget || t.src.includes(cleanTarget.split('/').pop()));
-        });
-    }
-};
+            const newItem = {
+                id: pd.id,
+                name: pd.name,
+                price: pd.price,
+                size: sSize,
+                color: sColor,
+                qty: qty,
+                img: img,
+                customImg: img,
+                stockDeducted: true
+            };
 
-window.handleAddToCart = function handleAddToCart() {
-    const pd = window.currentProductData;
-    if (!pd) { console.warn('handleAddToCart: no product data'); return; }
+            // Directly write to localStorage using normalized type comparison
+            try {
+                const cartKey = (typeof window.getCartKey === 'function') ? window.getCartKey() : 'kappa_cart_guest';
+                let existingCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+                if (!Array.isArray(existingCart)) existingCart = [];
+                const found = existingCart.find(c =>
+                    String(c.id) === String(pd.id) &&
+                    String(c.size).trim() === String(sSize).trim() &&
+                    String(c.color).trim() === String(sColor).trim()
+                );
+                if (found) {
+                    found.qty = (Number(found.qty) || 1) + qty;
+                } else {
+                    existingCart.push(newItem);
+                }
+                localStorage.setItem(cartKey, JSON.stringify(existingCart));
+                console.log('✅ Added to cart:', pd.name, 'size:', sSize, 'color:', sColor, 'qty:', qty);
+            } catch (e) {
+                console.error('Failed to save cart:', e);
+            }
 
-    let hasSizes = false, hasColors = false;
-    if (pd.product_variants && pd.product_variants.length > 0) {
-        pd.product_variants.forEach(v => {
-            if (v.size) hasSizes = true;
-            if (v.color) hasColors = true;
-        });
-    }
+            // Synchronize UI / drawer / badge using unified renderCart
+            if (typeof window.renderCart === 'function') {
+                window.renderCart();
+            } else if (typeof window.addToCart === 'function') {
+                window.addToCart(pd.id, sSize, sColor, pd.price, img, pd.name, true);
+            }
 
-    // Inline red-highlight validation
-    if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
+            if (typeof showProductToast === 'function') {
+                showProductToast(`✅ Added ${qty} item(s) to cart! (Size ${sSize})`);
+            }
+        };
 
-    const sSize = window.selectedSize || 'Default';
-    const sColor = window.selectedColor || 'N/A';
-    const qty = Math.max(1, window.currentQty || 1);
+        /* ============ PDP REVIEWS SYSTEM ============ */
+        window.currentProductReviews = [];
 
-    // Out of stock guard check specifically for this size and color
-    const currentStock = (typeof window.getProductVariantStock === 'function')
-        ? window.getProductVariantStock(sSize, sColor)
-        : ((window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
-            ? window.sizeStockMap[sSize]
-            : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999));
+        window.scrollToReviews = function () {
+            const sec = document.getElementById('reviews-section');
+            if (sec) {
+                sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        };
 
-    if (currentStock <= 0 || qty > currentStock) {
-        const colorLabel = (sColor && sColor !== 'N/A') ? ` (${sColor})` : '';
-        if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize}${colorLabel} does not have enough stock.`);
-        return;
-    }
+        window.toggleReviewForm = function (forceState) {
+            const panel = document.getElementById('pdpReviewFormPanel');
+            const btn = document.getElementById('btnToggleReviewForm');
+            if (!panel) return;
 
-    let img = '';
-    if (window.currentMainImageUrl) {
-        img = window.currentMainImageUrl;
-    } else if (pd.product_images && pd.product_images.length > 0) {
-        img = pd.product_images[0].url;
-    }
+            const isVisible = panel.style.display === 'block';
+            const shouldShow = (typeof forceState === 'boolean') ? forceState : !isVisible;
 
-    // Immediately reduce stock on Add to Cart for this specific color variant
-    const newStock = Math.max(0, currentStock - qty);
-    if (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) {
-        window.sizeStockMap[sSize] = newStock;
-    }
-    window.currentAvailableStock = newStock;
+            panel.style.display = shouldShow ? 'block' : 'none';
+            if (btn) {
+                btn.innerHTML = shouldShow
+                    ? `✕ <span>Close Form</span>`
+                    : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg><span>Write a Review</span>`;
+            }
 
-    if (typeof window.modifyStockOnCartAction === 'function') {
-        window.modifyStockOnCartAction(pd.id, sSize, sColor, qty);
-    }
-    if (typeof window.renderSizeOptionsForColor === 'function') {
-        window.renderSizeOptionsForColor(sColor);
-    } else if (typeof refreshProductSizeStockUI === 'function') {
-        refreshProductSizeStockUI(sSize, newStock);
-    }
-
-    const newItem = {
-        id: pd.id,
-        name: pd.name,
-        price: pd.price,
-        size: sSize,
-        color: sColor,
-        qty: qty,
-        img: img,
-        customImg: img,
-        stockDeducted: true
-    };
-
-    // Directly write to localStorage using normalized type comparison
-    try {
-        const cartKey = (typeof window.getCartKey === 'function') ? window.getCartKey() : 'kappa_cart_guest';
-        let existingCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-        if (!Array.isArray(existingCart)) existingCart = [];
-        const found = existingCart.find(c =>
-            String(c.id) === String(pd.id) &&
-            String(c.size).trim() === String(sSize).trim() &&
-            String(c.color).trim() === String(sColor).trim()
-        );
-        if (found) {
-            found.qty = (Number(found.qty) || 1) + qty;
-        } else {
-            existingCart.push(newItem);
-        }
-        localStorage.setItem(cartKey, JSON.stringify(existingCart));
-        console.log('✅ Added to cart:', pd.name, 'size:', sSize, 'color:', sColor, 'qty:', qty);
-    } catch (e) {
-        console.error('Failed to save cart:', e);
-    }
-
-    // Synchronize UI / drawer / badge using unified renderCart
-    if (typeof window.renderCart === 'function') {
-        window.renderCart();
-    } else if (typeof window.addToCart === 'function') {
-        window.addToCart(pd.id, sSize, sColor, pd.price, img, pd.name, true);
-    }
-
-    if (typeof showProductToast === 'function') {
-        showProductToast(`✅ Added ${qty} item(s) to cart! (Size ${sSize})`);
-    }
-};
-
-/* ============ PDP REVIEWS SYSTEM ============ */
-window.currentProductReviews = [];
-
-window.scrollToReviews = function() {
-    const sec = document.getElementById('reviews-section');
-    if (sec) {
-        sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-};
-
-window.toggleReviewForm = function(forceState) {
-    const panel = document.getElementById('pdpReviewFormPanel');
-    const btn = document.getElementById('btnToggleReviewForm');
-    if (!panel) return;
-    
-    const isVisible = panel.style.display === 'block';
-    const shouldShow = (typeof forceState === 'boolean') ? forceState : !isVisible;
-    
-    panel.style.display = shouldShow ? 'block' : 'none';
-    if (btn) {
-        btn.innerHTML = shouldShow 
-            ? `✕ <span>Close Form</span>`
-            : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg><span>Write a Review</span>`;
-    }
-    
-    if (shouldShow) {
-        // Pre-fill user name if logged in
-        try {
-            const client = getPDPClient();
-            if (client && client.auth) {
-                client.auth.getUser().then(({ data }) => {
-                    if (data && data.user) {
-                        const nameInput = document.getElementById('reviewAuthorName');
-                        if (nameInput && !nameInput.value) {
-                            nameInput.value = data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split('@')[0] || '';
-                        }
+            if (shouldShow) {
+                // Pre-fill user name if logged in
+                try {
+                    const client = getPDPClient();
+                    if (client && client.auth) {
+                        client.auth.getUser().then(({ data }) => {
+                            if (data && data.user) {
+                                const nameInput = document.getElementById('reviewAuthorName');
+                                if (nameInput && !nameInput.value) {
+                                    nameInput.value = data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split('@')[0] || '';
+                                }
+                            }
+                        });
                     }
+                } catch (_) { }
+            }
+        };
+
+        window.setReviewRating = function (rating) {
+            const ratingInput = document.getElementById('pdpFormRating');
+            if (ratingInput) ratingInput.value = rating;
+
+            const stars = document.querySelectorAll('#pdpStarPicker .pdp-star-btn');
+            stars.forEach(s => {
+                const val = parseInt(s.getAttribute('data-val') || '0', 10);
+                s.classList.toggle('active', val <= rating);
+            });
+
+            const sentiments = {
+                1: '1 - Terrible',
+                2: '2 - Poor',
+                3: '3 - Average',
+                4: '4 - Good',
+                5: '5 - Excellent'
+            };
+            const sentEl = document.getElementById('pdpRatingSentiment');
+            if (sentEl) sentEl.textContent = sentiments[rating] || `${rating} Stars`;
+        };
+
+        // Hover effects for star picker
+        document.addEventListener('DOMContentLoaded', () => {
+            const starPicker = document.getElementById('pdpStarPicker');
+            if (starPicker) {
+                const starBtns = starPicker.querySelectorAll('.pdp-star-btn');
+                starBtns.forEach(btn => {
+                    btn.addEventListener('mouseenter', () => {
+                        const val = parseInt(btn.getAttribute('data-val') || '0', 10);
+                        starBtns.forEach(s => {
+                            const sVal = parseInt(s.getAttribute('data-val') || '0', 10);
+                            s.classList.toggle('hover', sVal <= val);
+                        });
+                    });
+                    btn.addEventListener('mouseleave', () => {
+                        starBtns.forEach(s => s.classList.remove('hover'));
+                    });
                 });
             }
-        } catch (_) {}
-    }
-};
-
-window.setReviewRating = function(rating) {
-    const ratingInput = document.getElementById('pdpFormRating');
-    if (ratingInput) ratingInput.value = rating;
-    
-    const stars = document.querySelectorAll('#pdpStarPicker .pdp-star-btn');
-    stars.forEach(s => {
-        const val = parseInt(s.getAttribute('data-val') || '0', 10);
-        s.classList.toggle('active', val <= rating);
-    });
-    
-    const sentiments = {
-        1: '1 - Terrible',
-        2: '2 - Poor',
-        3: '3 - Average',
-        4: '4 - Good',
-        5: '5 - Excellent'
-    };
-    const sentEl = document.getElementById('pdpRatingSentiment');
-    if (sentEl) sentEl.textContent = sentiments[rating] || `${rating} Stars`;
-};
-
-// Hover effects for star picker
-document.addEventListener('DOMContentLoaded', () => {
-    const starPicker = document.getElementById('pdpStarPicker');
-    if (starPicker) {
-        const starBtns = starPicker.querySelectorAll('.pdp-star-btn');
-        starBtns.forEach(btn => {
-            btn.addEventListener('mouseenter', () => {
-                const val = parseInt(btn.getAttribute('data-val') || '0', 10);
-                starBtns.forEach(s => {
-                    const sVal = parseInt(s.getAttribute('data-val') || '0', 10);
-                    s.classList.toggle('hover', sVal <= val);
-                });
-            });
-            btn.addEventListener('mouseleave', () => {
-                starBtns.forEach(s => s.classList.remove('hover'));
-            });
         });
-    }
-});
 
-window.loadProductReviews = async function(productId) {
-    if (!productId) return;
-    try {
-        const client = getPDPClient();
-        if (!client) return;
-        
-        let reviews = [];
-        let res = await client
-            .from('product_reviews')
-            .select('*')
-            .eq('product_id', productId)
-            .order('created_at', { ascending: false });
-            
-        if (res.error || !res.data) {
-            const resFallback = await client
-                .from('reviews')
-                .select('*')
-                .eq('product_id', productId)
-                .order('created_at', { ascending: false });
-            if (!resFallback.error && resFallback.data) {
-                reviews = resFallback.data;
+        window.loadProductReviews = async function (productId) {
+            if (!productId) return;
+            try {
+                const client = getPDPClient();
+                if (!client) return;
+
+                let reviews = [];
+                let res = await client
+                    .from('product_reviews')
+                    .select('*')
+                    .eq('product_id', productId)
+                    .order('created_at', { ascending: false });
+
+                if (res.error || !res.data) {
+                    const resFallback = await client
+                        .from('reviews')
+                        .select('*')
+                        .eq('product_id', productId)
+                        .order('created_at', { ascending: false });
+                    if (!resFallback.error && resFallback.data) {
+                        reviews = resFallback.data;
+                    }
+                } else {
+                    reviews = res.data;
+                }
+
+                const approved = (reviews || []).filter(r => r.is_approved !== false);
+                window.currentProductReviews = approved;
+                renderReviewsUI(approved);
+            } catch (err) {
+                console.error('Error fetching product reviews:', err);
             }
-        } else {
-            reviews = res.data;
-        }
+        };
 
-        const approved = (reviews || []).filter(r => r.is_approved !== false);
-        window.currentProductReviews = approved;
-        renderReviewsUI(approved);
-    } catch (err) {
-        console.error('Error fetching product reviews:', err);
-    }
-};
+        function renderReviewsUI(reviews) {
+            const count = reviews.length;
+            let avg = 0;
+            const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
-function renderReviewsUI(reviews) {
-    const count = reviews.length;
-    let avg = 0;
-    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+            if (count > 0) {
+                const sum = reviews.reduce((acc, r) => {
+                    const star = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
+                    distribution[star] = (distribution[star] || 0) + 1;
+                    return acc + star;
+                }, 0);
+                avg = (sum / count).toFixed(1);
+            }
 
-    if (count > 0) {
-        const sum = reviews.reduce((acc, r) => {
-            const star = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
-            distribution[star] = (distribution[star] || 0) + 1;
-            return acc + star;
-        }, 0);
-        avg = (sum / count).toFixed(1);
-    }
+            // 1. Update Hero Snippet
+            const snippet = document.getElementById('pdp-rating-snippet');
+            const snippetStars = document.getElementById('pdp-snippet-stars');
+            const snippetText = document.getElementById('pdp-snippet-text');
+            if (snippet) {
+                if (count > 0) {
+                    snippet.style.display = 'inline-flex';
+                    if (snippetStars) snippetStars.innerHTML = '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg));
+                    if (snippetText) snippetText.innerText = `${avg} (${count} ${count === 1 ? 'review' : 'reviews'})`;
+                } else {
+                    snippet.style.display = 'inline-flex';
+                    if (snippetStars) snippetStars.innerHTML = '★★★★★';
+                    if (snippetText) snippetText.innerText = `0.0 (0 reviews)`;
+                }
+            }
 
-    // 1. Update Hero Snippet
-    const snippet = document.getElementById('pdp-rating-snippet');
-    const snippetStars = document.getElementById('pdp-snippet-stars');
-    const snippetText = document.getElementById('pdp-snippet-text');
-    if (snippet) {
-        if (count > 0) {
-            snippet.style.display = 'inline-flex';
-            if (snippetStars) snippetStars.innerHTML = '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg));
-            if (snippetText) snippetText.innerText = `${avg} (${count} ${count === 1 ? 'review' : 'reviews'})`;
-        } else {
-            snippet.style.display = 'inline-flex';
-            if (snippetStars) snippetStars.innerHTML = '★★★★★';
-            if (snippetText) snippetText.innerText = `0.0 (0 reviews)`;
-        }
-    }
+            // 2. Update Big Summary Box
+            const bigScore = document.getElementById('pdp-summary-score');
+            const bigStars = document.getElementById('pdp-summary-stars');
+            const bigCount = document.getElementById('pdp-summary-count');
+            if (bigScore) bigScore.innerText = count > 0 ? avg : '0.0';
+            if (bigStars) bigStars.innerHTML = count > 0
+                ? '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg))
+                : '★★★★★';
+            if (bigCount) bigCount.innerText = `Based on ${count} ${count === 1 ? 'review' : 'reviews'}`;
 
-    // 2. Update Big Summary Box
-    const bigScore = document.getElementById('pdp-summary-score');
-    const bigStars = document.getElementById('pdp-summary-stars');
-    const bigCount = document.getElementById('pdp-summary-count');
-    if (bigScore) bigScore.innerText = count > 0 ? avg : '0.0';
-    if (bigStars) bigStars.innerHTML = count > 0 
-        ? '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg))
-        : '★★★★★';
-    if (bigCount) bigCount.innerText = `Based on ${count} ${count === 1 ? 'review' : 'reviews'}`;
+            // 3. Update Distribution Bars
+            for (let i = 1; i <= 5; i++) {
+                const barFill = document.getElementById(`bar-${i}`);
+                const barCount = document.getElementById(`count-${i}`);
+                const c = distribution[i] || 0;
+                const pct = count > 0 ? Math.round((c / count) * 100) : 0;
+                if (barFill) barFill.style.width = `${pct}%`;
+                if (barCount) barCount.innerText = c;
+            }
 
-    // 3. Update Distribution Bars
-    for (let i = 1; i <= 5; i++) {
-        const barFill = document.getElementById(`bar-${i}`);
-        const barCount = document.getElementById(`count-${i}`);
-        const c = distribution[i] || 0;
-        const pct = count > 0 ? Math.round((c / count) * 100) : 0;
-        if (barFill) barFill.style.width = `${pct}%`;
-        if (barCount) barCount.innerText = c;
-    }
+            // 4. Update Reviews List
+            const listEl = document.getElementById('pdpReviewsList');
+            if (!listEl) return;
 
-    // 4. Update Reviews List
-    const listEl = document.getElementById('pdpReviewsList');
-    if (!listEl) return;
-
-    if (count === 0) {
-        listEl.innerHTML = `
+            if (count === 0) {
+                listEl.innerHTML = `
             <div class="pdp-no-reviews">
                 <div class="pdp-no-reviews-icon">★</div>
                 <p style="font-weight:700; color:#222; margin-bottom:4px;">No reviews yet</p>
@@ -3553,19 +3622,19 @@ function renderReviewsUI(reviews) {
                 <button type="button" class="btn-write-review" onclick="toggleReviewForm(true)" style="margin:0 auto; padding:10px 20px; font-size:12px;">Write the First Review</button>
             </div>
         `;
-        return;
-    }
+                return;
+            }
 
-    const html = reviews.map(r => {
-        const reviewerName = r.customer_name || r.reviewer_name || 'Verified Customer';
-        const initial = reviewerName.charAt(0).toUpperCase() || 'K';
-        const rating = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
-        const starStr = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-        const title = r.review_title ? `<div class="pdp-review-title">${escapePdpHtml(r.review_title)}</div>` : '';
-        const comment = r.review_text || r.comment || '';
-        const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently';
+            const html = reviews.map(r => {
+                const reviewerName = r.customer_name || r.reviewer_name || 'Verified Customer';
+                const initial = reviewerName.charAt(0).toUpperCase() || 'K';
+                const rating = Math.min(5, Math.max(1, parseInt(r.rating || 5, 10)));
+                const starStr = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+                const title = r.review_title ? `<div class="pdp-review-title">${escapePdpHtml(r.review_title)}</div>` : '';
+                const comment = r.review_text || r.comment || '';
+                const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently';
 
-        return `
+                return `
             <div class="pdp-review-card">
                 <div class="pdp-review-card-head">
                     <div class="pdp-reviewer-profile">
@@ -3584,123 +3653,121 @@ function renderReviewsUI(reviews) {
                 <div class="pdp-review-comment">${escapePdpHtml(comment)}</div>
             </div>
         `;
-    }).join('');
+            }).join('');
 
-    listEl.innerHTML = html;
-}
-
-function escapePdpHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-window.submitProductReview = async function() {
-    const pd = window.currentProductData;
-    if (!pd || !pd.id) {
-        showProductToast('Product data not found. Please refresh.');
-        return;
-    }
-
-    const ratingVal = parseInt(document.getElementById('pdpFormRating')?.value || '5', 10);
-    const authorName = document.getElementById('reviewAuthorName')?.value?.trim();
-    const title = document.getElementById('reviewHeadline')?.value?.trim() || '';
-    const comment = document.getElementById('reviewComments')?.value?.trim();
-    const submitBtn = document.getElementById('btnSubmitReview');
-
-    if (!authorName) {
-        showProductToast('Please enter your name.');
-        return;
-    }
-    if (!comment) {
-        showProductToast('Please enter your review text.');
-        return;
-    }
-
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerText = 'Submitting...';
-    }
-
-    try {
-        const client = getPDPClient();
-        let user = null;
-        if (client && client.auth) {
-            const { data } = await client.auth.getUser();
-            user = data?.user || null;
+            listEl.innerHTML = html;
         }
 
-        const reviewPayload = {
-            product_id: pd.id,
-            user_id: user ? user.id : null,
-            rating: ratingVal,
-            customer_name: authorName,
-            customer_email: user?.email || null,
-            reviewer_name: authorName,
-            review_title: title,
-            review_text: comment,
-            comment: comment,
-            is_approved: true,
-            created_at: new Date().toISOString()
-        };
+        function escapePdpHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
-        if (client) {
-            const { error: prErr } = await client.from('product_reviews').insert([reviewPayload]);
-            if (prErr) {
-                console.warn('product_reviews insert note:', prErr);
-                await client.from('reviews').insert([{
+        window.submitProductReview = async function () {
+            const pd = window.currentProductData;
+            if (!pd || !pd.id) {
+                showProductToast('Product data not found. Please refresh.');
+                return;
+            }
+
+            const ratingVal = parseInt(document.getElementById('pdpFormRating')?.value || '5', 10);
+            const authorName = document.getElementById('reviewAuthorName')?.value?.trim();
+            const title = document.getElementById('reviewHeadline')?.value?.trim() || '';
+            const comment = document.getElementById('reviewComments')?.value?.trim();
+            const submitBtn = document.getElementById('btnSubmitReview');
+
+            if (!authorName) {
+                showProductToast('Please enter your name.');
+                return;
+            }
+            if (!comment) {
+                showProductToast('Please enter your review text.');
+                return;
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'Submitting...';
+            }
+
+            try {
+                const client = getPDPClient();
+                let user = null;
+                if (client && client.auth) {
+                    const { data } = await client.auth.getUser();
+                    user = data?.user || null;
+                }
+
+                const reviewPayload = {
                     product_id: pd.id,
                     user_id: user ? user.id : null,
                     rating: ratingVal,
-                    comment: comment,
+                    customer_name: authorName,
+                    customer_email: user?.email || null,
                     reviewer_name: authorName,
-                    is_approved: true
-                }]);
+                    review_title: title,
+                    review_text: comment,
+                    comment: comment,
+                    is_approved: true,
+                    created_at: new Date().toISOString()
+                };
+
+                if (client) {
+                    const { error: prErr } = await client.from('product_reviews').insert([reviewPayload]);
+                    if (prErr) {
+                        console.warn('product_reviews insert note:', prErr);
+                        await client.from('reviews').insert([{
+                            product_id: pd.id,
+                            user_id: user ? user.id : null,
+                            rating: ratingVal,
+                            comment: comment,
+                            reviewer_name: authorName,
+                            is_approved: true
+                        }]);
+                    }
+                }
+
+                // Local UI update
+                const newReviewObj = {
+                    id: 'temp_' + Date.now(),
+                    ...reviewPayload
+                };
+                window.currentProductReviews.unshift(newReviewObj);
+                renderReviewsUI(window.currentProductReviews);
+
+                // Reset form and hide
+                document.getElementById('pdpReviewForm')?.reset();
+                window.setReviewRating(5);
+                window.toggleReviewForm(false);
+
+                showProductToast('⭐ Thank you! Your review has been submitted successfully.');
+            } catch (err) {
+                console.error('Submit review error:', err);
+                showProductToast('Failed to submit review. Please try again.');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Submit Review';
+                }
             }
-        }
-
-        // Local UI update
-        const newReviewObj = {
-            id: 'temp_' + Date.now(),
-            ...reviewPayload
         };
-        window.currentProductReviews.unshift(newReviewObj);
-        renderReviewsUI(window.currentProductReviews);
 
-        // Reset form and hide
-        document.getElementById('pdpReviewForm')?.reset();
-        window.setReviewRating(5);
-        window.toggleReviewForm(false);
-
-        showProductToast('⭐ Thank you! Your review has been submitted successfully.');
-    } catch (err) {
-        console.error('Submit review error:', err);
-        showProductToast('Failed to submit review. Please try again.');
-    } finally {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerText = 'Submit Review';
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadSingleProduct);
+        } else {
+            loadSingleProduct();
         }
-    }
-};
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadSingleProduct);
-} else {
-    loadSingleProduct();
-}
-</script>
+    </script>
     <!-- GSAP & Lenis Smooth Scroll Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
     <script src="animations.js"></script>
 </body>
+
 </html>
-
-
-
