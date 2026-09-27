@@ -1697,8 +1697,13 @@
                 let hasPositive = false;
                 variants.forEach(v => {
                     const varKey = (product.id || product.slug) + '_' + (v.size || '') + '_' + (v.color || '');
-                    const vOverride = overrides[varKey];
-                    const qty = (vOverride !== undefined) ? Number(vOverride) : (Number(v.stock_quantity) || 0);
+                    let qty = (overrides[varKey] !== undefined) ? Number(overrides[varKey]) : (Number(v.stock_quantity) || 0);
+                    if (prodOverride && prodOverride.variantCombos) {
+                        const comboKey = `${String(v.color || '').trim().toLowerCase()}:::${String(v.size || '').trim().toUpperCase()}`;
+                        if (prodOverride.variantCombos[comboKey]) {
+                            qty = Math.max(0, qty - prodOverride.variantCombos[comboKey]);
+                        }
+                    }
                     if (qty > 0) hasPositive = true;
                     vTotal += Math.max(0, qty);
                 });
