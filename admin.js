@@ -5798,8 +5798,16 @@ function renderExploreCardsAdminTable(cards) {
         else if (card.selection_type === 'sale') targetDetail = 'Sale Items';
         else if (card.selection_type === 'custom_url') targetDetail = card.destination_url || 'URL';
 
+        let cardGender = card.gender;
+        if (!cardGender || cardGender === 'both') {
+            const textToCheck = ((card.tag_label || '') + ' ' + (card.title || '') + ' ' + (card.destination_url || '')).toLowerCase();
+            if (textToCheck.includes('women')) cardGender = 'women';
+            else if (textToCheck.includes('men')) cardGender = 'men';
+            else cardGender = 'both';
+        }
+
         html += `
-        <tr style="border-bottom:1px solid #eee;" data-gender="${card.gender || 'both'}">
+        <tr style="border-bottom:1px solid #eee;" data-gender="${cardGender}">
             <td style="padding:12px;">
                 <div style="width:48px; height:58px; border-radius:6px; overflow:hidden; background:#eee; border:1px solid #ddd;">
                     <img src="${img}" style="width:100%; height:100%; object-fit:cover;" alt="Card Image">
@@ -5809,7 +5817,7 @@ function renderExploreCardsAdminTable(cards) {
                 <strong style="font-size:14px; display:block; text-transform:uppercase; color:#111;">${card.title}</strong>
                 <span style="font-size:12px; color:#d97706; font-family:serif; font-style:italic;">${card.subtitle || ''}</span>
                 <span style="display:block; font-size:10px; color:#888;">${card.tag_label || 'Explore >'}</span>
-                ${card.gender && card.gender !== 'both' ? `<span style="display:inline-block; margin-top:3px; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; background:${card.gender === 'men' ? '#dbeafe' : '#fce7f3'}; color:${card.gender === 'men' ? '#1d4ed8' : '#be185d'};">${card.gender === 'men' ? '👔 Men' : '👗 Women'}</span>` : '<span style="display:inline-block; margin-top:3px; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; background:#f3f4f6; color:#6b7280;">All</span>'}
+                ${cardGender !== 'both' ? `<span style="display:inline-block; margin-top:3px; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; background:${cardGender === 'men' ? '#dbeafe' : '#fce7f3'}; color:${cardGender === 'men' ? '#1d4ed8' : '#be185d'};">${cardGender === 'men' ? '👔 Men' : '👗 Women'}</span>` : '<span style="display:inline-block; margin-top:3px; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; background:#f3f4f6; color:#6b7280;">All</span>'}
             </td>
             <td style="padding:12px;">
                 <span style="background:#eef2ff; color:#4f46e5; font-size:11px; font-weight:700; padding:4px 10px; border-radius:12px; text-transform:uppercase; display:inline-block;">${card.selection_type || 'category'}</span>
