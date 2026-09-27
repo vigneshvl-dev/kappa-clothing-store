@@ -2389,18 +2389,18 @@
                 if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
                 const sSize = window.selectedSize || 'Default';
+                const sColor = window.selectedColor || 'N/A';
                 const qty = window.currentQty || 1;
 
-                const currentStock = (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
-                    ? window.sizeStockMap[sSize]
-                    : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999);
+                const currentStock = (typeof window.getProductVariantStock === 'function')
+                    ? window.getProductVariantStock(sSize, sColor)
+                    : ((window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) ? window.sizeStockMap[sSize] : 999);
 
                 if (currentStock <= 0 || qty > currentStock) {
-                    if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} does not have enough stock.`);
+                    const colorLabel = (sColor && sColor !== 'N/A') ? ` (${sColor})` : '';
+                    if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize}${colorLabel} does not have enough stock.`);
                     return;
                 }
-
-                const sColor = window.selectedColor || 'N/A';
 
                 let img = '';
                 if (window.currentMainImageUrl) {
@@ -2418,7 +2418,9 @@
                 if (typeof window.modifyStockOnCartAction === 'function') {
                     window.modifyStockOnCartAction(pd.id, sSize, sColor, qty);
                 }
-                if (typeof refreshProductSizeStockUI === 'function') {
+                if (typeof window.renderSizeOptionsForColor === 'function') {
+                    window.renderSizeOptionsForColor(sColor);
+                } else if (typeof refreshProductSizeStockUI === 'function') {
                     refreshProductSizeStockUI(sSize, newStock);
                 }
 
