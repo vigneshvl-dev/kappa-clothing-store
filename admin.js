@@ -956,7 +956,15 @@ async function loadOrders() {
         }
     }
 
-    const allOrders = (data || []).filter(o => o.order_stage !== 'recycled' && o.status !== 'recycled');
+    const allOrders = (data || []).filter(o => {
+        const st = (o.status || '').toLowerCase();
+        const stg = (o.order_stage || '').toLowerCase();
+        
+        if (stg === 'recycled' || st === 'recycled') return false;
+        if (stg === 'cancelled' || stg === 'refunded' || st.includes('cancel') || st.includes('refund')) return false;
+        
+        return true;
+    });
     _allFetchedOrders = allOrders;
 
     if (typeof markOrdersAsSeen === 'function') {
@@ -5020,6 +5028,9 @@ async function loadCancelledOrders() {
         cachedCancelledOrdersList = (orders || []).filter(ord => {
             const st = (ord.status || '').toLowerCase().trim();
             const stg = (ord.order_stage || '').toLowerCase().trim();
+            
+            if (stg === 'recycled' || st === 'recycled') return false;
+            
             return st.includes('cancel') || st.includes('refund') || stg === 'cancelled' || stg === 'refunded';
         });
 

@@ -1680,10 +1680,14 @@
 
             const cartKey = await getCartKey();
             localStorage.removeItem(cartKey);
+            localStorage.removeItem('kappa_cart_guest');
             localStorage.removeItem('kappa_checkout_cart');
             localStorage.removeItem('kappa_buy_now_item');
             localStorage.removeItem('kappa_checkout_shipping');
             localStorage.removeItem('kappa_checkout_discount');
+            
+            // Dispatch storage event manually so script.js in other tabs can update UI
+            window.dispatchEvent(new Event('storage'));
         }
 
         // Show custom success modal with post-order review options
