@@ -123,7 +123,8 @@ window.switchAdminView = async function (targetName) {
                 homepage: 'Homepage Media',
                 explore: 'Explore Cards',
                 promocodes: 'Promo Codes',
-                settings: 'Settings'
+                settings: 'Settings',
+                'sales-report': 'Sales Report'
             };
             pageTitle.textContent = titleMap[targetName] || (targetName.charAt(0).toUpperCase() + targetName.slice(1));
         }
@@ -180,6 +181,7 @@ window.switchAdminView = async function (targetName) {
                 case 'homepage': if (typeof loadHomepageSettings === 'function') await loadHomepageSettings(); break;
                 case 'explore': if (typeof loadExploreCardsAdmin === 'function') await loadExploreCardsAdmin(); break;
                 case 'promocodes': if (typeof loadPromoCodes === 'function') await loadPromoCodes(); break;
+                case 'sales-report': if (typeof loadSalesReport === 'function') await loadSalesReport(); break;
             }
         } catch (err) {
             console.error('Error loading view:', targetName, err);
@@ -6881,3 +6883,100 @@ async function syncExistingOrdersToNotifications() {
         console.error('Error syncing existing orders to notifications:', e);
     }
 }
+
+// ==========================================
+// SALES REPORT LOGIC
+// ==========================================
+async function loadSalesReport() {
+    const tableBody = document.getElementById('sales-report-table-body');
+    const totalSalesEl = document.getElementById('report-total-sales');
+    const totalOrdersEl = document.getElementById('report-total-orders');
+    const productsSoldEl = document.getElementById('report-products-sold');
+    const dateEl = document.getElementById('sales-report-date');
+    
+    if (dateEl) {
+        dateEl.textContent = 'Generated on ' + new Date().toLocaleString();
+    }
+    
+    if (tableBody) tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Loading data...</td></tr>';
+    
+    try {
+        const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        
+        let totalSales = 0;
+        let totalOrders = 0;
+        let productsSold = 0;
+        let tableHtml = '';
+        
+        if (data && data.length > 0) {
+            data.forEach(order => {
+                const isCancelled = order.order_stage === 'cancelled' || String(order.status).toLowerCase().includes('cancel');
+                
+                // Only count confirmed/delivered/incoming orders in total sales (excluding cancelled or pending un-paid online if strict, but simple check for now)
+                if (!isCancelled) {
+                    totalOrders++;
+                    totalSales += Number(order.total_amount || 0);
+                    
+                    if (order.items && Array.isArray(order.items)) {
+                        order.items.forEach(item => {
+                            productsSold += Number(item.qty || item.quantity || 1);
+                        });
+                    }
+                }
+                
+                const customerName = order.customer_details ? (order.customer_details.name || order.customer_details.firstName || 'Guest') : 'Guest';
+                const dateStr = new Date(order.created_at).toLocaleDateString();
+                const statusColor = isCancelled ? '#dc2626' : (order.order_stage === 'delivered' ? '#16a34a' : '#d97706');
+                
+                // Show max 100 recent orders in the table
+                if (tableHtml.length < 50000) { 
+                    tableHtml += `
+                        <tr style="border-bottom:1px solid #eee;">
+                            <td style="padding:10px; border:1px solid #ddd;">${order.id.split('-')[0].toUpperCase()}</td>
+                            <td style="padding:10px; border:1px solid #ddd;">${dateStr}</td>
+                            <td style="padding:10px; border:1px solid #ddd;">${customerName}</td>
+                            <td style="padding:10px; border:1px solid #ddd; color:${statusColor}; font-weight:bold;">${order.order_stage.toUpperCase()}</td>
+                            <td style="padding:10px; border:1px solid #ddd; text-align:right;">₹${Number(order.total_amount || 0).toLocaleString('en-IN')}</td>
+                        </tr>
+                    `;
+                }
+            });
+        }
+        
+        if (totalSalesEl) totalSalesEl.textContent = '₹' + totalSales.toLocaleString('en-IN');
+        if (totalOrdersEl) totalOrdersEl.textContent = totalOrders;
+        if (productsSoldEl) productsSoldEl.textContent = productsSold;
+        
+        if (tableBody) {
+            tableBody.innerHTML = tableHtml || '<tr><td colspan="5" style="text-align:center; padding:20px;">No sales data available.</td></tr>';
+        }
+    } catch (err) {
+        console.error('Error loading sales report:', err);
+        if (tableBody) tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:red;">Failed to load sales report.</td></tr>';
+    }
+}
+
+window.downloadSalesReportPDF = function() {
+    const element = document.getElementById('sales-report-content');
+    if (!element) return;
+    
+    // Update date before generation
+    const dateEl = document.getElementById('sales-report-date');
+    if (dateEl) dateEl.textContent = 'Generated on ' + new Date().toLocaleString();
+    
+    const opt = {
+        margin:       0.5,
+        filename:     'KAPPA_Sales_Report_' + new Date().toISOString().split('T')[0] + '.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    
+    // Use html2pdf if available
+    if (typeof html2pdf !== 'undefined') {
+        html2pdf().set(opt).from(element).save();
+    } else {
+        alert('PDF library not loaded. Try refreshing the page.');
+    }
+};
