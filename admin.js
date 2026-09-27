@@ -2929,12 +2929,16 @@ async function loadInventory() {
         if (prod.product_variants && prod.product_variants.length > 0) {
             prod.product_variants.forEach(v => {
                 let vQty = Number(v.stock_quantity || 0);
-                if (prodOverride && prodOverride.variants && prodOverride.variants[v.size]) {
+                const vKey = `${String(v.color || '').trim().toLowerCase()}:::${String(v.size || '').trim().toUpperCase()}`;
+                if (prodOverride && prodOverride.variantCombos && prodOverride.variantCombos[vKey] !== undefined) {
+                    vQty = Math.max(0, vQty - prodOverride.variantCombos[vKey]);
+                } else if (prodOverride && prodOverride.variants && prodOverride.variants[v.size]) {
                     vQty = Math.max(0, vQty - prodOverride.variants[v.size]);
                 }
                 totalStock += vQty;
                 if (v.size && v.size !== 'Default') {
-                    variantStockList.push(`${v.size}: <strong>${vQty}</strong>`);
+                    const label = (v.color && v.color !== 'Default') ? `${v.color} ${v.size}` : v.size;
+                    variantStockList.push(`${label}: <strong>${vQty}</strong>`);
                 }
             });
         } else {
