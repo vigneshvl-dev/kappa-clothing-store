@@ -3197,36 +3197,41 @@ window.selectSize = function selectSize(element, size) {
     const sizeErr = document.getElementById('size-error-msg');
     if (sizeErr) sizeErr.style.display = 'none';
 
-    // Calculate stock specifically for this selected size
-    const sizeStock = (window.sizeStockMap && window.sizeStockMap[size] !== undefined)
-        ? window.sizeStockMap[size]
-        : ((window.currentProductData && window.currentProductData.stock_quantity !== undefined && window.currentProductData.stock_quantity !== null)
-            ? Number(window.currentProductData.stock_quantity)
-            : 999);
+    // Calculate stock specifically for this selected size AND color
+    const sizeStock = (typeof window.getProductVariantStock === 'function')
+        ? window.getProductVariantStock(size, window.selectedColor)
+        : ((window.sizeStockMap && window.sizeStockMap[size] !== undefined)
+            ? window.sizeStockMap[size]
+            : ((window.currentProductData && window.currentProductData.stock_quantity !== undefined && window.currentProductData.stock_quantity !== null)
+                ? Number(window.currentProductData.stock_quantity)
+                : 999));
 
     // Set available stock for this size and update quantity bounds
     window.currentAvailableStock = sizeStock;
-    if (!window.currentQty || window.currentQty < 1) {
-        window.currentQty = (sizeStock > 0 ? 1 : 0);
-    } else if (sizeStock > 0 && window.currentQty > sizeStock) {
+    if (sizeStock <= 0) {
+        window.currentQty = 0;
+    } else if (!window.currentQty || window.currentQty < 1) {
+        window.currentQty = 1;
+    } else if (window.currentQty > sizeStock) {
         window.currentQty = sizeStock;
     }
     const qtyEl = document.getElementById('pdp-qty');
     if (qtyEl) qtyEl.textContent = window.currentQty;
 
-    // Show stock info bar for selected size
+    // Show stock info bar for selected size and color
     const infoBar = document.getElementById('size-stock-info');
     if (infoBar) {
         infoBar.style.display = 'block';
+        const colorSuffix = window.selectedColor && window.selectedColor !== 'Default' && window.selectedColor !== 'N/A' ? ` (${window.selectedColor})` : '';
         if (sizeStock === 0) {
             infoBar.className = 'info-out-stock';
-            infoBar.textContent = `Size ${size}: Out of Stock`;
+            infoBar.textContent = `Size ${size}${colorSuffix}: Out of Stock`;
         } else if (sizeStock <= 5) {
             infoBar.className = 'info-low-stock';
-            infoBar.textContent = `⚡ Hurry! Only ${sizeStock} left in size ${size}`;
+            infoBar.textContent = `⚡ Hurry! Only ${sizeStock} left in size ${size}${colorSuffix}`;
         } else {
             infoBar.className = 'info-in-stock';
-            infoBar.textContent = `✓ ${sizeStock} available in size ${size}`;
+            infoBar.textContent = `✓ ${sizeStock} available in size ${size}${colorSuffix}`;
         }
     }
 
@@ -3242,6 +3247,11 @@ window.selectColor = function selectColor(element, color, imgUrl) {
     // Clear error message
     const colorErr = document.getElementById('color-error-msg');
     if (colorErr) colorErr.style.display = 'none';
+
+    // Dynamically update sizes & stock for this chosen color variant!
+    if (typeof window.renderSizeOptionsForColor === 'function') {
+        window.renderSizeOptionsForColor(color);
+    }
     
     if (imgUrl) {
         const cleanTarget = imgUrl.split('#')[0];
@@ -3278,18 +3288,21 @@ window.handleAddToCart = function handleAddToCart() {
     if (typeof showSelectionError === 'function' && showSelectionError(hasSizes, hasColors)) return;
 
     const sSize = window.selectedSize || 'Default';
+    const sColor = window.selectedColor || 'N/A';
     const qty = Math.max(1, window.currentQty || 1);
 
-    // Out of stock guard check specifically for this size
-    const currentStock = (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
-        ? window.sizeStockMap[sSize]
-        : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999);
+    // Out of stock guard check specifically for this size and color
+    const currentStock = (typeof window.getProductVariantStock === 'function')
+        ? window.getProductVariantStock(sSize, sColor)
+        : ((window.sizeStockMap && window.sizeStockMap[sSize] !== undefined)
+            ? window.sizeStockMap[sSize]
+            : (window.currentAvailableStock !== null && window.currentAvailableStock !== undefined ? window.currentAvailableStock : 999));
 
     if (currentStock <= 0 || qty > currentStock) {
-        if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize} does not have enough stock.`);
+        const colorLabel = (sColor && sColor !== 'N/A') ? ` (${sColor})` : '';
+        if (typeof showProductToast === 'function') showProductToast(`⚠ Size ${sSize}${colorLabel} does not have enough stock.`);
         return;
     }
-    const sColor = window.selectedColor || 'N/A';
 
     let img = '';
     if (window.currentMainImageUrl) {
@@ -3298,7 +3311,7 @@ window.handleAddToCart = function handleAddToCart() {
         img = pd.product_images[0].url;
     }
 
-    // Immediately reduce stock on Add to Cart for this specific size
+    // Immediately reduce stock on Add to Cart for this specific color variant
     const newStock = Math.max(0, currentStock - qty);
     if (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) {
         window.sizeStockMap[sSize] = newStock;
@@ -3308,7 +3321,9 @@ window.handleAddToCart = function handleAddToCart() {
     if (typeof window.modifyStockOnCartAction === 'function') {
         window.modifyStockOnCartAction(pd.id, sSize, sColor, qty);
     }
-    if (typeof refreshProductSizeStockUI === 'function') {
+    if (typeof window.renderSizeOptionsForColor === 'function') {
+        window.renderSizeOptionsForColor(sColor);
+    } else if (typeof refreshProductSizeStockUI === 'function') {
         refreshProductSizeStockUI(sSize, newStock);
     }
 
