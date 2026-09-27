@@ -5636,6 +5636,12 @@ async function loadExploreCardsAdmin() {
 
     currentAdminExploreCards = cards.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
     renderExploreCardsAdminTable(currentAdminExploreCards);
+
+    // After rendering, re-apply the gender filter if one is active
+    if (typeof filterExploreByGender === 'function' && _currentExploreGenderFilter && _currentExploreGenderFilter !== 'all') {
+        const activeTabBtn = document.getElementById('explore-tab-' + _currentExploreGenderFilter);
+        filterExploreByGender(_currentExploreGenderFilter, activeTabBtn);
+    }
 }
 
 let allCategoriesDataAdmin = [];
@@ -5836,6 +5842,12 @@ function renderExploreCardsAdminTable(cards) {
     });
 
     tbody.innerHTML = html;
+
+    // Re-apply the current gender filter so the active tab is honoured after every re-render
+    if (typeof filterExploreByGender === 'function' && _currentExploreGenderFilter && _currentExploreGenderFilter !== 'all') {
+        const activeTabBtn = document.getElementById('explore-tab-' + _currentExploreGenderFilter);
+        filterExploreByGender(_currentExploreGenderFilter, activeTabBtn);
+    }
 }
 
 window.openExploreModal = function (cardId) {
@@ -6020,6 +6032,7 @@ window.saveExploreCardForm = async function (e) {
             updated_at: new Date().toISOString()
         };
         let savedCard = null;
+        let dbError = null;
         if (id && !id.startsWith('demo-')) {
             const { data, error } = await supabaseClient
                 .from('explore_cards')
@@ -6027,7 +6040,7 @@ window.saveExploreCardForm = async function (e) {
                 .eq('id', id)
                 .select()
                 .single();
-
+            dbError = error;
             if (!error && data) savedCard = data;
         } else {
             const { data, error } = await supabaseClient
@@ -6035,8 +6048,12 @@ window.saveExploreCardForm = async function (e) {
                 .insert([cardData])
                 .select()
                 .single();
-
+            dbError = error;
             if (!error && data) savedCard = data;
+        }
+
+        if (dbError) {
+            console.warn('Supabase explore card save error (will use localStorage):', dbError.message);
         }
         let localCards = JSON.parse(localStorage.getItem('kappa_explore_cards') || '[]');
         if (id) {
@@ -6058,7 +6075,16 @@ window.saveExploreCardForm = async function (e) {
 
         alert('✅ Explore Card saved successfully!');
         closeExploreModal();
+
+        // Reload and keep the gender tab active that was selected in the form
+        const savedGender = gender || 'both';
         await loadExploreCardsAdmin();
+
+        // If the card was saved for a specific gender, switch to that tab
+        if (savedGender !== 'both') {
+            const tabBtn = document.getElementById('explore-tab-' + savedGender);
+            if (typeof filterExploreByGender === 'function') filterExploreByGender(savedGender, tabBtn);
+        }
 
     } catch (err) {
         console.error('Error saving explore card:', err);
