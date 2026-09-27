@@ -2854,26 +2854,83 @@
             if (product.product_variants && product.product_variants.length > 0) {
                 let variantStockSum = 0;
                 let hasVariantStockData = false;
+                window.variantStockMap = {};
+
                 product.product_variants.forEach(variant => {
-                    if (variant.size) {
-                        const sz = variant.size.trim();
-                        availableSizes.add(sz);
-                        let sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
-                        if (sq !== null) {
-                            if (prodOverride && prodOverride.variants && prodOverride.variants[sz]) {
-                                sq = Math.max(0, sq - prodOverride.variants[sz]);
-                            }
-                            window.sizeStockMap[sz] = (window.sizeStockMap[sz] !== undefined ? window.sizeStockMap[sz] : 0) + sq;
-                            variantStockSum += sq;
-                            hasVariantStockData = true;
+                    const sz = variant.size ? variant.size.trim() : 'Default';
+                    const col = variant.color ? variant.color.trim() : 'Default';
+                    availableSizes.add(sz);
+                    if (variant.color) availableColors.add(col);
+
+                    let sq = (variant.stock_quantity !== undefined && variant.stock_quantity !== null) ? Number(variant.stock_quantity) : null;
+                    if (sq !== null) {
+                        if (prodOverride && prodOverride.variants && prodOverride.variants[sz]) {
+                            sq = Math.max(0, sq - prodOverride.variants[sz]);
                         }
+                        if (!window.variantStockMap[col]) window.variantStockMap[col] = {};
+                        window.variantStockMap[col][sz] = sq;
+                        
+                        window.sizeStockMap[sz] = (window.sizeStockMap[sz] !== undefined ? window.sizeStockMap[sz] : 0) + sq;
+                        variantStockSum += sq;
+                        hasVariantStockData = true;
                     }
-                    if (variant.color) availableColors.add(variant.color.trim());
                 });
                 if (hasVariantStockData) {
                     totalProductStock = variantStockSum;
                 }
             }
+
+            window.renderSizesForColor = function(selectedColor) {
+                const sizesArray = Array.from(availableSizes);
+                const pdpSizes = document.getElementById('pdp-sizes');
+                const sizeSec = document.getElementById('size-section');
+                
+                // If a color is selected, override sizeStockMap with exact variant stock for that color
+                if (selectedColor && window.variantStockMap && window.variantStockMap[selectedColor]) {
+                    window.sizeStockMap = window.variantStockMap[selectedColor];
+                }
+
+                if (sizesArray.length > 0 && pdpSizes) {
+                    pdpSizes.innerHTML = sizesArray.map(size => {
+                        const st = window.sizeStockMap ? window.sizeStockMap[size] : null;
+                        let stockBadge = '';
+                        let outClass = '';
+                        if (st !== null && st !== undefined) {
+                            if (st === 0) {
+                                stockBadge = `<span class="size-stock-tag out">Out</span>`;
+                                outClass = ' out-of-stock-box';
+                            } else if (st <= 3) {
+                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                            } else if (st <= 10) {
+                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
+                            } else {
+                                stockBadge = `<span class="size-stock-tag plenty">In Stock</span>`;
+                            }
+                        } else if (selectedColor) {
+                            // If a specific color is selected and no stock exists for this size
+                            stockBadge = `<span class="size-stock-tag out">Out</span>`;
+                            outClass = ' out-of-stock-box';
+                        }
+                        
+                        return `<div class="size-box${outClass}" onclick="selectSize(this, '${size}')" data-size="${size}" data-stock="${st !== null && st !== undefined ? st : ''}">
+                            <span>${size}</span>
+                            ${stockBadge}
+                        </div>`;
+                    }).join('');
+                    if (sizeSec) sizeSec.style.display = 'block';
+                } else if (sizeSec) {
+                    sizeSec.style.display = 'none';
+                }
+                
+                // Clear selected size UI state and stock alert
+                window.selectedSize = null;
+                const infoBar = document.getElementById('size-stock-info');
+                if (infoBar) infoBar.style.display = 'none';
+                const qtyEl = document.getElementById('pdp-qty');
+                if (qtyEl) qtyEl.textContent = '1';
+                window.currentQty = 1;
+                updateStockAlert(totalProductStock);
+            };
 
             // Extract additional color tags from product images
             if (product.product_images && product.product_images.length > 0) {
@@ -2896,36 +2953,7 @@
             const sizes = Array.from(availableSizes);
             const colors = Array.from(availableColors);
 
-            const sizeSec = document.getElementById('size-section');
-            if (sizes.length > 0) {
-                const pdpSizes = document.getElementById('pdp-sizes');
-                if (pdpSizes) {
-                    pdpSizes.innerHTML = sizes.map(size => {
-                        const st = window.sizeStockMap ? window.sizeStockMap[size] : null;
-                        let stockBadge = '';
-                        let outClass = '';
-                        if (st !== null && st !== undefined) {
-                            if (st === 0) {
-                                stockBadge = `<span class="size-stock-tag out">Out</span>`;
-                                outClass = ' out-of-stock-box';
-                            } else if (st <= 3) {
-                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
-                            } else if (st <= 10) {
-                                stockBadge = `<span class="size-stock-tag low">${st} left</span>`;
-                            } else {
-                                stockBadge = `<span class="size-stock-tag plenty">In Stock</span>`;
-                            }
-                        }
-                        return `<div class="size-box${outClass}" onclick="selectSize(this, '${size}')" data-size="${size}" data-stock="${st !== null && st !== undefined ? st : ''}">
-                            <span>${size}</span>
-                            ${stockBadge}
-                        </div>`;
-                    }).join('');
-                }
-                if (sizeSec) sizeSec.style.display = 'block';
-            } else {
-                if (sizeSec) sizeSec.style.display = 'none';
-            }
+            window.renderSizesForColor(null);
 
             const colorSec = document.getElementById('color-section');
             if (colors.length > 0) {
@@ -3326,6 +3354,10 @@
             // Clear error message
             const colorErr = document.getElementById('color-error-msg');
             if (colorErr) colorErr.style.display = 'none';
+
+            if (typeof window.renderSizesForColor === 'function') {
+                window.renderSizesForColor(color);
+            }
 
             if (imgUrl) {
                 const cleanTarget = imgUrl.split('#')[0];
