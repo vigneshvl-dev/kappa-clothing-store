@@ -126,7 +126,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: cover !important;
             transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
@@ -553,10 +553,8 @@
 
         <!-- GENDER FILTER TABS -->
         <div id="shop-explore-gender-tabs" style="display:flex; gap:8px; margin:12px 0 16px; flex-wrap:wrap;">
-            <button id="shop-explore-tab-all" onclick="shopFilterExploreByGender('all', this)"
-                style="padding:7px 20px; border-radius:20px; border:none; font-size:13px; font-weight:700; cursor:pointer; background:#111; color:#fff; transition:all .2s;">All</button>
             <button id="shop-explore-tab-men" onclick="shopFilterExploreByGender('men', this)"
-                style="padding:7px 20px; border-radius:20px; border:1px solid #ddd; font-size:13px; font-weight:700; cursor:pointer; background:#fff; color:#333; transition:all .2s;">👔 Men</button>
+                style="padding:7px 20px; border-radius:20px; border:none; font-size:13px; font-weight:700; cursor:pointer; background:#111; color:#fff; transition:all .2s;">👔 Men</button>
             <button id="shop-explore-tab-women" onclick="shopFilterExploreByGender('women', this)"
                 style="padding:7px 20px; border-radius:20px; border:1px solid #ddd; font-size:13px; font-weight:700; cursor:pointer; background:#fff; color:#333; transition:all .2s;">👗 Women</button>
         </div>
@@ -1173,6 +1171,7 @@
                         title: 'BEST SELLER',
                         subtitle: 'denim',
                         tag_label: 'Men >',
+                        gender: 'men',
                         image_url: 'assets/mens_denim_banner.png',
                         selection_type: 'collection',
                         collection_id: 'best_sellers',
@@ -1185,6 +1184,7 @@
                         title: 'PANTS &',
                         subtitle: 'trousers',
                         tag_label: 'Men >',
+                        gender: 'men',
                         image_url: 'assets/duplicate.png',
                         selection_type: 'category',
                         destination_url: 'pants',
@@ -1197,6 +1197,7 @@
                         title: 'TRENDING',
                         subtitle: 'shirts',
                         tag_label: 'Men >',
+                        gender: 'men',
                         image_url: 'assets/Frame 4.webp',
                         selection_type: 'category',
                         destination_url: 'shirts',
@@ -1209,6 +1210,7 @@
                         title: 'NEW',
                         subtitle: 'arrivals',
                         tag_label: 'Women >',
+                        gender: 'women',
                         image_url: 'assets/WOMENFASHION.png',
                         selection_type: 'collection',
                         collection_id: 'new_arrivals',
@@ -1241,13 +1243,19 @@
                 const title = card.title || 'EXPLORE';
                 const subtitle = card.subtitle || '';
                 const btnText = card.button_text || 'SHOP NOW';
-                const cardGender = card.gender || 'both';
-
-                const fitStyle = card.display_mode === 'contain' ? 'style="object-fit:contain; background:#111;"' : '';
+                
+                // Determine gender strictly or with intelligent fallback from tag/title
+                let cardGender = card.gender;
+                if (!cardGender || cardGender === 'both') {
+                    const textToCheck = ((card.tag_label || '') + ' ' + (card.title || '') + ' ' + (card.destination_url || '')).toLowerCase();
+                    if (textToCheck.includes('women')) cardGender = 'women';
+                    else if (textToCheck.includes('men')) cardGender = 'men';
+                    else cardGender = 'men';
+                }
 
                 html += `
                     <div class="explore-card" data-gender="${cardGender}" onclick="handleExploreCardClick(${index})">
-                        <img src="${img}" class="explore-card-img" ${fitStyle} alt="${title}">
+                        <img src="${img}" class="explore-card-img" alt="${title}">
                         <div class="explore-card-overlay"></div>
                         <div class="explore-card-tag">${tag}</div>
                         <div class="explore-card-content">
@@ -1262,15 +1270,14 @@
             track.innerHTML = html;
             section.style.display = 'block';
 
-            // Re-apply the active gender filter after re-render
-            if (window._shopExploreGenderFilter && window._shopExploreGenderFilter !== 'all') {
-                const btn = document.getElementById('shop-explore-tab-' + window._shopExploreGenderFilter);
-                shopFilterExploreByGender(window._shopExploreGenderFilter, btn);
-            }
+            // Apply active gender filter (default to 'men')
+            const activeFilter = window._shopExploreGenderFilter || 'men';
+            const activeBtn = document.getElementById('shop-explore-tab-' + activeFilter) || document.getElementById('shop-explore-tab-men');
+            shopFilterExploreByGender(activeFilter, activeBtn);
         }
 
-        // Strict gender filter for shop explore cards
-        window._shopExploreGenderFilter = 'all';
+        // Strict gender filter for shop explore cards (default Men)
+        window._shopExploreGenderFilter = 'men';
         window.shopFilterExploreByGender = function (gender, btnEl) {
             window._shopExploreGenderFilter = gender;
 
@@ -1288,12 +1295,8 @@
 
             // Strict filter — Men shows ONLY men, Women shows ONLY women
             document.querySelectorAll('#explore-cards-track .explore-card[data-gender]').forEach(card => {
-                const cardGender = card.getAttribute('data-gender') || 'both';
-                if (gender === 'all') {
-                    card.style.display = '';
-                } else {
-                    card.style.display = cardGender === gender ? '' : 'none';
-                }
+                const cardGender = card.getAttribute('data-gender') || 'men';
+                card.style.display = cardGender === gender ? '' : 'none';
             });
         };
 
