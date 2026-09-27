@@ -2909,109 +2909,107 @@ async function loadInventory() {
     let html = `<table class="stock-table" id="inventory-table" style="width: 100%; text-align: left; border-collapse: collapse;">
         <thead>
             <tr style="border-bottom: 1px solid #eee;">
-                <th style="padding-bottom: 10px;">Image</th>
-                <th style="padding-bottom: 10px;">Product Name</th>
-                <th style="padding-bottom: 10px;">Category</th>
-                <th style="padding-bottom: 10px;">Price</th>
-                <th style="padding-bottom: 10px;">Stock Status</th>
+                <th style="padding-bottom: 10px;">Product</th>
+                <th style="padding-bottom: 10px;">Variant Stock (Colour → Size → Stock)</th>
                 <th style="padding-bottom: 10px; text-align: right;">Actions</th>
             </tr>
         </thead>
         <tbody>`;
 
     data.forEach(prod => {
-        // Resolve full category string (e.g., "Women ↳ Tops")
         const catDisplay = hierarchyMap[prod.category_id] || 'Uncategorized';
-
-        // Find the parent ID for filtering logic
         let parentId = '';
         if (catMap[prod.category_id] && catMap[prod.category_id].parent_id) {
             parentId = catMap[prod.category_id].parent_id;
         }
 
-        // Calculate dynamic stock with overrides
-        const pid = String(prod.id);
-        const prodOverride = overrides[pid] || null;
-        let totalStock = 0;
-        let variantStockList = [];
-
-        if (prod.product_variants && prod.product_variants.length > 0) {
-            prod.product_variants.forEach(v => {
-                let vQty = Number(v.stock_quantity || 0);
-                if (prodOverride && prodOverride.variants && prodOverride.variants[v.size]) {
-                    vQty = Math.max(0, vQty - prodOverride.variants[v.size]);
-                }
-                totalStock += vQty;
-                if (v.size && v.size !== 'Default') {
-                    variantStockList.push(`${v.size}: <strong>${vQty}</strong>`);
-                }
-            });
-        } else {
-            totalStock = Number(prod.stock_quantity || 0);
-            if (prodOverride && prodOverride.totalDeducted) {
-                totalStock = Math.max(0, totalStock - prodOverride.totalDeducted);
-            }
-        }
-
-        let stockBadgeHtml = '';
-        if (totalStock <= 0) {
-            stockBadgeHtml = `<span class="badge" style="background:#ffebee; color:#c62828; font-weight:700; font-size: 11px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffcdd2;">🔴 Out of Stock (0)</span>`;
-        } else if (totalStock <= 5) {
-            stockBadgeHtml = `<span class="badge" style="background:#fff8e1; color:#f57f17; font-weight:700; font-size: 11px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffe082;">🟡 Low Stock (${totalStock})</span>`;
-        } else {
-            stockBadgeHtml = `<span class="badge" style="background:#e8f5e9; color:#2e7d32; font-weight:700; font-size: 11px; padding: 4px 8px; border-radius: 4px; border: 1px solid #c8e6c9;">🟢 In Stock (${totalStock})</span>`;
-        }
-
-        const variantSummary = variantStockList.length > 0
-            ? `<div style="font-size: 11px; color: #666; margin-top: 4px; line-height: 1.4;">${variantStockList.join(' &bull; ')}</div>`
-            : '';
-
-        // Sort images by position and build thumbnail strip
         const sortedImages = (prod.product_images || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+        let coverImg = sortedImages.length > 0 ? sortedImages[0].url.split('#')[0] : '';
+        let imgHtml = coverImg ? `<img src="${coverImg}" style="width:50px; height:60px; object-fit:cover; border-radius:4px; border:1px solid #ddd;">` : `<div style="width:50px; height:60px; background:#eee; border-radius:4px;"></div>`;
 
-        let imgStripHTML = '';
-        if (sortedImages.length === 0) {
-            imgStripHTML = `<div style="width: 48px; height: 56px; background: #eee; border-radius: 6px; display:inline-block;"></div>`;
-        } else {
-            imgStripHTML = `<div style="display:flex; gap:4px; align-items:center; flex-wrap:nowrap;">`;
-            const maxShow = 4;
-            sortedImages.slice(0, maxShow).forEach((img, idx) => {
-                const cleanUrl = img.url.split('#')[0];
-                const colorLabel = img.url.split('#')[1] || '';
-                const isCover = idx === 0;
-                imgStripHTML += `
-                    <div style="position:relative; display:inline-block;" title="${colorLabel || 'Image ' + (idx + 1)}">
-                        <img src="${cleanUrl}" 
-                             style="width:${isCover ? '52px' : '38px'}; height:${isCover ? '62px' : '46px'}; object-fit:cover; border-radius:5px; border:${isCover ? '2px solid #111' : '1px solid #ddd'}; cursor:pointer; transition:transform 0.15s ease;"
-                             onmouseover="this.style.transform='scale(1.12)'" 
-                             onmouseout="this.style.transform='scale(1)'">
-                        ${isCover ? '<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.65);color:#fff;font-size:8px;text-align:center;border-radius:0 0 4px 4px;padding:1px;">COVER</span>' : ''}
-                    </div>`;
+        let variantEditorHtml = '';
+        if (prod.product_variants && prod.product_variants.length > 0) {
+            // Group variants by color
+            const byColor = {};
+            prod.product_variants.forEach(v => {
+                const c = v.color || 'Default';
+                if (!byColor[c]) byColor[c] = [];
+                byColor[c].push(v);
             });
-            if (sortedImages.length > maxShow) {
-                imgStripHTML += `<span style="font-size:11px;color:#777;font-weight:bold;">+${sortedImages.length - maxShow}</span>`;
+
+            variantEditorHtml += `<div style="display:flex; flex-direction:column; gap:10px;">`;
+            for (const color in byColor) {
+                variantEditorHtml += `<div style="background:#f9f9f9; border:1px solid #eee; border-radius:6px; padding:10px;">
+                    <h4 style="margin:0 0 8px 0; font-size:12px; color:#333;">${color}</h4>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px;">
+                `;
+                byColor[color].forEach(v => {
+                    variantEditorHtml += `
+                        <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:4px 8px; border:1px solid #ddd; border-radius:4px;">
+                            <span style="font-size:11px; font-weight:bold; width:30px;">${v.size}</span>
+                            <input type="number" id="inv-qty-${v.id}" value="${v.stock_quantity || 0}" style="width:50px; padding:2px 4px; font-size:12px; border:1px solid #ccc; border-radius:3px;">
+                            <button onclick="updateVariantStock('${v.id}')" style="background:#000; color:#fff; border:none; border-radius:3px; padding:3px 6px; font-size:10px; cursor:pointer;">Save</button>
+                        </div>
+                    `;
+                });
+                variantEditorHtml += `</div></div>`;
             }
-            imgStripHTML += `</div>`;
+            variantEditorHtml += `</div>`;
+        } else {
+            variantEditorHtml = `<p style="font-size:11px; color:#999;">No variants defined.</p>`;
         }
 
-        // Inject data-attributes for live filtering
-        html += `<tr class="inv-row" data-cat="${prod.category_id}" data-parent="${parentId}" style="border-bottom: 1px solid #f9f9f9;">
-            <td style="padding: 10px 4px;">${imgStripHTML}</td>
-            <td><strong>${prod.name}</strong></td>
-            <td><span class="badge" style="background:#f1f1f1; color:#333; font-weight:bold; font-size: 12px; padding: 4px 8px; border-radius: 4px;">${catDisplay}</span></td>
-            <td>₹${prod.price}</td>
-            <td>
-                ${stockBadgeHtml}
-                ${variantSummary}
+        html += `<tr class="inv-row" data-cat="${prod.category_id}" data-parent="${parentId}" style="border-bottom: 1px solid #eee;">
+            <td style="padding: 15px 4px; vertical-align:top; width:200px;">
+                <div style="display:flex; gap:10px;">
+                    ${imgHtml}
+                    <div>
+                        <strong style="display:block; font-size:14px; margin-bottom:4px;">${prod.name}</strong>
+                        <span class="badge" style="background:#f1f1f1; color:#333; font-weight:bold; font-size: 10px; padding: 2px 6px; border-radius: 4px;">${catDisplay}</span>
+                        <div style="font-size:12px; margin-top:6px; color:#555;">₹${prod.price}</div>
+                    </div>
+                </div>
             </td>
-            <td style="text-align: right;">
-                <button class="btn-secondary" style="padding: 6px 12px; margin-right: 8px; cursor: pointer;" onclick="editProduct('${prod.id}')">Edit</button>
-                <button class="btn-delete" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="deleteProduct('${prod.id}')">Delete</button>
+            <td style="padding: 15px 10px; vertical-align:top;">
+                ${variantEditorHtml}
+            </td>
+            <td style="text-align: right; vertical-align:top; padding: 15px 4px; width:150px;">
+                <button class="btn-secondary" style="padding: 6px 12px; margin-bottom: 8px; cursor: pointer; width:100%;" onclick="editProduct('${prod.id}')">Edit Product</button>
+                <button class="btn-delete" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; width:100%;" onclick="deleteProduct('${prod.id}')">Delete</button>
             </td>
         </tr>`;
     });
     html += `</tbody></table>`;
     container.innerHTML = html;
+}
+
+window.updateVariantStock = async function(variantId) {
+    const input = document.getElementById(`inv-qty-${variantId}`);
+    if (!input) return;
+    const newStock = parseInt(input.value) || 0;
+    
+    try {
+        const { error } = await supabaseClient
+            .from('product_variants')
+            .update({ stock_quantity: newStock })
+            .eq('id', variantId);
+            
+        if (error) throw error;
+        
+        // Show success indicator on the button
+        const btn = input.nextElementSibling;
+        const oldText = btn.textContent;
+        const oldBg = btn.style.background;
+        btn.textContent = 'Saved!';
+        btn.style.background = '#16a34a';
+        setTimeout(() => {
+            btn.textContent = oldText;
+            btn.style.background = oldBg;
+        }, 1500);
+        
+    } catch (err) {
+        alert('Failed to update stock: ' + err.message);
+    }
 }
 
 // NEW: Live filter logic for the dropdown
