@@ -1609,6 +1609,18 @@
                 currentCategoryIds = getDescendantCatIds(categoryId);
             } else if (catNameUpper === 'MEN' || (catNameUpper.includes('MEN') && !catNameUpper.includes('WOMEN')) || catNameUpper.includes('BOY')) {
                 renderSidebarCategories('men');
+                
+                // Hide Women tab in Explore Cards
+                const wTab = document.getElementById('shop-explore-tab-women');
+                if (wTab) wTab.style.display = 'none';
+                const mTab = document.getElementById('shop-explore-tab-men');
+                if (mTab) {
+                    mTab.style.display = 'inline-block';
+                    if (typeof shopFilterExploreByGender === 'function') {
+                        shopFilterExploreByGender('men', mTab);
+                    }
+                }
+
                 const menRoots = (allCategoriesData || []).filter(c => {
                     const n = (c.name || '').toLowerCase();
                     return !c.parent_id && (n === 'men' || n === "men's" || n === 'boys' || (n.includes('men') && !n.includes('women')));
@@ -1619,6 +1631,18 @@
                 currentCategoryIds = Array.from(new Set(currentCategoryIds));
             } else if (catNameUpper === 'WOMEN' || catNameUpper.includes('WOMEN') || catNameUpper.includes('GIRL')) {
                 renderSidebarCategories('women');
+                
+                // Hide Men tab in Explore Cards
+                const mTab = document.getElementById('shop-explore-tab-men');
+                if (mTab) mTab.style.display = 'none';
+                const wTab = document.getElementById('shop-explore-tab-women');
+                if (wTab) {
+                    wTab.style.display = 'inline-block';
+                    if (typeof shopFilterExploreByGender === 'function') {
+                        shopFilterExploreByGender('women', wTab);
+                    }
+                }
+
                 const womenRoots = (allCategoriesData || []).filter(c => {
                     const n = (c.name || '').toLowerCase();
                     return !c.parent_id && (n === 'women' || n === "women's" || n === 'girls' || n.includes('women'));
@@ -1629,6 +1653,10 @@
                 currentCategoryIds = Array.from(new Set(currentCategoryIds));
             } else if (catNameUpper === 'ALL PRODUCTS') {
                 renderSidebarCategories('');
+                const mTab = document.getElementById('shop-explore-tab-men');
+                const wTab = document.getElementById('shop-explore-tab-women');
+                if (mTab) mTab.style.display = 'inline-block';
+                if (wTab) wTab.style.display = 'inline-block';
             }
 
             // --- OPTIMISTIC RENDER FROM CACHE ---
