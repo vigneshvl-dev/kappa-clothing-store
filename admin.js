@@ -282,35 +282,16 @@ window.loadDashboard = async function () {
 };
 
 // ==========================================
-// SIDEBAR ORDER BADGES (was missing — caused verifyAdmin crash)
+// SIDEBAR ORDER BADGES — stub (real logic below in window.updateSidebarOrderBadges)
 // ==========================================
+// NOTE: This early stub is intentionally empty. The real implementation is assigned
+// to window.updateSidebarOrderBadges further below and uses seen-order tracking.
+// This stub is only here so references before that point don't throw.
 async function updateSidebarOrderBadges() {
-    try {
-        const { data: orders } = await supabaseClient
-            .from('orders')
-            .select('id, status, order_stage')
-            .order('created_at', { ascending: false })
-            .limit(200);
-        if (!orders) return;
-
-        const newOrders = orders.filter(o => {
-            const stage = (o.order_stage || '').toLowerCase();
-            return stage === 'incoming' || !stage;
-        });
-        const cancelledOrders = orders.filter(o => {
-            const st = (o.status || '').toLowerCase();
-            const stage = (o.order_stage || '').toLowerCase();
-            return st.includes('cancel') || stage === 'cancelled';
-        });
-
-        const ob = document.getElementById('nav-badge-orders');
-        const cb = document.getElementById('nav-badge-cancelled');
-        const mhb = document.getElementById('mobile-header-notif-badge');
-        if (ob) { ob.textContent = newOrders.length; ob.style.display = newOrders.length > 0 ? '' : 'none'; }
-        if (cb) { cb.textContent = cancelledOrders.length; cb.style.display = cancelledOrders.length > 0 ? '' : 'none'; }
-        const total = newOrders.length + cancelledOrders.length;
-        if (mhb) { mhb.textContent = total; mhb.style.display = total > 0 ? '' : 'none'; }
-    } catch (e) { console.warn('updateSidebarOrderBadges error:', e); }
+    // Delegate to the real implementation once it is defined
+    if (typeof window.updateSidebarOrderBadges === 'function' && window.updateSidebarOrderBadges !== updateSidebarOrderBadges) {
+        return window.updateSidebarOrderBadges();
+    }
 }
 
 // ==========================================
@@ -1282,25 +1263,45 @@ window.updateSidebarOrderBadges = async function () {
             const seenOrders = new Set(getSeenOrderIds());
             const seenCancelled = new Set(getSeenCancelledOrderIds());
 
+            // Detect which tab is currently active
+            const isOrdersActive = document.getElementById('view-orders')?.classList.contains('active-view');
+            const isCancelledActive = document.getElementById('view-cancelled')?.classList.contains('active-view');
+            const isRecyclebinActive = document.getElementById('view-recyclebin')?.classList.contains('active-view');
+
+            const allActiveIds = [];
+            const allCancelledIds = [];
+
             // Active (new/processing) orders unseen count
-            const activeUnseen = orders.filter(o => {
+            let activeUnseen = 0;
+            // Cancelled orders unseen count
+            let cancelledUnseen = 0;
+
+            orders.forEach(o => {
                 const st = (o.status || '').toLowerCase();
                 const stage = (o.order_stage || '').toLowerCase();
-                if (stage === 'recycled' || st === 'recycled') return false;
-                if (stage === 'cancelled' || st.includes('cancel') || st.includes('refund')) return false;
-                return !seenOrders.has(String(o.id));
+                const idStr = String(o.id);
+                if (stage === 'recycled' || st === 'recycled') return; // skip recycled
+
+                if (stage === 'cancelled' || st.includes('cancel') || st.includes('refund')) {
+                    allCancelledIds.push(idStr);
+                    if (!seenCancelled.has(idStr)) cancelledUnseen++;
+                } else {
+                    allActiveIds.push(idStr);
+                    if (!seenOrders.has(idStr)) activeUnseen++;
+                }
             });
 
-            // Cancelled orders unseen count
-            const cancelledUnseen = orders.filter(o => {
-                const st = (o.status || '').toLowerCase();
-                const stage = (o.order_stage || '').toLowerCase();
-                if (stage === 'recycled' || st === 'recycled') return false;
-                if (stage === 'cancelled' || st.includes('cancel') || st.includes('refund')) {
-                    return !seenCancelled.has(String(o.id));
-                }
-                return false;
-            });
+            // If Orders tab is open OR Recycle Bin is open → mark all orders as seen, hide badge
+            if (isOrdersActive || isRecyclebinActive) {
+                if (allActiveIds.length > 0) markOrdersAsSeen(allActiveIds);
+                activeUnseen = 0;
+            }
+
+            // If Cancelled tab is open OR Recycle Bin is open → mark all cancelled as seen, hide badge
+            if (isCancelledActive || isRecyclebinActive) {
+                if (allCancelledIds.length > 0) markCancelledOrdersAsSeen(allCancelledIds);
+                cancelledUnseen = 0;
+            }
 
             // Recycled count
             const dbRecycledCount = orders.filter(o => o.order_stage === 'recycled' || o.status === 'recycled').length;
@@ -1310,11 +1311,8 @@ window.updateSidebarOrderBadges = async function () {
             // Update Orders Badge
             const ob = document.getElementById('nav-badge-orders');
             if (ob) {
-                if (document.getElementById('view-orders')?.classList.contains('active-view')) {
-                    ob.textContent = '0';
-                    ob.style.display = 'none';
-                } else if (activeUnseen.length > 0) {
-                    ob.textContent = activeUnseen.length;
+                if (activeUnseen > 0) {
+                    ob.textContent = activeUnseen;
                     ob.style.display = 'inline-block';
                 } else {
                     ob.textContent = '0';
@@ -1325,11 +1323,8 @@ window.updateSidebarOrderBadges = async function () {
             // Update Cancelled Orders Badge
             const cb = document.getElementById('nav-badge-cancelled');
             if (cb) {
-                if (document.getElementById('view-cancelled')?.classList.contains('active-view')) {
-                    cb.textContent = '0';
-                    cb.style.display = 'none';
-                } else if (cancelledUnseen.length > 0) {
-                    cb.textContent = cancelledUnseen.length;
+                if (cancelledUnseen > 0) {
+                    cb.textContent = cancelledUnseen;
                     cb.style.display = 'inline-block';
                 } else {
                     cb.textContent = '0';
@@ -5548,90 +5543,9 @@ window.updateOrderCancellationReason = async function (orderId, newReason) {
 function getSeenOrders() { return getSeenOrderIds(); }
 function getSeenCancelledOrders() { return getSeenCancelledOrderIds(); }
 
+// Stub — delegates to the single authoritative window.updateSidebarOrderBadges defined above
 async function updateSidebarOrderBadges() {
-    const ordersBadge = document.getElementById('nav-badge-orders');
-    const cancelledBadge = document.getElementById('nav-badge-cancelled');
-
-    try {
-        const { data: orders, error } = await supabaseClient
-            .from('orders')
-            .select('id, status, order_stage, created_at')
-            .order('created_at', { ascending: false });
-
-        if (error || !orders) return;
-
-        // On very first load of admin dashboard, initialize known orders as already seen so badge starts at 0
-        const isFirstInit = localStorage.getItem('kappa_admin_badges_initialized') !== 'true';
-        if (isFirstInit) {
-            const allOrderIds = orders.filter(o => !((o.status || '').toLowerCase().includes('cancel') || o.order_stage === 'cancelled')).map(o => String(o.id));
-            const allCancelledIds = orders.filter(o => ((o.status || '').toLowerCase().includes('cancel') || o.order_stage === 'cancelled')).map(o => String(o.id));
-            localStorage.setItem('kappa_admin_seen_orders', JSON.stringify(allOrderIds));
-            localStorage.setItem('kappa_admin_seen_cancelled', JSON.stringify(allCancelledIds));
-            localStorage.setItem('kappa_admin_badges_initialized', 'true');
-        }
-
-        const seenOrders = new Set(getSeenOrders());
-        const seenCancelled = new Set(getSeenCancelledOrders());
-
-        const isOrdersActive = document.querySelector('.sidebar-menu li[data-target="orders"]')?.classList.contains('active');
-        const isCancelledActive = document.querySelector('.sidebar-menu li[data-target="cancelled"]')?.classList.contains('active');
-
-        let newOrdersCount = 0;
-        let newCancelledCount = 0;
-        const currentActiveIds = [];
-        const currentCancelledIds = [];
-
-        orders.forEach(o => {
-            const st = (o.status || '').toLowerCase().trim();
-            const stage = (o.order_stage || '').toLowerCase().trim();
-            const idStr = String(o.id);
-
-            // Skip recycled orders entirely
-            if (stage === 'recycled' || st === 'recycled') return;
-
-            if (st.includes('cancel') || stage === 'cancelled') {
-                currentCancelledIds.push(idStr);
-                if (!seenCancelled.has(idStr)) newCancelledCount++;
-            } else {
-                currentActiveIds.push(idStr);
-                if (!seenOrders.has(idStr)) newOrdersCount++;
-            }
-        });
-
-        // If admin is currently on the Orders tab, auto-mark active orders as seen
-        if (isOrdersActive) {
-            if (currentActiveIds.length > 0) markOrdersAsSeen(currentActiveIds);
-            newOrdersCount = 0;
-        }
-
-        // If admin is currently on the Cancelled tab, auto-mark cancelled orders as seen
-        if (isCancelledActive) {
-            if (currentCancelledIds.length > 0) markCancelledOrdersAsSeen(currentCancelledIds);
-            newCancelledCount = 0;
-        }
-
-        if (ordersBadge) {
-            if (newOrdersCount > 0) {
-                ordersBadge.textContent = newOrdersCount;
-                ordersBadge.style.display = 'inline-flex';
-            } else {
-                ordersBadge.textContent = '0';
-                ordersBadge.style.display = 'none';
-            }
-        }
-
-        if (cancelledBadge) {
-            if (newCancelledCount > 0) {
-                cancelledBadge.textContent = newCancelledCount;
-                cancelledBadge.style.display = 'inline-flex';
-            } else {
-                cancelledBadge.textContent = '0';
-                cancelledBadge.style.display = 'none';
-            }
-        }
-    } catch (e) {
-        console.warn('Could not update sidebar badges:', e);
-    }
+    return window.updateSidebarOrderBadges();
 }
 
 // ==========================================
