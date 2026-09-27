@@ -3419,6 +3419,9 @@
             if (window.sizeStockMap && window.sizeStockMap[sSize] !== undefined) {
                 window.sizeStockMap[sSize] = newStock;
             }
+            if (sColor !== 'N/A' && window.variantStockMap && window.variantStockMap[sColor] && window.variantStockMap[sColor][sSize] !== undefined) {
+                window.variantStockMap[sColor][sSize] = newStock;
+            }
             window.currentAvailableStock = newStock;
 
             if (typeof window.modifyStockOnCartAction === 'function') {
